@@ -1,5 +1,5 @@
 name: app
-description: "A new Flutter project."
+description: "Dreadmoor: Rebecca Stone Mystery"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.6.1
+  riverpod: ^2.6.1
   drift: ^2.24.2
   sqlite3: ^2.1.0
   sqlite3_flutter_libs: ^0.5.24
@@ -22,7 +23,6 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.1
   json_annotation: ^4.9.0
-  riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:
@@ -32,6 +32,14 @@ dev_dependencies:
   drift_dev: ^2.31.0
   json_serializable: ^6.11.2
   flutter_launcher_icons: ^0.14.4
+
+# ⬇️ THE FIX FOR YOUR BUILD ERROR ⬇️
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false # This stops the tool from looking for the missing iOS folder
+  image_path: "assets/icon/icon.png" # Path to your icon file
+  adaptive_icon_background: "#0a0a0a" # Noir theme background
+  adaptive_icon_foreground: "assets/icon/icon.png"
 
 flutter:
   uses-material-design: true
