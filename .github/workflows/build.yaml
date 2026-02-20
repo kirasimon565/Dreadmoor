@@ -2,30 +2,24 @@ name: Build Android
 
 on:
   push:
-    branches:
-      - "main"
-      - "Dreadmoor-init-17025123926669017520" # Target your specific dev branch
+    branches: [ "Dreadmoor-init-17025123926669017520" ]
   pull_request:
-    branches:
-      - "main"
-      - "Dreadmoor-init-17025123926669017520"
+    branches: [ "Dreadmoor-init-17025123926669017520" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17' # Required for modern Android/Flutter builds
+          java-version: '17'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
@@ -33,20 +27,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run Drift Code Generation
-        # This generates the database code (*.g.dart) that Drift needs to function
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Generate Launcher Icons
+        run: dart run flutter_launcher_icons:main
+        # This will look for your icon configuration in pubspec.yaml 
+        # and overwrite the default Flutter icons with your assets.
 
-      - name: Analyze Code
-        # Verifies the code is healthy before building
+      - name: Generate Drift Code
+        run: dart run build_runner build --delete-conflicting-outputs
+        # Essential for your detective board, messages, and state persistence.
+
+      - name: Analyze
         run: flutter analyze
 
       - name: Build APK
-        # Builds a release-ready APK
         run: flutter build apk --release
 
-      - name: Upload Build Artifact
-        # This makes the APK downloadable from your GitHub Actions tab
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: dreadmoor-release-apk
