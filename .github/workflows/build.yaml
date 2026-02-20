@@ -2,16 +2,20 @@ name: Build Android
 
 on:
   push:
-    branches: [ "Dreadmoor-init-17025123926669017520" ]
+    branches:
+      - 'dreadmoor-init-17025123926669017520'
   pull_request:
-    branches: [ "Dreadmoor-init-17025123926669017520" ]
+    branches:
+      - 'dreadmoor-init-17025123926669017520'
+  workflow_dispatch: # CRITICAL: This adds the manual "Run" button in GitHub
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -19,7 +23,8 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
@@ -29,21 +34,17 @@ jobs:
 
       - name: Generate Launcher Icons
         run: dart run flutter_launcher_icons:main
-        # This will look for your icon configuration in pubspec.yaml 
-        # and overwrite the default Flutter icons with your assets.
+        # This builds your icon using the config in your pubspec.yaml
 
       - name: Generate Drift Code
         run: dart run build_runner build --delete-conflicting-outputs
-        # Essential for your detective board, messages, and state persistence.
-
-      - name: Analyze
-        run: flutter analyze
+        # This generates the database code for the crime story engine
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: dreadmoor-release-apk
+          name: Dreadmoor-Game-Build
           path: build/app/outputs/flutter-apk/app-release.apk
