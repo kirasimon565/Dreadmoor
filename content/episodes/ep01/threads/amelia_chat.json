@@ -1,0 +1,50 @@
+{
+  "id": "amelia_chat",
+  "title": "Amelia",
+  "participants": ["amelia", "player"],
+  "script": [
+    {
+      "id": "msg1",
+      "type": "text",
+      "senderId": "amelia",
+      "content": "Hey... have you heard from Rebecca?",
+      "delay": 1000,
+      "next": "msg2"
+    },
+    {
+      "id": "msg2",
+      "type": "text",
+      "senderId": "amelia",
+      "content": "She isn't answering my calls.",
+      "delay": 2000,
+      "next": "choice1"
+    },
+    {
+      "id": "choice1",
+      "type": "choice",
+      "options": [
+        { "text": "No, I haven't seen her.", "jumpto": "seen_no" },
+        { "text": "Wait, wasn't she with you?", "jumpto": "with_you" }
+      ]
+    },
+    {
+      "id": "seen_no",
+      "type": "player_text",
+      "content": "No, I haven't seen her since last night.",
+      "next": "end"
+    },
+    {
+      "id": "with_you",
+      "type": "player_text",
+      "content": "Wait, wasn't she with you?",
+      "next": "end"
+    },
+    {
+      "id": "end",
+      "type": "text",
+      "senderId": "amelia",
+      "content": "Damn it. This is bad.",
+      "delay": 1500
+    }
+  ]
+}

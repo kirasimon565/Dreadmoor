@@ -1,0 +1,42 @@
+name: app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  drift: ^2.31.0
+  sqlite3_flutter_libs: ^0.6.0+eol
+  go_router: ^17.1.0
+  lottie: ^3.3.2
+  google_fonts: ^8.0.2
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.11.1
+  drift_dev: ^2.31.0
+  json_serializable: ^6.11.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/branding/
+    - assets/backgrounds/
+    - assets/ui/
+    - assets/characters/
+    - assets/map/
+    - assets/map/locations/
+    - content/episodes/ep01/
+    - content/episodes/ep01/threads/
