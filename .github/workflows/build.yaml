@@ -1,4 +1,4 @@
-name: Build
+name: Build Android
 
 on:
   push:
@@ -23,9 +23,6 @@ jobs:
 
       - name: Analyze
         run: flutter analyze
-
-      - name: Build Web
-        run: flutter build web --release
 
       - name: Build APK
         run: flutter build apk --release
