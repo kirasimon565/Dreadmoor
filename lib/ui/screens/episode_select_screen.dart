@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/game_state.dart';
-import '../../core/scheduler/global_scheduler.dart';
 import 'package:go_router/go_router.dart';
 
 class EpisodeSelectScreen extends ConsumerWidget {

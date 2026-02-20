@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/messenger_state.dart';
-import '../../core/state/game_state.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/choice_overlay.dart';
-import 'package:lottie/lottie.dart';
+import '../widgets/gun_typing_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String threadId;
@@ -81,22 +80,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               threadAsync.maybeWhen(
                 data: (thread) {
                    if (thread != null && thread.isTyping) {
-                     return Container(
-                       padding: const EdgeInsets.all(8.0),
-                       color: Colors.black54,
-                       child: Row(
-                         children: [
-                           const SizedBox(width: 10),
-                           const Text('Typing...', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
-                           const SizedBox(width: 10),
-                           Lottie.asset(
-                             'assets/ui/typing_gun_anim.json',
-                             height: 30,
-                             errorBuilder: (c,e,s) => const Icon(Icons.more_horiz, color: Colors.grey),
-                           ),
-                         ],
-                       ),
-                     );
+                     return const GunTypingIndicator();
                    }
                    return const SizedBox.shrink();
                 },

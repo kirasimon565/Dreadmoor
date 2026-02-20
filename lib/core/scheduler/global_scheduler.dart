@@ -2,10 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import '../../core/persistence/drift_database.dart';
-import '../../core/persistence/tables.dart'; // Keep for table definitions if needed
 import '../models/script_models.dart';
 import '../state/game_state.dart';
-import '../scripting/script_loader.dart';
 
 class GlobalScheduler {
   final Ref ref;

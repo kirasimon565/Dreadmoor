@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/player_state.dart';
-import '../../core/persistence/drift_database.dart';
 
 class PlayerProfileScreen extends ConsumerWidget {
   const PlayerProfileScreen({Key? key}) : super(key: key);

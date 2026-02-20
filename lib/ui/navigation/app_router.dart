@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,6 +19,7 @@ import '../../ui/screens/settings_screen.dart';
 import '../../ui/screens/save_load_screen.dart';
 import '../../ui/screens/credits_screen.dart';
 import '../../ui/screens/legal_disclaimer_screen.dart';
+import '../../ui/screens/debug/debug_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -103,6 +103,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/legal',
         builder: (context, state) => const LegalDisclaimerScreen(),
+      ),
+      GoRoute(
+        path: '/debug',
+        builder: (context, state) => const DebugScreen(),
       ),
     ],
   );

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/persistence/drift_database.dart';
-import '../../core/persistence/tables.dart';
 import 'game_state.dart';
 
 final playerProvider = StreamProvider<Player?>((ref) {

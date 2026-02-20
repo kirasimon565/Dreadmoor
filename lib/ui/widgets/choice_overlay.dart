@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/game_state.dart';
-import '../../core/models/script_models.dart';
-import '../../core/scheduler/global_scheduler.dart';
 
 class ChoiceOverlay extends ConsumerWidget {
   const ChoiceOverlay({Key? key}) : super(key: key);
