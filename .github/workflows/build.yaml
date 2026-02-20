@@ -2,18 +2,30 @@ name: Build Android
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "Dreadmoor-init-17025123926669017520" # Target your specific dev branch
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "Dreadmoor-init-17025123926669017520"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17' # Required for modern Android/Flutter builds
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
@@ -21,8 +33,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
+      - name: Run Drift Code Generation
+        # This generates the database code (*.g.dart) that Drift needs to function
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze Code
+        # Verifies the code is healthy before building
         run: flutter analyze
 
       - name: Build APK
+        # Builds a release-ready APK
         run: flutter build apk --release
+
+      - name: Upload Build Artifact
+        # This makes the APK downloadable from your GitHub Actions tab
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreadmoor-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
