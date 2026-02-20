@@ -33,13 +33,12 @@ jobs:
         run: flutter pub get
 
       - name: Fix iOS Path Error
-        # This creates the dummy directory to prevent the OS Error: No such file or directory
+        # This prevents the v0.14.4 crash by creating the directory it expects
         run: mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
 
       - name: Generate Launcher Icons
-        # We target only android to be safe
-        run: dart run flutter_launcher_icons:main --android
-        continue-on-error: true 
+        # v0.14.4 just needs the main command; it reads 'ios: false' from your pubspec.yaml
+        run: dart run flutter_launcher_icons:main
 
       - name: Generate Drift Code
         run: dart run build_runner build --delete-conflicting-outputs
