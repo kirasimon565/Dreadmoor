@@ -45,7 +45,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // Background
           Positioned.fill(
              child: Image.asset(
-               'assets/backgrounds/chat_bg_loop.mp4',
+               'assets/backgrounds/chat_bg_texture.png',
                fit: BoxFit.cover,
                errorBuilder: (c,o,s) => Container(color: Colors.black),
              ),

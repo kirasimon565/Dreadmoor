@@ -24,7 +24,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
           // Background
           Positioned.fill(
              child: Image.asset(
-               'assets/backgrounds/studio_intro_bg.mp4', // Placeholder image if video not supported
+               'assets/backgrounds/studio_intro_bg.png', // Placeholder image if video not supported
                fit: BoxFit.cover,
                errorBuilder: (c,o,s) => Container(color: Colors.black),
              ),

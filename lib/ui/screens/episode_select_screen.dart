@@ -41,7 +41,7 @@ class EpisodeSelectScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: isLocked ? Colors.grey[800]! : Colors.purple),
                 image: DecorationImage(
-                  image: const AssetImage('assets/backgrounds/studio_intro_bg.mp4'), // Placeholder
+                  image: const AssetImage('assets/backgrounds/studio_intro_bg.png'), // Placeholder
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
                   onError: (e, s) {},

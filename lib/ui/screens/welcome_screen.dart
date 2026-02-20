@@ -20,7 +20,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           // Background loop
           Positioned.fill(
             child: Image.asset(
-              'assets/backgrounds/welcome_fog_loop.mp4',
+              'assets/backgrounds/welcome_fog_loop.png',
               fit: BoxFit.cover,
               errorBuilder: (c,o,s) => Container(color: Colors.black),
             ),
