@@ -32,14 +32,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Force Delete iOS Folder
-        # This is the "Nuclear Option" to stop the iOS errors forever
-        run: rm -rf ios
+      - name: Generate Launcher Icons (Android only)
+        # Patch the config to android-only BEFORE running, so iOS absence doesn't matter
+        run: |
+          dart run flutter_launcher_icons -f <(python3 -c "
+          import yaml, sys
+          with open('pubspec.yaml') as f:
+              data = yaml.safe_load(f)
+          cfg = data.get('flutter_launcher_icons', {})
+          cfg['ios'] = False
+          print(yaml.dump({'flutter_launcher_icons': cfg}))
+          ")
+        continue-on-error: true
 
-      - name: Generate Launcher Icons
-        # Using the recommended command from your error log
-        run: flutter pub run flutter_launcher_icons
-        continue-on-error: true 
+      - name: Force Delete iOS Folder
+        run: rm -rf ios
 
       - name: Generate Drift Code
         run: dart run build_runner build --delete-conflicting-outputs
