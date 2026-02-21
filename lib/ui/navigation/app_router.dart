@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,92 +22,114 @@ import '../../ui/screens/credits_screen.dart';
 import '../../ui/screens/legal_disclaimer_screen.dart';
 import '../../ui/screens/debug/debug_screen.dart';
 
+/// A custom helper to apply a cinematic fade-and-scale transition.
+/// This removes the "standard phone" slide effect and replaces it with a moody atmosphere.
+CustomTransitionPage noirTransition(BuildContext context, GoRouterState state, Widget child) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 500), // Slightly slower for drama
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 1.05, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          ),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    debugLogDiagnostics: true,
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const StudioIntroScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const StudioIntroScreen()),
       ),
       GoRoute(
         path: '/setup',
-        builder: (context, state) => const PlayerSetupScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const PlayerSetupScreen()),
       ),
       GoRoute(
         path: '/welcome',
-        builder: (context, state) => const WelcomeScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const WelcomeScreen()),
       ),
       GoRoute(
         path: '/messenger',
-        builder: (context, state) => const MessengerListScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const MessengerListScreen()),
         routes: [
           GoRoute(
             path: 'chat/:threadId',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final threadId = state.pathParameters['threadId']!;
-              return ChatScreen(threadId: threadId);
+              return noirTransition(context, state, ChatScreen(threadId: threadId));
             },
           ),
           GoRoute(
             path: 'secret/:threadId',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final threadId = state.pathParameters['threadId']!;
-              return SecretChatScreen(threadId: threadId);
+              return noirTransition(context, state, SecretChatScreen(threadId: threadId));
             },
           ),
         ],
       ),
       GoRoute(
         path: '/detective',
-        builder: (context, state) => const DetectiveBoardScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const DetectiveBoardScreen()),
       ),
       GoRoute(
         path: '/diary',
-        builder: (context, state) => const DiaryViewerScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const DiaryViewerScreen()),
       ),
       GoRoute(
         path: '/profile/:characterId',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final characterId = state.pathParameters['characterId']!;
-          return CharacterProfileScreen(characterId: characterId);
+          return noirTransition(context, state, CharacterProfileScreen(characterId: characterId));
         },
       ),
       GoRoute(
         path: '/player_profile',
-        builder: (context, state) => const PlayerProfileScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const PlayerProfileScreen()),
       ),
       GoRoute(
         path: '/map',
-        builder: (context, state) => const MapScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const MapScreen()),
       ),
       GoRoute(
         path: '/episodes',
-        builder: (context, state) => const EpisodeSelectScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const EpisodeSelectScreen()),
       ),
       GoRoute(
         path: '/recap',
-        builder: (context, state) => const RecapScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const RecapScreen()),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const SettingsScreen()),
       ),
       GoRoute(
         path: '/saveload',
-        builder: (context, state) => const SaveLoadScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const SaveLoadScreen()),
       ),
       GoRoute(
         path: '/credits',
-        builder: (context, state) => const CreditsScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const CreditsScreen()),
       ),
       GoRoute(
         path: '/legal',
-        builder: (context, state) => const LegalDisclaimerScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const LegalDisclaimerScreen()),
       ),
       GoRoute(
         path: '/debug',
-        builder: (context, state) => const DebugScreen(),
+        pageBuilder: (context, state) => noirTransition(context, state, const DebugScreen()),
       ),
     ],
   );
