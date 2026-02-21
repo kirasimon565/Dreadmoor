@@ -14,4 +14,9 @@ class ScriptLoader {
     final data = await json.decode(response);
     return ThreadScript.fromJson(data);
   }
+
+  static Future<void> loadAll() async {
+    // Placeholder for pre-loading all scripts if needed
+    // In a real app, this might index available episodes
+  }
 }

@@ -15,7 +15,11 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  // Add specific queries here if needed
+  static Future<void> init() async {
+    // Ensure database is initialized
+    final db = AppDatabase();
+    await db.customSelect('SELECT 1').get();
+  }
 }
 
 LazyDatabase _openConnection() {

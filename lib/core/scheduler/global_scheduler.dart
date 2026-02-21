@@ -13,6 +13,10 @@ class GlobalScheduler {
 
   GlobalScheduler(this.ref);
 
+  static Future<void> prepare() async {
+    // Placeholder for any global scheduler initialization
+  }
+
   Future<void> startThread(String episodeId, String threadId) async {
     try {
       final script = await ref.read(scriptLoaderProvider).loadThreadScript(episodeId, threadId);
