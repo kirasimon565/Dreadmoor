@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/state/game_state.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
 import '../../widgets/episode_teaser_card.dart';

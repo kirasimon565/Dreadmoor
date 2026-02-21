@@ -37,10 +37,10 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
     final db = ref.read(databaseProvider);
     // Create player profile
     await db.into(db.players).insert(PlayersCompanion.insert(
-      id: 'player',
+      id: const Value(1), // AutoIncrement usually ignores this but good to be safe or omit
       name: name,
       gender: _selectedGender,
-      joinedAt: DateTime.now(),
+      createdAt: Value(DateTime.now()),
     ));
 
     if (mounted) {
