@@ -1,9 +1,14 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/state/game_state.dart';
+import '../theme/colors.dart';
 
 class ChoiceOverlay extends ConsumerWidget {
-  const ChoiceOverlay({Key? key}) : super(key: key);
+  const ChoiceOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -12,41 +17,70 @@ class ChoiceOverlay extends ConsumerWidget {
 
     final scheduler = ref.read(globalSchedulerProvider);
     final choices = scheduler.getCurrentChoices();
-
     if (choices == null || choices.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      color: Colors.black.withOpacity(0.8),
-      padding: const EdgeInsets.all(20),
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('CHOOSE WISELY', style: TextStyle(fontFamily: 'Cinzel', color: Colors.white, letterSpacing: 2)),
-              const SizedBox(height: 20),
-              ...choices.map((c) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () => scheduler.submitChoice(c.jumpto),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.purple, width: 2),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(
-                      c.text,
-                      style: const TextStyle(fontSize: 16, fontFamily: 'Merriweather'),
-                      textAlign: TextAlign.center,
-                    ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.04),
+              border: Border(top: BorderSide(color: DreadmoorColors.accentCyan.withOpacity(0.15), width: 0.5)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('CHOOSE YOUR RESPONSE', style: GoogleFonts.michroma(fontSize: 10, letterSpacing: 2, color: DreadmoorColors.accentCyan)),
+                const SizedBox(height: 12),
+                ...choices.map(
+                  (choice) => _ChoiceButton(
+                    text: choice.text,
+                    onTap: () => scheduler.submitChoice(choice.jumpto),
                   ),
                 ),
-              )).toList(),
-            ],
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ChoiceButton extends StatefulWidget {
+  const _ChoiceButton({required this.text, required this.onTap});
+
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  State<_ChoiceButton> createState() => _ChoiceButtonState();
+}
+
+class _ChoiceButtonState extends State<_ChoiceButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white.withOpacity(_pressed ? 0.2 : 0.08), width: 0.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(widget.text, style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withOpacity(0.75), letterSpacing: 0.3, height: 1.4)),
       ),
     );
   }

@@ -1,46 +1,69 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../theme/colors.dart';
 
 class ChatBubble extends StatelessWidget {
-  final String text;
-  final bool isMe;
-  final bool isTyping;
-
   const ChatBubble({
-    Key? key,
+    super.key,
     required this.text,
     required this.isMe,
-    this.isTyping = false,
-  }) : super(key: key);
+  });
+
+  final String text;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-        decoration: BoxDecoration(
-          color: isMe ? Colors.purple.withOpacity(0.8) : Colors.grey[800],
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(0),
-            bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(12),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isMe ? Colors.purple.withOpacity(0.3) : Colors.black26,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+          child: Opacity(opacity: value.clamp(0, 1), child: child),
+        );
+      },
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+          margin: EdgeInsets.only(top: 4, bottom: 4, left: isMe ? 48 : 0, right: isMe ? 0 : 48),
+          child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(isMe ? 18 : 4),
+              topRight: Radius.circular(isMe ? 4 : 18),
+              bottomLeft: const Radius.circular(18),
+              bottomRight: const Radius.circular(18),
             ),
-          ],
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontFamily: 'Merriweather',
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                decoration: BoxDecoration(
+                  color: isMe ? DreadmoorColors.accentCyan.withOpacity(0.12) : Colors.white.withOpacity(0.05),
+                  border: Border.all(
+                    color: isMe ? DreadmoorColors.accentCyan.withOpacity(0.3) : Colors.white.withOpacity(0.07),
+                    width: 0.5,
+                  ),
+                  boxShadow: isMe ? const [BoxShadow(color: DreadmoorColors.glowCyan, blurRadius: 16, offset: Offset(0, 2))] : null,
+                ),
+                child: Text(
+                  text,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(isMe ? 0.92 : 0.8),
+                    height: 1.5,
+                    letterSpacing: 0.2,
+                    fontWeight: isMe ? FontWeight.w400 : FontWeight.w300,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
