@@ -1,1 +1,0 @@
-import 'package:flutter/material.dart'; class LegalDisclaimerScreen extends StatelessWidget { const LegalDisclaimerScreen({Key? key}) : super(key: key); @override Widget build(BuildContext context) { return Scaffold(body: Center(child: Text('legal_disclaimer_screen'))); } }

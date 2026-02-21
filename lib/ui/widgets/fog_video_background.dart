@@ -5,7 +5,9 @@ class FogVideoBackground extends StatefulWidget {
   const FogVideoBackground({
     super.key,
     required this.assetPath,
-    this.darkenOpacity = 0.65,
+    this.darkenOpacity = 0.65, // This parameter might be redundant if we enforce max opacity.
+                               // But user asked to control it. Let's interpret "fog should be at 0.15 opacity max"
+                               // as meaning the video layer itself is faint.
   });
 
   final String assetPath;
@@ -17,6 +19,7 @@ class FogVideoBackground extends StatefulWidget {
 
 class _FogVideoBackgroundState extends State<FogVideoBackground> {
   late final VideoPlayerController _controller;
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -24,11 +27,14 @@ class _FogVideoBackgroundState extends State<FogVideoBackground> {
     _controller = VideoPlayerController.asset(widget.assetPath)
       ..initialize().then((_) {
         if (!mounted) return;
-        _controller
-          ..setLooping(true)
-          ..setVolume(0)
-          ..play();
-        setState(() {});
+        _controller.setLooping(true);
+        _controller.setVolume(0);
+        _controller.play();
+        setState(() {
+          _initialized = true;
+        });
+      }).catchError((error) {
+        debugPrint("VideoPlayer error: $error");
       });
   }
 
@@ -40,24 +46,30 @@ class _FogVideoBackgroundState extends State<FogVideoBackground> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_controller.value.isInitialized) {
+    if (!_initialized) {
       return const ColoredBox(color: Colors.black);
     }
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        SizedBox.expand(
-          child: FittedBox(
-            fit: BoxFit.cover,
-            child: SizedBox(
-              width: _controller.value.size.width,
-              height: _controller.value.size.height,
-              child: VideoPlayer(_controller),
+        // Base Black
+        const ColoredBox(color: Colors.black),
+
+        // Fog Video Layer (Subtle)
+        Opacity(
+          opacity: 0.15, // Enforcing the max opacity rule
+          child: SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _controller.value.size.width,
+                height: _controller.value.size.height,
+                child: VideoPlayer(_controller),
+              ),
             ),
           ),
         ),
-        ColoredBox(color: Colors.black.withOpacity(widget.darkenOpacity)),
       ],
     );
   }
