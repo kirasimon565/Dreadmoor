@@ -28,14 +28,14 @@ import 'routes.dart';
 class DreadmoorPage<T> extends CustomTransitionPage<T> {
   DreadmoorPage({required super.child, required super.key})
       : super(
-          transitionDuration: const Duration(milliseconds: 500),
-          reverseTransitionDuration: const Duration(milliseconds: 400),
+          transitionDuration: const Duration(milliseconds: 450),
+          reverseTransitionDuration: const Duration(milliseconds: 350),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final fade = CurvedAnimation(
               parent: animation,
               curve: Curves.easeInOut,
             );
-            final scale = Tween<double>(begin: 1.05, end: 1.0).animate(
+            final scale = Tween<double>(begin: 1.04, end: 1.0).animate(
               CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
             );
             return FadeTransition(
@@ -47,30 +47,185 @@ class DreadmoorPage<T> extends CustomTransitionPage<T> {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  // TODO: wire this to your StateEngine / Persistence later
+  final bool hasCompletedSetup = false;
+
   return GoRouter(
     initialLocation: Routes.studio,
+    errorPageBuilder: (context, state) =>
+        DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
+
+    redirect: (context, state) {
+      final loc = state.uri.toString();
+
+      // Force setup before welcome
+      if (!hasCompletedSetup &&
+          loc != Routes.setup &&
+          loc != Routes.studio &&
+          loc != Routes.legal) {
+        return Routes.setup;
+      }
+
+      return null;
+    },
+
     routes: [
-      GoRoute(path: Routes.studio, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const StudioIntroScreen())),
-      GoRoute(path: Routes.setup, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const PlayerSetupScreen())),
-      GoRoute(path: Routes.welcome, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const WelcomeScreen())),
-      GoRoute(path: Routes.messenger, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const MessengerListScreen())),
-      GoRoute(path: '/chat/:threadId', pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: ChatScreen(threadId: state.pathParameters['threadId'] ?? 'group_chat'))),
-      GoRoute(path: '/secret/:threadId', pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: SecretChatScreen(threadId: state.pathParameters['threadId'] ?? 'spy_amelia_michael'))),
-      GoRoute(path: Routes.board, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const DetectiveBoardScreen())),
-      GoRoute(path: '/board/diary/:diaryId', pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: DiaryViewerScreen(diaryId: state.pathParameters['diaryId'] ?? 'unknown'))),
-      GoRoute(path: '/board/evidence/:evidenceId', pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: EvidenceDetailScreen(evidenceId: state.pathParameters['evidenceId'] ?? 'evidence'))),
-      GoRoute(path: '/profiles/:characterId', pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: CharacterProfileScreen(characterId: state.pathParameters['characterId'] ?? 'amelia'))),
-      GoRoute(path: Routes.playerProfile, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const PlayerProfileScreen())),
-      GoRoute(path: Routes.map, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const DreadmoorMapScreen())),
-      GoRoute(path: Routes.episodes, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const EpisodeSelectScreen())),
-      GoRoute(path: '/recap/:episodeId', pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const RecapScreen())),
-      GoRoute(path: Routes.settings, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const SettingsScreen())),
-      GoRoute(path: Routes.save, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const SaveLoadScreen())),
-      GoRoute(path: Routes.credits, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const CreditsScreen())),
-      GoRoute(path: Routes.debug, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const DebugScreen())),
-      GoRoute(path: Routes.legal, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const LegalDisclaimerScreen())),
-      GoRoute(path: Routes.update, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const ContentUpdateScreen())),
-      GoRoute(path: Routes.error, pageBuilder: (context, state) => DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen())),
+      GoRoute(
+        path: Routes.studio,
+        name: 'studio',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const StudioIntroScreen()),
+      ),
+      GoRoute(
+        path: Routes.setup,
+        name: 'setup',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const PlayerSetupScreen()),
+      ),
+      GoRoute(
+        path: Routes.welcome,
+        name: 'welcome',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const WelcomeScreen()),
+      ),
+      GoRoute(
+        path: Routes.messenger,
+        name: 'messenger',
+        pageBuilder: (context, state) => DreadmoorPage(
+            key: state.pageKey, child: const MessengerListScreen()),
+      ),
+      GoRoute(
+        path: '/chat/:threadId',
+        name: 'chat',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['threadId'] ?? 'group_chat';
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: ChatScreen(threadId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/secret/:threadId',
+        name: 'secret',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['threadId'] ?? 'spy_amelia_michael';
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: SecretChatScreen(threadId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.board,
+        name: 'board',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const DetectiveBoardScreen()),
+      ),
+      GoRoute(
+        path: '/board/diary/:diaryId',
+        name: 'diary',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['diaryId'] ?? 'unknown';
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: DiaryViewerScreen(diaryId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/board/evidence/:evidenceId',
+        name: 'evidence',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['evidenceId'] ?? 'evidence';
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: EvidenceDetailScreen(evidenceId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/profiles/:characterId',
+        name: 'profile',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['characterId'] ?? 'amelia';
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: CharacterProfileScreen(characterId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.playerProfile,
+        name: 'playerProfile',
+        pageBuilder: (context, state) => DreadmoorPage(
+            key: state.pageKey, child: const PlayerProfileScreen()),
+      ),
+      GoRoute(
+        path: Routes.map,
+        name: 'map',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const DreadmoorMapScreen()),
+      ),
+      GoRoute(
+        path: Routes.episodes,
+        name: 'episodes',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const EpisodeSelectScreen()),
+      ),
+      GoRoute(
+        path: '/recap/:episodeId',
+        name: 'recap',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['episodeId'] ?? 'ep01';
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: const RecapScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.settings,
+        name: 'settings',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const SettingsScreen()),
+      ),
+      GoRoute(
+        path: Routes.save,
+        name: 'save',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const SaveLoadScreen()),
+      ),
+      GoRoute(
+        path: Routes.credits,
+        name: 'credits',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const CreditsScreen()),
+      ),
+      GoRoute(
+        path: Routes.debug,
+        name: 'debug',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const DebugScreen()),
+      ),
+      GoRoute(
+        path: Routes.legal,
+        name: 'legal',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const LegalDisclaimerScreen()),
+      ),
+      GoRoute(
+        path: Routes.update,
+        name: 'update',
+        pageBuilder: (context, state) => DreadmoorPage(
+            key: state.pageKey, child: const ContentUpdateScreen()),
+      ),
+      GoRoute(
+        path: Routes.error,
+        name: 'error',
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
+      ),
     ],
   );
 });
