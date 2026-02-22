@@ -5,8 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../core/persistence/drift_database.dart';
-import '../../../core/scheduler/global_scheduler.dart';
-import '../../../core/scripting/script_loader.dart';
 import '../../../core/state/game_state.dart';
 import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
@@ -20,10 +18,18 @@ class StudioIntroScreen extends ConsumerStatefulWidget {
 
 class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  late AnimationController _logoController;
-  late AnimationController _breathingController;
-  late Animation<double> _logoFade;
-  late Animation<double> _logoScale;
+  // Logo entrance
+  late final AnimationController _logoController;
+  late final Animation<double> _logoFade;
+  late final Animation<double> _logoScale;
+
+  // Subtle breathing pulse
+  late final AnimationController _breathingController;
+  late final Animation<double> _breathingScale;
+
+  // Disclaimer fades in after logo settles
+  late final AnimationController _disclaimerController;
+  late final Animation<double> _disclaimerFade;
 
   bool _navigated = false;
 
@@ -32,25 +38,40 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Entrance animation
+    // ── Logo entrance ─────────────────────────────────────────────────
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
 
-    // Subtle breathing effect for the logo
+    _logoFade = CurvedAnimation(
+      parent: _logoController,
+      curve: const Interval(0.0, 0.75, curve: Curves.easeIn),
+    );
+
+    _logoScale = Tween<double>(begin: 0.94, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
+    );
+
+    // ── Breathing pulse ───────────────────────────────────────────────
     _breathingController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 4200),
     )..repeat(reverse: true);
 
-    _logoFade = CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.0, 0.8, curve: Curves.easeIn),
+    _breathingScale = Tween<double>(begin: 1.0, end: 1.025).animate(
+      CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
     );
 
-    _logoScale = Tween<double>(begin: 0.96, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
+    // ── Disclaimer ────────────────────────────────────────────────────
+    _disclaimerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _disclaimerFade = CurvedAnimation(
+      parent: _disclaimerController,
+      curve: Curves.easeIn,
     );
 
     _startFlow();
@@ -61,6 +82,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
     WidgetsBinding.instance.removeObserver(this);
     _logoController.dispose();
     _breathingController.dispose();
+    _disclaimerController.dispose();
     super.dispose();
   }
 
@@ -70,43 +92,58 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
         state == AppLifecycleState.inactive) {
       _logoController.stop();
       _breathingController.stop();
+      _disclaimerController.stop();
     } else if (state == AppLifecycleState.resumed) {
-      _logoController.forward();
+      if (!_logoController.isCompleted) _logoController.forward();
       _breathingController.repeat(reverse: true);
+      if (!_disclaimerController.isCompleted) _disclaimerController.forward();
     }
   }
 
   Future<void> _startFlow() async {
-    _logoController.forward();
-
     final startTime = DateTime.now();
 
+    _logoController.forward();
+
+    // Disclaimer fades in after logo settles
+    await Future.delayed(const Duration(milliseconds: 1400));
+    if (mounted) _disclaimerController.forward();
+
+    // ── Initialization ────────────────────────────────────────────────
     try {
       await AppDatabase.init();
-      await ScriptLoader.loadAll();
-      await GlobalScheduler.prepare();
     } catch (e) {
-      debugPrint("Init Error: $e");
-      // context.go(Routes.error); // enable later if needed
+      debugPrint('⚠️ Studio init error: $e');
+      // Non-fatal — continue anyway
     }
 
-    const minDisplayTime = 4000; // cinematic pacing
+    // Minimum cinematic display time
+    const minDisplay = 4000;
     final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-    if (elapsed < minDisplayTime) {
-      await Future.delayed(
-          Duration(milliseconds: minDisplayTime - elapsed));
+    if (elapsed < minDisplay) {
+      await Future.delayed(Duration(milliseconds: minDisplay - elapsed));
     }
 
-    _navigateNext();
+    await _navigateNext();
   }
 
   Future<void> _navigateNext() async {
     if (_navigated || !mounted) return;
     _navigated = true;
 
+    // ✅ Load player and set playerStateProvider BEFORE navigating
+    // so the router redirect sees the correct state immediately
     final db = ref.read(databaseProvider);
-    final player = await (db.select(db.players)..limit(1)).getSingleOrNull();
+    final player =
+        await (db.select(db.players)..limit(1)).getSingleOrNull();
 
+    if (!mounted) return;
+
+    if (player != null) {
+      ref.read(playerStateProvider.notifier).state = player;
+    }
+
+    // Fade logo out
     await _logoController.reverse();
 
     if (!mounted) return;
@@ -125,20 +162,20 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1) Cinematic Background Texture
+          // ── 1. Background texture ─────────────────────────────────────
           Image.asset(
             'assets/backgrounds/studio_intro_bg.png',
             fit: BoxFit.cover,
             color: Colors.white.withOpacity(0.18),
             colorBlendMode: BlendMode.modulate,
-            errorBuilder: (c, e, s) =>
+            errorBuilder: (_, __, ___) =>
                 const ColoredBox(color: DreadmoorColors.background),
           ),
 
-          // 2) Glitch / Grain Layer (visual only)
+          // ── 2. Grain / glitch overlay ─────────────────────────────────
           IgnorePointer(
             child: Opacity(
-              opacity: 0.08,
+              opacity: 0.07,
               child: Image.asset(
                 'assets/ui/glitch_overlay.png',
                 fit: BoxFit.cover,
@@ -147,68 +184,73 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
             ),
           ),
 
-          // 3) Vignette
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.8),
-                  Colors.black,
-                ],
-                stops: const [0.2, 0.7, 1.0],
-                radius: 1.2,
+          // ── 3. Radial vignette ────────────────────────────────────────
+          IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.75),
+                    Colors.black,
+                  ],
+                  stops: const [0.25, 0.70, 1.0],
+                  radius: 1.2,
+                ),
               ),
             ),
           ),
 
-          // 4) Center Branding
-          FadeTransition(
-            opacity: _logoFade,
-            child: ScaleTransition(
-              scale: _logoScale,
-              child: Center(
+          // ── 4. Center branding ────────────────────────────────────────
+          Center(
+            child: FadeTransition(
+              opacity: _logoFade,
+              child: ScaleTransition(
+                scale: _logoScale,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Subtle glow aura behind logo (optional polish)
-                    Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: DreadmoorColors.glowCyan.withOpacity(0.25),
-                            blurRadius: 24,
-                            spreadRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 1.0, end: 1.03)
-                            .animate(_breathingController),
-                        child: Image.asset(
-                          'assets/branding/blackmoon_logo.png',
-                          width: 180,
-                          filterQuality: FilterQuality.high,
-                          errorBuilder: (c, e, s) => const Icon(
-                            Icons.blur_on,
-                            size: 100,
-                            color: Colors.white24,
+                    // ✅ Logo tinted white (original is black),
+                    //    breathing pulse kept, glow removed entirely
+                    ScaleTransition(
+                      scale: _breathingScale,
+                      child: Image.asset(
+                        'assets/branding/blackmoon_logo.png',
+                        width: 180,
+                        filterQuality: FilterQuality.high,
+                        // ✅ Tint black logo to white using BlendMode.srcATop
+                        color: Colors.white.withOpacity(0.88),
+                        colorBlendMode: BlendMode.srcATop,
+                        errorBuilder: (_, __, ___) => Text(
+                          "BLACKMOON STUDIO",
+                          style: GoogleFonts.cinzel(
+                            fontSize: 22,
+                            color: Colors.white.withOpacity(0.85),
+                            letterSpacing: 5.0,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 50),
-                      child: Text(
-                        "This game is a work of fiction. Names, characters, businesses, places, events, locales, and incidents are either the products of the author's imagination or used in a fictitious manner. Any resemblance to actual persons, living or dead, or actual events is purely coincidental.",
-                        style: GoogleFonts.michroma(
-                          fontSize: 8,
-                          letterSpacing: 3.5,
-                          height: 2.0,
-                          color: Colors.white.withOpacity(0.22),
+
+                    const SizedBox(height: 48),
+
+                    // Disclaimer fades in after logo
+                    FadeTransition(
+                      opacity: _disclaimerFade,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 48),
+                        child: Text(
+                          "These characters and places are purely fictional.\n"
+                          "Any resemblance to actual persons or events is purely coincidental.",
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            letterSpacing: 1.2,
+                            height: 1.9,
+                            color: Colors.white.withOpacity(0.22),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
@@ -217,7 +259,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
             ),
           ),
 
-          // 5) Bottom Status Bar
+          // ── 5. Bottom status bar ──────────────────────────────────────
           Positioned(
             bottom: 36,
             left: 32,
@@ -225,8 +267,9 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Loading Status (Lottie dots)
+                // Lottie loading dots
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
                       width: 28,
@@ -236,16 +279,20 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                         repeat: true,
                         animate: true,
                         fit: BoxFit.contain,
+                        // Graceful fallback if JSON is missing
+                        errorBuilder: (_, __, ___) => const SizedBox(
+                          width: 28,
+                          height: 28,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Text(
-                      "Loading...",
-                      style: GoogleFonts.shareTechMono(
+                      "Loading",
+                      style: GoogleFonts.inter(
                         fontSize: 10,
-                        color:
-                            DreadmoorColors.accentCyan.withOpacity(0.45),
-                        letterSpacing: 1.2,
+                        color: DreadmoorColors.accentCyan.withOpacity(0.45),
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ],
@@ -254,9 +301,10 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                 // Version
                 Text(
                   "v1.0.0",
-                  style: GoogleFonts.shareTechMono(
+                  style: GoogleFonts.inter(
                     fontSize: 10,
                     color: Colors.white.withOpacity(0.2),
+                    letterSpacing: 1.0,
                   ),
                 ),
               ],
