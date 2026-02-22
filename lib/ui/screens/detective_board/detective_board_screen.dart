@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/state/investigation_state.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
 import 'board_filters.dart';
@@ -12,29 +13,20 @@ class DetectiveBoardScreen extends ConsumerStatefulWidget {
   const DetectiveBoardScreen({super.key});
 
   @override
-  ConsumerState<DetectiveBoardScreen> createState() => _DetectiveBoardScreenState();
+  ConsumerState<DetectiveBoardScreen> createState() =>
+      _DetectiveBoardScreenState();
 }
 
 class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
   String _selectedFilter = 'ALL';
-  final List<String> _filters = ['ALL', 'PEOPLE', 'FILES', 'LOCATIONS'];
-
-  // Dummy data for now
-  final List<Map<String, dynamic>> _items = [
-    {'id': 'rebecca_diary_1', 'type': 'diary', 'title': 'The Night Before', 'locked': false, 'category': 'FILES'},
-    {'id': 'factory_photo', 'type': 'evidence', 'title': 'Factory Entrance', 'locked': true, 'category': 'LOCATIONS'},
-    {'id': 'amelia_profile', 'type': 'profile', 'title': 'Amelia', 'locked': false, 'category': 'PEOPLE'},
-    {'id': 'deleted_footage', 'type': 'evidence', 'title': 'Deleted Footage', 'locked': true, 'category': 'FILES'},
-  ];
+  final List<String> _filters = const ['ALL', 'PEOPLE', 'FILES', 'LOCATIONS'];
 
   @override
   Widget build(BuildContext context) {
-    final filteredItems = _selectedFilter == 'ALL'
-        ? _items
-        : _items.where((i) => i['category'] == _selectedFilter).toList();
+    final unlockedEvidenceAsync = ref.watch(unlockedEvidenceProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A), // Corkboard dark style
+      backgroundColor: const Color(0xFF1A1A1A),
       body: Column(
         children: [
           CustomScreenHeader(
@@ -47,33 +39,63 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
             onSelect: (val) => setState(() => _selectedFilter = val),
           ),
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.8,
-              ),
-              itemCount: filteredItems.length,
-              itemBuilder: (context, index) {
-                final item = filteredItems[index];
-                return _BoardItem(
-                  title: item['title'],
-                  type: item['type'],
-                  isLocked: item['locked'],
-                  onTap: () {
-                    if (item['locked']) return;
-                    if (item['type'] == 'diary') {
-                      context.push('/board/diary/${item['id']}');
-                    } else if (item['type'] == 'evidence') {
-                      context.push('/board/evidence/${item['id']}');
-                    } else if (item['type'] == 'profile') {
-                      context.push('/profiles/${item['id']}'); // Assuming ID matches character ID
-                    }
+            child: unlockedEvidenceAsync.when(
+              data: (items) {
+                final filtered = _selectedFilter == 'ALL'
+                    ? items
+                    : items.where((e) {
+                        if (_selectedFilter == 'PEOPLE') return e.type == 'profile';
+                        if (_selectedFilter == 'FILES') return e.type == 'diary' || e.type == 'document';
+                        if (_selectedFilter == 'LOCATIONS') return e.type == 'photo';
+                        return true;
+                      }).toList();
+
+                if (filtered.isEmpty) {
+                  return Center(
+                    child: Text(
+                      "NO EVIDENCE FOUND",
+                      style: GoogleFonts.michroma(
+                        fontSize: 12,
+                        color: DreadmoorColors.textMeta,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.78,
+                  ),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    return _BoardItem(
+                      item: item,
+                      onTap: () {
+                        if (item.type == 'diary') {
+                          context.push('/board/diary/${item.id}');
+                        } else {
+                          context.push('/board/evidence/${item.id}');
+                        }
+                      },
+                    );
                   },
                 );
               },
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: DreadmoorColors.accentCyan),
+              ),
+              error: (e, _) => Center(
+                child: Text(
+                  "ERROR LOADING BOARD",
+                  style: GoogleFonts.michroma(color: Colors.redAccent),
+                ),
+              ),
             ),
           ),
         ],
@@ -83,17 +105,10 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
 }
 
 class _BoardItem extends StatelessWidget {
-  final String title;
-  final String type;
-  final bool isLocked;
+  final EvidenceItem item;
   final VoidCallback onTap;
 
-  const _BoardItem({
-    required this.title,
-    required this.type,
-    required this.isLocked,
-    required this.onTap,
-  });
+  const _BoardItem({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -101,44 +116,27 @@ class _BoardItem extends StatelessWidget {
       onTap: onTap,
       child: Stack(
         children: [
-          // Card Base
           Container(
             decoration: BoxDecoration(
               color: const Color(0xFF222222),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(6),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 8,
-                  offset: const Offset(2, 4),
+                  color: Colors.black.withOpacity(0.6),
+                  blurRadius: 10,
+                  offset: const Offset(3, 6),
                 ),
               ],
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 0.5),
+              border: Border.all(color: Colors.white.withOpacity(0.08), width: 0.5),
             ),
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Type Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _getTypeColor(type).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: Text(
-                    type.toUpperCase(),
-                    style: GoogleFonts.inter(
-                      fontSize: 8,
-                      color: _getTypeColor(type),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                _TypeBadge(item.type),
                 const Spacer(),
-                // Title
                 Text(
-                  title,
+                  item.title,
                   style: GoogleFonts.michroma(
                     fontSize: 11,
                     color: DreadmoorColors.textPrimary,
@@ -153,7 +151,7 @@ class _BoardItem extends StatelessWidget {
 
           // Pin
           Positioned(
-            top: -4,
+            top: -6,
             left: 0,
             right: 0,
             child: Center(
@@ -164,40 +162,51 @@ class _BoardItem extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: DreadmoorColors.accentRed,
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 2, offset: const Offset(1, 1)),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.7),
+                      blurRadius: 4,
+                      offset: const Offset(1, 2),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
-
-          // Locked Overlay
-          if (isLocked)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    child: Center(
-                      child: Icon(Icons.lock_outline, color: Colors.white.withValues(alpha: 0.5)),
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
+}
 
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'diary': return DreadmoorColors.accentCyan;
-      case 'evidence': return Colors.amber;
-      case 'profile': return Colors.purpleAccent;
-      default: return Colors.grey;
-    }
+class _TypeBadge extends StatelessWidget {
+  final String type;
+
+  const _TypeBadge(this.type);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (type) {
+      'diary' => DreadmoorColors.accentCyan,
+      'photo' => Colors.amber,
+      'document' => Colors.blueGrey,
+      'profile' => Colors.purpleAccent,
+      _ => Colors.grey,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Text(
+        type.toUpperCase(),
+        style: GoogleFonts.inter(
+          fontSize: 8,
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 }
