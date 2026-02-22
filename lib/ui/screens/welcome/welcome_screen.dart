@@ -9,6 +9,12 @@ import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 import '../../widgets/fog_video_background.dart';
 
+bool get isDebugMode {
+  bool inDebug = false;
+  assert(inDebug = true);
+  return inDebug;
+}
+
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -104,6 +110,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     if (mounted) context.go(Routes.messenger);
   }
 
+  void _openDebug() {
+    if (!isDebugMode) return;
+    HapticFeedback.heavyImpact();
+    context.push('/debug');
+  }
+
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
@@ -140,23 +152,26 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     animation: _scaleAnimation,
                     builder: (context, child) => Transform.scale(
                       scale: reduceMotion ? 1.0 : _scaleAnimation.value,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: DreadmoorColors.accentCyan.withOpacity(0.2),
-                              blurRadius: 40,
-                            ),
-                          ],
-                        ),
-                        child: Image.asset(
-                          'assets/branding/dreadmore_logo.png',
-                          width: 220,
-                          errorBuilder: (_, __, ___) => Text(
-                            "DREADMOOR",
-                            style: GoogleFonts.cinzel(
-                              fontSize: 40,
-                              color: Colors.white,
+                      child: GestureDetector(
+                        onLongPress: _openDebug,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: DreadmoorColors.accentCyan.withOpacity(0.2),
+                                blurRadius: 40,
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'assets/branding/dreadmore_logo.png',
+                            width: 220,
+                            errorBuilder: (_, __, ___) => Text(
+                              "DREADMOOR",
+                              style: GoogleFonts.cinzel(
+                                fontSize: 40,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
