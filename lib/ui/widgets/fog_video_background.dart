@@ -5,12 +5,12 @@ class FogVideoBackground extends StatefulWidget {
   const FogVideoBackground({
     super.key,
     required this.assetPath,
-    this.fogOpacity = 0.15,     // Max fog opacity (rule)
-    this.darkenOpacity = 0.65,  // Dark overlay for readability
+    this.darkenOpacity = 0.55, // Dark overlay on top of the video.
+    // Adjust this in the parent to tune visibility:
+    // 0.0 = full video visible, 1.0 = fully black. 0.55 is cinematic default.
   });
 
   final String assetPath;
-  final double fogOpacity;
   final double darkenOpacity;
 
   @override
@@ -37,7 +37,7 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           ..play();
         setState(() => _initialized = true);
       }).catchError((error) {
-        debugPrint("🎥 VideoPlayer error: $error");
+        debugPrint('ðŸŽ¥ VideoPlayer error: $error');
         if (mounted) setState(() => _error = true);
       });
   }
@@ -62,23 +62,23 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
   @override
   Widget build(BuildContext context) {
-    if (_error) {
-      return const ColoredBox(color: Colors.black);
-    }
-
-    if (!_initialized) {
+    // Always show a black base â€” never a blank white flash while loading
+    if (_error || !_initialized) {
       return const ColoredBox(color: Colors.black);
     }
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Base black
+        // â”€â”€ Base black so screen edges never flash white â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const ColoredBox(color: Colors.black),
 
-        // Fog video layer (subtle)
-        Opacity(
-          opacity: widget.fogOpacity.clamp(0.0, 0.15),
+        // â”€â”€ Video at full opacity with cinematic fade-in â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // âœ… Removed the fogOpacity clamp that was hiding the video.
+        //    The darkenOpacity overlay below is the only brightness control.
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 600),
+          opacity: _initialized ? 1.0 : 0.0,
           child: FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
@@ -89,16 +89,11 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           ),
         ),
 
-        // Dark overlay for UI readability
+        // â”€â”€ Dark overlay â€” keeps UI text readable over the video â”€â”€â”€â”€â”€â”€â”€
         Container(
-          color: Colors.black.withOpacity(widget.darkenOpacity.clamp(0.0, 0.9)),
-        ),
-
-        // Gentle fade-in so it feels cinematic
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 400),
-          opacity: _initialized ? 1 : 0,
-          child: const SizedBox.expand(),
+          color: Colors.black.withOpacity(
+            widget.darkenOpacity.clamp(0.0, 0.95),
+          ),
         ),
       ],
     );
