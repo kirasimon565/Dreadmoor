@@ -20,7 +20,7 @@ class PlayerSetupScreen extends ConsumerStatefulWidget {
 
 class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
   final _nameController = TextEditingController();
-  String _selectedGender = 'male';
+  String _selectedGender = 'female';
   bool _saving = false;
 
   @override
@@ -30,7 +30,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
   }
 
   Future<void> _confirmIdentity() async {
-    if (_saving) return;
+    if (!mounted || _saving) return;
 
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -44,23 +44,22 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
     HapticFeedback.selectionClick();
 
     try {
-      // Uses the singleton — same connection as databaseProvider
-      await AppDatabase.init();
-
       final db = ref.read(databaseProvider);
 
+      // Check if player already exists
       final existing = await (db.select(db.players)..limit(1))
           .getSingleOrNull()
           .timeout(const Duration(seconds: 5));
 
       if (existing != null) {
-        // Player already exists — invalidate so router redirect sees it
-        ref.invalidate(databaseProvider);
+        // ✅ Set in-memory state immediately — router sees it instantly
+        ref.read(playerStateProvider.notifier).state = existing;
         if (mounted) context.go(Routes.welcome);
         return;
       }
 
-      await db
+      // Insert new player
+      final id = await db
           .into(db.players)
           .insert(
             PlayersCompanion.insert(
@@ -71,9 +70,18 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
           )
           .timeout(const Duration(seconds: 5));
 
-      // ✅ Invalidate BEFORE navigating so the router's redirect guard
-      // sees the new player and doesn't bounce back to setup.
-      ref.invalidate(databaseProvider);
+      // Fetch the inserted player row
+      final newPlayer = await (db.select(db.players)
+            ..where((p) => p.id.equals(id)))
+          .getSingleOrNull()
+          .timeout(const Duration(seconds: 5));
+
+      if (newPlayer != null) {
+        // ✅ Set in-memory state BEFORE navigating.
+        // Router redirect reads playerStateProvider synchronously —
+        // no async DB read, no stale cache, no race condition.
+        ref.read(playerStateProvider.notifier).state = newPlayer;
+      }
 
       if (mounted) {
         context.go(Routes.welcome);
@@ -86,11 +94,10 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to save identity. Try again.')),
         );
+        // ✅ Always reset on failure so button never stays locked
         setState(() => _saving = false);
       }
     }
-    // No finally block — it was scheduling _saving=false even on success,
-    // causing the button to snap back when the router redirect was delayed.
   }
 
   @override
