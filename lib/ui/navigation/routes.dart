@@ -13,12 +13,13 @@ abstract final class Routes {
   static const update = '/update';
   static const error = '/error';
   static const debug = '/debug';
+  static const playerProfile = '/profile/player';
 
+  // Dynamic routes
   static String chat(String threadId) => '/chat/$threadId';
   static String secret(String threadId) => '/secret/$threadId';
   static String diary(String diaryId) => '/board/diary/$diaryId';
   static String evidence(String evidenceId) => '/board/evidence/$evidenceId';
   static String profile(String characterId) => '/profiles/$characterId';
-  static const playerProfile = '/profile/player';
   static String recap(String episodeId) => '/recap/$episodeId';
 }
