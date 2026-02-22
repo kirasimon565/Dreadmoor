@@ -7,6 +7,12 @@ final playerProvider = StreamProvider<Player?>((ref) {
   return db.select(db.players).watchSingleOrNull();
 });
 
+final playerExistsProvider = FutureProvider<bool>((ref) async {
+  final db = ref.watch(databaseProvider);
+  final player = await (db.select(db.players)..limit(1)).getSingleOrNull();
+  return player != null;
+});
+
 class PlayerController extends StateNotifier<AsyncValue<void>> {
   final Ref ref;
   PlayerController(this.ref) : super(const AsyncValue.data(null));
@@ -15,10 +21,14 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final db = ref.read(databaseProvider);
-      await db.into(db.players).insert(PlayersCompanion.insert(
-        name: name,
-        gender: gender,
-      ));
+
+      final existing = await (db.select(db.players)..limit(1)).getSingleOrNull();
+      if (existing != null) return;
+
+      await db.into(db.players).insert(
+        PlayersCompanion.insert(name: name, gender: gender),
+      );
+
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -26,6 +36,7 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final playerControllerProvider = StateNotifierProvider<PlayerController, AsyncValue<void>>((ref) {
+final playerControllerProvider =
+    StateNotifierProvider<PlayerController, AsyncValue<void>>((ref) {
   return PlayerController(ref);
 });
