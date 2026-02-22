@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/state/game_state.dart';
 import '../screens/chat/chat_screen.dart';
 import '../screens/credits/credits_screen.dart';
 import '../screens/debug/debug_screen.dart';
@@ -47,24 +48,32 @@ class DreadmoorPage<T> extends CustomTransitionPage<T> {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // TODO: wire this to your StateEngine / Persistence later
-  final bool hasCompletedSetup = false;
-
-  return GoRouter(
+  // ✅ Watch playerStateProvider so the router refreshes the moment
+  // playerStateProvider changes (e.g. right after player setup saves).
+  // This is synchronous — no DB reads, no async gaps, no race conditions.
+  final router = GoRouter(
     initialLocation: Routes.studio,
     errorPageBuilder: (context, state) =>
         DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
 
     redirect: (context, state) {
-      final loc = state.uri.toString();
+      // ✅ Read in-memory player state — always up to date, never stale
+      final player = ref.read(playerStateProvider);
+      final hasCompletedSetup = player != null;
 
-      // Force setup before welcome
-      if (!hasCompletedSetup &&
-          loc != Routes.setup &&
-          loc != Routes.studio &&
-          loc != Routes.legal) {
-        return Routes.setup;
-      }
+      final loc = state.uri.toString();
+      final onSetup = loc == Routes.setup;
+      final onStudio = loc == Routes.studio;
+      final onLegal = loc == Routes.legal;
+
+      // Allow studio intro and legal through unconditionally
+      if (onStudio || onLegal) return null;
+
+      // Not set up yet — force to setup
+      if (!hasCompletedSetup && !onSetup) return Routes.setup;
+
+      // Already set up — don't let them back to setup
+      if (hasCompletedSetup && onSetup) return Routes.welcome;
 
       return null;
     },
@@ -228,4 +237,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  // ✅ Tell GoRouter to re-evaluate redirects whenever playerStateProvider
+  // changes. This is what makes context.go(Routes.welcome) actually land
+  // instead of being bounced back to setup.
+  ref.listen(playerStateProvider, (_, __) => router.refresh());
+
+  return router;
 });
