@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/colors.dart';
 
@@ -23,25 +24,45 @@ class BoardFilters extends StatelessWidget {
         children: filters.map((filter) {
           final isSelected = filter == selectedFilter;
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: FilterChip(
-              label: Text(
-                filter.toUpperCase(),
-                style: GoogleFonts.michroma(
-                  fontSize: 10,
-                  color: isSelected ? Colors.black : DreadmoorColors.textPrimary,
-                  letterSpacing: 1.2,
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onSelect(filter);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? DreadmoorColors.accentCyan.withOpacity(0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? DreadmoorColors.accentCyan.withOpacity(0.6)
+                        : Colors.white.withOpacity(0.15),
+                    width: 0.7,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: DreadmoorColors.glowCyan.withOpacity(0.15),
+                            blurRadius: 8,
+                          ),
+                        ]
+                      : [],
                 ),
-              ),
-              selected: isSelected,
-              onSelected: (_) => onSelect(filter),
-              backgroundColor: Colors.transparent,
-              selectedColor: DreadmoorColors.accentCyan,
-              checkmarkColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected ? DreadmoorColors.accentCyan : Colors.white.withOpacity(0.2),
+                child: Text(
+                  filter,
+                  style: GoogleFonts.michroma(
+                    fontSize: 10,
+                    letterSpacing: 1.5,
+                    color: isSelected
+                        ? DreadmoorColors.accentCyan
+                        : DreadmoorColors.textSecondary,
+                  ),
                 ),
               ),
             ),
