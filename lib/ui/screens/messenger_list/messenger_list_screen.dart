@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:ui';
+
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,255 +26,384 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
   bool _searching = false;
-  String _query = '';
+
+  // ✅ Single TextEditingController so we can clear and autofocus properly
+  final _searchController = TextEditingController();
+
+  // ✅ StreamController lets us update the query filter without
+  // recreating the entire DB stream on every keystroke
+  final _queryController = StreamController<String>.broadcast();
+  Stream<List<ThreadWithLastMessage>>? _threadStream;
+
+  @override
+  void initState() {
+    super.initState();
+    // Build the stream once — never recreated
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final db = ref.read(databaseProvider);
+        setState(() {
+          _threadStream = _buildThreadStream(db);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _queryController.close();
+    super.dispose();
+  }
+
+  // ── Stream ────────────────────────────────────────────────────────────────
+
+  Stream<List<ThreadWithLastMessage>> _buildThreadStream(AppDatabase db) {
+    // Raw DB stream: all non-secret threads with their last message
+    final rawStream = (db.select(db.threads)
+          ..where((t) => t.isSecret.equals(false))
+          ..orderBy([
+            (t) => OrderingTerm(
+                expression: t.lastMessageId, mode: OrderingMode.desc),
+          ]))
+        .join([
+          leftOuterJoin(
+            db.messages,
+            db.messages.id.equalsExp(db.threads.lastMessageId),
+          ),
+        ])
+        .watch()
+        .map((rows) => rows
+            .map((row) => ThreadWithLastMessage(
+                  thread: row.readTable(db.threads),
+                  lastMessage: row.readTableOrNull(db.messages),
+                ))
+            .toList());
+
+    // ✅ Combine DB stream with query stream so filtering is reactive
+    // but never recreates the DB subscription
+    final queryStream =
+        _queryController.stream.startWith('');
+
+    return rawStream.switchMap((threads) {
+      return queryStream.map((query) {
+        if (query.isEmpty) return threads;
+        final q = query.toLowerCase();
+        return threads
+            .where((e) =>
+                e.thread.title.toLowerCase().contains(q) ||
+                (e.lastMessage?.content ?? '').toLowerCase().contains(q))
+            .toList();
+      });
+    });
+  }
+
+  void _toggleSearch() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _searching = !_searching;
+      if (!_searching) {
+        _searchController.clear();
+        _queryController.add('');
+      }
+    });
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final db = ref.watch(databaseProvider);
-
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // [0] Static background texture (no video)
-          Image.asset(
-            'assets/backgrounds/messenger_bg_texture.png',
-            width: double.infinity,
-            height: double.infinity,
-            fit: BoxFit.cover,
-            color: Colors.black.withOpacity(0.75),
-            colorBlendMode: BlendMode.darken,
-            errorBuilder: (_, __, ___) =>
-                const ColoredBox(color: Color(0xFF0F0F0F)),
+          // ── Background texture ──────────────────────────────────────
+          Positioned.fill(
+            child: Image.asset(
+              'assets/backgrounds/messenger_bg_texture.png',
+              fit: BoxFit.cover,
+              color: Colors.black.withOpacity(0.75),
+              colorBlendMode: BlendMode.darken,
+              errorBuilder: (_, __, ___) =>
+                  const ColoredBox(color: Color(0xFF0F0F0F)),
+            ),
           ),
 
-          // [1] Glitch overlay
+          // ── Grain overlay ───────────────────────────────────────────
           IgnorePointer(
             child: Opacity(
               opacity: 0.035,
               child: Image.asset(
                 'assets/ui/glitch_overlay.png',
                 fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
                 errorBuilder: (_, __, ___) => const SizedBox(),
               ),
             ),
           ),
 
-          // [2] Content
-          SafeArea(
-            child: Column(
-              children: [
-                MessengerHeader(
-                  isSearching: _searching,
-                  onSearchTap: () => setState(() {
-                    _searching = !_searching;
-                    _query = '';
-                  }),
-                  onProfileTap: () => context.push(Routes.playerProfile),
+          // ── Content ─────────────────────────────────────────────────
+          // ✅ No SafeArea wrapper here — MessengerHeader handles its own
+          // top padding via MediaQuery.padding.top internally
+          Column(
+            children: [
+              MessengerHeader(
+                isSearching: _searching,
+                onSearchTap: _toggleSearch,
+                onProfileTap: () => context.push(Routes.playerProfile),
+              ),
+
+              if (_searching)
+                _SearchBar(
+                  controller: _searchController,
+                  onChanged: (q) => _queryController.add(q),
                 ),
 
-                if (_searching) _SearchBar(onChanged: (q) => setState(() => _query = q)),
+              Expanded(
+                child: RefreshIndicator(
+                  color: DreadmoorColors.accentCyan,
+                  backgroundColor: DreadmoorColors.surface,
+                  onRefresh: () async {
+                    HapticFeedback.lightImpact();
+                    // Fake refresh delay — visual polish only
+                    await Future.delayed(const Duration(milliseconds: 700));
+                  },
+                  child: _threadStream == null
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                              color: DreadmoorColors.accentCyan),
+                        )
+                      : StreamBuilder<List<ThreadWithLastMessage>>(
+                          stream: _threadStream,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  'Something went wrong.',
+                                  style: GoogleFonts.inter(
+                                      color: DreadmoorColors.textMeta),
+                                ),
+                              );
+                            }
 
-                Expanded(
-                  child: RefreshIndicator(
-                    color: DreadmoorColors.accentCyan,
-                    backgroundColor: DreadmoorColors.surface,
-                    onRefresh: () async {
-                      await Future.delayed(const Duration(milliseconds: 600));
-                    },
-                    child: StreamBuilder<List<ThreadWithLastMessage>>(
-                      stream: _watchThreads(db, ref, _query),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text('Error: ${snapshot.error}',
-                                style: const TextStyle(color: Colors.red)),
-                          );
-                        }
-                        if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                                color: DreadmoorColors.accentCyan),
-                          );
-                        }
-                        final threads = snapshot.data!;
-                        if (threads.isEmpty) {
-                          return Center(
-                            child: Text("NO MESSAGES",
-                                style: GoogleFonts.michroma(
-                                    color: DreadmoorColors.textMeta)),
-                          );
-                        }
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                    color: DreadmoorColors.accentCyan),
+                              );
+                            }
 
-                        return ListView.builder(
-                          padding: const EdgeInsets.only(top: 8, bottom: 24),
-                          itemCount: threads.length,
-                          itemBuilder: (context, index) {
-                            return _ThreadTile(threadData: threads[index]);
+                            final threads = snapshot.data!;
+
+                            if (threads.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  _searching
+                                      ? "NO RESULTS"
+                                      : "NO MESSAGES",
+                                  style: GoogleFonts.michroma(
+                                    fontSize: 11,
+                                    letterSpacing: 2.5,
+                                    color: DreadmoorColors.textMeta,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(
+                                  top: 8, bottom: 32),
+                              itemCount: threads.length,
+                              itemBuilder: (context, index) {
+                                return _ThreadTile(
+                                    threadData: threads[index]);
+                              },
+                            );
                           },
-                        );
-                      },
-                    ),
-                  ),
+                        ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-
-  Stream<List<ThreadWithLastMessage>> _watchThreads(
-      AppDatabase db, WidgetRef ref, String query) {
-    return (db.select(db.threads)
-          ..where((t) => t.isSecret.equals(false)) // Secret chats hidden
-          ..orderBy([
-            (t) => OrderingTerm(
-                expression: t.lastMessageId, mode: OrderingMode.desc)
-          ]))
-        .join([
-          leftOuterJoin(db.messages,
-              db.messages.id.equalsExp(db.threads.lastMessageId)),
-        ])
-        .watch()
-        .map((rows) {
-          var list = rows.map((row) {
-            return ThreadWithLastMessage(
-              thread: row.readTable(db.threads),
-              lastMessage: row.readTableOrNull(db.messages),
-            );
-          }).toList();
-
-          if (query.isNotEmpty) {
-            list = list
-                .where((e) =>
-                    (e.thread.title ?? '')
-                        .toLowerCase()
-                        .contains(query.toLowerCase()) ||
-                    (e.lastMessage?.content ?? '')
-                        .toLowerCase()
-                        .contains(query.toLowerCase()))
-                .toList();
-          }
-
-          return list;
-        });
-  }
 }
+
+// ── Data model ────────────────────────────────────────────────────────────
 
 class ThreadWithLastMessage {
   final Thread thread;
   final Message? lastMessage;
-  ThreadWithLastMessage({required this.thread, this.lastMessage});
+  const ThreadWithLastMessage({required this.thread, this.lastMessage});
 }
 
-class _ThreadTile extends StatelessWidget {
-  final ThreadWithLastMessage threadData;
+// ── Thread tile ───────────────────────────────────────────────────────────
 
+class _ThreadTile extends StatefulWidget {
+  final ThreadWithLastMessage threadData;
   const _ThreadTile({required this.threadData});
 
   @override
+  State<_ThreadTile> createState() => _ThreadTileState();
+}
+
+class _ThreadTileState extends State<_ThreadTile> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final thread = threadData.thread;
-    final message = threadData.lastMessage;
-    final isUnread = (thread.unreadCount ?? 0) > 0;
-    final isTyping = thread.isTyping ?? false;
-    final isLocked = thread.isLocked ?? false;
+    final thread = widget.threadData.thread;
+    final message = widget.threadData.lastMessage;
+
+    // ✅ These are non-nullable in the schema (all have withDefault)
+    final isUnread = thread.unreadCount > 0;
+    final isTyping = thread.isTyping;
+    final isLocked = thread.isLocked;
 
     return GestureDetector(
-      onTap: isLocked ? null : () => context.push(Routes.chat(thread.id)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: DreadmoorColors.surface.withOpacity(isUnread ? 0.5 : 0.35),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isUnread
-                      ? DreadmoorColors.accentCyan.withOpacity(0.2)
-                      : Colors.white.withOpacity(0.06),
-                  width: 0.6,
+      onTapDown: isLocked
+          ? null
+          : (_) => setState(() => _pressed = true),
+      onTapUp: isLocked
+          ? null
+          : (_) {
+              setState(() => _pressed = false);
+              HapticFeedback.selectionClick();
+              context.push(Routes.chat(thread.id));
+            },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 100),
+        opacity: _pressed ? 0.75 : 1.0,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: DreadmoorColors.surface.withOpacity(
+                      isUnread ? 0.52 : 0.32),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isUnread
+                        ? DreadmoorColors.accentCyan.withOpacity(0.22)
+                        : Colors.white.withOpacity(0.055),
+                    width: 0.6,
+                  ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  _Avatar(isLocked: isLocked),
-                  const SizedBox(width: 14),
+                child: Row(
+                  children: [
+                    // Avatar
+                    _Avatar(isLocked: isLocked),
+                    const SizedBox(width: 14),
 
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              thread.title ?? 'Unknown',
-                              style: GoogleFonts.michroma(
-                                fontSize: 13,
-                                letterSpacing: 1.5,
-                                color: isLocked
-                                    ? Colors.white.withOpacity(0.35)
-                                    : DreadmoorColors.textPrimary,
-                              ),
-                            ),
-                            if (message != null && !isLocked)
-                              Text(
-                                _formatTimestamp(message.timestamp),
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  letterSpacing: 1.2,
-                                  color: DreadmoorColors.textMeta,
+                    // Text content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title row
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  thread.title,
+                                  style: GoogleFonts.michroma(
+                                    fontSize: 13,
+                                    letterSpacing: 1.2,
+                                    color: isLocked
+                                        ? Colors.white.withOpacity(0.3)
+                                        : isUnread
+                                            ? DreadmoorColors.textPrimary
+                                            : DreadmoorColors.textPrimary
+                                                .withOpacity(0.85),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        if (isTyping)
-                          const CompactGunTypingIndicator()
-                        else if (message != null)
-                          Text(
-                            message.content,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: DreadmoorColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        else
-                          Text(
-                            "No messages",
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: DreadmoorColors.textMeta,
-                            ),
+                              if (message != null && !isLocked)
+                                Text(
+                                  _formatTimestamp(message.timestamp),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    letterSpacing: 1.0,
+                                    color: DreadmoorColors.textMeta,
+                                  ),
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
-                  ),
 
-                  if (isUnread && !isLocked)
-                    Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: DreadmoorColors.accentCyan,
-                        boxShadow: [
-                          BoxShadow(
-                              color: DreadmoorColors.glowCyan, blurRadius: 6),
+                          const SizedBox(height: 5),
+
+                          // Preview row
+                          if (isLocked)
+                            Text(
+                              "LOCKED",
+                              style: GoogleFonts.michroma(
+                                fontSize: 10,
+                                letterSpacing: 2.0,
+                                color:
+                                    DreadmoorColors.accentRed.withOpacity(0.5),
+                              ),
+                            )
+                          else if (isTyping)
+                            const CompactGunTypingIndicator()
+                          else if (message != null)
+                            Text(
+                              message.content,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: isUnread
+                                    ? DreadmoorColors.textSecondary
+                                    : DreadmoorColors.textMeta,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          else
+                            Text(
+                              "No messages yet",
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: DreadmoorColors.textMeta
+                                    .withOpacity(0.6),
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                ],
+
+                    // Unread dot
+                    if (isUnread && !isLocked)
+                      Container(
+                        margin: const EdgeInsets.only(left: 10),
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: DreadmoorColors.accentCyan,
+                          boxShadow: [
+                            BoxShadow(
+                              color: DreadmoorColors.glowCyan,
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -280,11 +412,19 @@ class _ThreadTile extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime? timestamp) {
-    if (timestamp == null) return '';
-    return DateFormat('HH:mm').format(timestamp);
+  String _formatTimestamp(DateTime? ts) {
+    if (ts == null) return '';
+    final now = DateTime.now();
+    if (ts.year == now.year &&
+        ts.month == now.month &&
+        ts.day == now.day) {
+      return DateFormat('HH:mm').format(ts);
+    }
+    return DateFormat('d MMM').format(ts);
   }
 }
+
+// ── Avatar ────────────────────────────────────────────────────────────────
 
 class _Avatar extends StatelessWidget {
   final bool isLocked;
@@ -292,63 +432,90 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.1),
-      ),
-      child: isLocked
-          ? Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  'assets/ui/locked_episode_overlay.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
-                ),
-                BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                  child: const SizedBox.expand(),
-                ),
-                Icon(Icons.lock_outline,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: 50,
+        height: 50,
+        child: isLocked
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(
+                      color: Colors.white.withOpacity(0.06)),
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                    child: const SizedBox.expand(),
+                  ),
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    size: 22,
+                    color: DreadmoorColors.accentRed.withOpacity(0.55),
+                  ),
+                ],
+              )
+            : Image.asset(
+                'assets/ui/neon_group_square.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: DreadmoorColors.surface,
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: DreadmoorColors.textSecondary,
                     size: 24,
-                    color: DreadmoorColors.accentRed.withOpacity(0.6)),
-              ],
-            )
-          : Image.asset(
-              'assets/ui/neon_group_square.png',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.person, color: DreadmoorColors.textSecondary),
-            ),
+                  ),
+                ),
+              ),
+      ),
     );
   }
 }
 
+// ── Search bar ────────────────────────────────────────────────────────────
+
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({required this.onChanged});
+  const _SearchBar({
+    required this.controller,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
   final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: DreadmoorColors.surface.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 0.6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.08),
+          width: 0.6,
+        ),
       ),
       child: TextField(
+        controller: controller,
         onChanged: onChanged,
-        style: GoogleFonts.inter(color: DreadmoorColors.textPrimary),
+        // ✅ Keyboard opens automatically when search bar appears
+        autofocus: true,
+        style: GoogleFonts.inter(
+          color: DreadmoorColors.textPrimary,
+          fontSize: 13,
+        ),
+        cursorColor: DreadmoorColors.accentCyan,
         decoration: InputDecoration(
-          icon: const Icon(Icons.search_rounded, color: Colors.white54),
-          hintText: 'Search messages...',
-          hintStyle:
-              GoogleFonts.inter(color: DreadmoorColors.textMeta),
+          icon: Icon(
+            Icons.search_rounded,
+            color: Colors.white.withOpacity(0.35),
+            size: 18,
+          ),
+          hintText: 'Search conversations...',
+          hintStyle: GoogleFonts.inter(
+            color: DreadmoorColors.textMeta,
+            fontSize: 13,
+          ),
           border: InputBorder.none,
         ),
       ),
