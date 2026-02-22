@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/state/game_state.dart';
+import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 import '../../widgets/fog_video_background.dart';
 
@@ -14,16 +16,19 @@ class WelcomeScreen extends ConsumerStatefulWidget {
   ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTickerProviderStateMixin {
+class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _breathingController;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     _breathingController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 3200),
     )..repeat(reverse: true);
 
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
@@ -33,17 +38,27 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTicker
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _breathingController.dispose();
     super.dispose();
   }
 
-  void _continueGame() async {
-    // Logic to resume last active thread
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _breathingController.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      _breathingController.repeat(reverse: true);
+    }
+  }
+
+  void _continueGame() {
     final threadId = ref.read(activeThreadIdProvider);
     if (threadId != null) {
-      context.go('/chat/$threadId');
+      context.go(Routes.chat(threadId));
     } else {
-      context.go('/messenger');
+      context.go(Routes.messenger);
     }
   }
 
@@ -52,7 +67,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTicker
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: DreadmoorColors.surface,
-        title: Text("START NEW GAME?", style: GoogleFonts.michroma(color: DreadmoorColors.accentRed)),
+        title: Text(
+          "START NEW GAME?",
+          style: GoogleFonts.michroma(color: DreadmoorColors.accentRed),
+        ),
         content: Text(
           "This will erase your current progress. Are you sure?",
           style: GoogleFonts.inter(color: DreadmoorColors.textPrimary),
@@ -60,44 +78,40 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTicker
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("CANCEL", style: GoogleFonts.michroma(color: DreadmoorColors.textSecondary)),
+            child: Text("CANCEL",
+                style: GoogleFonts.michroma(
+                    color: DreadmoorColors.textSecondary)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _resetAndStart();
             },
-            child: Text("CONFIRM", style: GoogleFonts.michroma(color: DreadmoorColors.accentRed)),
+            child: Text("CONFIRM",
+                style: GoogleFonts.michroma(
+                    color: DreadmoorColors.accentRed)),
           ),
         ],
       ),
     );
   }
 
-  void _resetAndStart() async {
-    // TODO: Implement full reset logic via GlobalScheduler or DB
-    // For now, just go to setup or first episode
-    // await db.delete(db.messages).go();
-    // await db.delete(db.threads).go();
-    // await db.delete(db.storyState).go();
-    // This logic should be robust.
-
-    // Start Ep01
+  Future<void> _resetAndStart() async {
+    HapticFeedback.mediumImpact();
     final scheduler = ref.read(globalSchedulerProvider);
+    await scheduler.resetAll();
     await scheduler.startThread('ep01', 'amelia_chat');
-    if (mounted) context.go('/messenger');
+    if (mounted) context.go(Routes.messenger);
   }
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // [0] Video Background
-          // Assuming FogVideoBackground is implemented in widgets/fog_video_background.dart
-          // and imported. If not, this will fail. But I checked and it exists.
-          // Wait, imports? Yes.
           const Positioned.fill(
             child: FogVideoBackground(
               assetPath: 'assets/backgrounds/welcome_fog_loop.mp4',
@@ -105,44 +119,46 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTicker
             ),
           ),
 
-          // [1] Glitch Overlay
-          Opacity(
-            opacity: 0.04,
-            child: Image.asset(
-              'assets/ui/glitch_overlay.png',
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (c,e,s) => const SizedBox(),
+          IgnorePointer(
+            child: Opacity(
+              opacity: 0.04,
+              child: Image.asset(
+                'assets/ui/glitch_overlay.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox(),
+              ),
             ),
           ),
 
-          // [2] Content
           SafeArea(
             child: Column(
               children: [
                 const Spacer(flex: 2),
 
-                // Logo
                 Center(
                   child: AnimatedBuilder(
                     animation: _scaleAnimation,
                     builder: (context, child) => Transform.scale(
-                      scale: _scaleAnimation.value,
+                      scale: reduceMotion ? 1.0 : _scaleAnimation.value,
                       child: Container(
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: DreadmoorColors.accentCyan.withOpacity(0.12),
+                              color: DreadmoorColors.accentCyan.withOpacity(0.2),
                               blurRadius: 40,
-                              spreadRadius: 0,
-                            )
-                          ]
+                            ),
+                          ],
                         ),
                         child: Image.asset(
                           'assets/branding/dreadmore_logo.png',
                           width: 220,
-                          errorBuilder: (c,e,s) => Text("DREADMOOR", style: GoogleFonts.cinzel(fontSize: 40, color: Colors.white)),
+                          errorBuilder: (_, __, ___) => Text(
+                            "DREADMOOR",
+                            style: GoogleFonts.cinzel(
+                              fontSize: 40,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -151,32 +167,33 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTicker
 
                 const SizedBox(height: 56),
 
-                // Menu
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _MenuItem(label: "CONTINUE", onTap: _continueGame),
-                      const SizedBox(height: 20),
-                      _MenuItem(label: "NEW GAME", onTap: _startNewGame),
-                      const SizedBox(height: 20),
-                      _MenuItem(label: "EPISODES", onTap: () => context.push('/episodes')),
-                      const SizedBox(height: 20),
-                      _MenuItem(label: "SETTINGS", onTap: () => context.push('/settings')),
-                      const SizedBox(height: 20),
-                      _MenuItem(label: "CREDITS", onTap: () => context.push('/credits')),
-                      const SizedBox(height: 20),
-                      _MenuItem(label: "SAVE / LOAD", onTap: () => context.push('/save')),
+                      const SizedBox(height: 24),
+                      _MenuItem(label: "START GAME", onTap: _startNewGame),
+                      const SizedBox(height: 24),
+                      _MenuItem(
+                        label: "CREDITS",
+                        onTap: () => context.push(Routes.credits),
+                      ),
+                      const SizedBox(height: 24),
+                      _MenuItem(
+                        label: "SETTINGS",
+                        onTap: () => context.push(Routes.settings),
+                      ),
                     ],
                   ),
                 ),
 
                 const Spacer(flex: 3),
 
-                // Footer
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -189,7 +206,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> with SingleTicker
                         ),
                       ),
                       Text(
-                        "v0.1.0",
+                        "v1.0.0",
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           letterSpacing: 1.5,
@@ -222,30 +239,26 @@ class _MenuItem extends StatefulWidget {
 }
 
 class _MenuItemState extends State<_MenuItem> {
-  bool _isHovered = false;
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isHovered = true),
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
-        setState(() => _isHovered = false);
+        setState(() => _pressed = false);
         widget.onTap();
       },
-      onTapCancel: () => setState(() => _isHovered = false),
+      onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 150),
-        opacity: _isHovered ? 0.6 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        opacity: _pressed ? 0.6 : 1.0,
         child: Row(
-          mainAxisSize: MainAxisSize.min, // Ensure row doesn't take full width if not needed, but spec implied full width hits? No, just row.
           children: [
-            Text(
-              "➤",
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: DreadmoorColors.accentCyan,
-              ),
-            ),
+            Text("➤",
+                style: GoogleFonts.inter(
+                    fontSize: 14, color: DreadmoorColors.accentCyan)),
             const SizedBox(width: 12),
             Text(
               widget.label,
