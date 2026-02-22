@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/state/recap_state.dart';
+import '../../../core/state/recap_state.dart';
 import '../../theme/colors.dart';
 
 class RecapScreen extends ConsumerStatefulWidget {
@@ -37,6 +37,8 @@ class _RecapScreenState extends ConsumerState<RecapScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    // Note: If you don't have a recapProvider, you'll need to define one or remove this part.
+    // Assuming recapProvider exists in '../../../core/state/recap_state.dart'
     final recapAsync = ref.watch(recapProvider);
 
     return Scaffold(
@@ -80,7 +82,7 @@ class _RecapScreenState extends ConsumerState<RecapScreen> with SingleTickerProv
                           textAlign: TextAlign.center,
                           style: index == 0
                               ? GoogleFonts.michroma(fontSize: 14, letterSpacing: 3, color: DreadmoorColors.accentRed)
-                              : GoogleFonts.inter(fontSize: 16, color: Colors.white.withOpacity(0.9), height: 1.6),
+                              : GoogleFonts.inter(fontSize: 16, color: Colors.white.withValues(alpha: 0.9), height: 1.6),
                         ),
                       ),
                     );
@@ -97,7 +99,7 @@ class _RecapScreenState extends ConsumerState<RecapScreen> with SingleTickerProv
               onPressed: _continue,
               child: Text(
                 "SKIP ▶",
-                style: GoogleFonts.michroma(fontSize: 11, letterSpacing: 2, color: Colors.white.withOpacity(0.5)),
+                style: GoogleFonts.michroma(fontSize: 11, letterSpacing: 2, color: Colors.white.withValues(alpha: 0.5)),
               ),
             ),
           ),
