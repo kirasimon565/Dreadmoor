@@ -3,19 +3,34 @@ import '../../core/persistence/drift_database.dart';
 import '../scripting/script_loader.dart';
 import '../scheduler/global_scheduler.dart';
 
-// Database Provider
-final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
+// Singleton DB (VERY important)
+final databaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
+});
 
 // Script Loader Provider
 final scriptLoaderProvider = Provider<ScriptLoader>((ref) => ScriptLoader());
 
-// Game State Providers
+// Core Game State
 final currentEpisodeIdProvider = StateProvider<String?>((ref) => null);
 final activeThreadIdProvider = StateProvider<String?>((ref) => null);
 final isSchedulerPausedProvider = StateProvider<bool>((ref) => false);
 final waitingForChoiceProvider = StateProvider<bool>((ref) => false);
 
-// Scheduler Provider
+// Per-thread read markers
+final lastReadMessageIdProvider = StateProvider.family<int?, String>((ref, threadId) => null);
+
+// Cooldowns per thread (anti-spam illusion)
+final threadCooldownProvider = StateProvider.family<DateTime?, String>((ref, threadId) => null);
+
+// Global flags (mirrors DB story_state)
+final gameFlagsProvider = StateProvider<Map<String, bool>>((ref) => {});
+
+// Scheduler (singleton instance)
 final globalSchedulerProvider = Provider<GlobalScheduler>((ref) {
-  return GlobalScheduler(ref);
+  final scheduler = GlobalScheduler(ref);
+  ref.onDispose(scheduler.dispose);
+  return scheduler;
 });
