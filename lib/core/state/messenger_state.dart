@@ -13,28 +13,29 @@ class ThreadWithLastMessage {
 final threadsStreamProvider = StreamProvider<List<ThreadWithLastMessage>>((ref) {
   final db = ref.watch(databaseProvider);
 
-  return db.select(db.threads).watch().asyncMap((threads) async {
-    List<ThreadWithLastMessage> result = [];
-    for (var t in threads) {
-      Message? msg;
-      if (t.lastMessageId != null) {
-        msg = await (db.select(db.messages)..where((tbl) => tbl.id.equals(t.lastMessageId!))).getSingleOrNull();
-      } else {
-        msg = await (db.select(db.messages)
-          ..where((tbl) => tbl.threadId.equals(t.id))
-          ..orderBy([(tbl) => OrderingTerm(expression: tbl.timestamp, mode: OrderingMode.desc)])
-          ..limit(1)
-        ).getSingleOrNull();
-      }
-      result.add(ThreadWithLastMessage(t, msg));
-    }
-    return result;
-  });
+  return (db.select(db.threads)
+        ..where((t) => t.isSecret.equals(false))
+        ..orderBy([(t) => OrderingTerm(expression: t.lastMessageId, mode: OrderingMode.desc)]))
+      .join([
+        leftOuterJoin(db.messages, db.messages.id.equalsExp(db.threads.lastMessageId)),
+      ])
+      .watch()
+      .map((rows) {
+        return rows.map((row) {
+          return ThreadWithLastMessage(
+            row.readTable(db.threads),
+            row.readTableOrNull(db.messages),
+          );
+        }).toList();
+      });
 });
 
 final messagesStreamProvider = StreamProvider.family<List<Message>, String>((ref, threadId) {
   final db = ref.watch(databaseProvider);
-  return (db.select(db.messages)..where((tbl) => tbl.threadId.equals(threadId))..orderBy([(t) => OrderingTerm(expression: t.timestamp)])).watch();
+  return (db.select(db.messages)
+        ..where((tbl) => tbl.threadId.equals(threadId))
+        ..orderBy([(t) => OrderingTerm(expression: t.timestamp)]))
+      .watch();
 });
 
 final threadProvider = StreamProvider.family<Thread?, String>((ref, threadId) {
