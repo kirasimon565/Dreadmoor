@@ -20,7 +20,7 @@ class ChatBubble extends StatelessWidget {
 
     return TweenAnimationBuilder<double>(
       // Stable tween prevents flicker on rebuilds
-      tween: const Tween(begin: 0.0, end: 1.0),
+      tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {

@@ -61,9 +61,6 @@ LazyDatabase _openConnection() {
       logStatements: false,
     );
 
-    // Enable WAL for speed on Android
-    await (await db).customStatement('PRAGMA journal_mode=WAL;');
-
     return db;
   });
 }

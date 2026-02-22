@@ -20,6 +20,18 @@ class GlobalScheduler {
     // Reserved for future: background isolates, content prefetch, etc.
   }
 
+  Future<void> resetAll() async {
+    _timer?.cancel();
+    _timer = null;
+    _currentLineId = null;
+    _currentScript = null;
+
+    ref.read(currentEpisodeIdProvider.notifier).state = null;
+    ref.read(activeThreadIdProvider.notifier).state = null;
+    ref.read(isSchedulerPausedProvider.notifier).state = false;
+    ref.read(waitingForChoiceProvider.notifier).state = false;
+  }
+
   Future<void> startThread(String episodeId, String threadId) async {
     _timer?.cancel();
 
