@@ -4,7 +4,6 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:flutter/foundation.dart';
 
 import 'tables.dart';
 
@@ -23,17 +22,20 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          // Future migrations
+          if (from == 1) {
+            // Future migrations here
+          }
         },
       );
 
-  /// 🔐 FORCE DB INIT (prevents hanging in release mode)
+  /// Warm up database connection (important in release builds)
   static Future<void> init() async {
-    debugPrint('🧠 DB init start');
     final db = AppDatabase();
-    await db.customSelect('SELECT 1').get();
-    await db.close();
-    debugPrint('✅ DB init done');
+    try {
+      await db.customSelect('SELECT 1').get();
+    } finally {
+      await db.close();
+    }
   }
 
   Future<void> resetAllProgress() async {
@@ -52,12 +54,16 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
+// --------------------
+// SINGLETON CONNECTION
+// --------------------
+
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'dreadmore.sqlite'));
 
-    return NativeDatabase.createInBackground(
+    return NativeDatabase(
       file,
       logStatements: false,
     );
