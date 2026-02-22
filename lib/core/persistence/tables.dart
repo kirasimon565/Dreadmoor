@@ -23,8 +23,14 @@ class Threads extends Table {
 
   @override
   List<Index> get indexes => [
-        Index('threads_last_message_idx', columns: [lastMessageId]),
-        Index('threads_locked_idx', columns: [isLocked]),
+        Index(
+          'threads_last_message_idx',
+          'CREATE INDEX threads_last_message_idx ON threads (last_message_id)',
+        ),
+        Index(
+          'threads_locked_idx',
+          'CREATE INDEX threads_locked_idx ON threads (is_locked)',
+        ),
       ];
 }
 
@@ -43,8 +49,14 @@ class Messages extends Table {
 
   @override
   List<Index> get indexes => [
-        Index('messages_thread_idx', columns: [threadId]),
-        Index('messages_time_idx', columns: [timestamp]),
+        Index(
+          'messages_thread_idx',
+          'CREATE INDEX messages_thread_idx ON messages (thread_id)',
+        ),
+        Index(
+          'messages_time_idx',
+          'CREATE INDEX messages_time_idx ON messages (timestamp)',
+        ),
       ];
 }
 
