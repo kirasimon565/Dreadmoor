@@ -44,7 +44,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
     HapticFeedback.selectionClick();
 
     try {
-      // ✅ Ensure DB is ready (important in release mode)
+      // Uses the singleton — same connection as databaseProvider
       await AppDatabase.init();
 
       final db = ref.read(databaseProvider);
@@ -54,6 +54,8 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
           .timeout(const Duration(seconds: 5));
 
       if (existing != null) {
+        // Player already exists — invalidate so router redirect sees it
+        ref.invalidate(databaseProvider);
         if (mounted) context.go(Routes.welcome);
         return;
       }
@@ -69,6 +71,10 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
           )
           .timeout(const Duration(seconds: 5));
 
+      // ✅ Invalidate BEFORE navigating so the router's redirect guard
+      // sees the new player and doesn't bounce back to setup.
+      ref.invalidate(databaseProvider);
+
       if (mounted) {
         context.go(Routes.welcome);
       }
@@ -82,16 +88,9 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
         );
         setState(() => _saving = false);
       }
-    } finally {
-      // 🛡 Absolute failsafe – never let UI lock forever
-      if (mounted) {
-        Future.delayed(const Duration(seconds: 6), () {
-          if (mounted && _saving) {
-            setState(() => _saving = false);
-          }
-        });
-      }
     }
+    // No finally block — it was scheduling _saving=false even on success,
+    // causing the button to snap back when the router redirect was delayed.
   }
 
   @override
