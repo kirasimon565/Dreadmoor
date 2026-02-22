@@ -21,7 +21,7 @@ dependencies:
   riverpod: ^2.6.1
 
   # DB / Persistence
-  drift: ^2.24.2
+  drift: ^2.31.0
   sqlite3: ^2.1.0
   sqlite3_flutter_libs: ^0.5.24
   sqlite3_web: ^0.4.1

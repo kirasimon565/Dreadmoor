@@ -27,7 +27,7 @@ class ChoiceOverlay extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: TweenAnimationBuilder<double>(
-          tween: const Tween(begin: 0, end: 1),
+          tween: Tween(begin: 0, end: 1),
           duration: const Duration(milliseconds: 260),
           curve: Curves.easeOutCubic,
           builder: (context, value, child) {
