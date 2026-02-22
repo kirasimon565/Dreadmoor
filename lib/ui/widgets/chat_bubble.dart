@@ -19,8 +19,7 @@ class ChatBubble extends StatelessWidget {
     final maxWidth = MediaQuery.of(context).size.width * 0.72;
 
     return TweenAnimationBuilder<double>(
-      // Stable tween prevents flicker on rebuilds
-      tween: Tween(begin: 0.0, end: 1.0),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
@@ -48,7 +47,6 @@ class ChatBubble extends StatelessWidget {
               bottomRight: const Radius.circular(18),
             ),
             child: BackdropFilter(
-              // Performance: lighter blur still looks glassy
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: DecoratedBox(
                 decoration: BoxDecoration(
