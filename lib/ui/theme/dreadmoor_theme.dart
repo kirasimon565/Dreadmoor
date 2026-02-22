@@ -44,12 +44,12 @@ class DreadmoorTheme {
       // Buttons (subtle neon)
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
-          backgroundColor: MaterialStatePropertyAll(
-            DreadmoorColors.accentCyan.withOpacity(0.15),
+          backgroundColor: WidgetStatePropertyAll(
+            DreadmoorColors.accentCyan.withValues(alpha: 0.15),
           ),
-          foregroundColor: const MaterialStatePropertyAll(Colors.white),
-          overlayColor: const MaterialStatePropertyAll(Colors.transparent),
-          shape: MaterialStatePropertyAll(
+          foregroundColor: const WidgetStatePropertyAll(Colors.white),
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
@@ -63,7 +63,7 @@ class DreadmoorTheme {
 
       // Dividers
       dividerTheme: DividerThemeData(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         thickness: 0.6,
         space: 24,
       ),
@@ -77,7 +77,7 @@ class DreadmoorTheme {
       ),
 
       // Dialogs
-      dialogTheme: const DialogTheme(
+      dialogTheme: const DialogThemeData(
         backgroundColor: DreadmoorColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -85,7 +85,7 @@ class DreadmoorTheme {
 
       // Snackbars (errors, updates)
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: DreadmoorColors.surface.withOpacity(0.95),
+        backgroundColor: DreadmoorColors.surface.withValues(alpha: 0.95),
         contentTextStyle:
             const TextStyle(color: DreadmoorColors.textPrimary),
         behavior: SnackBarBehavior.floating,
@@ -94,7 +94,7 @@ class DreadmoorTheme {
       // Tooltips
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: DreadmoorColors.surface.withOpacity(0.95),
+          color: DreadmoorColors.surface.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(6),
         ),
         textStyle:
@@ -104,16 +104,16 @@ class DreadmoorTheme {
       // Inputs (if you ever use text fields)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: DreadmoorColors.surface.withOpacity(0.6),
+        fillColor: DreadmoorColors.surface.withValues(alpha: 0.6),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide:
-              BorderSide(color: Colors.white.withOpacity(0.12), width: 0.6),
+              BorderSide(color: Colors.white.withValues(alpha: 0.12), width: 0.6),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide:
-              BorderSide(color: Colors.white.withOpacity(0.12), width: 0.6),
+              BorderSide(color: Colors.white.withValues(alpha: 0.12), width: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

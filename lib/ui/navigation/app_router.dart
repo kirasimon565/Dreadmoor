@@ -180,7 +180,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['episodeId'] ?? 'ep01';
           return DreadmoorPage(
             key: state.pageKey,
-            child: const RecapScreen(),
+            child: RecapScreen(episodeId: id),
           );
         },
       ),

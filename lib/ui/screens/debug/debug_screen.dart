@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -62,7 +63,7 @@ class DebugScreen extends ConsumerWidget {
                 'saw_highway_crash',
                 'found_diary_01',
               ]) {
-                b.insert(db.storyState, StoryStateCompanion.insert(key: flag, value: 1));
+                b.insert(db.storyState, StoryStateCompanion.insert(key: flag, value: const Value(true)));
               }
             });
             if (context.mounted) {
