@@ -43,26 +43,39 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
     setState(() => _saving = true);
     HapticFeedback.selectionClick();
 
-    final db = ref.read(databaseProvider);
+    try {
+      final db = ref.read(databaseProvider);
 
-    // Safety: don't create twice
-    final existing =
-        await (db.select(db.players)..limit(1)).getSingleOrNull();
-    if (existing != null) {
-      if (mounted) context.go(Routes.welcome);
-      return;
-    }
+      // Safety: don't create twice
+      final existing =
+          await (db.select(db.players)..limit(1)).getSingleOrNull();
 
-    await db.into(db.players).insert(
-          PlayersCompanion.insert(
-            name: name,
-            gender: _selectedGender,
-            createdAt: Value(DateTime.now()),
-          ),
+      if (existing != null) {
+        if (mounted) context.go(Routes.welcome);
+        return;
+      }
+
+      await db.into(db.players).insert(
+        PlayersCompanion.insert(
+          name: name,
+          gender: _selectedGender,
+          createdAt: Value(DateTime.now()),
+        ),
+      );
+
+      if (mounted) {
+        context.go(Routes.welcome);
+      }
+    } catch (e, s) {
+      debugPrint('❌ Failed to save player: $e');
+      debugPrintStack(stackTrace: s);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save identity. Try again.')),
         );
-
-    if (mounted) {
-      context.go(Routes.welcome);
+        setState(() => _saving = false);
+      }
     }
   }
 
