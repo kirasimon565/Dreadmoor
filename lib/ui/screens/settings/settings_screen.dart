@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,11 +30,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final db = ref.read(databaseProvider);
 
     try {
-      // Record a save timestamp in story_state so we know when last saved
+      // ✅ StoryState.value is BoolColumn — store true as the save flag.
+      //    updatedAt is automatically set to now(), giving us the save time.
       await db.into(db.storyState).insertOnConflictUpdate(
             StoryStateCompanion.insert(
-              key: const Value('last_save'),
-              value: DateTime.now().toIso8601String(),
+              key: 'game_saved',
+              value: const Value(true),
+              updatedAt: Value(DateTime.now()),
             ),
           );
 
@@ -63,16 +66,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  // Returns a human-readable last-save time string, or null if never saved
   Future<String?> _getLastSaveTime() async {
     final db = ref.read(databaseProvider);
     try {
       final row = await (db.select(db.storyState)
-            ..where((s) => s.key.equals('last_save')))
+            ..where((s) => s.key.equals('game_saved')))
           .getSingleOrNull();
-      if (row == null) return null;
-      final dt = DateTime.tryParse(row.value);
-      if (dt == null) return null;
-      return '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      if (row == null || !row.value) return null;
+      final dt = row.updatedAt;
+      return '${dt.day}/${dt.month}/${dt.year}  '
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return null;
     }
@@ -83,19 +88,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final db = ref.read(databaseProvider);
 
     try {
-      // Verify a save exists before loading
-      final row = await (db.select(db.storyState)
-            ..where((s) => s.key.equals('last_save')))
+      // Verify a save exists
+      final saveRow = await (db.select(db.storyState)
+            ..where((s) => s.key.equals('game_saved')))
           .getSingleOrNull();
 
-      if (row == null) {
+      if (saveRow == null || !saveRow.value) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: DreadmoorColors.surface,
               content: Text(
                 'No saved game found.',
-                style: GoogleFonts.inter(color: DreadmoorColors.textSecondary),
+                style:
+                    GoogleFonts.inter(color: DreadmoorColors.textSecondary),
               ),
             ),
           );
@@ -103,16 +109,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return;
       }
 
-      // Load active thread from story_state and resume
-      final threadRow = await (db.select(db.storyState)
-            ..where((s) => s.key.equals('active_thread')))
+      // ✅ Find the most recently active thread by latest message timestamp.
+      //    This is the correct way since StoryState can't store strings.
+      final latestMessage = await (db.select(db.messages)
+            ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
+            ..limit(1))
           .getSingleOrNull();
 
       if (mounted) {
-        if (threadRow != null && threadRow.value.isNotEmpty) {
-          ref.read(activeThreadIdProvider.notifier).state = threadRow.value;
+        if (latestMessage != null) {
+          final threadId = latestMessage.threadId;
+          ref.read(activeThreadIdProvider.notifier).state = threadId;
           context.pop();
-          context.go(Routes.chat(threadRow.value));
+          context.go(Routes.chat(threadId));
         } else {
           context.pop();
           context.go(Routes.messenger);
@@ -153,7 +162,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               "CANCEL",
-              style: GoogleFonts.michroma(color: DreadmoorColors.textSecondary),
+              style:
+                  GoogleFonts.michroma(color: DreadmoorColors.textSecondary),
             ),
           ),
           TextButton(
@@ -177,7 +187,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final db = ref.read(databaseProvider);
       await db.resetAllProgress();
 
-      // Clear in-memory player state so router redirects to setup
+      // Clear in-memory state so router redirects back to setup
       ref.read(playerStateProvider.notifier).state = null;
       ref.read(activeThreadIdProvider.notifier).state = null;
 
@@ -327,7 +337,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
 
   Widget _toggle(
-          String title, String subtitle, bool value, ValueChanged<bool> onChanged) =>
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 24),
         child: GestureDetector(
@@ -343,8 +357,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(
-                        fontSize: 14, color: Colors.white),
+                    style:
+                        GoogleFonts.inter(fontSize: 14, color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -463,12 +477,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         subtitle: Text(
           "Erases all data and restarts the story.",
-          style: GoogleFonts.inter(
-            fontSize: 10,
-            color: Colors.white54,
-          ),
+          style: GoogleFonts.inter(fontSize: 10, color: Colors.white54),
         ),
-        trailing: Icon(Icons.warning_amber_rounded,
-            color: DreadmoorColors.accentRed),
+        trailing: Icon(
+          Icons.warning_amber_rounded,
+          color: DreadmoorColors.accentRed,
+        ),
       );
 }
