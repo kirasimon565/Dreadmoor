@@ -20,11 +20,19 @@ class GlobalScheduler {
     // Reserved for future: background isolates, content prefetch, etc.
   }
 
+  /// 🔥 Hard reset: clears DB + runtime scheduler state
   Future<void> resetAll() async {
     _timer?.cancel();
     _timer = null;
     _currentLineId = null;
     _currentScript = null;
+
+    final db = ref.read(databaseProvider);
+
+    await db.delete(db.messages).go();
+    await db.delete(db.threads).go();
+    await db.delete(db.storyState).go();
+    await db.delete(db.episodes).go();
 
     ref.read(currentEpisodeIdProvider.notifier).state = null;
     ref.read(activeThreadIdProvider.notifier).state = null;
@@ -57,7 +65,7 @@ class GlobalScheduler {
           unreadCount: const Value(0),
           isTyping: const Value(false),
           isLocked: const Value(false),
-          isSecret: const Value(false), // hook for secret chats
+          isSecret: const Value(false),
         ),
       );
 
@@ -89,7 +97,7 @@ class GlobalScheduler {
       delay += (line.content!.length * 28);
     }
 
-    delay += _rng.nextInt(400); // human jitter
+    delay += _rng.nextInt(400);
 
     if (line.senderId != 'player' && line.type == 'text') {
       final db = ref.read(databaseProvider);
@@ -154,7 +162,6 @@ class GlobalScheduler {
       return;
     }
 
-    // Script end
     _currentLineId = null;
   }
 
@@ -162,13 +169,16 @@ class GlobalScheduler {
     final active = ref.read(activeThreadIdProvider);
     if (active == _currentScript!.id) return;
 
-    await db.customStatement(
-      '''
-      UPDATE threads
-      SET unread_count = COALESCE(unread_count, 0) + 1
-      WHERE id = ?
-      ''',
-      [_currentScript!.id],
+    final thread = await (db.select(db.threads)
+          ..where((t) => t.id.equals(_currentScript!.id)))
+        .getSingleOrNull();
+
+    if (thread == null) return;
+
+    await (db.update(db.threads)..where((t) => t.id.equals(thread.id))).write(
+      ThreadsCompanion(
+        unreadCount: Value((thread.unreadCount ?? 0) + 1),
+      ),
     );
   }
 
