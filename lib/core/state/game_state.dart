@@ -3,11 +3,9 @@ import '../../core/persistence/drift_database.dart';
 import '../scripting/script_loader.dart';
 import '../scheduler/global_scheduler.dart';
 
-// Singleton DB (VERY important)
+// Singleton DB — always returns the same instance, never closes it
 final databaseProvider = Provider<AppDatabase>((ref) {
-  final db = AppDatabase();
-  ref.onDispose(db.close);
-  return db;
+  return AppDatabase.instance;
 });
 
 // Script Loader Provider
