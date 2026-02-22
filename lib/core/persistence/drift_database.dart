@@ -11,7 +11,14 @@ part 'drift_database.g.dart';
 
 @DriftDatabase(tables: [Players, Messages, Threads, StoryState, Episodes])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase._() : super(_openConnection());
+
+  // ✅ Singleton instance — one connection shared across entire app
+  static AppDatabase? _instance;
+  static AppDatabase get instance {
+    _instance ??= AppDatabase._();
+    return _instance!;
+  }
 
   @override
   int get schemaVersion => 2;
@@ -28,14 +35,10 @@ class AppDatabase extends _$AppDatabase {
         },
       );
 
-  /// Warm up database connection (important in release builds)
+  /// Warm up the singleton connection (safe to call multiple times).
+  /// Call this once in main() before runApp.
   static Future<void> init() async {
-    final db = AppDatabase();
-    try {
-      await db.customSelect('SELECT 1').get();
-    } finally {
-      await db.close();
-    }
+    await instance.customSelect('SELECT 1').get();
   }
 
   Future<void> resetAllProgress() async {
