@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/state/map_state.dart';
 import '../../theme/colors.dart';
 
 class LocationDetailSheet extends StatelessWidget {
-  final String locationId;
+  final MapLocation location;
 
-  const LocationDetailSheet({super.key, required this.locationId});
+  const LocationDetailSheet({super.key, required this.location});
 
   @override
   Widget build(BuildContext context) {
-    // Mock data
-    final title = _getTitle(locationId);
-    final description = _getDescription(locationId);
-    final imagePath = 'assets/map/locations/${locationId}.png';
-
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFF111111),
@@ -25,7 +21,6 @@ class LocationDetailSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag Handle
           Center(
             child: Container(
               width: 40,
@@ -35,34 +30,32 @@ class LocationDetailSheet extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Image
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
-              imagePath,
+              location.imagePath,
               width: double.infinity,
               height: 200,
               fit: BoxFit.cover,
-              errorBuilder: (c,e,s) => Container(color: Colors.grey[900], height: 200, child: const Center(child: Icon(Icons.location_city, color: Colors.white24, size: 48))),
             ),
           ),
+
           const SizedBox(height: 24),
 
-          // Title
           Text(
-            title,
+            location.title,
             style: GoogleFonts.michroma(fontSize: 18, color: DreadmoorColors.textPrimary, letterSpacing: 2.0),
           ),
+
           const SizedBox(height: 12),
 
-          // Description
           Text(
-            description,
+            location.description,
             style: GoogleFonts.inter(fontSize: 14, color: DreadmoorColors.textSecondary, height: 1.5),
           ),
+
           const SizedBox(height: 24),
 
-          // Action Button
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -71,8 +64,7 @@ class LocationDetailSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               onPressed: () {
-                // Navigate to evidence related to this location
-                // e.g. context.push('/board?filter=LOCATIONS')
+                // Hook later: context.push('/board?filter=LOCATIONS&id=${location.id}');
               },
               child: Text(
                 "VIEW EVIDENCE",
@@ -83,25 +75,5 @@ class LocationDetailSheet extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getTitle(String id) {
-    switch (id) {
-      case 'factory': return "OLD CHEMICAL FACTORY";
-      case 'restaurant': return "JOE'S DINER";
-      case 'highway': return "ROUTE 66 HIGHWAY";
-      case 'rebecca_home': return "REBECCA'S APARTMENT";
-      default: return "UNKNOWN LOCATION";
-    }
-  }
-
-  String _getDescription(String id) {
-    switch (id) {
-      case 'factory': return "Abandoned since the 90s. Locals claim strange noises originate from the basement levels.";
-      case 'restaurant': return "Last known location where Rebecca was seen having coffee with a mystery man.";
-      case 'highway': return "The site of the accident. Skid marks are still visible on the asphalt.";
-      case 'rebecca_home': return "Her safe haven. Signs of forced entry were found on the back door.";
-      default: return "No data available.";
-    }
   }
 }
