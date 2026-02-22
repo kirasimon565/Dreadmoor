@@ -9,46 +9,53 @@ class InterceptBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-      decoration: BoxDecoration(
-        color: DreadmoorColors.accentRed.withOpacity(0.08),
-        border: Border(
-          bottom: BorderSide(
-            color: DreadmoorColors.accentRed.withOpacity(0.3),
-            width: 1.0,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: DreadmoorColors.accentRed, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "INTERCEPTED SIGNAL",
-                  style: GoogleFonts.michroma(
-                    fontSize: 10,
-                    letterSpacing: 2.0,
-                    color: DreadmoorColors.accentRed,
-                  ),
-                ),
-                Text(
-                  "SECURE CONNECTION UNAUTHORIZED",
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    letterSpacing: 1.0,
-                    color: DreadmoorColors.accentRed.withOpacity(0.7),
-                  ),
-                ),
-              ],
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            image: const DecorationImage(
+              image: AssetImage('assets/ui/intercept_banner_bg.png'),
+              fit: BoxFit.cover,
+            ),
+            border: Border(
+              bottom: BorderSide(
+                color: DreadmoorColors.accentRed.withOpacity(0.4),
+                width: 1,
+              ),
             ),
           ),
-        ],
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: DreadmoorColors.accentRed, size: 18),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "INTERCEPTED SIGNAL",
+                      style: GoogleFonts.michroma(
+                        fontSize: 10,
+                        letterSpacing: 2.0,
+                        color: DreadmoorColors.accentRed,
+                      ),
+                    ),
+                    Text(
+                      "SECURE CHANNEL BREACHED",
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: DreadmoorColors.accentRed.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
