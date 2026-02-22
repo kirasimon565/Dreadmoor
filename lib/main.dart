@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For system overlay control
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/persistence/drift_database.dart';
+import 'core/state/game_state.dart';
 import 'ui/navigation/app_router.dart';
 import 'ui/theme/dreadmoor_theme.dart';
 
 void main() async {
-  // Ensure Flutter is ready before we mess with the system UI
   WidgetsFlutterBinding.ensureInitialized();
 
   // Lock orientation (cinematic portrait feel)
@@ -24,11 +25,30 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
+  // âœ… Warm up the singleton DB connection before anything else
+  await AppDatabase.init();
+
+  // âœ… Load player from DB into memory before the router ever fires.
+  // This means the router redirect has a synchronous value on the very
+  // first frame â€” no async gap, no bounce back to setup.
+  final db = AppDatabase.instance;
+  final existingPlayer =
+      await (db.select(db.players)..limit(1)).getSingleOrNull();
+
   // Catch async errors globally (Drift / video / scheduler safety)
   runZonedGuarded(
-    () => runApp(const ProviderScope(child: DreadmoorApp())),
+    () => runApp(
+      ProviderScope(
+        overrides: [
+          // âœ… Seeds playerStateProvider with the DB value before first frame.
+          // Router redirect reads this synchronously â€” always up to date.
+          playerStateProvider.overrideWith((ref) => existingPlayer),
+        ],
+        child: const DreadmoorApp(),
+      ),
+    ),
     (error, stack) {
-      debugPrint('🔥 Uncaught error: $error');
+      debugPrint('ðŸ”¥ Uncaught error: $error');
     },
   );
 }
@@ -59,7 +79,7 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // TODO: Pause scheduler/video when backgrounded
     // TODO: Resume when foregrounded
-    debugPrint('📱 App lifecycle changed: $state');
+    debugPrint('ðŸ“± App lifecycle changed: $state');
   }
 
   @override
@@ -81,7 +101,7 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
             textScaleFactor: media.textScaleFactor.clamp(0.9, 1.1),
           ),
           child: Scaffold(
-            backgroundColor: const Color(0xFF0A0A0A), // Real Noir Background
+            backgroundColor: const Color(0xFF0A0A0A),
             body: Stack(
               children: [
                 child!,
