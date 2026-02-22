@@ -27,7 +27,7 @@ class ChoiceOverlay extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
+          tween: Tween<double>(begin: 0.0, end: 1.0),
           duration: const Duration(milliseconds: 260),
           curve: Curves.easeOutCubic,
           builder: (context, value, child) {
@@ -39,7 +39,6 @@ class ChoiceOverlay extends ConsumerWidget {
           },
           child: ClipRect(
             child: BackdropFilter(
-              // Lighter blur for performance
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: Container(
                 width: double.infinity,
