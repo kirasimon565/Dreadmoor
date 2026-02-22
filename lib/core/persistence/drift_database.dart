@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+
 import 'tables.dart';
 
 part 'drift_database.g.dart';
@@ -13,19 +14,56 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from == 1) {
+            // Example future migration slot
+            // await m.addColumn(messages, messages.isSecret);
+          }
+        },
+      );
 
   static Future<void> init() async {
-    // Ensure database is initialized
     final db = AppDatabase();
     await db.customSelect('SELECT 1').get();
+    await db.close();
+  }
+
+  Future<void> resetAllProgress() async {
+    await batch((b) {
+      b.deleteAll(messages);
+      b.deleteAll(threads);
+      b.deleteAll(storyState);
+      b.deleteAll(episodes);
+    });
+  }
+
+  Future<void> resetEpisode(String episodeId) async {
+    await (delete(messages)..where((m) => m.threadId.like('$episodeId%'))).go();
+    await (delete(threads)..where((t) => t.id.like('$episodeId%'))).go();
+    await (delete(storyState)..where((s) => s.key.like('$episodeId%'))).go();
   }
 }
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
+    final file = File(p.join(dbFolder.path, 'dreadmore.sqlite'));
+
+    final db = NativeDatabase.createInBackground(
+      file,
+      logStatements: false,
+    );
+
+    // Enable WAL for speed on Android
+    await (await db).customStatement('PRAGMA journal_mode=WAL;');
+
+    return db;
   });
 }
