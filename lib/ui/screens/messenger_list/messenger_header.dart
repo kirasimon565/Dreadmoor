@@ -1,8 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 
 class MessengerHeader extends StatelessWidget {
@@ -19,6 +18,7 @@ class MessengerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     return ClipRect(
@@ -28,8 +28,10 @@ class MessengerHeader extends StatelessWidget {
           sigmaY: reduceMotion ? 0 : 12,
         ),
         child: Container(
-          height: 64 + MediaQuery.of(context).padding.top,
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+          // ✅ Header height + status bar inset — handled here only.
+          // The parent does NOT wrap in SafeArea to avoid double padding.
+          height: 62 + topPadding,
+          padding: EdgeInsets.only(top: topPadding),
           decoration: BoxDecoration(
             color: DreadmoorColors.surface.withOpacity(0.55),
             border: Border(
@@ -41,39 +43,31 @@ class MessengerHeader extends StatelessWidget {
           ),
           child: Stack(
             children: [
+              // ── Center: logo or title ─────────────────────────────
               Center(
                 child: AnimatedOpacity(
-                  duration:
-                      reduceMotion ? Duration.zero : const Duration(milliseconds: 180),
+                  duration: reduceMotion
+                      ? Duration.zero
+                      : const Duration(milliseconds: 180),
                   opacity: isSearching ? 0.0 : 1.0,
                   child: Image.asset(
                     'assets/ui/messenger_weapon_logo.png',
-                    height: 28,
-                    errorBuilder: (c, e, s) => Text(
+                    height: 26,
+                    errorBuilder: (_, __, ___) => Text(
                       "MESSENGER",
-                      style: TextStyle(color: DreadmoorColors.textPrimary),
+                      style: GoogleFonts.michroma(
+                        fontSize: 14,
+                        letterSpacing: 3.0,
+                        color: DreadmoorColors.textPrimary,
+                      ),
                     ),
                   ),
                 ),
               ),
+
+              // ── Left: player profile ──────────────────────────────
               Positioned(
-                right: 16,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: IconButton(
-                    onPressed: onSearchTap,
-                    icon: Icon(
-                      isSearching ? Icons.close_rounded : Icons.search_rounded,
-                      color: DreadmoorColors.textSecondary,
-                      size: 20,
-                    ),
-                    tooltip: isSearching ? 'Close search' : 'Search',
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 16,
+                left: 4,
                 top: 0,
                 bottom: 0,
                 child: Center(
@@ -81,7 +75,32 @@ class MessengerHeader extends StatelessWidget {
                     onPressed: onProfileTap,
                     icon: const Icon(Icons.person_outline_rounded),
                     color: DreadmoorColors.textSecondary,
+                    iconSize: 22,
                     tooltip: 'Profile',
+                  ),
+                ),
+              ),
+
+              // ── Right: search toggle ──────────────────────────────
+              Positioned(
+                right: 4,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: IconButton(
+                    onPressed: onSearchTap,
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: Icon(
+                        isSearching
+                            ? Icons.close_rounded
+                            : Icons.search_rounded,
+                        key: ValueKey(isSearching),
+                        color: DreadmoorColors.textSecondary,
+                        size: 22,
+                      ),
+                    ),
+                    tooltip: isSearching ? 'Close search' : 'Search',
                   ),
                 ),
               ),
