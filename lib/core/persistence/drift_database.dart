@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/foundation.dart';
 
 import 'tables.dart';
 
@@ -22,18 +23,17 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          if (from == 1) {
-            // Future migrations here
-            // Example:
-            // await m.addColumn(messages, messages.isSecret);
-          }
+          // Future migrations
         },
       );
 
+  /// 🔐 FORCE DB INIT (prevents hanging in release mode)
   static Future<void> init() async {
+    debugPrint('🧠 DB init start');
     final db = AppDatabase();
     await db.customSelect('SELECT 1').get();
     await db.close();
+    debugPrint('✅ DB init done');
   }
 
   Future<void> resetAllProgress() async {
