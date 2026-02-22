@@ -23,7 +23,8 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (m, from, to) async {
           if (from == 1) {
-            // Example future migration slot
+            // Future migrations here
+            // Example:
             // await m.addColumn(messages, messages.isSecret);
           }
         },
@@ -56,11 +57,9 @@ LazyDatabase _openConnection() {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'dreadmore.sqlite'));
 
-    final db = NativeDatabase.createInBackground(
+    return NativeDatabase.createInBackground(
       file,
       logStatements: false,
     );
-
-    return db;
   });
 }
