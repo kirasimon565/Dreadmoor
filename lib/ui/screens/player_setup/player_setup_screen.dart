@@ -44,24 +44,30 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
     HapticFeedback.selectionClick();
 
     try {
+      // ✅ Ensure DB is ready (important in release mode)
+      await AppDatabase.init();
+
       final db = ref.read(databaseProvider);
 
-      // Safety: don't create twice
-      final existing =
-          await (db.select(db.players)..limit(1)).getSingleOrNull();
+      final existing = await (db.select(db.players)..limit(1))
+          .getSingleOrNull()
+          .timeout(const Duration(seconds: 5));
 
       if (existing != null) {
         if (mounted) context.go(Routes.welcome);
         return;
       }
 
-      await db.into(db.players).insert(
-        PlayersCompanion.insert(
-          name: name,
-          gender: _selectedGender,
-          createdAt: Value(DateTime.now()),
-        ),
-      );
+      await db
+          .into(db.players)
+          .insert(
+            PlayersCompanion.insert(
+              name: name,
+              gender: _selectedGender,
+              createdAt: Value(DateTime.now()),
+            ),
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (mounted) {
         context.go(Routes.welcome);
@@ -76,6 +82,15 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
         );
         setState(() => _saving = false);
       }
+    } finally {
+      // 🛡 Absolute failsafe – never let UI lock forever
+      if (mounted) {
+        Future.delayed(const Duration(seconds: 6), () {
+          if (mounted && _saving) {
+            setState(() => _saving = false);
+          }
+        });
+      }
     }
   }
 
@@ -85,7 +100,6 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // [0] Silhouette
           Positioned(
             bottom: 0,
             right: -40,
@@ -99,7 +113,6 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
             ),
           ),
 
-          // [1] Glitch Overlay
           IgnorePointer(
             child: Opacity(
               opacity: 0.04,
@@ -113,7 +126,6 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
             ),
           ),
 
-          // [2] Content
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
