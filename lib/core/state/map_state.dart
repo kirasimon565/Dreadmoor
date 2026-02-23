@@ -8,14 +8,9 @@ class MapLocation {
   final String title;
   final String description;
   final String imagePath;
-  final double x; // normalized 0..1
-  final double y; // normalized 0..1
-
-  // ✅ Nullable — null means always visible (no flag required)
-  // A non-null string means this location is hidden until that
-  // story flag is set to true in the DB.
-  final String? requiredFlag;
-
+  final double x; // 0.0 = left edge, 1.0 = right edge of map image
+  final double y; // 0.0 = top edge, 1.0 = bottom edge of map image
+  final String? requiredFlag; // null = always visible
   final String? type;
   final List<String>? evidenceTags;
 
@@ -26,7 +21,7 @@ class MapLocation {
     required this.imagePath,
     required this.x,
     required this.y,
-    this.requiredFlag,         // ✅ optional — omit for always-visible locations
+    this.requiredFlag,
     this.type,
     this.evidenceTags,
   });
@@ -34,28 +29,37 @@ class MapLocation {
 
 const allMapLocations = <MapLocation>[
   MapLocation(
+    id: 'restaurant',
+    title: "JOE'S DINER",
+    description: 'Last place Rebecca was seen alive with an unknown man.',
+    imagePath: 'assets/map/locations/restaurant.png',
+    // Upper-left cluster on the map (from screenshot)
+    x: 0.36,
+    y: 0.35,
+    type: 'witness',
+    evidenceTags: [],
+  ),
+  MapLocation(
     id: 'factory',
     title: 'OLD CHEMICAL FACTORY',
     description:
         'Abandoned since the 90s. Locals report strange noises from the lower floors.',
     imagePath: 'assets/map/locations/factory.png',
-    x: 0.22,
-    y: 0.38,
-    // ✅ null = always on map. Set requiredFlag: 'visited_factory'
-    // when you want it hidden until the player triggers that event.
-    requiredFlag: null,
+    // Right-center on the map (from screenshot)
+    x: 0.72,
+    y: 0.50,
     type: 'crime_scene',
     evidenceTags: ['photo_factory', 'diary_01'],
   ),
   MapLocation(
-    id: 'restaurant',
-    title: "JOE'S DINER",
-    description: 'Last place Rebecca was seen alive with an unknown man.',
-    imagePath: 'assets/map/locations/restaurant.png',
-    x: 0.12,
-    y: 0.24,
-    requiredFlag: null,
-    type: 'witness',
+    id: 'rebecca_home',
+    title: "REBECCA'S APARTMENT",
+    description: 'Signs of forced entry found on the back door.',
+    imagePath: 'assets/map/locations/rebecca_home.png',
+    // Mid-left residential area
+    x: 0.28,
+    y: 0.60,
+    type: 'landmark',
     evidenceTags: [],
   ),
   MapLocation(
@@ -63,21 +67,10 @@ const allMapLocations = <MapLocation>[
     title: 'ROUTE 66 HIGHWAY',
     description: 'Crash site. Skid marks still visible.',
     imagePath: 'assets/map/locations/highway.png',
-    x: 0.55,
-    y: 0.62,
-    requiredFlag: null,
+    // Lower diagonal road crossing
+    x: 0.45,
+    y: 0.82,
     type: 'crime_scene',
-    evidenceTags: [],
-  ),
-  MapLocation(
-    id: 'rebecca_home',
-    title: "REBECCA'S APARTMENT",
-    description: 'Signs of forced entry found on the back door.',
-    imagePath: 'assets/map/locations/rebecca_home.png',
-    x: 0.35,
-    y: 0.48,
-    requiredFlag: null,
-    type: 'landmark',
     evidenceTags: [],
   ),
 ];
@@ -91,10 +84,9 @@ final unlockedLocationsProvider = FutureProvider<Set<String>>((ref) async {
 final unlockedMapLocationsProvider =
     FutureProvider<List<MapLocation>>((ref) async {
   final unlockedKeys = await ref.read(unlockedLocationsProvider.future);
-  return allMapLocations.where((loc) {
-    // ✅ null requiredFlag = always show
-    // non-null = only show when that flag is in the DB
-    return loc.requiredFlag == null ||
-        unlockedKeys.contains(loc.requiredFlag);
-  }).toList();
+  return allMapLocations
+      .where((loc) =>
+          loc.requiredFlag == null ||
+          unlockedKeys.contains(loc.requiredFlag))
+      .toList();
 });
