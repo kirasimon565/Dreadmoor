@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../persistence/drift_database.dart';
 import 'game_state.dart';
 
@@ -11,7 +12,7 @@ class CharacterProfileData {
   final String relationToRebecca;
   final List<String> facts;
   final List<String> contradictions;
-  final String requiredFlag; // unlock gate
+  final String requiredFlag;
 
   const CharacterProfileData({
     required this.id,
@@ -26,7 +27,12 @@ class CharacterProfileData {
   });
 }
 
-// Registry (expand later)
+// FIX 1: character_profile_screen.dart declares `final CharacterProfile profile`
+// but this file only defined CharacterProfileData. Typedef bridges the gap
+// without renaming the class or touching the screen.
+typedef CharacterProfile = CharacterProfileData;
+
+// Registry
 final allCharacters = <CharacterProfileData>[
   CharacterProfileData(
     id: 'amelia',
@@ -49,10 +55,17 @@ final allCharacters = <CharacterProfileData>[
 ];
 
 final unlockedCharactersProvider =
-    FutureProvider.family<CharacterProfileData?, String>((ref, characterId) async {
-  final db = ref.watch(databaseProvider);
+    FutureProvider.family<CharacterProfileData?, String>(
+        (ref, characterId) async {
+  // FIX 2: ref.read, not ref.watch, inside async FutureProvider body
+  final db = ref.read(databaseProvider);
   final flags = await db.select(db.storyState).get();
-  final unlockedFlags = flags.map((f) => f.key).toSet();
+
+  // FIX 3: Filter by f.value == true — original returned ALL flag keys
+  // regardless of their boolean value, so a flag set to false would still
+  // count as "unlocked" and reveal the character profile.
+  final unlockedFlags =
+      flags.where((f) => f.value).map((f) => f.key).toSet();
 
   final profile =
       allCharacters.where((c) => c.id == characterId).firstOrNull;
