@@ -9,10 +9,15 @@ class ChatBubble extends StatelessWidget {
     super.key,
     required this.text,
     required this.isMe,
+    // FIX: Added senderId — callers in chat_screen.dart and
+    // secret_chat_screen.dart pass this param. Not used for rendering
+    // (bubble appearance is driven by isMe) but required to match callers.
+    this.senderId,
   });
 
   final String text;
   final bool isMe;
+  final String? senderId;
 
   @override
   Widget build(BuildContext context) {
@@ -65,14 +70,14 @@ class ChatBubble extends StatelessWidget {
                             color: DreadmoorColors.glowCyan,
                             blurRadius: 14,
                             offset: Offset(0, 2),
-                          )
+                          ),
                         ]
                       : const [
                           BoxShadow(
                             color: Colors.black26,
                             blurRadius: 10,
                             offset: Offset(0, 2),
-                          )
+                          ),
                         ],
                 ),
                 child: Padding(
