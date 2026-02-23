@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/colors.dart';
+import 'messenger_logo.dart';
 
 class MessengerHeader extends StatelessWidget {
   const MessengerHeader({
@@ -28,7 +29,6 @@ class MessengerHeader extends StatelessWidget {
           sigmaY: reduceMotion ? 0 : 12,
         ),
         child: Container(
-          // ✅ Taller header so the bigger logo has room to breathe
           height: 72 + topPadding,
           padding: EdgeInsets.only(top: topPadding),
           decoration: BoxDecoration(
@@ -42,28 +42,16 @@ class MessengerHeader extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // ── Center: logo or title ─────────────────────────────
+              // ── Center: custom logo or fallback title ─────────────
               Center(
                 child: AnimatedOpacity(
                   duration: reduceMotion
                       ? Duration.zero
                       : const Duration(milliseconds: 180),
                   opacity: isSearching ? 0.0 : 1.0,
-                  child: Image.asset(
-                    'assets/ui/messenger_weapon_logo.png',
-                    // ✅ Much larger — was 26, now 42
-                    height: 42,
-                    // ✅ Tint black PNG white so it's visible on dark header
-                    color: Colors.white.withOpacity(0.95),
-                    colorBlendMode: BlendMode.srcATop,
-                    errorBuilder: (_, __, ___) => Text(
-                      "MESSENGER",
-                      style: GoogleFonts.michroma(
-                        fontSize: 16,
-                        letterSpacing: 3.5,
-                        color: DreadmoorColors.textPrimary,
-                      ),
-                    ),
+                  child: const MessengerLogo(
+                    height: 40,
+                    color: Colors.white,
                   ),
                 ),
               ),
