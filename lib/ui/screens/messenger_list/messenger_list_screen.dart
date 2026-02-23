@@ -28,18 +28,13 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
   bool _searching = false;
 
-  // ✅ Single TextEditingController so we can clear and autofocus properly
   final _searchController = TextEditingController();
-
-  // ✅ StreamController lets us update the query filter without
-  // recreating the entire DB stream on every keystroke
   final _queryController = StreamController<String>.broadcast();
   Stream<List<ThreadWithLastMessage>>? _threadStream;
 
   @override
   void initState() {
     super.initState();
-    // Build the stream once — never recreated
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final db = ref.read(databaseProvider);
@@ -57,10 +52,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
     super.dispose();
   }
 
-  // ── Stream ────────────────────────────────────────────────────────────────
-
   Stream<List<ThreadWithLastMessage>> _buildThreadStream(AppDatabase db) {
-    // Raw DB stream: all non-secret threads with their last message
     final rawStream = (db.select(db.threads)
           ..where((t) => t.isSecret.equals(false))
           ..orderBy([
@@ -81,10 +73,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                 ))
             .toList());
 
-    // ✅ Combine DB stream with query stream so filtering is reactive
-    // but never recreates the DB subscription
-    final queryStream =
-        _queryController.stream.startWith('');
+    final queryStream = _queryController.stream.startWith('');
 
     return rawStream.switchMap((threads) {
       return queryStream.map((query) {
@@ -110,15 +99,21 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
     });
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
+      // ✅ extendBody so the list scrolls behind the translucent bottom nav
+      extendBody: true,
+      bottomNavigationBar: _BottomNav(
+        onSearch: _toggleSearch,
+        isSearching: _searching,
+      ),
       body: Stack(
         children: [
-          // ── Background texture ──────────────────────────────────────
+          // ── Background texture ────────────────────────────────────────
           Positioned.fill(
             child: Image.asset(
               'assets/backgrounds/messenger_bg_texture.png',
@@ -130,7 +125,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
             ),
           ),
 
-          // ── Grain overlay ───────────────────────────────────────────
+          // ── Grain overlay ─────────────────────────────────────────────
           IgnorePointer(
             child: Opacity(
               opacity: 0.035,
@@ -144,11 +139,10 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
             ),
           ),
 
-          // ── Content ─────────────────────────────────────────────────
-          // ✅ No SafeArea wrapper here — MessengerHeader handles its own
-          // top padding via MediaQuery.padding.top internally
+          // ── Content ───────────────────────────────────────────────────
           Column(
             children: [
+              // Header: logo only — nav moved to bottom bar
               MessengerHeader(
                 isSearching: _searching,
                 onSearchTap: _toggleSearch,
@@ -167,7 +161,6 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                   backgroundColor: DreadmoorColors.surface,
                   onRefresh: () async {
                     HapticFeedback.lightImpact();
-                    // Fake refresh delay — visual polish only
                     await Future.delayed(const Duration(milliseconds: 700));
                   },
                   child: _threadStream == null
@@ -200,9 +193,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                             if (threads.isEmpty) {
                               return Center(
                                 child: Text(
-                                  _searching
-                                      ? "NO RESULTS"
-                                      : "NO MESSAGES",
+                                  _searching ? "NO RESULTS" : "NO MESSAGES",
                                   style: GoogleFonts.michroma(
                                     fontSize: 11,
                                     letterSpacing: 2.5,
@@ -214,8 +205,12 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
                             return ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.only(
-                                  top: 8, bottom: 32),
+                              // ✅ Extra bottom padding so last tile isn't
+                              // hidden behind the bottom nav bar
+                              padding: EdgeInsets.only(
+                                top: 8,
+                                bottom: 90 + bottomPadding,
+                              ),
                               itemCount: threads.length,
                               itemBuilder: (context, index) {
                                 return _ThreadTile(
@@ -229,6 +224,218 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Bottom navigation bar ─────────────────────────────────────────────────
+
+class _BottomNav extends StatelessWidget {
+  final VoidCallback onSearch;
+  final bool isSearching;
+
+  const _BottomNav({
+    required this.onSearch,
+    required this.isSearching,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: EdgeInsets.only(
+            top: 10,
+            bottom: 10 + bottomPadding,
+            left: 8,
+            right: 8,
+          ),
+          decoration: BoxDecoration(
+            color: DreadmoorColors.surface.withOpacity(0.72),
+            border: Border(
+              top: BorderSide(
+                color: Colors.white.withOpacity(0.07),
+                width: 0.6,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              // Profile
+              _NavItem(
+                icon: Icons.person_outline_rounded,
+                label: "PROFILE",
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(Routes.playerProfile);
+                },
+              ),
+
+              // Search
+              _NavItem(
+                icon: isSearching
+                    ? Icons.search_off_rounded
+                    : Icons.search_rounded,
+                label: "SEARCH",
+                isActive: isSearching,
+                onTap: onSearch,
+              ),
+
+              // Detective Board — center, highlighted
+              _NavItem(
+                icon: Icons.push_pin_outlined,
+                label: "BOARD",
+                isCenter: true,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(Routes.board);
+                },
+              ),
+
+              // Map
+              _NavItem(
+                icon: Icons.map_outlined,
+                label: "MAP",
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(Routes.map);
+                },
+              ),
+
+              // Settings
+              _NavItem(
+                icon: Icons.settings_outlined,
+                label: "SETTINGS",
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(Routes.settings);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isActive;
+  final bool isCenter;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isActive = false,
+    this.isCenter = false,
+  });
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = widget.isCenter
+        ? DreadmoorColors.accentCyan
+        : DreadmoorColors.accentCyan;
+    final inactiveColor = Colors.white.withOpacity(0.35);
+    final color =
+        (widget.isActive || widget.isCenter) ? activeColor : inactiveColor;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.88 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: widget.isCenter
+            // ── Center item: raised glowing pill ───────────────────
+            ? Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: DreadmoorColors.accentCyan.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: DreadmoorColors.accentCyan.withOpacity(0.35),
+                    width: 0.7,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: DreadmoorColors.glowCyan.withOpacity(0.2),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(widget.icon, color: activeColor, size: 20),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.label,
+                      style: GoogleFonts.michroma(
+                        fontSize: 8,
+                        color: activeColor,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            // ── Regular nav items ───────────────────────────────────
+            : SizedBox(
+                width: 56,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: widget.isActive ? 36 : 0,
+                      height: 2,
+                      margin: const EdgeInsets.only(bottom: 4),
+                      decoration: BoxDecoration(
+                        color: DreadmoorColors.accentCyan,
+                        borderRadius: BorderRadius.circular(1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: DreadmoorColors.glowCyan.withOpacity(0.6),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(widget.icon, color: color, size: 20),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.label,
+                      style: GoogleFonts.michroma(
+                        fontSize: 8,
+                        color: color,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }
@@ -259,16 +466,13 @@ class _ThreadTileState extends State<_ThreadTile> {
   Widget build(BuildContext context) {
     final thread = widget.threadData.thread;
     final message = widget.threadData.lastMessage;
-
-    // ✅ These are non-nullable in the schema (all have withDefault)
     final isUnread = thread.unreadCount > 0;
     final isTyping = thread.isTyping;
     final isLocked = thread.isLocked;
 
     return GestureDetector(
-      onTapDown: isLocked
-          ? null
-          : (_) => setState(() => _pressed = true),
+      onTapDown:
+          isLocked ? null : (_) => setState(() => _pressed = true),
       onTapUp: isLocked
           ? null
           : (_) {
@@ -281,7 +485,8 @@ class _ThreadTileState extends State<_ThreadTile> {
         duration: const Duration(milliseconds: 100),
         opacity: _pressed ? 0.75 : 1.0,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 12),
+          padding:
+              const EdgeInsets.symmetric(vertical: 2, horizontal: 12),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: BackdropFilter(
@@ -291,8 +496,8 @@ class _ThreadTileState extends State<_ThreadTile> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 13),
                 decoration: BoxDecoration(
-                  color: DreadmoorColors.surface.withOpacity(
-                      isUnread ? 0.52 : 0.32),
+                  color: DreadmoorColors.surface
+                      .withOpacity(isUnread ? 0.52 : 0.32),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isUnread
@@ -303,16 +508,12 @@ class _ThreadTileState extends State<_ThreadTile> {
                 ),
                 child: Row(
                   children: [
-                    // Avatar
                     _Avatar(isLocked: isLocked),
                     const SizedBox(width: 14),
-
-                    // Text content
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title row
                           Row(
                             mainAxisAlignment:
                                 MainAxisAlignment.spaceBetween,
@@ -325,10 +526,9 @@ class _ThreadTileState extends State<_ThreadTile> {
                                     letterSpacing: 1.2,
                                     color: isLocked
                                         ? Colors.white.withOpacity(0.3)
-                                        : isUnread
-                                            ? DreadmoorColors.textPrimary
-                                            : DreadmoorColors.textPrimary
-                                                .withOpacity(0.85),
+                                        : DreadmoorColors.textPrimary
+                                            .withOpacity(
+                                                isUnread ? 1.0 : 0.85),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -345,18 +545,15 @@ class _ThreadTileState extends State<_ThreadTile> {
                                 ),
                             ],
                           ),
-
                           const SizedBox(height: 5),
-
-                          // Preview row
                           if (isLocked)
                             Text(
                               "LOCKED",
                               style: GoogleFonts.michroma(
                                 fontSize: 10,
                                 letterSpacing: 2.0,
-                                color:
-                                    DreadmoorColors.accentRed.withOpacity(0.5),
+                                color: DreadmoorColors.accentRed
+                                    .withOpacity(0.5),
                               ),
                             )
                           else if (isTyping)
@@ -385,8 +582,6 @@ class _ThreadTileState extends State<_ThreadTile> {
                         ],
                       ),
                     ),
-
-                    // Unread dot
                     if (isUnread && !isLocked)
                       Container(
                         margin: const EdgeInsets.only(left: 10),
@@ -442,8 +637,7 @@ class _Avatar extends StatelessWidget {
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  ColoredBox(
-                      color: Colors.white.withOpacity(0.06)),
+                  ColoredBox(color: Colors.white.withOpacity(0.06)),
                   BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                     child: const SizedBox.expand(),
@@ -499,7 +693,6 @@ class _SearchBar extends StatelessWidget {
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        // ✅ Keyboard opens automatically when search bar appears
         autofocus: true,
         style: GoogleFonts.inter(
           color: DreadmoorColors.textPrimary,
