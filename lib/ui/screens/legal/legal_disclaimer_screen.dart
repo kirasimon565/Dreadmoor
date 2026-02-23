@@ -4,9 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_widgets.dart';
-
-// FIX: Removed unused `import 'dart:ui'` present in original.
+import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class LegalDisclaimerScreen extends StatelessWidget {
   const LegalDisclaimerScreen({super.key});
@@ -17,10 +15,8 @@ class LegalDisclaimerScreen extends StatelessWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // FIX: Positioned.fill — original Opacity+Image.asset had no
-          // fill constraint and rendered at intrinsic size, top-left only.
           Positioned.fill(
-            child: CustomPaint(painter: _ScanlinePainter()),
+            child: CustomPaint(painter: const ScanlinePainter()),
           ),
 
           Column(
@@ -30,7 +26,6 @@ class LegalDisclaimerScreen extends StatelessWidget {
                 onBackPressed: () => context.pop(),
               ),
 
-              // ── Document header ──────────────────────────────────────
               _DocumentStamp(),
 
               Expanded(
@@ -39,49 +34,50 @@ class LegalDisclaimerScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _LegalSection(
+                      const _LegalSection(
                         title: 'FICTIONAL DISCLAIMER',
                         index: '01',
-                        body: 'Dreadmoor: Rebecca Stone Mystery is a work of fiction. '
+                        body:
+                            'Dreadmoor: Rebecca Stone Mystery is a work of fiction. '
                             'All names, characters, organizations, locations, and events '
                             'portrayed in this game are either products of the author\'s imagination '
                             'or are used in a fictional manner. Any resemblance to actual persons, '
                             'living or dead, or to real-world events or locations is purely coincidental.',
                       ),
-
-                      _LegalSection(
+                      const _LegalSection(
                         title: 'INTELLECTUAL PROPERTY',
                         index: '02',
-                        body: 'All content within this game — including but not limited to storylines, '
+                        body:
+                            'All content within this game — including but not limited to storylines, '
                             'dialogue, characters, artwork, audio, music, and visual designs — '
                             'is the intellectual property of BlackMoon Studio unless otherwise stated. '
                             'Unauthorized reproduction, redistribution, or modification of any part '
                             'of this game is prohibited.',
                       ),
-
-                      _LegalSection(
+                      const _LegalSection(
                         title: 'LIABILITY DISCLAIMER',
                         index: '03',
-                        body: 'The developers and publishers of this game assume no responsibility '
+                        body:
+                            'The developers and publishers of this game assume no responsibility '
                             'for any direct or indirect damages arising from the use of this software. '
-                            'This game is provided "as is" without warranties of any kind, express or implied.',
+                            'This game is provided "as is" without warranties of any kind, '
+                            'express or implied.',
                       ),
-
-                      _LegalSection(
+                      const _LegalSection(
                         title: 'DATA & PRIVACY',
                         index: '04',
-                        body: 'This game stores gameplay progress locally on your device only. '
+                        body:
+                            'This game stores gameplay progress locally on your device only. '
                             'No personal data is transmitted to external servers. '
                             'Deleting the app or clearing local storage will permanently erase your progress.',
                       ),
 
                       const SizedBox(height: 40),
 
-                      // ── Footer ───────────────────────────────────────
                       Center(
                         child: Column(
                           children: [
-                            _RedactedBar(width: 200),
+                            const RedactedBar(width: 200),
                             const SizedBox(height: 16),
                             Text(
                               '© ${DateTime.now().year} BLACKMOON STUDIO',
@@ -127,11 +123,8 @@ class _DocumentStamp extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.gavel_rounded,
-            size: 13,
-            color: DreadmoorColors.textMeta.withOpacity(0.4),
-          ),
+          Icon(Icons.gavel_rounded,
+              size: 13, color: DreadmoorColors.textMeta.withOpacity(0.4)),
           const SizedBox(width: 10),
           Text(
             'DOCUMENT REF: BMS-LEGAL-${DateTime.now().year}',
@@ -146,8 +139,7 @@ class _DocumentStamp extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               border: Border.all(
-                color: DreadmoorColors.accentCyan.withOpacity(0.3),
-              ),
+                  color: DreadmoorColors.accentCyan.withOpacity(0.3)),
             ),
             child: Text(
               'OFFICIAL',
@@ -182,7 +174,6 @@ class _LegalSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header row
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -219,7 +210,6 @@ class _LegalSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Body text
           Text(
             body,
             style: GoogleFonts.sourceCodePro(
