@@ -53,6 +53,9 @@ class MessengerHeader extends StatelessWidget {
                   child: Image.asset(
                     'assets/ui/messenger_weapon_logo.png',
                     height: 26,
+                    // ✅ Tint black PNG to white — same fix as studio logo
+                    color: Colors.white.withOpacity(0.9),
+                    colorBlendMode: BlendMode.srcATop,
                     errorBuilder: (_, __, ___) => Text(
                       "MESSENGER",
                       style: GoogleFonts.michroma(
