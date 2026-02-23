@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/state/investigation_state.dart';
+import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
 import 'board_filters.dart';
@@ -25,9 +26,18 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
   @override
   Widget build(BuildContext context) {
     final unlockedEvidenceAsync = ref.watch(unlockedEvidenceProvider);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: const Color(0xFF111111),
+      // ── Map FAB ───────────────────────────────────────────────────────
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 8),
+        child: _MapFab(onTap: () {
+          HapticFeedback.selectionClick();
+          context.push(Routes.map);
+        }),
+      ),
       body: Stack(
         children: [
           // ── Corkboard texture ─────────────────────────────────────────
@@ -89,7 +99,6 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
                                 return e.type == 'diary' ||
                                     e.type == 'document';
                               case 'LOCATIONS':
-                                // ✅ Fixed: 'location' not 'photo'
                                 return e.type == 'location' ||
                                     e.type == 'photo';
                               default:
@@ -122,7 +131,8 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
                     }
 
                     return GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                      // Extra bottom padding so FAB never covers last card row
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
@@ -171,6 +181,84 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
   }
 }
 
+// ── Map FAB ────────────────────────────────────────────────────────────────
+
+class _MapFab extends StatefulWidget {
+  final VoidCallback onTap;
+  const _MapFab({required this.onTap});
+
+  @override
+  State<_MapFab> createState() => _MapFabState();
+}
+
+class _MapFabState extends State<_MapFab> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.93 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+              decoration: BoxDecoration(
+                color: _pressed
+                    ? DreadmoorColors.accentCyan.withOpacity(0.15)
+                    : DreadmoorColors.surface.withOpacity(0.55),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: DreadmoorColors.accentCyan
+                      .withOpacity(_pressed ? 0.7 : 0.3),
+                  width: 0.7,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: DreadmoorColors.glowCyan.withOpacity(0.15),
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.map_outlined,
+                    color: DreadmoorColors.accentCyan,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    "DREADMOOR MAP",
+                    style: GoogleFonts.michroma(
+                      fontSize: 11,
+                      letterSpacing: 2.0,
+                      color: DreadmoorColors.accentCyan,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── Board item card ────────────────────────────────────────────────────────
 
 class _BoardItem extends StatefulWidget {
@@ -204,10 +292,8 @@ class _BoardItemState extends State<_BoardItem> {
         scale: _pressed ? 0.96 : 1.0,
         duration: const Duration(milliseconds: 100),
         child: Stack(
-          // ✅ clipBehavior.none so the pin renders above card bounds
           clipBehavior: Clip.none,
           children: [
-            // ── Card body ─────────────────────────────────────────
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF1E1E1E),
@@ -230,7 +316,6 @@ class _BoardItemState extends State<_BoardItem> {
                 borderRadius: BorderRadius.circular(6),
                 child: Stack(
                   children: [
-                    // Card content
                     Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
@@ -238,14 +323,11 @@ class _BoardItemState extends State<_BoardItem> {
                         children: [
                           _TypeBadge(item.type),
                           const Spacer(),
-
-                          // Recovery bar for diary items
                           if (item.type == 'diary' &&
                               item.recoveryPercent != null) ...[
                             _RecoveryBar(percent: item.recoveryPercent!),
                             const SizedBox(height: 8),
                           ],
-
                           Text(
                             item.title,
                             style: GoogleFonts.michroma(
@@ -261,15 +343,12 @@ class _BoardItemState extends State<_BoardItem> {
                         ],
                       ),
                     ),
-
-                    // ✅ Blur overlay for locked items
                     if (isLocked)
                       Positioned.fill(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: BackdropFilter(
-                            filter:
-                                ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                             child: Container(
                               color: Colors.black.withOpacity(0.55),
                               child: Center(
@@ -303,8 +382,6 @@ class _BoardItemState extends State<_BoardItem> {
                 ),
               ),
             ),
-
-            // ── Pin ───────────────────────────────────────────────
             Positioned(
               top: -8,
               left: 0,
@@ -339,8 +416,7 @@ class _BoardItemState extends State<_BoardItem> {
 // ── Recovery bar ───────────────────────────────────────────────────────────
 
 class _RecoveryBar extends StatelessWidget {
-  final double percent; // 0.0 to 1.0
-
+  final double percent;
   const _RecoveryBar({required this.percent});
 
   @override
