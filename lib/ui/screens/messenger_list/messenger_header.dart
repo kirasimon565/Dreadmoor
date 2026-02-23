@@ -28,9 +28,8 @@ class MessengerHeader extends StatelessWidget {
           sigmaY: reduceMotion ? 0 : 12,
         ),
         child: Container(
-          // ✅ Header height + status bar inset — handled here only.
-          // The parent does NOT wrap in SafeArea to avoid double padding.
-          height: 62 + topPadding,
+          // ✅ Taller header so the bigger logo has room to breathe
+          height: 72 + topPadding,
           padding: EdgeInsets.only(top: topPadding),
           decoration: BoxDecoration(
             color: DreadmoorColors.surface.withOpacity(0.55),
@@ -52,15 +51,16 @@ class MessengerHeader extends StatelessWidget {
                   opacity: isSearching ? 0.0 : 1.0,
                   child: Image.asset(
                     'assets/ui/messenger_weapon_logo.png',
-                    height: 26,
-                    // ✅ Tint black PNG to white — same fix as studio logo
-                    color: Colors.white.withOpacity(0.9),
+                    // ✅ Much larger — was 26, now 42
+                    height: 42,
+                    // ✅ Tint black PNG white so it's visible on dark header
+                    color: Colors.white.withOpacity(0.95),
                     colorBlendMode: BlendMode.srcATop,
                     errorBuilder: (_, __, ___) => Text(
                       "MESSENGER",
                       style: GoogleFonts.michroma(
-                        fontSize: 14,
-                        letterSpacing: 3.0,
+                        fontSize: 16,
+                        letterSpacing: 3.5,
                         color: DreadmoorColors.textPrimary,
                       ),
                     ),
