@@ -20,7 +20,6 @@ class DreadmoorMapScreen extends ConsumerWidget {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Map content ─────────────────────────────────────────────
           unlockedAsync.when(
             data: (unlockedFlags) => _MapView(unlockedFlags: unlockedFlags),
             loading: () => const Center(
@@ -38,7 +37,6 @@ class DreadmoorMapScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Fixed header (outside InteractiveViewer so it stays put) ──
           _Header(onBack: () {
             HapticFeedback.selectionClick();
             context.pop();
@@ -49,7 +47,7 @@ class DreadmoorMapScreen extends ConsumerWidget {
   }
 }
 
-// ── Map view with InteractiveViewer ───────────────────────────────────────
+// ── Map view ──────────────────────────────────────────────────────────────
 
 class _MapView extends StatelessWidget {
   final Set<String> unlockedFlags;
@@ -58,23 +56,24 @@ class _MapView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InteractiveViewer(
-      minScale: 0.6,
-      maxScale: 3.0,
-      boundaryMargin: const EdgeInsets.all(80),
-      child: SizedBox(
-        // ✅ Fixed intrinsic size for the map — pins are positioned
-        // relative to this fixed canvas, not the viewport.
-        // This means pin positions stay correct at any zoom level.
-        width: 1200,
-        height: 900,
-        child: Stack(
-          children: [
-            // Map image fills the fixed canvas
-            Positioned.fill(
-              child: Image.asset(
+      minScale: 0.5,
+      maxScale: 4.0,
+      boundaryMargin: const EdgeInsets.all(60),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // ✅ No fixed canvas — the map image fills available space
+          // naturally. LayoutBuilder gives us the rendered size so pins
+          // can be placed as fractions of actual pixels.
+          return Stack(
+            children: [
+              // Map image — sizes itself to its intrinsic dimensions
+              Image.asset(
                 'assets/map/dreadmore_map.png',
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
+                width: double.infinity,
                 errorBuilder: (_, __, ___) => Container(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
                   color: const Color(0xFF0D0D0D),
                   child: Center(
                     child: Text(
@@ -88,35 +87,97 @@ class _MapView extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
 
-            // Grain overlay on map
-            IgnorePointer(
-              child: Opacity(
-                opacity: 0.06,
-                child: Image.asset(
-                  'assets/ui/glitch_overlay.png',
-                  fit: BoxFit.cover,
-                  width: 1200,
-                  height: 900,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
+              // Grain overlay
+              IgnorePointer(
+                child: Opacity(
+                  opacity: 0.05,
+                  child: Image.asset(
+                    'assets/ui/glitch_overlay.png',
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorBuilder: (_, __, ___) => const SizedBox(),
+                  ),
                 ),
               ),
-            ),
 
-            // Map pins — positioned on the fixed 1200×900 canvas
-            for (final loc in allMapLocations)
-              _MapPin(
-                location: loc,
-                // ✅ null requiredFlag = always unlocked
-                unlocked: loc.requiredFlag == null ||
-                    unlockedFlags.contains(loc.requiredFlag),
-                canvasWidth: 1200,
-                canvasHeight: 900,
+              // ✅ Pins use a separate widget that reads the image's
+              // actual rendered size via a post-frame callback
+              _PinLayer(
+                locations: allMapLocations,
+                unlockedFlags: unlockedFlags,
               ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
+    );
+  }
+}
+
+// ── Pin layer — measures the image then lays out pins ─────────────────────
+
+class _PinLayer extends StatefulWidget {
+  final List<MapLocation> locations;
+  final Set<String> unlockedFlags;
+
+  const _PinLayer({
+    required this.locations,
+    required this.unlockedFlags,
+  });
+
+  @override
+  State<_PinLayer> createState() => _PinLayerState();
+}
+
+class _PinLayerState extends State<_PinLayer> {
+  // Actual rendered size of the map image — null until measured
+  Size? _imageSize;
+  final _imageKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Measure after first frame when the image has been laid out
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+  }
+
+  void _measure() {
+    final box =
+        _imageKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final size = box.size;
+    if (size != _imageSize) {
+      setState(() => _imageSize = size);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Invisible key holder so we can measure the image size
+        Image.asset(
+          'assets/map/dreadmore_map.png',
+          key: _imageKey,
+          fit: BoxFit.contain,
+          width: double.infinity,
+          // Fully transparent — the real image is drawn in the parent
+          color: Colors.transparent,
+          colorBlendMode: BlendMode.multiply,
+          errorBuilder: (_, __, ___) => const SizedBox(),
+        ),
+
+        // Only render pins once we know the rendered image size
+        if (_imageSize != null)
+          for (final loc in widget.locations)
+            _MapPin(
+              location: loc,
+              unlocked: loc.requiredFlag == null ||
+                  widget.unlockedFlags.contains(loc.requiredFlag),
+              imageSize: _imageSize!,
+            ),
+      ],
     );
   }
 }
@@ -157,11 +218,8 @@ class _Header extends StatelessWidget {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white, size: 18),
                   onPressed: onBack,
                   tooltip: 'Back',
                 ),
@@ -169,13 +227,11 @@ class _Header extends StatelessWidget {
                 Text(
                   "DREADMOOR",
                   style: GoogleFonts.michroma(
-                    fontSize: 15,
-                    color: Colors.white,
-                    letterSpacing: 3.0,
-                  ),
+                      fontSize: 15,
+                      color: Colors.white,
+                      letterSpacing: 3.0),
                 ),
                 const Spacer(),
-                // Zoom hint
                 Text(
                   "PINCH TO ZOOM",
                   style: GoogleFonts.inter(
@@ -198,22 +254,19 @@ class _Header extends StatelessWidget {
 class _MapPin extends StatefulWidget {
   final MapLocation location;
   final bool unlocked;
-  final double canvasWidth;
-  final double canvasHeight;
+  final Size imageSize; // actual rendered px size of the map image
 
   const _MapPin({
     required this.location,
     required this.unlocked,
-    required this.canvasWidth,
-    required this.canvasHeight,
+    required this.imageSize,
   });
 
   @override
   State<_MapPin> createState() => _MapPinState();
 }
 
-class _MapPinState extends State<_MapPin>
-    with SingleTickerProviderStateMixin {
+class _MapPinState extends State<_MapPin> with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
   late final Animation<double> _pulseScale;
   bool _pressed = false;
@@ -225,10 +278,9 @@ class _MapPinState extends State<_MapPin>
       vsync: this,
       duration: const Duration(milliseconds: 1600),
     );
-    _pulseScale = Tween<double>(begin: 1.0, end: 1.4).animate(
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeOut),
     );
-    // Only pulse unlocked locations
     if (widget.unlocked) _pulseController.repeat();
   }
 
@@ -242,11 +294,14 @@ class _MapPinState extends State<_MapPin>
   Widget build(BuildContext context) {
     final loc = widget.location;
     final unlocked = widget.unlocked;
+    final w = widget.imageSize.width;
+    final h = widget.imageSize.height;
 
-    // ✅ Pin position: x/y are 0.0–1.0 fractions of the fixed canvas
+    // ✅ Pins placed as fractions of the ACTUAL rendered image size —
+    // no hardcoded canvas needed. Correct at every screen size and zoom.
     return Positioned(
-      left: widget.canvasWidth * loc.x - 16,
-      top: widget.canvasHeight * loc.y - 40,
+      left: w * loc.x - 18,
+      top: h * loc.y - 44,
       child: GestureDetector(
         onTapDown: unlocked ? (_) => setState(() => _pressed = true) : null,
         onTapUp: unlocked
@@ -263,37 +318,34 @@ class _MapPinState extends State<_MapPin>
             : null,
         onTapCancel: () => setState(() => _pressed = false),
         child: AnimatedScale(
-          scale: _pressed ? 0.9 : 1.0,
+          scale: _pressed ? 0.88 : 1.0,
           duration: const Duration(milliseconds: 100),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Pin with pulse ring
+              // Pin + pulse ring
               SizedBox(
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Pulse ring (unlocked only)
                     if (unlocked)
                       AnimatedBuilder(
                         animation: _pulseScale,
                         builder: (_, __) => Transform.scale(
                           scale: _pulseScale.value,
                           child: Container(
-                            width: 24,
-                            height: 24,
+                            width: 26,
+                            height: 26,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: DreadmoorColors.accentRed.withOpacity(
-                                  (1.0 - _pulseController.value) * 0.35),
+                                  (1.0 - _pulseController.value) * 0.4),
                             ),
                           ),
                         ),
                       ),
-
-                    // Pin icon
                     Icon(
                       unlocked
                           ? Icons.location_on_rounded
@@ -301,13 +353,13 @@ class _MapPinState extends State<_MapPin>
                       color: unlocked
                           ? DreadmoorColors.accentRed
                           : Colors.grey.shade700,
-                      size: 28,
+                      size: 30,
                       shadows: unlocked
                           ? [
                               Shadow(
                                 color: DreadmoorColors.accentRed
-                                    .withOpacity(0.5),
-                                blurRadius: 8,
+                                    .withOpacity(0.6),
+                                blurRadius: 10,
                               ),
                             ]
                           : null,
@@ -323,11 +375,11 @@ class _MapPinState extends State<_MapPin>
                 padding: const EdgeInsets.symmetric(
                     horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.75),
+                  color: Colors.black.withOpacity(0.80),
                   borderRadius: BorderRadius.circular(3),
                   border: Border.all(
                     color: unlocked
-                        ? DreadmoorColors.accentRed.withOpacity(0.3)
+                        ? DreadmoorColors.accentRed.withOpacity(0.35)
                         : Colors.white.withOpacity(0.06),
                     width: 0.5,
                   ),
@@ -338,7 +390,7 @@ class _MapPinState extends State<_MapPin>
                     fontSize: 7,
                     letterSpacing: 1.2,
                     color: unlocked
-                        ? Colors.white.withOpacity(0.85)
+                        ? Colors.white.withOpacity(0.9)
                         : Colors.white.withOpacity(0.25),
                   ),
                 ),
