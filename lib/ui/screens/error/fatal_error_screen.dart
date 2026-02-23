@@ -1,38 +1,30 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
-import '../../widgets/shared_screen_widgets.dart';
-
-// FIX: Removed unused `import 'dart:ui'` present in original.
+import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class FatalErrorScreen extends StatefulWidget {
   final String? error;
-
   const FatalErrorScreen({super.key, this.error});
 
   @override
   State<FatalErrorScreen> createState() => _FatalErrorScreenState();
 }
 
-// FIX: Converted to StatefulWidget — error screen deserves a flicker/glitch
-// animation that pulses the red accent. Original was StatelessWidget with
-// a static icon, giving no sense of urgency or system failure.
-
 class _FatalErrorScreenState extends State<FatalErrorScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnim;
 
-  // Scrambled error text effect
   int _scrambleTick = 0;
   Timer? _scrambleTimer;
   bool _settled = false;
 
-  // Characters used for scramble effect
   static const _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&*';
 
   @override
@@ -44,12 +36,8 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
 
-    _pulseAnim = CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    );
+    _pulseAnim = CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
 
-    // Scramble settles after 1.8 seconds
     _scrambleTimer = Timer.periodic(const Duration(milliseconds: 60), (t) {
       if (!mounted) return;
       setState(() => _scrambleTick++);
@@ -90,17 +78,16 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // FIX: Positioned.fill — original had no fill constraint on the overlay.
           Positioned.fill(
-            child: CustomPaint(painter: _ScanlinePainter()),
+            child: CustomPaint(painter: const ScanlinePainter()),
           ),
 
-          // Red pulse vignette — animated
+          // Red pulse vignette
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _pulseAnim,
               builder: (_, __) => CustomPaint(
-                painter: _VignettePainter(
+                painter: VignettePainter(
                   color: DreadmoorColors.accentRed,
                   intensity: 0.06 + _pulseAnim.value * 0.08,
                 ),
@@ -114,16 +101,15 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ── Error icon — long press opens debug ───────────
+                  // Long-press opens debug
                   GestureDetector(
                     onLongPress: () => context.push(Routes.debug),
                     child: AnimatedBuilder(
                       animation: _pulseAnim,
                       builder: (_, __) => Icon(
                         Icons.error_outline_rounded,
-                        color: DreadmoorColors.accentRed.withOpacity(
-                          0.5 + _pulseAnim.value * 0.5,
-                        ),
+                        color: DreadmoorColors.accentRed
+                            .withOpacity(0.5 + _pulseAnim.value * 0.5),
                         size: 52,
                       ),
                     ),
@@ -131,7 +117,6 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
 
                   const SizedBox(height: 28),
 
-                  // ── Scrambled headline ─────────────────────────────
                   Text(
                     _scramble('SYSTEM FAILURE'),
                     style: GoogleFonts.michroma(
@@ -143,17 +128,13 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                   ),
 
                   const SizedBox(height: 8),
-
-                  // ── Horizontal rule ────────────────────────────────
                   Container(
                     height: 1,
                     width: 200,
                     color: DreadmoorColors.accentRed.withOpacity(0.25),
                   ),
-
                   const SizedBox(height: 20),
 
-                  // ── Error message ──────────────────────────────────
                   Text(
                     widget.error ?? 'AN UNRECOVERABLE ERROR HAS OCCURRED.',
                     textAlign: TextAlign.center,
@@ -165,7 +146,6 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                     ),
                   ),
 
-                  // ── Error trace badge ──────────────────────────────
                   if (widget.error != null) ...[
                     const SizedBox(height: 20),
                     Container(
@@ -179,11 +159,8 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.bug_report_outlined,
-                            size: 12,
-                            color: DreadmoorColors.textMeta,
-                          ),
+                          Icon(Icons.bug_report_outlined,
+                              size: 12, color: DreadmoorColors.textMeta),
                           const SizedBox(width: 8),
                           Text(
                             'ERROR TRACE CAPTURED',
@@ -199,13 +176,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                   ],
 
                   const SizedBox(height: 52),
-
-                  // ── Reboot button ──────────────────────────────────
-                  // FIX: OutlinedButton.styleFrom(side:) was deprecated.
-                  // Use shape + side via ButtonStyle for forward compatibility.
-                  _RebootButton(
-                    onPressed: () => context.go(Routes.studio),
-                  ),
+                  _RebootButton(onPressed: () => context.go(Routes.studio)),
                 ],
               ),
             ),
@@ -250,22 +221,18 @@ class _RebootButtonState extends State<_RebootButton> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.refresh_rounded,
-                size: 15,
-                color: DreadmoorColors.accentRed.withOpacity(
-                  _hovered ? 1.0 : 0.7,
-                ),
-              ),
+              Icon(Icons.refresh_rounded,
+                  size: 15,
+                  color: DreadmoorColors.accentRed
+                      .withOpacity(_hovered ? 1.0 : 0.7)),
               const SizedBox(width: 10),
               Text(
                 'REBOOT SYSTEM',
                 style: GoogleFonts.michroma(
                   fontSize: 11,
                   letterSpacing: 2.5,
-                  color: DreadmoorColors.accentRed.withOpacity(
-                    _hovered ? 1.0 : 0.7,
-                  ),
+                  color: DreadmoorColors.accentRed
+                      .withOpacity(_hovered ? 1.0 : 0.7),
                 ),
               ),
             ],
