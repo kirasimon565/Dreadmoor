@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,12 +6,12 @@ import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
 
+import '../../widgets/shared_screen_widgets.dart';
+
+// FIX: Removed unused `import 'dart:ui'` present in original.
+
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key});
-
-  void _openDebug(BuildContext context) {
-    context.push(Routes.debug);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,107 +19,114 @@ class CreditsScreen extends StatelessWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // Subtle Grain / Glitch Overlay
-          Opacity(
-            opacity: 0.035,
-            child: Image.asset(
-              'assets/ui/glitch_overlay.png',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const SizedBox(),
-            ),
+          // FIX: Positioned.fill so the painter covers the entire screen.
+          // Original Opacity+Image.asset had no fill constraint.
+          Positioned.fill(
+            child: CustomPaint(painter: _ScanlinePainter()),
           ),
 
           Column(
             children: [
               CustomScreenHeader(
-                title: "CREDITS",
+                title: 'CREDITS',
                 onBackPressed: () => context.pop(),
               ),
 
               Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Studio Logo (long-press opens debug)
-                        GestureDetector(
-                          onLongPress: () => _openDebug(context),
-                          child: Image.asset(
-                            'assets/branding/blackmoon_logo.png',
-                            width: 110,
-                            filterQuality: FilterQuality.high,
-                            errorBuilder: (_, __, ___) => const SizedBox(),
-                          ),
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        Text(
-                          "CREATED BY",
-                          style: GoogleFonts.michroma(
-                            fontSize: 10,
-                            color: DreadmoorColors.textMeta,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "BLACKMOON STUDIO",
-                          style: GoogleFonts.michroma(
-                            fontSize: 16,
-                            color: Colors.white,
-                            letterSpacing: 2.2,
-                          ),
-                        ),
-
-                        const SizedBox(height: 40),
-
-                        Text(
-                          "DESIGN & DEVELOPMENT",
-                          style: GoogleFonts.michroma(
-                            fontSize: 10,
-                            color: DreadmoorColors.textMeta,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "BLACKMOON STUDIO",
-                          style: GoogleFonts.michroma(
-                            fontSize: 14,
-                            color: Colors.white,
-                            letterSpacing: 2.0,
-                          ),
-                        ),
-
-                        const SizedBox(height: 56),
-
-                        GestureDetector(
-                          onTap: () => context.push(Routes.legal),
-                          child: Text(
-                            "LEGAL DISCLAIMER",
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              letterSpacing: 1.2,
-                              color: DreadmoorColors.accentCyan,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
+                  child: Column(
+                    children: [
+                      // ── Studio logo / long-press debug gate ──────────
+                      GestureDetector(
+                        onLongPress: () => context.push(Routes.debug),
+                        child: Column(
+                          children: [
+                            // Logo — with graceful fallback
+                            SizedBox(
+                              width: 80,
+                              height: 80,
+                              child: Image.asset(
+                                'assets/branding/blackmoon_logo.png',
+                                filterQuality: FilterQuality.high,
+                                // FIX: errorBuilder returned SizedBox() (no shrink).
+                                // SizedBox.shrink() is the correct zero-size widget.
+                                errorBuilder: (_, __, ___) => CustomPaint(
+                                  painter: _FallbackLogoPainter(),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 20),
+                            _StampText(text: 'BLACKMOON STUDIO'),
+                          ],
                         ),
+                      ),
 
-                        const SizedBox(height: 24),
+                      const SizedBox(height: 40),
+                      _HRule(),
 
-                        Text(
-                          "© ${DateTime.now().year} BlackMoon Studio",
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: DreadmoorColors.textMeta,
-                            letterSpacing: 1.0,
-                          ),
+                      // ── Credit rows ───────────────────────────────────
+                      const SizedBox(height: 32),
+                      _CreditRow(role: 'CREATED BY', name: 'BLACKMOON STUDIO'),
+                      const SizedBox(height: 24),
+                      _CreditRow(role: 'DESIGN & DEVELOPMENT', name: 'BLACKMOON STUDIO'),
+                      const SizedBox(height: 24),
+                      _CreditRow(role: 'STORY & NARRATIVE', name: 'BLACKMOON STUDIO'),
+                      const SizedBox(height: 24),
+                      _CreditRow(role: 'BUILT WITH', name: 'FLUTTER · RIVERPOD · DRIFT'),
+
+                      const SizedBox(height: 40),
+                      _HRule(),
+                      const SizedBox(height: 32),
+
+                      // ── Legal link ────────────────────────────────────
+                      GestureDetector(
+                        onTap: () => context.push(Routes.legal),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.article_outlined,
+                              size: 13,
+                              color: DreadmoorColors.accentCyan.withOpacity(0.8),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'LEGAL DISCLAIMER',
+                              style: GoogleFonts.michroma(
+                                fontSize: 10,
+                                letterSpacing: 2.5,
+                                color: DreadmoorColors.accentCyan,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // ── Copyright ─────────────────────────────────────
+                      Text(
+                        '© ${DateTime.now().year} BLACKMOON STUDIO',
+                        style: GoogleFonts.michroma(
+                          fontSize: 9,
+                          letterSpacing: 1.5,
+                          color: DreadmoorColors.textMeta.withOpacity(0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'ALL RIGHTS RESERVED',
+                        style: GoogleFonts.michroma(
+                          fontSize: 8,
+                          letterSpacing: 2,
+                          color: DreadmoorColors.textMeta.withOpacity(0.3),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+                      _RedactedBar(width: 120),
+                    ],
                   ),
                 ),
               ),
@@ -130,4 +136,98 @@ class CreditsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CreditRow extends StatelessWidget {
+  final String role;
+  final String name;
+
+  const _CreditRow({required this.role, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          role,
+          style: GoogleFonts.michroma(
+            fontSize: 9,
+            letterSpacing: 3,
+            color: DreadmoorColors.textMeta,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          name,
+          style: GoogleFonts.michroma(
+            fontSize: 14,
+            letterSpacing: 2,
+            color: DreadmoorColors.textPrimary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+}
+
+class _StampText extends StatelessWidget {
+  final String text;
+  const _StampText({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        border: Border.all(color: DreadmoorColors.textMeta.withOpacity(0.25)),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.michroma(
+          fontSize: 10,
+          letterSpacing: 3,
+          color: DreadmoorColors.textMeta,
+        ),
+      ),
+    );
+  }
+}
+
+// Fallback logo: geometric B mark when image asset is missing
+class _FallbackLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawRect(
+      Rect.fromLTWH(4, 4, size.width - 8, size.height - 8),
+      paint,
+    );
+    final center = Offset(size.width / 2, size.height / 2);
+    canvas.drawLine(
+      Offset(center.dx - 10, center.dy - 12),
+      Offset(center.dx - 10, center.dy + 12),
+      paint..strokeWidth = 2,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(center.dx - 10, center.dy - 12, 20, 12),
+      -1.57,
+      3.14,
+      false,
+      paint,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(center.dx - 10, center.dy, 22, 12),
+      -1.57,
+      3.14,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }
