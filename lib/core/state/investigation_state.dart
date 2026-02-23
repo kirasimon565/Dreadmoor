@@ -11,6 +11,7 @@ import 'game_state.dart';
 class EvidenceItem {
   final String id;
   final String title;
+  final String? subtitle; // optional secondary line shown in evidence detail
   final String type; // 'diary' | 'photo' | 'document'
   final String content;
   final String imagePath;
@@ -27,11 +28,12 @@ class EvidenceItem {
   const EvidenceItem({
     required this.id,
     required this.title,
+    this.subtitle,
     required this.type,
     required this.content,
     required this.imagePath,
     required this.requiredFlag,
-    this.isLocked = true,      // safe default — locked until DB says otherwise
+    this.isLocked = true,
     this.recoveryPercent,
   });
 
@@ -43,6 +45,7 @@ class EvidenceItem {
     return EvidenceItem(
       id: id,
       title: title,
+      subtitle: subtitle,
       type: type,
       content: content,
       imagePath: imagePath,
