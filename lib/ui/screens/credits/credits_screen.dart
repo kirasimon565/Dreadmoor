@@ -5,10 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
-
-import '../../widgets/shared_screen_widgets.dart';
-
-// FIX: Removed unused `import 'dart:ui'` present in original.
+import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key});
@@ -19,10 +16,8 @@ class CreditsScreen extends StatelessWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // FIX: Positioned.fill so the painter covers the entire screen.
-          // Original Opacity+Image.asset had no fill constraint.
           Positioned.fill(
-            child: CustomPaint(painter: _ScanlinePainter()),
+            child: CustomPaint(painter: const ScanlinePainter()),
           ),
 
           Column(
@@ -37,20 +32,17 @@ class CreditsScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
                   child: Column(
                     children: [
-                      // ── Studio logo / long-press debug gate ──────────
+                      // ── Studio logo — long-press opens debug ──────────
                       GestureDetector(
                         onLongPress: () => context.push(Routes.debug),
                         child: Column(
                           children: [
-                            // Logo — with graceful fallback
                             SizedBox(
                               width: 80,
                               height: 80,
                               child: Image.asset(
                                 'assets/branding/blackmoon_logo.png',
                                 filterQuality: FilterQuality.high,
-                                // FIX: errorBuilder returned SizedBox() (no shrink).
-                                // SizedBox.shrink() is the correct zero-size widget.
                                 errorBuilder: (_, __, ___) => CustomPaint(
                                   painter: _FallbackLogoPainter(),
                                 ),
@@ -63,20 +55,20 @@ class CreditsScreen extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 40),
-                      _HRule(),
+                      const HRule(),
 
-                      // ── Credit rows ───────────────────────────────────
                       const SizedBox(height: 32),
-                      _CreditRow(role: 'CREATED BY', name: 'BLACKMOON STUDIO'),
+                      const _CreditRow(role: 'CREATED BY', name: 'BLACKMOON STUDIO'),
                       const SizedBox(height: 24),
-                      _CreditRow(role: 'DESIGN & DEVELOPMENT', name: 'BLACKMOON STUDIO'),
+                      const _CreditRow(role: 'DESIGN & DEVELOPMENT', name: 'BLACKMOON STUDIO'),
                       const SizedBox(height: 24),
-                      _CreditRow(role: 'STORY & NARRATIVE', name: 'BLACKMOON STUDIO'),
+                      const _CreditRow(role: 'STORY & NARRATIVE', name: 'BLACKMOON STUDIO'),
                       const SizedBox(height: 24),
-                      _CreditRow(role: 'BUILT WITH', name: 'FLUTTER · RIVERPOD · DRIFT'),
+                      const _CreditRow(
+                          role: 'BUILT WITH', name: 'FLUTTER · RIVERPOD · DRIFT'),
 
                       const SizedBox(height: 40),
-                      _HRule(),
+                      const HRule(),
                       const SizedBox(height: 32),
 
                       // ── Legal link ────────────────────────────────────
@@ -105,7 +97,6 @@ class CreditsScreen extends StatelessWidget {
 
                       const SizedBox(height: 32),
 
-                      // ── Copyright ─────────────────────────────────────
                       Text(
                         '© ${DateTime.now().year} BLACKMOON STUDIO',
                         style: GoogleFonts.michroma(
@@ -125,7 +116,7 @@ class CreditsScreen extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 32),
-                      _RedactedBar(width: 120),
+                      const RedactedBar(width: 120),
                     ],
                   ),
                 ),
@@ -141,7 +132,6 @@ class CreditsScreen extends StatelessWidget {
 class _CreditRow extends StatelessWidget {
   final String role;
   final String name;
-
   const _CreditRow({required this.role, required this.name});
 
   @override
@@ -194,7 +184,6 @@ class _StampText extends StatelessWidget {
   }
 }
 
-// Fallback logo: geometric B mark when image asset is missing
 class _FallbackLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -203,29 +192,13 @@ class _FallbackLogoPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawRect(
-      Rect.fromLTWH(4, 4, size.width - 8, size.height - 8),
-      paint,
-    );
-    final center = Offset(size.width / 2, size.height / 2);
+        Rect.fromLTWH(4, 4, size.width - 8, size.height - 8), paint);
+    final cx = size.width / 2;
+    final cy = size.height / 2;
     canvas.drawLine(
-      Offset(center.dx - 10, center.dy - 12),
-      Offset(center.dx - 10, center.dy + 12),
-      paint..strokeWidth = 2,
-    );
-    canvas.drawArc(
-      Rect.fromLTWH(center.dx - 10, center.dy - 12, 20, 12),
-      -1.57,
-      3.14,
-      false,
-      paint,
-    );
-    canvas.drawArc(
-      Rect.fromLTWH(center.dx - 10, center.dy, 22, 12),
-      -1.57,
-      3.14,
-      false,
-      paint,
-    );
+        Offset(cx - 10, cy - 12), Offset(cx - 10, cy + 12), paint..strokeWidth = 2);
+    canvas.drawArc(Rect.fromLTWH(cx - 10, cy - 12, 20, 12), -1.57, 3.14, false, paint);
+    canvas.drawArc(Rect.fromLTWH(cx - 10, cy, 22, 12), -1.57, 3.14, false, paint);
   }
 
   @override
