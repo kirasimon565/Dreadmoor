@@ -10,12 +10,14 @@ class MapLocation {
   final String imagePath;
   final double x; // normalized 0..1
   final double y; // normalized 0..1
-  final String requiredFlag;
 
-  // FIX: Added type and evidenceTags — used by location_detail_sheet.dart
-  // but missing from the original model definition.
-  final String? type;           // e.g. 'crime_scene', 'witness', 'landmark'
-  final List<String>? evidenceTags; // evidence IDs linked to this location
+  // ✅ Nullable — null means always visible (no flag required)
+  // A non-null string means this location is hidden until that
+  // story flag is set to true in the DB.
+  final String? requiredFlag;
+
+  final String? type;
+  final List<String>? evidenceTags;
 
   const MapLocation({
     required this.id,
@@ -24,7 +26,7 @@ class MapLocation {
     required this.imagePath,
     required this.x,
     required this.y,
-    required this.requiredFlag,
+    this.requiredFlag,         // ✅ optional — omit for always-visible locations
     this.type,
     this.evidenceTags,
   });
@@ -39,7 +41,9 @@ const allMapLocations = <MapLocation>[
     imagePath: 'assets/map/locations/factory.png',
     x: 0.22,
     y: 0.38,
-    requiredFlag: 'visited_factory',
+    // ✅ null = always on map. Set requiredFlag: 'visited_factory'
+    // when you want it hidden until the player triggers that event.
+    requiredFlag: null,
     type: 'crime_scene',
     evidenceTags: ['photo_factory', 'diary_01'],
   ),
@@ -50,7 +54,7 @@ const allMapLocations = <MapLocation>[
     imagePath: 'assets/map/locations/restaurant.png',
     x: 0.12,
     y: 0.24,
-    requiredFlag: 'unlocked_restaurant',
+    requiredFlag: null,
     type: 'witness',
     evidenceTags: [],
   ),
@@ -61,7 +65,7 @@ const allMapLocations = <MapLocation>[
     imagePath: 'assets/map/locations/highway.png',
     x: 0.55,
     y: 0.62,
-    requiredFlag: 'unlocked_highway',
+    requiredFlag: null,
     type: 'crime_scene',
     evidenceTags: [],
   ),
@@ -72,25 +76,25 @@ const allMapLocations = <MapLocation>[
     imagePath: 'assets/map/locations/rebecca_home.png',
     x: 0.35,
     y: 0.48,
-    requiredFlag: 'visited_rebecca_home',
+    requiredFlag: null,
     type: 'landmark',
     evidenceTags: [],
   ),
 ];
 
-// FIX: ref.watch → ref.read inside async FutureProvider body
 final unlockedLocationsProvider = FutureProvider<Set<String>>((ref) async {
   final db = ref.read(databaseProvider);
   final flags = await db.select(db.storyState).get();
-  // Only return keys where the flag is actually true
   return flags.where((f) => f.value).map((f) => f.key).toSet();
 });
 
-// Enriched provider — returns only locations the player has unlocked
 final unlockedMapLocationsProvider =
     FutureProvider<List<MapLocation>>((ref) async {
   final unlockedKeys = await ref.read(unlockedLocationsProvider.future);
-  return allMapLocations
-      .where((loc) => unlockedKeys.contains(loc.requiredFlag))
-      .toList();
+  return allMapLocations.where((loc) {
+    // ✅ null requiredFlag = always show
+    // non-null = only show when that flag is in the DB
+    return loc.requiredFlag == null ||
+        unlockedKeys.contains(loc.requiredFlag);
+  }).toList();
 });
