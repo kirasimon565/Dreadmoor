@@ -1,25 +1,25 @@
-// shared_screen_widgets.dart
-// Shared painters and decorative widgets used across:
-//   - save_load_screen.dart
-//   - credits_screen.dart
-//   - fatal_error_screen.dart
-//   - legal_disclaimer_screen.dart
+// lib/ui/widgets/shared_screen_painters.dart
 //
-// Import this file in each screen:
-//   import '../../widgets/shared_screen_widgets.dart';
+// Shared painters and decorative widgets used across utility screens.
+// Import in each screen:
+//   import '../../widgets/shared_screen_painters.dart';
 //
-// (Or paste the contents of this file directly at the bottom of each screen
-//  if you prefer no additional import.)
+// NOTE: All classes are PUBLIC (no _ prefix) so they are importable.
+// Previously these were private (_ScanlinePainter etc) which caused
+// "method not defined" build errors in every screen that used them.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../theme/colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 // Scanline painter — subtle CRT texture, no asset required
 // ─────────────────────────────────────────────────────────────
 
-class _ScanlinePainter extends CustomPainter {
+class ScanlinePainter extends CustomPainter {
+  const ScanlinePainter();
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -40,11 +40,11 @@ class _ScanlinePainter extends CustomPainter {
 // Used by FatalErrorScreen for red pulse
 // ─────────────────────────────────────────────────────────────
 
-class _VignettePainter extends CustomPainter {
+class VignettePainter extends CustomPainter {
   final Color color;
   final double intensity;
 
-  const _VignettePainter({required this.color, required this.intensity});
+  const VignettePainter({required this.color, required this.intensity});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,14 +56,11 @@ class _VignettePainter extends CustomPainter {
           color.withOpacity(intensity),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      paint,
-    );
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
   }
 
   @override
-  bool shouldRepaint(covariant _VignettePainter old) =>
+  bool shouldRepaint(covariant VignettePainter old) =>
       old.intensity != intensity || old.color != color;
 }
 
@@ -71,9 +68,9 @@ class _VignettePainter extends CustomPainter {
 // Dossier card — bordered container with surface tint
 // ─────────────────────────────────────────────────────────────
 
-class _DossierCard extends StatelessWidget {
+class DossierCard extends StatelessWidget {
   final Widget child;
-  const _DossierCard({required this.child});
+  const DossierCard({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -90,12 +87,12 @@ class _DossierCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Section label — small all-caps heading with rule
+// Section label — small all-caps heading with trailing rule
 // ─────────────────────────────────────────────────────────────
 
-class _SectionLabel extends StatelessWidget {
+class SectionLabel extends StatelessWidget {
   final String label;
-  const _SectionLabel({required this.label});
+  const SectionLabel({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +122,12 @@ class _SectionLabel extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Horizontal rule
+// Horizontal rule — gradient fade
 // ─────────────────────────────────────────────────────────────
 
-class _HRule extends StatelessWidget {
+class HRule extends StatelessWidget {
+  const HRule({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -147,12 +146,12 @@ class _HRule extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Redacted bar — horizontal black-on-dim bar, dossier accent
+// Redacted bar — horizontal dim block, dossier accent
 // ─────────────────────────────────────────────────────────────
 
-class _RedactedBar extends StatelessWidget {
+class RedactedBar extends StatelessWidget {
   final double width;
-  const _RedactedBar({required this.width});
+  const RedactedBar({super.key, required this.width});
 
   @override
   Widget build(BuildContext context) {
