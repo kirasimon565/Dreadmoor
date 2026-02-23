@@ -7,11 +7,7 @@ import '../../../core/persistence/drift_database.dart';
 import '../../../core/state/game_state.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
-
-import '../../widgets/shared_screen_widgets.dart';
-
-// FIX: Removed unused `import 'dart:ui'` present in original.
-// FIX: Converted to ConsumerWidget — needs DB access to show real save timestamp.
+import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class SaveLoadScreen extends ConsumerWidget {
   const SaveLoadScreen({super.key});
@@ -24,11 +20,8 @@ class SaveLoadScreen extends ConsumerWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // FIX: Original Opacity+Image.asset was NOT wrapped in Positioned.fill,
-          // so it rendered at intrinsic image size in the top-left, not full-screen.
-          // Replaced with a pure-Flutter scanline painter — no asset dependency.
           Positioned.fill(
-            child: CustomPaint(painter: _ScanlinePainter()),
+            child: CustomPaint(painter: const ScanlinePainter()),
           ),
 
           Column(
@@ -45,7 +38,7 @@ class SaveLoadScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ── Auto-save status card ──────────────────────
-                      _DossierCard(
+                      DossierCard(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -92,12 +85,12 @@ class SaveLoadScreen extends ConsumerWidget {
                       const SizedBox(height: 20),
 
                       // ── Last save timestamp ────────────────────────
-                      _SectionLabel(label: 'LAST CHECKPOINT'),
-                      FutureBuilder(
+                      const SectionLabel(label: 'LAST CHECKPOINT'),
+                      FutureBuilder<String?>(
                         future: _loadSaveTimestamp(db),
                         builder: (context, snapshot) {
                           final timestamp = snapshot.data;
-                          return _DossierCard(
+                          return DossierCard(
                             child: Row(
                               children: [
                                 Icon(
@@ -126,7 +119,7 @@ class SaveLoadScreen extends ConsumerWidget {
                       const SizedBox(height: 20),
 
                       // ── Manual save slots — locked ──────────────────
-                      _SectionLabel(label: 'MANUAL SAVE SLOTS'),
+                      const SectionLabel(label: 'MANUAL SAVE SLOTS'),
                       for (int i = 1; i <= 3; i++) ...[
                         _LockedSlot(slot: i),
                         const SizedBox(height: 8),
@@ -134,11 +127,10 @@ class SaveLoadScreen extends ConsumerWidget {
 
                       const SizedBox(height: 32),
 
-                      // ── Redacted footer ────────────────────────────
                       Center(
                         child: Column(
                           children: [
-                            _RedactedBar(width: 160),
+                            const RedactedBar(width: 160),
                             const SizedBox(height: 8),
                             Text(
                               'MANUAL SAVE SLOTS DISABLED IN THIS BUILD',
@@ -164,12 +156,13 @@ class SaveLoadScreen extends ConsumerWidget {
 
   Future<String?> _loadSaveTimestamp(AppDatabase db) async {
     try {
-      final rows = await (db.select(db.storyState)
+      final row = await (db.select(db.storyState)
             ..where((s) => s.key.equals('game_saved')))
           .getSingleOrNull();
-      if (rows == null) return null;
-      final dt = rows.updatedAt;
-      return '${_weekday(dt.weekday)} ${dt.day} ${_month(dt.month)} ${dt.year}  —  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      if (row == null) return null;
+      final dt = row.updatedAt;
+      return '${_weekday(dt.weekday)} ${dt.day} ${_month(dt.month)} ${dt.year}'
+          '  —  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return null;
     }
@@ -180,7 +173,7 @@ class SaveLoadScreen extends ConsumerWidget {
 
   String _month(int m) => [
         'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
       ][m - 1];
 }
 
@@ -198,11 +191,8 @@ class _LockedSlot extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.lock_outline,
-            size: 14,
-            color: DreadmoorColors.textMeta.withOpacity(0.3),
-          ),
+          Icon(Icons.lock_outline,
+              size: 14, color: DreadmoorColors.textMeta.withOpacity(0.3)),
           const SizedBox(width: 12),
           Text(
             'SLOT ${slot.toString().padLeft(2, '0')}',
