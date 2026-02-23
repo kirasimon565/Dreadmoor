@@ -22,8 +22,7 @@ class LocationDetailSheet extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFF0F0F0F).withOpacity(0.96),
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             border: Border(
               top: BorderSide(
                 color: Colors.white.withOpacity(0.08),
@@ -31,8 +30,6 @@ class LocationDetailSheet extends StatelessWidget {
               ),
             ),
           ),
-          // ✅ DraggableScrollableSheet content is scrollable so long
-          // descriptions never overflow on small screens
           child: DraggableScrollableSheet(
             initialChildSize: 0.6,
             minChildSize: 0.4,
@@ -45,7 +42,7 @@ class LocationDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Drag handle ──────────────────────────────
+                    // ── Drag handle ───────────────────────────────────────
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 14, bottom: 6),
@@ -67,15 +64,15 @@ class LocationDetailSheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Location image ────────────────────
+                          // ── Location image ────────────────────────────
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: AspectRatio(
                               aspectRatio: 16 / 9,
                               child: Image.asset(
-                                location.imagePath ?? '',
+                                // ✅ imagePath is non-nullable — no ?? needed
+                                location.imagePath,
                                 fit: BoxFit.cover,
-                                // ✅ errorBuilder — no crash if asset missing
                                 errorBuilder: (_, __, ___) => Container(
                                   color: DreadmoorColors.surface,
                                   child: Center(
@@ -84,8 +81,7 @@ class LocationDetailSheet extends StatelessWidget {
                                       children: [
                                         Icon(
                                           Icons.image_not_supported_outlined,
-                                          color:
-                                              Colors.white.withOpacity(0.15),
+                                          color: Colors.white.withOpacity(0.15),
                                           size: 36,
                                         ),
                                         const SizedBox(height: 8),
@@ -93,8 +89,7 @@ class LocationDetailSheet extends StatelessWidget {
                                           "IMAGE UNAVAILABLE",
                                           style: GoogleFonts.michroma(
                                             fontSize: 9,
-                                            color:
-                                                Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withOpacity(0.2),
                                             letterSpacing: 1.5,
                                           ),
                                         ),
@@ -108,28 +103,28 @@ class LocationDetailSheet extends StatelessWidget {
 
                           const SizedBox(height: 20),
 
-                          // ── Location type badge ───────────────
+                          // ── Type badge ────────────────────────────────
                           if (location.type != null)
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: DreadmoorColors.accentRed
+                                  color: _typeColor(location.type!)
                                       .withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(3),
                                   border: Border.all(
-                                    color: DreadmoorColors.accentRed
-                                        .withOpacity(0.3),
+                                    color: _typeColor(location.type!)
+                                        .withOpacity(0.35),
                                     width: 0.5,
                                   ),
                                 ),
                                 child: Text(
-                                  location.type!.toUpperCase(),
+                                  location.type!.replaceAll('_', ' ').toUpperCase(),
                                   style: GoogleFonts.inter(
                                     fontSize: 8,
-                                    color: DreadmoorColors.accentRed,
+                                    color: _typeColor(location.type!),
                                     letterSpacing: 1.5,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -137,7 +132,7 @@ class LocationDetailSheet extends StatelessWidget {
                               ),
                             ),
 
-                          // ── Title ─────────────────────────────
+                          // ── Title ─────────────────────────────────────
                           Text(
                             location.title.toUpperCase(),
                             style: GoogleFonts.michroma(
@@ -157,7 +152,7 @@ class LocationDetailSheet extends StatelessWidget {
 
                           const SizedBox(height: 14),
 
-                          // ── Description ───────────────────────
+                          // ── Description ───────────────────────────────
                           Text(
                             location.description,
                             style: GoogleFonts.inter(
@@ -167,10 +162,11 @@ class LocationDetailSheet extends StatelessWidget {
                             ),
                           ),
 
-                          // ── Evidence tags ─────────────────────
+                          // ── Linked evidence tags ──────────────────────
+                          // ✅ evidenceTags is in the model — show when non-empty
                           if (location.evidenceTags != null &&
                               location.evidenceTags!.isNotEmpty) ...[
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
                             Text(
                               "LINKED EVIDENCE",
                               style: GoogleFonts.michroma(
@@ -191,18 +187,18 @@ class LocationDetailSheet extends StatelessWidget {
 
                           const SizedBox(height: 28),
 
-                          // ── View Evidence button ──────────────
+                          // ── View Evidence button ──────────────────────
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
-                                  color: DreadmoorColors.accentCyan
-                                      .withOpacity(0.4),
+                                  color:
+                                      DreadmoorColors.accentCyan.withOpacity(0.4),
                                   width: 0.7,
                                 ),
-                                backgroundColor: DreadmoorColors.accentCyan
-                                    .withOpacity(0.05),
+                                backgroundColor:
+                                    DreadmoorColors.accentCyan.withOpacity(0.05),
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
@@ -212,9 +208,6 @@ class LocationDetailSheet extends StatelessWidget {
                               onPressed: () {
                                 HapticFeedback.selectionClick();
                                 Navigator.pop(context);
-                                // ✅ Navigate to detective board filtered by
-                                // this location — wired when board supports
-                                // location filter query params
                                 context.push(
                                     '/board?filter=LOCATIONS&locationId=${location.id}');
                               },
@@ -240,7 +233,6 @@ class LocationDetailSheet extends StatelessWidget {
                             ),
                           ),
 
-                          // ✅ Bottom padding respects home bar
                           SizedBox(height: 16 + bottomPadding),
                         ],
                       ),
@@ -253,6 +245,16 @@ class LocationDetailSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // ── Type badge colour — matches evidence board badge palette ────────────
+  Color _typeColor(String type) {
+    return switch (type) {
+      'crime_scene' => DreadmoorColors.accentRed,
+      'witness'     => Colors.amber,
+      'landmark'    => Colors.blueGrey,
+      _             => DreadmoorColors.textMeta,
+    };
   }
 }
 
