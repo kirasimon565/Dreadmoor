@@ -75,7 +75,7 @@ flutter:
     - assets/map/
     - assets/map/locations/
     - assets/icon/
-    - assets/music
+    - assets/music/
 
     - content/episodes/ep01/
     - content/episodes/ep01/threads/
