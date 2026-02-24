@@ -63,25 +63,17 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await _musicPlayer.setReleaseMode(ReleaseMode.loop);
       await _musicPlayer.setVolume(0.55);
 
-      // âœ… AudioContextAndroid.none = don't request audio focus at all.
-      // This lets the video player keep running alongside the music
-      // without one pausing the other. Both streams play concurrently.
+      // âœ… AudioFocus.none = don't steal focus from the video player.
+      // Without this, audioplayers requests GAIN focus and the OS
+      // pauses the video. Android-only app so no iOS context needed.
       await _musicPlayer.setAudioContext(
-        const AudioContext(
+        AudioContext(
           android: AudioContextAndroid(
             isSpeakerphoneOn: false,
             stayAwake: false,
             contentType: AndroidContentType.music,
             usageType: AndroidUsageType.media,
-            // âœ… none = no focus request â†’ video player not interrupted
             audioFocus: AndroidAudioFocus.none,
-          ),
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.ambient,
-            options: [
-              // âœ… mixWithOthers = play alongside other audio (video player)
-              AVAudioSessionOptions.mixWithOthers,
-            ],
           ),
         ),
       );
