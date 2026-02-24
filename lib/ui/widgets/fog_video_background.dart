@@ -5,9 +5,7 @@ class FogVideoBackground extends StatefulWidget {
   const FogVideoBackground({
     super.key,
     required this.assetPath,
-    this.darkenOpacity = 0.55, // Dark overlay on top of the video.
-    // Adjust this in the parent to tune visibility:
-    // 0.0 = full video visible, 1.0 = fully black. 0.55 is cinematic default.
+    this.darkenOpacity = 0.55,
   });
 
   final String assetPath;
@@ -27,19 +25,36 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _initVideo();
+  }
 
-    _controller = VideoPlayerController.asset(widget.assetPath)
-      ..initialize().then((_) {
+  Future<void> _initVideo() async {
+    _controller = VideoPlayerController.asset(widget.assetPath);
+
+    try {
+      await _controller.initialize();
+
+      if (!mounted) return;
+
+      await _controller.setLooping(true);
+      await _controller.setVolume(0);
+
+      // âœ… Wait for the next frame before calling play().
+      // On Android 10 the Texture surface isn't attached to the
+      // VideoPlayer until after the first build â€” calling play()
+      // immediately after initialize() causes a black screen because
+      // the codec starts decoding before the surface is ready.
+      // One addPostFrameCallback ensures the widget tree has rendered
+      // at least once and the surface is fully attached.
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        _controller
-          ..setLooping(true)
-          ..setVolume(0)
-          ..play();
-        setState(() => _initialized = true);
-      }).catchError((error) {
-        debugPrint('ðŸŽ¥ VideoPlayer error: $error');
-        if (mounted) setState(() => _error = true);
+        await _controller.play();
+        if (mounted) setState(() => _initialized = true);
       });
+    } catch (e) {
+      debugPrint('ðŸŽ¥ VideoPlayer error: $e');
+      if (mounted) setState(() => _error = true);
+    }
   }
 
   @override
@@ -62,7 +77,6 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
   @override
   Widget build(BuildContext context) {
-    // Always show a black base â€” never a blank white flash while loading
     if (_error || !_initialized) {
       return const ColoredBox(color: Colors.black);
     }
@@ -70,12 +84,10 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
     return Stack(
       fit: StackFit.expand,
       children: [
-        // â”€â”€ Base black so screen edges never flash white â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Base black so screen edges never flash white
         const ColoredBox(color: Colors.black),
 
-        // â”€â”€ Video at full opacity with cinematic fade-in â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // âœ… Removed the fogOpacity clamp that was hiding the video.
-        //    The darkenOpacity overlay below is the only brightness control.
+        // Video with cinematic fade-in
         AnimatedOpacity(
           duration: const Duration(milliseconds: 600),
           opacity: _initialized ? 1.0 : 0.0,
@@ -89,8 +101,8 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           ),
         ),
 
-        // â”€â”€ Dark overlay â€” keeps UI text readable over the video â”€â”€â”€â”€â”€â”€â”€
-        Container(
+        // Dark overlay â€” keeps UI readable over video
+        ColoredBox(
           color: Colors.black.withOpacity(
             widget.darkenOpacity.clamp(0.0, 0.95),
           ),
