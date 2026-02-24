@@ -43,6 +43,9 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> resetAllProgress() async {
     await batch((b) {
+      // ✅ players added — was missing, causing CONTINUE to always show
+      // after reset because the player row survived every wipe.
+      b.deleteAll(players);
       b.deleteAll(messages);
       b.deleteAll(threads);
       b.deleteAll(storyState);
