@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +30,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
 
+  // â”€â”€ Music â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  final _musicPlayer = AudioPlayer();
+  bool _musicReady = false;
+
   @override
   void initState() {
     super.initState();
@@ -49,12 +54,41 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
       ),
     );
+
+    _initMusic();
+  }
+
+  Future<void> _initMusic() async {
+    try {
+      // Loop mode â€” plays continuously until screen is left
+      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+      // Gentle volume â€” atmospheric, not intrusive
+      await _musicPlayer.setVolume(0.55);
+      await _musicPlayer.play(AssetSource('music/welcome_theme.mp3'));
+      if (mounted) setState(() => _musicReady = true);
+    } catch (e) {
+      // Asset missing or audio unavailable â€” silently continue
+      debugPrint('ðŸŽµ Welcome music unavailable: $e');
+    }
+  }
+
+  Future<void> _stopMusicAndNavigate(VoidCallback navigate) async {
+    // Fade out before navigating so the cut isn't jarring
+    try {
+      for (double v = 0.55; v >= 0; v -= 0.05) {
+        await Future.delayed(const Duration(milliseconds: 30));
+        await _musicPlayer.setVolume(v.clamp(0.0, 1.0));
+      }
+      await _musicPlayer.stop();
+    } catch (_) {}
+    navigate();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _breathingController.dispose();
+    _musicPlayer.dispose();
     super.dispose();
   }
 
@@ -63,33 +97,33 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       _breathingController.stop();
+      _musicPlayer.pause();
     } else if (state == AppLifecycleState.resumed) {
       _breathingController.repeat(reverse: true);
+      _musicPlayer.resume();
     }
   }
 
-  // ✅ Returns true if this is a returning player with an active thread
-  bool get _hasActiveGame {
-    final player = ref.read(playerStateProvider);
-    return player != null;
-  }
+  bool get _hasActiveGame => ref.read(playerStateProvider) != null;
 
   void _onMainAction() {
     HapticFeedback.selectionClick();
     if (_hasActiveGame) {
       _continueGame();
     } else {
-      context.go(Routes.setup);
+      _stopMusicAndNavigate(() => context.go(Routes.setup));
     }
   }
 
   void _continueGame() {
     final threadId = ref.read(activeThreadIdProvider);
-    if (threadId != null) {
-      context.go(Routes.chat(threadId));
-    } else {
-      context.go(Routes.messenger);
-    }
+    _stopMusicAndNavigate(() {
+      if (threadId != null) {
+        context.go(Routes.chat(threadId));
+      } else {
+        context.go(Routes.messenger);
+      }
+    });
   }
 
   void _openDebug() {
@@ -108,7 +142,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          // ── Video background ──────────────────────────────────────────
+          // â”€â”€ Video background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           const Positioned.fill(
             child: FogVideoBackground(
               assetPath: 'assets/backgrounds/welcome_fog_loop.mp4',
@@ -116,7 +150,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             ),
           ),
 
-          // ── Glitch overlay ────────────────────────────────────────────
+          // â”€â”€ Glitch overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           IgnorePointer(
             child: Opacity(
               opacity: 0.04,
@@ -130,13 +164,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             ),
           ),
 
-          // ── Main content ──────────────────────────────────────────────
+          // â”€â”€ Main content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SafeArea(
             child: Column(
               children: [
                 const Spacer(flex: 2),
 
-                // ── Logo ─────────────────────────────────────────────
+                // â”€â”€ Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Center(
                   child: AnimatedBuilder(
                     animation: _scaleAnimation,
@@ -163,7 +197,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
                 const Spacer(flex: 2),
 
-                // ── Hero action button ────────────────────────────────
+                // â”€â”€ Hero action button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: _HeroButton(
@@ -175,7 +209,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
                 const Spacer(flex: 3),
 
-                // ── Bottom bar ────────────────────────────────────────
+                // â”€â”€ Bottom bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 28, vertical: 20),
@@ -191,7 +225,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         ),
                       ),
 
-                      // Settings icon — center
+                      // Settings icon
                       GestureDetector(
                         onTap: () => context.push(Routes.settings),
                         child: Icon(
@@ -201,14 +235,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         ),
                       ),
 
-                      Text(
-                        "v1.0.0",
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          letterSpacing: 1.5,
-                          color: Colors.white.withOpacity(0.25),
-                        ),
-                      ),
+                      // Music indicator â€” subtle, shows music is playing
+                      _MusicIndicator(playing: _musicReady),
                     ],
                   ),
                 ),
@@ -221,7 +249,97 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   }
 }
 
-// ── Hero glass button ──────────────────────────────────────────────────────
+// â”€â”€ Music indicator â€” three tiny animated bars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _MusicIndicator extends StatefulWidget {
+  final bool playing;
+  const _MusicIndicator({required this.playing});
+
+  @override
+  State<_MusicIndicator> createState() => _MusicIndicatorState();
+}
+
+class _MusicIndicatorState extends State<_MusicIndicator>
+    with TickerProviderStateMixin {
+  late final List<AnimationController> _bars;
+
+  @override
+  void initState() {
+    super.initState();
+    // Three bars with staggered durations for organic feel
+    _bars = [
+      AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 500)),
+      AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 700)),
+      AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 600)),
+    ];
+    if (widget.playing) {
+      for (var c in _bars) {
+        c.repeat(reverse: true);
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(_MusicIndicator old) {
+    super.didUpdateWidget(old);
+    if (widget.playing && !old.playing) {
+      for (var c in _bars) {
+        c.repeat(reverse: true);
+      }
+    } else if (!widget.playing && old.playing) {
+      for (var c in _bars) {
+        c.stop();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var c in _bars) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.playing) {
+      // Show static "v1.0.0" when music hasn't loaded
+      return Text(
+        "v1.0.0",
+        style: GoogleFonts.inter(
+          fontSize: 10,
+          letterSpacing: 1.5,
+          color: Colors.white.withOpacity(0.25),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      spacing: 2,
+      children: List.generate(3, (i) {
+        return AnimatedBuilder(
+          animation: _bars[i],
+          builder: (_, __) => Container(
+            width: 2,
+            height: 6 + (_bars[i].value * 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.28),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// â”€â”€ Hero glass button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _HeroButton extends StatefulWidget {
   final String label;
@@ -266,8 +384,8 @@ class _HeroButtonState extends State<_HeroButton> {
                     : DreadmoorColors.surface.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: DreadmoorColors.accentCyan.withOpacity(
-                      _pressed ? 0.8 : 0.4),
+                  color: DreadmoorColors.accentCyan
+                      .withOpacity(_pressed ? 0.8 : 0.4),
                   width: 0.8,
                 ),
               ),
