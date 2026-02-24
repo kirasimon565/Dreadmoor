@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/persistence/drift_database.dart';
 import '../../../core/state/game_state.dart';
 import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
@@ -16,6 +17,15 @@ bool get isDebugMode {
   assert(inDebug = true);
   return inDebug;
 }
+
+// âœ… Checks for actual game progress (threads exist), not just player setup.
+// Player existing = setup complete.
+// Threads existing = game actually started â†’ show CONTINUE.
+final hasActiveGameProvider = FutureProvider<bool>((ref) async {
+  final db = ref.read(databaseProvider);
+  final threads = await db.select(db.threads).get();
+  return threads.isNotEmpty;
+});
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -81,12 +91,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await _musicPlayer.play(AssetSource('music/welcome_theme.mp3'));
       if (mounted) setState(() => _musicReady = true);
     } catch (e) {
-      debugPrint('Welcome music unavailable: $e');
+      debugPrint('ðŸŽµ Welcome music unavailable: $e');
     }
   }
 
   Future<void> _stopMusicAndNavigate(VoidCallback navigate) async {
-    // Fade out before navigating so the cut isn't jarring
     try {
       for (double v = 0.55; v >= 0; v -= 0.05) {
         await Future.delayed(const Duration(milliseconds: 30));
@@ -117,14 +126,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     }
   }
 
-  bool get _hasActiveGame => ref.read(playerStateProvider) != null;
-
-  void _onMainAction() {
+  void _onMainAction(bool hasActiveGame) {
     HapticFeedback.selectionClick();
-    if (_hasActiveGame) {
+    if (hasActiveGame) {
       _continueGame();
     } else {
-      _stopMusicAndNavigate(() => context.go(Routes.setup));
+      // âœ… START GAME â€” player exists (setup done) but no threads yet
+      _stopMusicAndNavigate(() => context.go(Routes.messenger));
     }
   }
 
@@ -148,8 +156,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
-    final player = ref.watch(playerStateProvider);
-    final hasGame = player != null;
+
+    // âœ… Watch thread-based game state, not just player existence
+    final hasActiveGameAsync = ref.watch(hasActiveGameProvider);
+    final hasActiveGame = hasActiveGameAsync.value ?? false;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
@@ -214,8 +224,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: _HeroButton(
-                    label: hasGame ? "CONTINUE" : "START GAME",
-                    onTap: _onMainAction,
+                    // âœ… Label based on threads, not player existence
+                    label: hasActiveGame ? "CONTINUE" : "START GAME",
+                    onTap: () => _onMainAction(hasActiveGame),
                     reduceMotion: reduceMotion,
                   ),
                 ),
@@ -279,7 +290,6 @@ class _MusicIndicatorState extends State<_MusicIndicator>
   @override
   void initState() {
     super.initState();
-    // Three bars with staggered durations for organic feel
     _bars = [
       AnimationController(
           vsync: this, duration: const Duration(milliseconds: 500)),
@@ -320,7 +330,6 @@ class _MusicIndicatorState extends State<_MusicIndicator>
   @override
   Widget build(BuildContext context) {
     if (!widget.playing) {
-      // Show static "v1.0.0" when music hasn't loaded
       return Text(
         "v1.0.0",
         style: GoogleFonts.inter(
