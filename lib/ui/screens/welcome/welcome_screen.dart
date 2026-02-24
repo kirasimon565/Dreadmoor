@@ -60,14 +60,35 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
   Future<void> _initMusic() async {
     try {
-      // Loop mode â€” plays continuously until screen is left
       await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-      // Gentle volume â€” atmospheric, not intrusive
       await _musicPlayer.setVolume(0.55);
+
+      // âœ… AudioContextAndroid.none = don't request audio focus at all.
+      // This lets the video player keep running alongside the music
+      // without one pausing the other. Both streams play concurrently.
+      await _musicPlayer.setAudioContext(
+        const AudioContext(
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: false,
+            stayAwake: false,
+            contentType: AndroidContentType.music,
+            usageType: AndroidUsageType.media,
+            // âœ… none = no focus request â†’ video player not interrupted
+            audioFocus: AndroidAudioFocus.none,
+          ),
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.ambient,
+            options: [
+              // âœ… mixWithOthers = play alongside other audio (video player)
+              AVAudioSessionOptions.mixWithOthers,
+            ],
+          ),
+        ),
+      );
+
       await _musicPlayer.play(AssetSource('music/welcome_theme.mp3'));
       if (mounted) setState(() => _musicReady = true);
     } catch (e) {
-      // Asset missing or audio unavailable â€” silently continue
       debugPrint('ðŸŽµ Welcome music unavailable: $e');
     }
   }
