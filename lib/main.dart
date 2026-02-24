@@ -32,8 +32,22 @@ void main() async {
   // This means the router redirect has a synchronous value on the very
   // first frame â€” no async gap, no bounce back to setup.
   final db = AppDatabase.instance;
-  final existingPlayer =
+  var existingPlayer =
       await (db.select(db.players)..limit(1)).getSingleOrNull();
+
+  // âœ… Auto-heal orphaned player records.
+  // If a player exists but there are zero threads (happens after a
+  // partial reset that deleted threads/messages but NOT the player),
+  // treat this as a fresh install and wipe the player row so the
+  // welcome screen correctly shows "START GAME" instead of "CONTINUE".
+  if (existingPlayer != null) {
+    final threads = await db.select(db.threads).get();
+    if (threads.isEmpty) {
+      debugPrint('ðŸ§¹ Orphaned player detected â€” auto-clearing');
+      await db.delete(db.players).go();
+      existingPlayer = null;
+    }
+  }
 
   // Catch async errors globally (Drift / video / scheduler safety)
   runZonedGuarded(
