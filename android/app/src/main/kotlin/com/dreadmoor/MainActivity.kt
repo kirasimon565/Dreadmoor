@@ -1,4 +1,4 @@
-package com.dreadmore
+package com.dreadmoor
 
 import io.flutter.embedding.android.FlutterActivity
 
