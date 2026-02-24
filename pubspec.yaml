@@ -29,13 +29,9 @@ dependencies:
   path: ^1.9.1
 
   # Utilities
-  # FIX 4: Added collection explicitly. Provides firstWhereOrNull and other
-  # List extensions used across investigation_state, diary_viewer_screen,
-  # and evidence_detail_screen. Was a hidden transitive dep â€” now explicit.
   collection: ^1.18.0
 
   # Stream operators â€” startWith, switchMap, debounceTime etc.
-  # Required by messenger_list_screen.dart for reactive search filtering.
   rxdart: ^0.28.0
 
   # Media
@@ -43,6 +39,9 @@ dependencies:
   video_player: ^2.11.0
   chewie: ^1.13.0
   image_picker: ^1.1.2
+
+  # Audio
+  audioplayers: ^6.0.0
 
   # JSON / Models
   json_annotation: ^4.9.0
