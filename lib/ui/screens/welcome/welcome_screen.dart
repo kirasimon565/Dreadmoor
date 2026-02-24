@@ -81,7 +81,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await _musicPlayer.play(AssetSource('music/welcome_theme.mp3'));
       if (mounted) setState(() => _musicReady = true);
     } catch (e) {
-      debugPrint('ðŸŽµ Welcome music unavailable: $e');
+      debugPrint('Welcome music unavailable: $e');
     }
   }
 
@@ -192,7 +192,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                       child: GestureDetector(
                         onLongPress: _openDebug,
                         child: Image.asset(
-                          'assets/branding/dreadmore_logo.png',
+                          'assets/branding/dreadmoor_logo.png',
                           width: 200,
                           errorBuilder: (_, __, ___) => Text(
                             "DREADMOOR",
