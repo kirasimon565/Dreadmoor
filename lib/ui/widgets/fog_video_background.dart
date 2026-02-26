@@ -6,7 +6,6 @@ class FogVideoBackground extends StatefulWidget {
     super.key,
     required this.assetPath,
     this.darkenOpacity = 0.55,
-    // âœ… Fallback image shown if video fails to render (e.g. older devices)
     this.fallbackAsset = 'assets/backgrounds/welcome_bg_still.png',
   });
 
@@ -23,6 +22,8 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   VideoPlayerController? _controller;
   bool _initialized = false;
   bool _error = false;
+  // ✅ Capture the actual error message so we can show it on screen
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -36,42 +37,28 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   Future<void> _initVideo() async {
     final controller = VideoPlayerController.asset(
       widget.assetPath,
-      // âœ… This is the key fix for Android 10.
-      // Without mixWithOthers: true, the video player requests exclusive
-      // audio focus on Android 10 which causes the video surface to
-      // render black. Setting this makes it share the audio session
-      // instead of fighting for it â€” even though this is a muted video.
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
     );
 
     try {
       await controller.initialize();
 
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
+      if (!mounted) { await controller.dispose(); return; }
 
       await controller.setLooping(true);
       await controller.setVolume(0);
-
-      // Extra frame for Android 10 surface binding
       await Future.delayed(const Duration(milliseconds: 300));
 
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
+      if (!mounted) { await controller.dispose(); return; }
 
       await controller.play();
 
-      // âœ… Verify the video is actually producing frames.
-      // On some Android 10 devices initialize() succeeds but no frames
-      // are decoded. Check size â€” a valid video always has non-zero size.
       if (controller.value.size == Size.zero) {
-        debugPrint('ðŸŽ¥ Video initialized but size is zero â€” using fallback');
         await controller.dispose();
-        if (mounted) setState(() => _error = true);
+        if (mounted) setState(() {
+          _error = true;
+          _errorMessage = 'size=zero after init';
+        });
         return;
       }
 
@@ -80,9 +67,11 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
         _initialized = true;
       });
     } catch (e) {
-      debugPrint('ðŸŽ¥ VideoPlayer error: $e');
       await controller.dispose();
-      if (mounted) setState(() => _error = true);
+      if (mounted) setState(() {
+        _error = true;
+        _errorMessage = e.toString();
+      });
     }
   }
 
@@ -106,27 +95,43 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
   @override
   Widget build(BuildContext context) {
-    // âœ… Fallback: static image with same dark overlay
-    // Shown on devices where video can't render (older Android, low-end)
     if (_error) {
       return Stack(
         fit: StackFit.expand,
         children: [
+          // Try fallback image
           Image.asset(
             widget.fallbackAsset,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const ColoredBox(color: Colors.black),
+            errorBuilder: (_, __, ___) =>
+                const ColoredBox(color: Colors.black),
           ),
           ColoredBox(
             color: Colors.black.withOpacity(
-              widget.darkenOpacity.clamp(0.0, 0.95),
+                widget.darkenOpacity.clamp(0.0, 0.95)),
+          ),
+          // ✅ Show error message on screen so we can see it without logcat
+          Positioned(
+            bottom: 100,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              color: Colors.red.withOpacity(0.7),
+              child: Text(
+                'VIDEO ERROR:\n$_errorMessage',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontFamily: 'monospace',
+                ),
+              ),
             ),
           ),
         ],
       );
     }
 
-    // Loading state â€” black screen, no flash
     if (!_initialized || _controller == null) {
       return const ColoredBox(color: Colors.black);
     }
@@ -135,7 +140,6 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
       fit: StackFit.expand,
       children: [
         const ColoredBox(color: Colors.black),
-
         AnimatedOpacity(
           duration: const Duration(milliseconds: 800),
           opacity: _initialized ? 1.0 : 0.0,
@@ -148,11 +152,9 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
             ),
           ),
         ),
-
         ColoredBox(
           color: Colors.black.withOpacity(
-            widget.darkenOpacity.clamp(0.0, 0.95),
-          ),
+              widget.darkenOpacity.clamp(0.0, 0.95)),
         ),
       ],
     );
