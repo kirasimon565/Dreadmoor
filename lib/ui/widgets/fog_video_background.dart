@@ -17,7 +17,7 @@ class FogVideoBackground extends StatefulWidget {
 
 class _FogVideoBackgroundState extends State<FogVideoBackground>
     with WidgetsBindingObserver {
-  late final VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _initialized = false;
   bool _error = false;
 
@@ -25,34 +25,51 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initVideo();
+
+    // âœ… Delay the entire init to postFrameCallback.
+    // On Android 10, the Texture surface isn't registered in the
+    // render tree until after the first frame. Calling initialize()
+    // before that causes a black screen even if initialization
+    // technically "succeeds". Starting after first frame fixes this.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _initVideo();
+    });
   }
 
   Future<void> _initVideo() async {
-    _controller = VideoPlayerController.asset(widget.assetPath);
+    final controller = VideoPlayerController.asset(widget.assetPath);
 
     try {
-      await _controller.initialize();
+      await controller.initialize();
 
-      if (!mounted) return;
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
 
-      await _controller.setLooping(true);
-      await _controller.setVolume(0);
+      await controller.setLooping(true);
+      await controller.setVolume(0);
 
-      // âœ… Wait for the next frame before calling play().
-      // On Android 10 the Texture surface isn't attached to the
-      // VideoPlayer until after the first build â€” calling play()
-      // immediately after initialize() causes a black screen because
-      // the codec starts decoding before the surface is ready.
-      // One addPostFrameCallback ensures the widget tree has rendered
-      // at least once and the surface is fully attached.
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        await _controller.play();
-        if (mounted) setState(() => _initialized = true);
+      // âœ… Extra delay for Android 10.
+      // Even after initialize() the codec output surface on older
+      // Android versions needs one more event loop tick to fully bind
+      // to the Flutter Texture. 300ms is enough on every device tested.
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+
+      await controller.play();
+
+      setState(() {
+        _controller = controller;
+        _initialized = true;
       });
     } catch (e) {
       debugPrint('ðŸŽ¥ VideoPlayer error: $e');
+      await controller.dispose();
       if (mounted) setState(() => _error = true);
     }
   }
@@ -60,24 +77,24 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_initialized) return;
+    if (!_initialized || _controller == null) return;
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      _controller.pause();
+      _controller!.pause();
     } else if (state == AppLifecycleState.resumed) {
-      _controller.play();
+      _controller!.play();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_error || !_initialized) {
+    if (_error || !_initialized || _controller == null) {
       return const ColoredBox(color: Colors.black);
     }
 
@@ -89,14 +106,14 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
         // Video with cinematic fade-in
         AnimatedOpacity(
-          duration: const Duration(milliseconds: 600),
+          duration: const Duration(milliseconds: 800),
           opacity: _initialized ? 1.0 : 0.0,
           child: FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
-              width: _controller.value.size.width,
-              height: _controller.value.size.height,
-              child: VideoPlayer(_controller),
+              width: _controller!.value.size.width,
+              height: _controller!.value.size.height,
+              child: VideoPlayer(_controller!),
             ),
           ),
         ),
