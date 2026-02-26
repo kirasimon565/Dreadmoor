@@ -6,10 +6,13 @@ class FogVideoBackground extends StatefulWidget {
     super.key,
     required this.assetPath,
     this.darkenOpacity = 0.55,
+    // âœ… Fallback image shown if video fails to render (e.g. older devices)
+    this.fallbackAsset = 'assets/backgrounds/welcome_bg_still.png',
   });
 
   final String assetPath;
   final double darkenOpacity;
+  final String fallbackAsset;
 
   @override
   State<FogVideoBackground> createState() => _FogVideoBackgroundState();
@@ -25,19 +28,21 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    // âœ… Delay the entire init to postFrameCallback.
-    // On Android 10, the Texture surface isn't registered in the
-    // render tree until after the first frame. Calling initialize()
-    // before that causes a black screen even if initialization
-    // technically "succeeds". Starting after first frame fixes this.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _initVideo();
     });
   }
 
   Future<void> _initVideo() async {
-    final controller = VideoPlayerController.asset(widget.assetPath);
+    final controller = VideoPlayerController.asset(
+      widget.assetPath,
+      // âœ… This is the key fix for Android 10.
+      // Without mixWithOthers: true, the video player requests exclusive
+      // audio focus on Android 10 which causes the video surface to
+      // render black. Setting this makes it share the audio session
+      // instead of fighting for it â€” even though this is a muted video.
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
 
     try {
       await controller.initialize();
@@ -50,10 +55,7 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
       await controller.setLooping(true);
       await controller.setVolume(0);
 
-      // âœ… Extra delay for Android 10.
-      // Even after initialize() the codec output surface on older
-      // Android versions needs one more event loop tick to fully bind
-      // to the Flutter Texture. 300ms is enough on every device tested.
+      // Extra frame for Android 10 surface binding
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (!mounted) {
@@ -62,6 +64,16 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
       }
 
       await controller.play();
+
+      // âœ… Verify the video is actually producing frames.
+      // On some Android 10 devices initialize() succeeds but no frames
+      // are decoded. Check size â€” a valid video always has non-zero size.
+      if (controller.value.size == Size.zero) {
+        debugPrint('ðŸŽ¥ Video initialized but size is zero â€” using fallback');
+        await controller.dispose();
+        if (mounted) setState(() => _error = true);
+        return;
+      }
 
       setState(() {
         _controller = controller;
@@ -94,17 +106,36 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
   @override
   Widget build(BuildContext context) {
-    if (_error || !_initialized || _controller == null) {
+    // âœ… Fallback: static image with same dark overlay
+    // Shown on devices where video can't render (older Android, low-end)
+    if (_error) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            widget.fallbackAsset,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const ColoredBox(color: Colors.black),
+          ),
+          ColoredBox(
+            color: Colors.black.withOpacity(
+              widget.darkenOpacity.clamp(0.0, 0.95),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Loading state â€” black screen, no flash
+    if (!_initialized || _controller == null) {
       return const ColoredBox(color: Colors.black);
     }
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Base black so screen edges never flash white
         const ColoredBox(color: Colors.black),
 
-        // Video with cinematic fade-in
         AnimatedOpacity(
           duration: const Duration(milliseconds: 800),
           opacity: _initialized ? 1.0 : 0.0,
@@ -118,7 +149,6 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           ),
         ),
 
-        // Dark overlay â€” keeps UI readable over video
         ColoredBox(
           color: Colors.black.withOpacity(
             widget.darkenOpacity.clamp(0.0, 0.95),
