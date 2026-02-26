@@ -22,8 +22,6 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   VideoPlayerController? _controller;
   bool _initialized = false;
   bool _error = false;
-  // ✅ Capture the actual error message so we can show it on screen
-  String _errorMessage = '';
 
   @override
   void initState() {
@@ -42,23 +40,23 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
     try {
       await controller.initialize();
-
       if (!mounted) { await controller.dispose(); return; }
 
       await controller.setLooping(true);
       await controller.setVolume(0);
-      await Future.delayed(const Duration(milliseconds: 300));
+      await controller.play();
+
+      // âœ… Instead of checking size immediately (which is zero on Android 10
+      // right after play), wait up to 3 seconds for the first frame to decode.
+      // Size becomes non-zero once the codec produces its first output frame.
+      final gotFrame = await _waitForFirstFrame(controller);
 
       if (!mounted) { await controller.dispose(); return; }
 
-      await controller.play();
-
-      if (controller.value.size == Size.zero) {
+      if (!gotFrame) {
+        // Timed out â€” device genuinely can't decode this video
         await controller.dispose();
-        if (mounted) setState(() {
-          _error = true;
-          _errorMessage = 'size=zero after init';
-        });
+        if (mounted) setState(() => _error = true);
         return;
       }
 
@@ -67,12 +65,26 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
         _initialized = true;
       });
     } catch (e) {
+      debugPrint('VideoPlayer error: $e');
       await controller.dispose();
-      if (mounted) setState(() {
-        _error = true;
-        _errorMessage = e.toString();
-      });
+      if (mounted) setState(() => _error = true);
     }
+  }
+
+  // âœ… Poll until size is non-zero or timeout expires.
+  // On Android 10, size is zero until the first frame is decoded.
+  // Polling every 100ms with a 3s timeout covers all slow devices.
+  Future<bool> _waitForFirstFrame(
+      VideoPlayerController controller) async {
+    const pollInterval = Duration(milliseconds: 100);
+    const timeout = Duration(seconds: 3);
+    final deadline = DateTime.now().add(timeout);
+
+    while (DateTime.now().isBefore(deadline)) {
+      if (controller.value.size != Size.zero) return true;
+      await Future.delayed(pollInterval);
+    }
+    return false;
   }
 
   @override
@@ -95,11 +107,11 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
   @override
   Widget build(BuildContext context) {
+    // Fallback: static image with same dark overlay
     if (_error) {
       return Stack(
         fit: StackFit.expand,
         children: [
-          // Try fallback image
           Image.asset(
             widget.fallbackAsset,
             fit: BoxFit.cover,
@@ -109,24 +121,6 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           ColoredBox(
             color: Colors.black.withOpacity(
                 widget.darkenOpacity.clamp(0.0, 0.95)),
-          ),
-          // ✅ Show error message on screen so we can see it without logcat
-          Positioned(
-            bottom: 100,
-            left: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              color: Colors.red.withOpacity(0.7),
-              child: Text(
-                'VIDEO ERROR:\n$_errorMessage',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ),
           ),
         ],
       );
@@ -142,7 +136,7 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
         const ColoredBox(color: Colors.black),
         AnimatedOpacity(
           duration: const Duration(milliseconds: 800),
-          opacity: _initialized ? 1.0 : 0.0,
+          opacity: 1.0,
           child: FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
