@@ -3,10 +3,10 @@ name: Build Android
 on:
   push:
     branches:
-      - 'dreadmoor-init-17025123926669017520'
+      - 'Production_Dreadmoor'
   pull_request:
     branches:
-      - 'dreadmoor-init-17025123926669017520'
+      - 'Production_Dreadmoor'
   workflow_dispatch: 
 
 jobs:
