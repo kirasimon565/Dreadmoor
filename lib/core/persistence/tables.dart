@@ -11,12 +11,20 @@ class Players extends Table {
 class Threads extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
+
+  /// id of last visible message
   IntColumn get lastMessageId => integer().nullable()();
+
   BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
   BoolColumn get isTyping => boolean().withDefault(const Constant(false))();
+
+  /// for secret chats / intercepts
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
+
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
-  TextColumn get participants => text()(); // JSON list
+
+  /// JSON list of participant ids
+  TextColumn get participants => text()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -36,16 +44,41 @@ class Threads extends Table {
 
 class Messages extends Table {
   IntColumn get id => integer().autoIncrement()();
+
+  /// chat thread
   TextColumn get threadId =>
       text().references(Threads, #id, onDelete: KeyAction.cascade)();
+
+  /// sender character id
   TextColumn get senderId => text()();
-  TextColumn get content => text()();
+
+  /// visible message text
+  TextColumn get content => text().nullable()();
+
+  /// text / image / video / audio / system / typing / choice
   TextColumn get type =>
-      text().withDefault(const Constant('text'))(); // text, image, system
-  DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
-  BoolColumn get isPlayerMessage => boolean().withDefault(const Constant(false))();
-  BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
-  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+      text().withDefault(const Constant('text'))();
+
+  /// attachment path (video, image, audio)
+  TextColumn get mediaPath => text().nullable()();
+
+  /// ordering control (important for scripted playback)
+  IntColumn get sequence => integer()();
+
+  DateTimeColumn get timestamp =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get isPlayerMessage =>
+      boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isSecret =>
+      boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isRead =>
+      boolean().withDefault(const Constant(false))();
+
+  /// JSON metadata (choices, pauses, typing indicators)
+  TextColumn get meta => text().nullable()();
 
   @override
   List<Index> get indexes => [
@@ -54,16 +87,21 @@ class Messages extends Table {
           'CREATE INDEX messages_thread_idx ON messages (thread_id)',
         ),
         Index(
-          'messages_time_idx',
-          'CREATE INDEX messages_time_idx ON messages (timestamp)',
+          'messages_sequence_idx',
+          'CREATE INDEX messages_sequence_idx ON messages (sequence)',
         ),
       ];
 }
 
 class StoryState extends Table {
   TextColumn get key => text()();
-  BoolColumn get value => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// story flags
+  BoolColumn get value =>
+      boolean().withDefault(const Constant(false))();
+
+  DateTimeColumn get updatedAt =>
+      dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {key};
@@ -71,8 +109,12 @@ class StoryState extends Table {
 
 class Episodes extends Table {
   TextColumn get id => text()();
-  BoolColumn get isUnlocked => boolean().withDefault(const Constant(false))();
-  IntColumn get progress => integer().withDefault(const Constant(0))();
+
+  BoolColumn get isUnlocked =>
+      boolean().withDefault(const Constant(false))();
+
+  IntColumn get progress =>
+      integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};
