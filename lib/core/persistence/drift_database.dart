@@ -9,19 +9,39 @@ import 'tables.dart';
 
 part 'drift_database.g.dart';
 
-@DriftDatabase(tables: [Players, Messages, Threads, StoryState, Episodes])
+@DriftDatabase(
+  tables: [
+    Players,
+    Threads,
+    Messages,
+    StoryState,
+    Episodes,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
-  // ✅ Singleton instance — one connection shared across entire app
+  // ---------------------------
+  // SINGLETON
+  // ---------------------------
+
   static AppDatabase? _instance;
+
   static AppDatabase get instance {
     _instance ??= AppDatabase._();
     return _instance!;
   }
 
+  // ---------------------------
+  // SCHEMA VERSION
+  // ---------------------------
+
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
+
+  // ---------------------------
+  // MIGRATIONS
+  // ---------------------------
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -29,22 +49,31 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          if (from == 1) {
-            // Future migrations here
+          if (from < 2) {
+            // future migration
+          }
+
+          if (from < 3) {
+            // reserved for message/event upgrades
           }
         },
       );
 
-  /// Warm up the singleton connection (safe to call multiple times).
-  /// Call this once in main() before runApp.
+  // ---------------------------
+  // INIT
+  // ---------------------------
+
+  /// Warm-up database connection
   static Future<void> init() async {
     await instance.customSelect('SELECT 1').get();
   }
 
+  // ---------------------------
+  // RESET FUNCTIONS
+  // ---------------------------
+
   Future<void> resetAllProgress() async {
     await batch((b) {
-      // ✅ players added — was missing, causing CONTINUE to always show
-      // after reset because the player row survived every wipe.
       b.deleteAll(players);
       b.deleteAll(messages);
       b.deleteAll(threads);
@@ -60,14 +89,17 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-// --------------------
-// SINGLETON CONNECTION
-// --------------------
+// ---------------------------
+// DATABASE CONNECTION
+// ---------------------------
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'dreadmore.sqlite'));
+
+    final file = File(
+      p.join(dbFolder.path, 'dreadmoor.sqlite'),
+    );
 
     return NativeDatabase(
       file,
