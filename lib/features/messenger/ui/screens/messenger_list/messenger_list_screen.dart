@@ -9,10 +9,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class MessengerListScreen extends ConsumerStatefulWidget {
   const MessengerListScreen({super.key});
@@ -23,38 +23,34 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 }
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
-
   bool _showNotificationCenter = false;
 
   @override
   Widget build(BuildContext context) {
-
     final db = ref.watch(databaseProvider);
 
-    final threadsStream = (db.select(db.threads)
-          ..orderBy([
-            (t) => OrderingTerm(
-                  expression: t.lastMessageId,
-                  mode: OrderingMode.desc,
-                )
-          ]))
-        .join([
-          leftOuterJoin(
-            db.messages,
-            db.messages.id.equalsExp(db.threads.lastMessageId),
-          )
-        ])
-        .watch();
+    final threadsStream =
+        (db.select(db.threads)..orderBy([
+              (t) => OrderingTerm(
+                expression: t.lastMessageId,
+                mode: OrderingMode.desc,
+              ),
+            ]))
+            .join([
+              leftOuterJoin(
+                db.messages,
+                db.messages.id.equalsExp(db.threads.lastMessageId),
+              ),
+            ])
+            .watch();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: DreadmoorColors.background,
       body: SafeArea(
         child: Stack(
           children: [
-
             Column(
               children: [
-
                 const _PhoneStatusBar(),
 
                 const SizedBox(height: 6),
@@ -73,11 +69,8 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                   child: StreamBuilder(
                     stream: threadsStream,
                     builder: (context, snapshot) {
-
                       if (!snapshot.hasData) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
 
                       final rows = snapshot.data!;
@@ -92,12 +85,11 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         itemCount: rows.length,
                         itemBuilder: (context, index) {
+                          final thread = rows[index].readTable(db.threads);
 
-                          final thread =
-                              rows[index].readTable(db.threads);
-
-                          final message =
-                              rows[index].readTableOrNull(db.messages);
+                          final message = rows[index].readTableOrNull(
+                            db.messages,
+                          );
 
                           final time = message?.timestamp != null
                               ? DateFormat.Hm().format(message!.timestamp!)
@@ -105,10 +97,8 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
                           return GestureDetector(
                             onTap: () {
-
-                              ref
-                                  .read(activeThreadIdProvider.notifier)
-                                  .state = thread.id;
+                              ref.read(activeThreadIdProvider.notifier).state =
+                                  thread.id;
 
                               context.push(Routes.chat(thread.id));
                             },
@@ -128,8 +118,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
               ],
             ),
 
-            if (_showNotificationCenter)
-              const _NotificationCenter(),
+            if (_showNotificationCenter) const _NotificationCenter(),
           ],
         ),
       ),
@@ -142,26 +131,21 @@ class _PhoneStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final time = DateFormat.Hm().format(DateTime.now());
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-
-          Text(
-            time,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
-          ),
+          Text(time, style: const TextStyle(color: Colors.white, fontSize: 12)),
 
           const Spacer(),
 
-          const Icon(Icons.signal_cellular_4_bar,
-              size: 16, color: Colors.white),
+          const Icon(
+            Icons.signal_cellular_4_bar,
+            size: 16,
+            color: Colors.white,
+          ),
 
           const SizedBox(width: 6),
 
@@ -177,21 +161,16 @@ class _PhoneStatusBar extends StatelessWidget {
 }
 
 class _MessengerHeader extends StatelessWidget {
-
   final VoidCallback onOpenNotifications;
 
-  const _MessengerHeader({
-    required this.onOpenNotifications,
-  });
+  const _MessengerHeader({required this.onOpenNotifications});
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         children: [
-
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: onOpenNotifications,
@@ -223,7 +202,6 @@ class _MessengerHeader extends StatelessWidget {
 }
 
 class _ThreadTile extends StatelessWidget {
-
   final Thread thread;
   final Message? message;
   final String time;
@@ -236,12 +214,10 @@ class _ThreadTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-
           CircleAvatar(
             radius: 26,
             backgroundColor: Colors.grey.shade800,
@@ -254,7 +230,6 @@ class _ThreadTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Text(
                   thread.title,
                   style: GoogleFonts.inter(
@@ -270,10 +245,7 @@ class _ThreadTile extends StatelessWidget {
                   message?.content ?? "",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -281,13 +253,9 @@ class _ThreadTile extends StatelessWidget {
 
           Column(
             children: [
-
               Text(
                 time,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white54,
-                ),
+                style: const TextStyle(fontSize: 11, color: Colors.white54),
               ),
 
               if (thread.unreadCount > 0)
@@ -300,14 +268,11 @@ class _ThreadTile extends StatelessWidget {
                   ),
                   child: Text(
                     thread.unreadCount.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
                   ),
                 ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -319,21 +284,17 @@ class _BottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       height: 64,
       decoration: BoxDecoration(
         color: Colors.black,
         border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-          ),
+          top: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: const [
-
           Icon(Icons.chat_bubble_outline, color: Colors.white),
           Icon(Icons.extension_outlined, color: Colors.white54),
           Icon(Icons.person_outline, color: Colors.white54),
@@ -350,7 +311,6 @@ class _NotificationCenter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Positioned.fill(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),

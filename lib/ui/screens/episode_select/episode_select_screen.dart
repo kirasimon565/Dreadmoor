@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/state/episode_state.dart';
-import '../../../core/state/game_state.dart';
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
-import '../../widgets/episode_teaser_card.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
+import 'package:dreadmoor/ui/widgets/episode_teaser_card.dart';
 
 class EpisodeSelectScreen extends ConsumerWidget {
   const EpisodeSelectScreen({super.key});
@@ -175,9 +175,11 @@ class _SeasonHeader extends StatelessWidget {
                     boxShadow: i == 0
                         ? [
                             BoxShadow(
-                              color: DreadmoorColors.glowCyan.withOpacity(0.5),
+                              color: DreadmoorColors.glowCyan.withValues(
+                                alpha: 0.5,
+                              ),
                               blurRadius: 8,
-                            )
+                            ),
                           ]
                         : [],
                   ),

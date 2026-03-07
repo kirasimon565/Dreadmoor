@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
+import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class LegalDisclaimerScreen extends StatelessWidget {
   const LegalDisclaimerScreen({super.key});
@@ -15,9 +15,7 @@ class LegalDisclaimerScreen extends StatelessWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(painter: const ScanlinePainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
 
           Column(
             children: [
@@ -84,7 +82,9 @@ class LegalDisclaimerScreen extends StatelessWidget {
                               style: GoogleFonts.michroma(
                                 fontSize: 9,
                                 letterSpacing: 2,
-                                color: DreadmoorColors.textMeta.withOpacity(0.5),
+                                color: DreadmoorColors.textMeta.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -93,7 +93,9 @@ class LegalDisclaimerScreen extends StatelessWidget {
                               style: GoogleFonts.michroma(
                                 fontSize: 8,
                                 letterSpacing: 2.5,
-                                color: DreadmoorColors.textMeta.withOpacity(0.3),
+                                color: DreadmoorColors.textMeta.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                           ],
@@ -123,8 +125,11 @@ class _DocumentStamp extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.gavel_rounded,
-              size: 13, color: DreadmoorColors.textMeta.withOpacity(0.4)),
+          Icon(
+            Icons.gavel_rounded,
+            size: 13,
+            color: DreadmoorColors.textMeta.withOpacity(0.4),
+          ),
           const SizedBox(width: 10),
           Text(
             'DOCUMENT REF: BMS-LEGAL-${DateTime.now().year}',
@@ -139,7 +144,8 @@ class _DocumentStamp extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               border: Border.all(
-                  color: DreadmoorColors.accentCyan.withOpacity(0.3)),
+                color: DreadmoorColors.accentCyan.withOpacity(0.3),
+              ),
             ),
             child: Text(
               'OFFICIAL',

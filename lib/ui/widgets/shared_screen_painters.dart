@@ -2,7 +2,7 @@
 //
 // Shared painters and decorative widgets used across utility screens.
 // Import in each screen:
-//   import '../../widgets/shared_screen_painters.dart';
+//   import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart';
 //
 // NOTE: All classes are PUBLIC (no _ prefix) so they are importable.
 // Previously these were private (_ScanlinePainter etc) which caused
@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 // ─────────────────────────────────────────────────────────────
 // Scanline painter — subtle CRT texture, no asset required

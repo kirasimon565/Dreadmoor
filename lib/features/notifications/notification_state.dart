@@ -4,5 +4,5 @@ import 'app_notification.dart';
 
 final notificationProvider =
     StateNotifierProvider<NotificationController, List<AppNotification>>(
-  (ref) => NotificationController(),
-);
+      (ref) => NotificationController(),
+    );

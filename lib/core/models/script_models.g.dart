@@ -86,3 +86,22 @@ Map<String, dynamic> _$ChoiceOptionToJson(ChoiceOption instance) =>
       'text': instance.text,
       'jumpto': instance.jumpto,
     };
+
+EventMeta _$EventMetaFromJson(Map<String, dynamic> json) => EventMeta(
+      delayAfter: (json['delayAfter'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$EventMetaToJson(EventMeta instance) => <String, dynamic>{
+      'delayAfter': instance.delayAfter,
+    };
+
+ChoiceOption _$ChoiceOptionFromJson(Map<String, dynamic> json) => ChoiceOption(
+      text: json['text'] as String,
+      jumpto: json['jumpto'] as String,
+    );
+
+Map<String, dynamic> _$ChoiceOptionToJson(ChoiceOption instance) =>
+    <String, dynamic>{
+      'text': instance.text,
+      'jumpto': instance.jumpto,
+    };

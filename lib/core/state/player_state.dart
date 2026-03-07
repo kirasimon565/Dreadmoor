@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'game_state.dart';
 
 /// Live player stream (updates if DB changes)
@@ -27,24 +27,22 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
     try {
       final db = ref.read(databaseProvider);
 
-      final existing =
-          await (db.select(db.players)..limit(1)).getSingleOrNull();
+      final existing = await (db.select(
+        db.players,
+      )..limit(1)).getSingleOrNull();
 
       if (existing != null) {
         state = const AsyncValue.data(null);
         return;
       }
 
-      final id = await db.into(db.players).insert(
-            PlayersCompanion.insert(
-              name: name,
-              gender: gender,
-            ),
-          );
+      final id = await db
+          .into(db.players)
+          .insert(PlayersCompanion.insert(name: name, gender: gender));
 
-      final created =
-          await (db.select(db.players)..where((p) => p.id.equals(id)))
-              .getSingle();
+      final created = await (db.select(
+        db.players,
+      )..where((p) => p.id.equals(id))).getSingle();
 
       /// Update in-memory state instantly
       ref.read(playerStateProvider.notifier).state = created;
@@ -58,5 +56,5 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
 
 final playerControllerProvider =
     StateNotifierProvider<PlayerController, AsyncValue<void>>((ref) {
-  return PlayerController(ref);
-});
+      return PlayerController(ref);
+    });

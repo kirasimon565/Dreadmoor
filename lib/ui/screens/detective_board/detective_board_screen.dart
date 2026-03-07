@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/state/investigation_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 import 'board_filters.dart';
 
 class DetectiveBoardScreen extends ConsumerStatefulWidget {
@@ -33,10 +33,12 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
       // ── Map FAB ───────────────────────────────────────────────────────
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 8),
-        child: _MapFab(onTap: () {
-          HapticFeedback.selectionClick();
-          context.push(Routes.map);
-        }),
+        child: _MapFab(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            context.push('/map');
+          },
+        ),
       ),
       body: Stack(
         children: [
@@ -113,7 +115,9 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
                           children: [
                             Icon(
                               Icons.search_off_rounded,
-                              color: DreadmoorColors.textMeta.withOpacity(0.4),
+                              color: DreadmoorColors.textMeta.withValues(
+                                alpha: 0.4,
+                              ),
                               size: 36,
                             ),
                             const SizedBox(height: 16),
@@ -135,11 +139,11 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 20,
-                        childAspectRatio: 0.78,
-                      ),
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 20,
+                            childAspectRatio: 0.78,
+                          ),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         final item = filtered[index];
@@ -160,7 +164,8 @@ class _DetectiveBoardScreenState extends ConsumerState<DetectiveBoardScreen> {
                   },
                   loading: () => const Center(
                     child: CircularProgressIndicator(
-                        color: DreadmoorColors.accentCyan),
+                      color: DreadmoorColors.accentCyan,
+                    ),
                   ),
                   error: (e, _) => Center(
                     child: Text(
@@ -212,16 +217,16 @@ class _MapFabState extends State<_MapFab> {
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 120),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
               decoration: BoxDecoration(
                 color: _pressed
                     ? DreadmoorColors.accentCyan.withOpacity(0.15)
                     : DreadmoorColors.surface.withOpacity(0.55),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: DreadmoorColors.accentCyan
-                      .withOpacity(_pressed ? 0.7 : 0.3),
+                  color: DreadmoorColors.accentCyan.withValues(
+                    alpha: _pressed ? 0.7 : 0.3,
+                  ),
                   width: 0.7,
                 ),
                 boxShadow: [

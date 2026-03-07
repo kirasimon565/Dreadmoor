@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class ChatHeaderNeonGroup extends StatelessWidget {
   final String title;
@@ -79,8 +79,9 @@ class ChatHeaderNeonGroup extends StatelessWidget {
                         color: DreadmoorColors.surface,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color:
-                              DreadmoorColors.accentCyan.withOpacity(0.3),
+                          color: DreadmoorColors.accentCyan.withValues(
+                            alpha: 0.3,
+                          ),
                           width: 0.8,
                         ),
                       ),
@@ -170,10 +171,7 @@ class _SingleAvatar extends StatelessWidget {
       height: 20,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: DreadmoorColors.background,
-          width: 1.2,
-        ),
+        border: Border.all(color: DreadmoorColors.background, width: 1.2),
       ),
       child: ClipOval(
         child: Image.asset(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class BoardFilters extends StatelessWidget {
   final List<String> filters;
@@ -33,7 +33,9 @@ class BoardFilters extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 7),
+                  horizontal: 14,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? DreadmoorColors.accentCyan.withOpacity(0.12)
@@ -48,7 +50,9 @@ class BoardFilters extends StatelessWidget {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: DreadmoorColors.glowCyan.withOpacity(0.15),
+                            color: DreadmoorColors.glowCyan.withValues(
+                              alpha: 0.15,
+                            ),
                             blurRadius: 8,
                           ),
                         ]

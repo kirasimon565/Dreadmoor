@@ -7,27 +7,22 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/state/character_state.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class CharacterProfileScreen extends ConsumerWidget {
   final String characterId;
 
-  const CharacterProfileScreen({
-    super.key,
-    required this.characterId,
-  });
+  const CharacterProfileScreen({super.key, required this.characterId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final characterAsync = ref.watch(characterProvider(characterId));
 
     return characterAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        body: Center(child: Text('Error loading profile')),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) =>
+          Scaffold(body: Center(child: Text('Error loading profile'))),
       data: (character) {
         if (character == null) {
           return const Scaffold(
@@ -36,10 +31,9 @@ class CharacterProfileScreen extends ConsumerWidget {
         }
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: DreadmoorColors.background,
           body: CustomScrollView(
             slivers: [
-
               /// HEADER
               SliverAppBar(
                 expandedHeight: 260,
@@ -61,7 +55,6 @@ class CharacterProfileScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       /// NAME
                       Text(
                         character.name,
@@ -102,7 +95,8 @@ class CharacterProfileScreen extends ConsumerWidget {
                       ],
 
                       /// ABOUT
-                      if (character.bio != null && character.bio!.isNotEmpty) ...[
+                      if (character.bio != null &&
+                          character.bio!.isNotEmpty) ...[
                         _SectionTitle("About"),
                         const SizedBox(height: 10),
                         Text(
@@ -125,7 +119,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         );
@@ -144,20 +138,14 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-
         /// BACKGROUND IMAGE
         Positioned.fill(
-          child: Image.asset(
-            character.headerImage,
-            fit: BoxFit.cover,
-          ),
+          child: Image.asset(character.headerImage, fit: BoxFit.cover),
         ),
 
         /// DARK OVERLAY
         Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.45),
-          ),
+          child: Container(color: Colors.black.withOpacity(0.45)),
         ),
 
         /// BLUR
@@ -225,10 +213,7 @@ class _PhotoGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: Image.asset(
-            photos[index],
-            fit: BoxFit.cover,
-          ),
+          child: Image.asset(photos[index], fit: BoxFit.cover),
         );
       },
     );
@@ -253,19 +238,13 @@ class _InfoSection extends StatelessWidget {
                 width: 110,
                 child: Text(
                   entry.key,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white54,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
                 ),
               ),
               Expanded(
                 child: Text(
                   entry.value,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
                 ),
               ),
             ],
@@ -290,26 +269,19 @@ class _NotesSection extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: DreadmoorColors.surface,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.circle,
-                size: 8,
-                color: Colors.white54,
-              ),
+              const Icon(Icons.circle, size: 8, color: Colors.white54),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   note,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white70,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 14, color: Colors.white70),
                 ),
-              )
+              ),
             ],
           ),
         );

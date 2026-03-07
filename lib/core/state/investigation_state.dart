@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart'; // FIX 4: firstWhereOrNull
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'game_state.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -38,10 +38,7 @@ class EvidenceItem {
   });
 
   // Produces a copy with DB-resolved status fields
-  EvidenceItem withStatus({
-    required bool isLocked,
-    double? recoveryPercent,
-  }) {
+  EvidenceItem withStatus({required bool isLocked, double? recoveryPercent}) {
     return EvidenceItem(
       id: id,
       title: title,
@@ -112,7 +109,9 @@ final allEvidenceProvider = FutureProvider<List<EvidenceItem>>((ref) async {
 // Unlocked-only evidence — for recap, evidence detail etc.
 // ─────────────────────────────────────────────────────────────
 
-final unlockedEvidenceProvider = FutureProvider<List<EvidenceItem>>((ref) async {
+final unlockedEvidenceProvider = FutureProvider<List<EvidenceItem>>((
+  ref,
+) async {
   // FIX 1: ref.read inside async body
   final all = await ref.read(allEvidenceProvider.future);
   return all.where((e) => !e.isLocked).toList();
@@ -131,8 +130,10 @@ final unlockedEvidenceProvider = FutureProvider<List<EvidenceItem>>((ref) async 
 // FIX 1: ref.read inside async body
 // ─────────────────────────────────────────────────────────────
 
-final diaryProgressProvider =
-    FutureProvider.family<double, String>((ref, diaryId) async {
+final diaryProgressProvider = FutureProvider.family<double, String>((
+  ref,
+  diaryId,
+) async {
   // FIX 1: ref.read, not ref.watch
   final all = await ref.read(allEvidenceProvider.future);
 

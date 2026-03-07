@@ -55,9 +55,10 @@ class _GlitchTextState extends State<GlitchText> {
 
     final chars = widget.text.split('');
     final base = 1 + _random.nextInt(3);
-    final count = (base * widget.glitchIntensity.clamp(0, 1))
-        .round()
-        .clamp(1, chars.length);
+    final count = (base * widget.glitchIntensity.clamp(0, 1)).round().clamp(
+      1,
+      chars.length,
+    );
 
     for (var i = 0; i < count; i++) {
       final idx = _random.nextInt(chars.length);

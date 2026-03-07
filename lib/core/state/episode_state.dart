@@ -1,16 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'game_state.dart';
 
 class EpisodeWithProgress {
   final Episode episode;
   final double progress; // 0.0 → 1.0
 
-  EpisodeWithProgress({
-    required this.episode,
-    required this.progress,
-  });
+  EpisodeWithProgress({required this.episode, required this.progress});
 }
 
 /// Stream of all episodes with progress
@@ -21,10 +18,7 @@ final episodesProvider = StreamProvider<List<EpisodeWithProgress>>((ref) {
     final episodes = rows.map((ep) {
       final progress = (ep.progress / 100).clamp(0.0, 1.0);
 
-      return EpisodeWithProgress(
-        episode: ep,
-        progress: progress,
-      );
+      return EpisodeWithProgress(episode: ep, progress: progress);
     }).toList();
 
     /// Sort episodes like ep01, ep02, ep03...

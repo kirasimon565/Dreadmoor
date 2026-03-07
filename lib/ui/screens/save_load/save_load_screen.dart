@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
+import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class SaveLoadScreen extends ConsumerWidget {
   const SaveLoadScreen({super.key});
@@ -20,9 +20,7 @@ class SaveLoadScreen extends ConsumerWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(painter: const ScanlinePainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
 
           Column(
             children: [
@@ -75,7 +73,9 @@ class SaveLoadScreen extends ConsumerWidget {
                             const SizedBox(width: 12),
                             Icon(
                               Icons.cloud_done_outlined,
-                              color: DreadmoorColors.accentCyan.withOpacity(0.6),
+                              color: DreadmoorColors.accentCyan.withValues(
+                                alpha: 0.6,
+                              ),
                               size: 20,
                             ),
                           ],
@@ -137,7 +137,9 @@ class SaveLoadScreen extends ConsumerWidget {
                               style: GoogleFonts.michroma(
                                 fontSize: 8,
                                 letterSpacing: 2,
-                                color: DreadmoorColors.textMeta.withOpacity(0.4),
+                                color: DreadmoorColors.textMeta.withValues(
+                                  alpha: 0.4,
+                                ),
                               ),
                             ),
                           ],
@@ -156,9 +158,9 @@ class SaveLoadScreen extends ConsumerWidget {
 
   Future<String?> _loadSaveTimestamp(AppDatabase db) async {
     try {
-      final row = await (db.select(db.storyState)
-            ..where((s) => s.key.equals('game_saved')))
-          .getSingleOrNull();
+      final row = await (db.select(
+        db.storyState,
+      )..where((s) => s.key.equals('game_saved'))).getSingleOrNull();
       if (row == null) return null;
       final dt = row.updatedAt;
       return '${_weekday(dt.weekday)} ${dt.day} ${_month(dt.month)} ${dt.year}'
@@ -172,9 +174,19 @@ class SaveLoadScreen extends ConsumerWidget {
       ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][d - 1];
 
   String _month(int m) => [
-        'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
-      ][m - 1];
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
+  ][m - 1];
 }
 
 class _LockedSlot extends StatelessWidget {
@@ -191,8 +203,11 @@ class _LockedSlot extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.lock_outline,
-              size: 14, color: DreadmoorColors.textMeta.withOpacity(0.3)),
+          Icon(
+            Icons.lock_outline,
+            size: 14,
+            color: DreadmoorColors.textMeta.withOpacity(0.3),
+          ),
           const SizedBox(width: 12),
           Text(
             'SLOT ${slot.toString().padLeft(2, '0')}',

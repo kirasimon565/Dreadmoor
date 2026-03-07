@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
-import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
 
 class FatalErrorScreen extends StatefulWidget {
   final String? error;
@@ -36,7 +36,10 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
 
-    _pulseAnim = CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
+    _pulseAnim = CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    );
 
     _scrambleTimer = Timer.periodic(const Duration(milliseconds: 60), (t) {
       if (!mounted) return;
@@ -78,9 +81,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(painter: const ScanlinePainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
 
           // Red pulse vignette
           Positioned.fill(
@@ -108,8 +109,9 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                       animation: _pulseAnim,
                       builder: (_, __) => Icon(
                         Icons.error_outline_rounded,
-                        color: DreadmoorColors.accentRed
-                            .withOpacity(0.5 + _pulseAnim.value * 0.5),
+                        color: DreadmoorColors.accentRed.withValues(
+                          alpha: 0.5 + _pulseAnim.value * 0.5,
+                        ),
                         size: 52,
                       ),
                     ),
@@ -150,17 +152,24 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: DreadmoorColors.accentRed.withOpacity(0.25),
+                          color: DreadmoorColors.accentRed.withValues(
+                            alpha: 0.25,
+                          ),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.bug_report_outlined,
-                              size: 12, color: DreadmoorColors.textMeta),
+                          Icon(
+                            Icons.bug_report_outlined,
+                            size: 12,
+                            color: DreadmoorColors.textMeta,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'ERROR TRACE CAPTURED',
@@ -221,18 +230,22 @@ class _RebootButtonState extends State<_RebootButton> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.refresh_rounded,
-                  size: 15,
-                  color: DreadmoorColors.accentRed
-                      .withOpacity(_hovered ? 1.0 : 0.7)),
+              Icon(
+                Icons.refresh_rounded,
+                size: 15,
+                color: DreadmoorColors.accentRed.withValues(
+                  alpha: _hovered ? 1.0 : 0.7,
+                ),
+              ),
               const SizedBox(width: 10),
               Text(
                 'REBOOT SYSTEM',
                 style: GoogleFonts.michroma(
                   fontSize: 11,
                   letterSpacing: 2.5,
-                  color: DreadmoorColors.accentRed
-                      .withOpacity(_hovered ? 1.0 : 0.7),
+                  color: DreadmoorColors.accentRed.withValues(
+                    alpha: _hovered ? 1.0 : 0.7,
+                  ),
                 ),
               ),
             ],
