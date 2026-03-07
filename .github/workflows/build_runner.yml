@@ -16,11 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Flutter based on project configuration
+      # Install Flutter with Dart >= 3.8
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: pubspec.yaml
+          flutter-version: "3.27.0"
           channel: stable
 
       - name: Flutter version
