@@ -1,22 +1,22 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+
 import '../models/script_models.dart';
 
 class ScriptLoader {
-  Future<EpisodeMeta> loadEpisodeMeta(String episodeId) async {
-    final String response = await rootBundle.loadString('content/episodes/$episodeId/episode_meta.json');
-    final data = await json.decode(response);
-    return EpisodeMeta.fromJson(data);
+
+  /// Load full episode script (ep01.json, ep02.json, etc.)
+  Future<EpisodeScript> loadEpisode(String episodeId) async {
+    final String response =
+        await rootBundle.loadString('content/episodes/$episodeId.json');
+
+    final data = json.decode(response);
+
+    return EpisodeScript.fromJson(data);
   }
 
-  Future<ThreadScript> loadThreadScript(String episodeId, String threadId) async {
-    final String response = await rootBundle.loadString('content/episodes/$episodeId/threads/$threadId.json');
-    final data = await json.decode(response);
-    return ThreadScript.fromJson(data);
-  }
-
+  /// Optional: preload episodes if needed later
   static Future<void> loadAll() async {
-    // Placeholder for pre-loading all scripts if needed
-    // In a real app, this might index available episodes
+    // Reserved for future: caching, indexing episodes, etc.
   }
 }
