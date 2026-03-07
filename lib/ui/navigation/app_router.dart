@@ -14,6 +14,7 @@ import 'package:dreadmoor/features/store/ui/screens/store/store_screen.dart';
 
 import 'package:dreadmoor/features/browser/ui/screens/browser/dreadmoor_browser_screen.dart';
 import 'package:dreadmoor/features/browser/ui/screens/browser/article_viewer_screen.dart';
+import 'package:dreadmoor/features/browser/article_model.dart';
 
 import 'package:dreadmoor/features/phone/ui/screens/phone/phone_app_screen.dart';
 
