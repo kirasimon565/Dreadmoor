@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
+import '../../widgets/shared_screen_painters.dart';
 
 class LegalDisclaimerScreen extends StatelessWidget {
   const LegalDisclaimerScreen({super.key});
