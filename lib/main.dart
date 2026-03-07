@@ -8,16 +8,17 @@ import 'core/state/game_state.dart';
 import 'ui/navigation/app_router.dart';
 import 'ui/theme/dreadmoor_theme.dart';
 
+import 'core/notifications/notification_state.dart';
+import 'ui/widgets/notification_banner.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock orientation (cinematic portrait feel)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Transparent status bar + dark nav bar
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -25,33 +26,24 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  // âœ… Warm up the singleton DB connection before anything else
   await AppDatabase.init();
 
-  // âœ… Load player from DB into memory before the router ever fires.
-  // This means the router redirect has a synchronous value on the very
-  // first frame â€” no async gap, no bounce back to setup.
-  // NOTE: player existing only means setup is done (name/gender entered).
-  // CONTINUE vs START GAME is decided in welcome_screen.dart based on
-  // whether threads exist â€” not based on player existence.
   final db = AppDatabase.instance;
+
   final existingPlayer =
       await (db.select(db.players)..limit(1)).getSingleOrNull();
 
-  // Catch async errors globally (Drift / video / scheduler safety)
   runZonedGuarded(
     () => runApp(
       ProviderScope(
         overrides: [
-          // âœ… Seeds playerStateProvider with the DB value before first frame.
-          // Router redirect reads this synchronously â€” always up to date.
           playerStateProvider.overrideWith((ref) => existingPlayer),
         ],
         child: const DreadmoorApp(),
       ),
     ),
     (error, stack) {
-      debugPrint('ðŸ”¥ Uncaught error: $error');
+      debugPrint('🔥 Uncaught error: $error');
     },
   );
 }
@@ -80,14 +72,26 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // TODO: Pause scheduler/video when backgrounded
-    // TODO: Resume when foregrounded
-    debugPrint('ðŸ“± App lifecycle changed: $state');
+
+    final scheduler = ref.read(globalSchedulerProvider);
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      scheduler.pause();
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      scheduler.resume();
+    }
+
+    debugPrint('📱 App lifecycle changed: $state');
   }
 
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
+
+    final notifications = ref.watch(notificationProvider);
 
     return MaterialApp.router(
       title: 'Dreadmoor',
@@ -95,8 +99,8 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
       routerConfig: router,
       debugShowCheckedModeBanner: false,
 
-      // Global vignette + text scale clamp
       builder: (context, child) {
+
         final media = MediaQuery.of(context);
 
         return MediaQuery(
@@ -107,8 +111,10 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
             backgroundColor: const Color(0xFF0A0A0A),
             body: Stack(
               children: [
+
                 child!,
-                // Subtle vignette effect (darken edges)
+
+                /// Global vignette
                 IgnorePointer(
                   child: Container(
                     decoration: BoxDecoration(
@@ -122,6 +128,10 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
                     ),
                   ),
                 ),
+
+                /// Notification banners
+                if (notifications.isNotEmpty)
+                  const NotificationBanner(),
               ],
             ),
           ),
