@@ -23,7 +23,7 @@ Map<String, dynamic> _$EpisodeScriptToJson(EpisodeScript instance) =>
       'title': instance.title,
       'version': instance.version,
       'format': instance.format,
-      'scenes': instance.scenes.map((e) => e.toJson()).toList(),
+      'scenes': instance.scenes,
     };
 
 SceneScript _$SceneScriptFromJson(Map<String, dynamic> json) => SceneScript(
@@ -36,7 +36,7 @@ SceneScript _$SceneScriptFromJson(Map<String, dynamic> json) => SceneScript(
 Map<String, dynamic> _$SceneScriptToJson(SceneScript instance) =>
     <String, dynamic>{
       'sceneId': instance.sceneId,
-      'events': instance.events.map((e) => e.toJson()).toList(),
+      'events': instance.events,
     };
 
 EventScript _$EventScriptFromJson(Map<String, dynamic> json) => EventScript(
@@ -63,9 +63,9 @@ Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
       'sender': instance.sender,
       'text': instance.text,
       'choiceId': instance.choiceId,
-      'options': instance.options?.map((e) => e.toJson()).toList(),
+      'options': instance.options,
       'duration': instance.duration,
-      'meta': instance.meta?.toJson(),
+      'meta': instance.meta,
     };
 
 EventMeta _$EventMetaFromJson(Map<String, dynamic> json) => EventMeta(
