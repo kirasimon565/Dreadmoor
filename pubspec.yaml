@@ -16,11 +16,11 @@ dependencies:
   google_fonts: ^8.0.2
   intl: ^0.20.2
 
-  # State
+  # State Management
   flutter_riverpod: ^2.6.1
   riverpod: ^2.6.1
 
-  # DB / Persistence
+  # Database / Persistence
   drift: ^2.31.0
   sqlite3: ^2.1.0
   sqlite3_flutter_libs: ^0.5.24
@@ -31,7 +31,7 @@ dependencies:
   # Utilities
   collection: ^1.18.0
 
-  # Stream operators â€” startWith, switchMap, debounceTime etc.
+  # Stream operators
   rxdart: ^0.28.0
 
   # Media
@@ -49,13 +49,14 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^6.0.0
   build_runner: ^2.11.1
   drift_dev: ^2.31.0
   json_serializable: ^6.11.2
   flutter_launcher_icons: ^0.14.4
 
-# ðŸ”§ Launcher Icon Config
+
 flutter_launcher_icons:
   android: true
   ios: false
@@ -63,10 +64,13 @@ flutter_launcher_icons:
   adaptive_icon_background: "#0a0a0a"
   adaptive_icon_foreground: "assets/icon/icon.png"
 
+
 flutter:
   uses-material-design: true
 
   assets:
+
+    # Branding / UI
     - assets/branding/
     - assets/backgrounds/
     - assets/ui/
@@ -76,23 +80,14 @@ flutter:
     - assets/icon/
     - assets/music/
 
-    - content/episodes/ep01/
-    - content/episodes/ep01/threads/
-    - content/episodes/ep01/diary/
-    - content/episodes/ep01/evidence/
-    - content/episodes/ep01/intercepts/
-    - content/episodes/ep01/locations/
-    - content/episodes/ep01/recaps/
-
-    - content/episodes/ep02/
-    - content/episodes/ep03/
-    - content/episodes/ep04/
-    - content/episodes/ep05/
+    # Episodes (auto-load all episode json files)
+    - content/episodes/
 
   fonts:
     - family: NoirDisplay
       fonts:
         - asset: assets/fonts/noir_display.ttf
+
     - family: MonoGlitch
       fonts:
         - asset: assets/fonts/mono_glitch.ttf
