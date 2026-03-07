@@ -42,6 +42,7 @@ Map<String, dynamic> _$SceneScriptToJson(SceneScript instance) =>
 EventScript _$EventScriptFromJson(Map<String, dynamic> json) => EventScript(
       id: json['id'] as String,
       type: json['type'] as String,
+      threadId: json['threadId'] as String?,
       sender: json['sender'] as String?,
       text: json['text'] as String?,
       choiceId: json['choiceId'] as String?,
@@ -55,6 +56,7 @@ Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
+      'threadId': instance.threadId,
       'sender': instance.sender,
       'text': instance.text,
       'choiceId': instance.choiceId,
