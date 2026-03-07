@@ -8,11 +8,13 @@ import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
 
-import 'package:dreadmoor/features/apps/ui/apps_screen.dart';
-import 'package:dreadmoor/features/puzzle/ui/puzzle_screen.dart';
-import 'package:dreadmoor/features/store/ui/store_screen.dart';
+import 'package:dreadmoor/features/apps/ui/screens/apps/apps_screen.dart';
+import 'package:dreadmoor/features/puzzle/ui/screens/puzzle/puzzle_screen.dart';
+import 'package:dreadmoor/features/store/ui/screens/store/store_screen.dart';
 
-import 'package:dreadmoor/features/browser/ui/screens/browser/browser_screen.dart';
+import 'package:dreadmoor/features/browser/ui/screens/browser/dreadmoor_browser_screen.dart';
+import 'package:dreadmoor/features/browser/ui/screens/browser/article_viewer_screen.dart';
+
 import 'package:dreadmoor/features/phone/ui/screens/phone/phone_app_screen.dart';
 
 import '../screens/player_setup/player_setup_screen.dart';
@@ -96,7 +98,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             DreadmoorPage(key: state.pageKey, child: const StudioIntroScreen()),
       ),
 
-      /// Player setup
+      /// Setup
       GoRoute(
         path: Routes.setup,
         pageBuilder: (context, state) =>
@@ -110,7 +112,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             DreadmoorPage(key: state.pageKey, child: const WelcomeScreen()),
       ),
 
-      /// SHELL ROUTE (MAIN APP UI)
+      /// MAIN APP SHELL
       ShellRoute(
         builder: (context, state, child) {
           return child;
@@ -150,7 +152,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/browser',
             pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const BrowserScreen()),
+                DreadmoorPage(key: state.pageKey, child: const DreadmoorBrowserScreen()),
+          ),
+
+          /// Article viewer
+          GoRoute(
+            path: '/article',
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const ArticleViewerScreen()),
           ),
 
           /// Phone
@@ -166,7 +175,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) =>
                 DreadmoorPage(key: state.pageKey, child: const PlayerProfileScreen()),
           ),
-
         ],
       ),
 
