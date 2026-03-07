@@ -150,17 +150,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
           /// Browser
           GoRoute(
-            path: '/browser',
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const DreadmoorBrowserScreen()),
-          ),
+  path: '/browser',
+  pageBuilder: (context, state) {
+
+    final article = state.extra as Article;
+
+    return DreadmoorPage(
+      key: state.pageKey,
+      child: DreadmoorBrowserScreen(article: article),
+    );
+  },
+),
 
           /// Article viewer
           GoRoute(
-            path: '/article',
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const ArticleViewerScreen()),
-          ),
+  path: '/article',
+  pageBuilder: (context, state) {
+
+    final article = state.extra as Article;
+
+    return DreadmoorPage(
+      key: state.pageKey,
+      child: ArticleViewerScreen(article: article),
+    );
+  },
+),
 
           /// Phone
           GoRoute(
