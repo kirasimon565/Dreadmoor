@@ -142,13 +142,14 @@ class GlobalScheduler {
       await _ensureThreadExists(event.threadId!, event.sender!);
 
       final id = await db.into(db.messages).insert(
-        MessagesCompanion.insert(
-          threadId: event.threadId!,
-          senderId: event.sender!,
-          content: event.text ?? '',
-          timestamp: Value(DateTime.now()),
-        ),
-      );
+  MessagesCompanion.insert(
+    threadId: event.threadId!,
+    senderId: event.sender!,
+    content: event.text!,
+    sequence: _eventIndex,
+    timestamp: Value(DateTime.now()),
+  ),
+);
 
       await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
           .write(ThreadsCompanion(lastMessageId: Value(id)));
