@@ -2,9 +2,22 @@ import 'package:flutter/material.dart';
 import 'colors.dart';
 
 class DreadmoorTheme {
+
   static ThemeData get darkTheme {
+
+    const baseText = TextTheme(
+      bodyMedium: TextStyle(color: DreadmoorColors.textPrimary),
+      bodySmall: TextStyle(color: DreadmoorColors.textSecondary),
+      titleMedium: TextStyle(color: DreadmoorColors.textPrimary),
+      labelMedium: TextStyle(color: DreadmoorColors.textMeta),
+    );
+
     return ThemeData(
+
       useMaterial3: true,
+
+      brightness: Brightness.dark,
+
       scaffoldBackgroundColor: DreadmoorColors.background,
 
       colorScheme: const ColorScheme.dark(
@@ -15,60 +28,99 @@ class DreadmoorTheme {
         onSurface: Colors.white,
       ),
 
-      // Kill Material ripples & transitions
-      pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: NoTransitionsBuilder(),
-        TargetPlatform.iOS: NoTransitionsBuilder(),
-        TargetPlatform.linux: NoTransitionsBuilder(),
-        TargetPlatform.macOS: NoTransitionsBuilder(),
-        TargetPlatform.windows: NoTransitionsBuilder(),
-      }),
+      textTheme: baseText,
+
+      /// Remove Android ripple animations
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
 
-      // Text selection
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: NoTransitionsBuilder(),
+          TargetPlatform.iOS: NoTransitionsBuilder(),
+          TargetPlatform.linux: NoTransitionsBuilder(),
+          TargetPlatform.macOS: NoTransitionsBuilder(),
+          TargetPlatform.windows: NoTransitionsBuilder(),
+        },
+      ),
+
+      /// Cursor & selection
       textSelectionTheme: const TextSelectionThemeData(
         cursorColor: DreadmoorColors.accentCyan,
         selectionColor: Color(0x3300FFD1),
         selectionHandleColor: DreadmoorColors.accentCyan,
       ),
 
-      // Typography baseline (you override with GoogleFonts in widgets)
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: DreadmoorColors.textPrimary),
-        bodySmall: TextStyle(color: DreadmoorColors.textSecondary),
-        titleMedium: TextStyle(color: DreadmoorColors.textPrimary),
-        labelMedium: TextStyle(color: DreadmoorColors.textMeta),
-      ),
-
-      // Buttons (subtle neon)
-      filledButtonTheme: FilledButtonThemeData(
-        style: ButtonStyle(
-          backgroundColor: WidgetStatePropertyAll(
-            DreadmoorColors.accentCyan.withValues(alpha: 0.15),
-          ),
-          foregroundColor: const WidgetStatePropertyAll(Colors.white),
-          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-      ),
-
-      // Icons
+      /// Icons
       iconTheme: const IconThemeData(
         color: Colors.white70,
         size: 22,
       ),
 
-      // Dividers
+      /// AppBar
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+      ),
+
+      /// Cards
+      cardTheme: CardTheme(
+        color: DreadmoorColors.surface.withOpacity(0.85),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: DreadmoorColors.borderSubtle.withOpacity(0.6),
+            width: 0.6,
+          ),
+        ),
+      ),
+
+      /// Buttons
+      filledButtonTheme: FilledButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: MaterialStatePropertyAll(
+            DreadmoorColors.accentCyan.withOpacity(0.15),
+          ),
+          foregroundColor: const MaterialStatePropertyAll(Colors.white),
+          overlayColor: const MaterialStatePropertyAll(Colors.transparent),
+          shape: MaterialStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+      ),
+
+      /// Bottom navigation
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: DreadmoorColors.surface.withOpacity(0.9),
+        indicatorColor: DreadmoorColors.accentCyan.withOpacity(0.2),
+        labelTextStyle: const MaterialStatePropertyAll(
+          TextStyle(
+            fontSize: 11,
+            color: Colors.white70,
+          ),
+        ),
+      ),
+
+      /// Dividers
       dividerTheme: DividerThemeData(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: Colors.white.withOpacity(0.08),
         thickness: 0.6,
         space: 24,
       ),
 
-      // Bottom sheets (e.g., choice overlays later if reused)
+      /// Dialogs
+      dialogTheme: const DialogTheme(
+        backgroundColor: DreadmoorColors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+
+      /// Bottom sheets
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: DreadmoorColors.surface,
         modalBackgroundColor: DreadmoorColors.surface,
@@ -76,58 +128,66 @@ class DreadmoorTheme {
         elevation: 0,
       ),
 
-      // Dialogs
-      dialogTheme: const DialogThemeData(
-        backgroundColor: DreadmoorColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-
-      // Snackbars (errors, updates)
+      /// Snackbars
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: DreadmoorColors.surface.withValues(alpha: 0.95),
-        contentTextStyle:
-            const TextStyle(color: DreadmoorColors.textPrimary),
+        backgroundColor: DreadmoorColors.surface.withOpacity(0.95),
+        contentTextStyle: const TextStyle(
+          color: DreadmoorColors.textPrimary,
+        ),
         behavior: SnackBarBehavior.floating,
       ),
 
-      // Tooltips
+      /// Tooltips
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: DreadmoorColors.surface.withValues(alpha: 0.95),
+          color: DreadmoorColors.surface.withOpacity(0.95),
           borderRadius: BorderRadius.circular(6),
         ),
-        textStyle:
-            const TextStyle(color: DreadmoorColors.textPrimary, fontSize: 12),
+        textStyle: const TextStyle(
+          color: DreadmoorColors.textPrimary,
+          fontSize: 12,
+        ),
       ),
 
-      // Inputs (if you ever use text fields)
+      /// Inputs
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: DreadmoorColors.surface.withValues(alpha: 0.6),
+        fillColor: DreadmoorColors.surface.withOpacity(0.6),
+
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              BorderSide(color: Colors.white.withValues(alpha: 0.12), width: 0.6),
+          borderSide: BorderSide(
+            color: Colors.white.withOpacity(0.12),
+            width: 0.6,
+          ),
         ),
+
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              BorderSide(color: Colors.white.withValues(alpha: 0.12), width: 0.6),
+          borderSide: BorderSide(
+            color: Colors.white.withOpacity(0.12),
+            width: 0.6,
+          ),
         ),
+
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: DreadmoorColors.accentCyan, width: 1),
+          borderSide: const BorderSide(
+            color: DreadmoorColors.accentCyan,
+            width: 1,
+          ),
         ),
-        hintStyle:
-            const TextStyle(color: DreadmoorColors.textMeta),
+
+        hintStyle: const TextStyle(
+          color: DreadmoorColors.textMeta,
+        ),
       ),
     );
   }
 }
 
 class NoTransitionsBuilder extends PageTransitionsBuilder {
+
   const NoTransitionsBuilder();
 
   @override
