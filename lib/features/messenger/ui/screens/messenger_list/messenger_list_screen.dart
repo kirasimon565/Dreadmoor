@@ -31,18 +31,17 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
     final threadsStream =
         (db.select(db.threads)..orderBy([
-              (t) => OrderingTerm(
+          (t) => OrderingTerm(
                 expression: t.lastMessageId,
                 mode: OrderingMode.desc,
-              ),
-            ]))
+              )
+        ]))
             .join([
-              leftOuterJoin(
-                db.messages,
-                db.messages.id.equalsExp(db.threads.lastMessageId),
-              ),
-            ])
-            .watch();
+      leftOuterJoin(
+        db.messages,
+        db.messages.id.equalsExp(db.threads.lastMessageId),
+      ),
+    ]).watch();
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
@@ -56,28 +55,28 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                 const SizedBox(height: 6),
 
                 _MessengerHeader(
-                  onOpenNotifications: () {
-                    setState(() {
-                      _showNotificationCenter = !_showNotificationCenter;
-                    });
-                  },
+                  onAddContact: _showAddContactDialog,
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
 
                 Expanded(
                   child: StreamBuilder(
                     stream: threadsStream,
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(
+                            child: CircularProgressIndicator());
                       }
 
                       final rows = snapshot.data!;
 
                       if (rows.isEmpty) {
                         return const Center(
-                          child: Text("No conversations yet"),
+                          child: Text(
+                            "No conversations yet",
+                            style: TextStyle(color: Colors.white54),
+                          ),
                         );
                       }
 
@@ -87,9 +86,8 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                         itemBuilder: (context, index) {
                           final thread = rows[index].readTable(db.threads);
 
-                          final message = rows[index].readTableOrNull(
-                            db.messages,
-                          );
+                          final message =
+                              rows[index].readTableOrNull(db.messages);
 
                           final time = message?.timestamp != null
                               ? DateFormat.Hm().format(message!.timestamp!)
@@ -97,8 +95,9 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
                           return GestureDetector(
                             onTap: () {
-                              ref.read(activeThreadIdProvider.notifier).state =
-                                  thread.id;
+                              ref
+                                  .read(activeThreadIdProvider.notifier)
+                                  .state = thread.id;
 
                               context.push(Routes.chat(thread.id));
                             },
@@ -124,6 +123,75 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
       ),
     );
   }
+
+  void _showAddContactDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+
+        return Dialog(
+          backgroundColor: DreadmoorColors.surface,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Add Contact Number",
+                  style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "Enter phone number",
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    filled: true,
+                    fillColor: Colors.black,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel"),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text("Number saved (future episode feature)"),
+                          ),
+                        );
+                      },
+                      child: const Text("Save"),
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _PhoneStatusBar extends StatelessWidget {
@@ -137,15 +205,13 @@ class _PhoneStatusBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          Text(time, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          Text(time,
+              style: const TextStyle(color: Colors.white, fontSize: 12)),
 
           const Spacer(),
 
-          const Icon(
-            Icons.signal_cellular_4_bar,
-            size: 16,
-            color: Colors.white,
-          ),
+          const Icon(Icons.signal_cellular_4_bar,
+              size: 16, color: Colors.white),
 
           const SizedBox(width: 6),
 
@@ -161,9 +227,9 @@ class _PhoneStatusBar extends StatelessWidget {
 }
 
 class _MessengerHeader extends StatelessWidget {
-  final VoidCallback onOpenNotifications;
+  final VoidCallback onAddContact;
 
-  const _MessengerHeader({required this.onOpenNotifications});
+  const _MessengerHeader({required this.onAddContact});
 
   @override
   Widget build(BuildContext context) {
@@ -172,28 +238,34 @@ class _MessengerHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: onOpenNotifications,
+            icon: const Icon(Icons.menu),
+            onPressed: onAddContact,
           ),
 
           const Spacer(),
 
-          Text(
-            "Messenger",
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-            ),
+          Column(
+            children: [
+              Text(
+                "Messenger",
+                style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600),
+              ),
+              Text(
+                "Your chats and stories",
+                style: GoogleFonts.inter(
+                    color: Colors.white54, fontSize: 12),
+              ),
+            ],
           ),
 
           const Spacer(),
 
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              context.push(Routes.settings);
-            },
+            icon: const Icon(Icons.person_add_alt_1),
+            onPressed: onAddContact,
           ),
         ],
       ),
@@ -233,10 +305,9 @@ class _ThreadTile extends StatelessWidget {
                 Text(
                   thread.title,
                   style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15),
                 ),
 
                 const SizedBox(height: 4),
@@ -245,7 +316,8 @@ class _ThreadTile extends StatelessWidget {
                   message?.content ?? "",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  style:
+                      const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -255,7 +327,8 @@ class _ThreadTile extends StatelessWidget {
             children: [
               Text(
                 time,
-                style: const TextStyle(fontSize: 11, color: Colors.white54),
+                style:
+                    const TextStyle(fontSize: 11, color: Colors.white54),
               ),
 
               if (thread.unreadCount > 0)
@@ -268,7 +341,8 @@ class _ThreadTile extends StatelessWidget {
                   ),
                   child: Text(
                     thread.unreadCount.toString(),
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                    style: const TextStyle(
+                        color: Colors.white, fontSize: 10),
                   ),
                 ),
             ],
@@ -285,21 +359,40 @@ class _BottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 64,
+      height: 70,
       decoration: BoxDecoration(
         color: Colors.black,
         border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.1)),
+          top: BorderSide(color: Colors.white.withOpacity(0.08)),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const [
-          Icon(Icons.chat_bubble_outline, color: Colors.white),
-          Icon(Icons.extension_outlined, color: Colors.white54),
-          Icon(Icons.person_outline, color: Colors.white54),
-          Icon(Icons.grid_view_outlined, color: Colors.white54),
-          Icon(Icons.store_outlined, color: Colors.white54),
+        children: [
+          _navItem(context, Icons.chat_bubble_outline, "Chat",
+              Routes.messenger),
+          _navItem(context, Icons.extension_outlined, "Puzzle", "/puzzle"),
+          _navItem(context, Icons.person_outline, "Profile",
+              Routes.playerProfile),
+          _navItem(context, Icons.grid_view_outlined, "Apps", "/apps"),
+          _navItem(context, Icons.store_outlined, "Store", "/store"),
+        ],
+      ),
+    );
+  }
+
+  Widget _navItem(
+      BuildContext context, IconData icon, String label, String route) {
+    return GestureDetector(
+      onTap: () => context.go(route),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white70),
+          const SizedBox(height: 4),
+          Text(label,
+              style: const TextStyle(
+                  color: Colors.white54, fontSize: 11)),
         ],
       ),
     );
