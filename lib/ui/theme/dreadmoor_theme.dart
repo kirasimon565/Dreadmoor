@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'colors.dart';
 
 class DreadmoorTheme {
-
   static ThemeData get darkTheme {
-
     const baseText = TextTheme(
       bodyMedium: TextStyle(color: DreadmoorColors.textPrimary),
       bodySmall: TextStyle(color: DreadmoorColors.textSecondary),
@@ -13,7 +11,6 @@ class DreadmoorTheme {
     );
 
     return ThemeData(
-
       useMaterial3: true,
 
       brightness: Brightness.dark,
@@ -52,10 +49,7 @@ class DreadmoorTheme {
       ),
 
       /// Icons
-      iconTheme: const IconThemeData(
-        color: Colors.white70,
-        size: 22,
-      ),
+      iconTheme: const IconThemeData(color: Colors.white70, size: 22),
 
       /// AppBar
       appBarTheme: const AppBarTheme(
@@ -66,7 +60,7 @@ class DreadmoorTheme {
       ),
 
       /// Cards
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: DreadmoorColors.surface.withOpacity(0.85),
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -87,9 +81,7 @@ class DreadmoorTheme {
           foregroundColor: const MaterialStatePropertyAll(Colors.white),
           overlayColor: const MaterialStatePropertyAll(Colors.transparent),
           shape: MaterialStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
       ),
@@ -99,10 +91,7 @@ class DreadmoorTheme {
         backgroundColor: DreadmoorColors.surface.withOpacity(0.9),
         indicatorColor: DreadmoorColors.accentCyan.withOpacity(0.2),
         labelTextStyle: const MaterialStatePropertyAll(
-          TextStyle(
-            fontSize: 11,
-            color: Colors.white70,
-          ),
+          TextStyle(fontSize: 11, color: Colors.white70),
         ),
       ),
 
@@ -114,7 +103,7 @@ class DreadmoorTheme {
       ),
 
       /// Dialogs
-      dialogTheme: const DialogTheme(
+      dialogTheme: const DialogThemeData(
         backgroundColor: DreadmoorColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -131,9 +120,7 @@ class DreadmoorTheme {
       /// Snackbars
       snackBarTheme: SnackBarThemeData(
         backgroundColor: DreadmoorColors.surface.withOpacity(0.95),
-        contentTextStyle: const TextStyle(
-          color: DreadmoorColors.textPrimary,
-        ),
+        contentTextStyle: const TextStyle(color: DreadmoorColors.textPrimary),
         behavior: SnackBarBehavior.floating,
       ),
 
@@ -178,16 +165,13 @@ class DreadmoorTheme {
           ),
         ),
 
-        hintStyle: const TextStyle(
-          color: DreadmoorColors.textMeta,
-        ),
+        hintStyle: const TextStyle(color: DreadmoorColors.textMeta),
       ),
     );
   }
 }
 
 class NoTransitionsBuilder extends PageTransitionsBuilder {
-
   const NoTransitionsBuilder();
 
   @override

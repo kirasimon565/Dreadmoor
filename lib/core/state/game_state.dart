@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 import '../scripting/script_loader.dart';
 import '../scheduler/global_scheduler.dart';
 
@@ -55,12 +55,14 @@ final currentEventIndexProvider = StateProvider<int>((ref) => 0);
 final activeThreadIdProvider = StateProvider<String?>((ref) => null);
 
 /// Per-thread last read marker
-final lastReadMessageIdProvider =
-    StateProvider.family<int?, String>((ref, threadId) => null);
+final lastReadMessageIdProvider = StateProvider.family<int?, String>(
+  (ref, threadId) => null,
+);
 
 /// Fake cooldown per thread (anti-spam illusion)
-final threadCooldownProvider =
-    StateProvider.family<DateTime?, String>((ref, threadId) => null);
+final threadCooldownProvider = StateProvider.family<DateTime?, String>(
+  (ref, threadId) => null,
+);
 
 /// ---------------------------
 /// STORY FLAGS

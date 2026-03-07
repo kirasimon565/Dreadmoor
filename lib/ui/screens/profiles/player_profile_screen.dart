@@ -9,9 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class PlayerProfileScreen extends ConsumerWidget {
   const PlayerProfileScreen({super.key});
@@ -21,10 +21,9 @@ class PlayerProfileScreen extends ConsumerWidget {
     final player = ref.watch(playerStateProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: DreadmoorColors.background,
       body: CustomScrollView(
         slivers: [
-
           /// HEADER
           SliverAppBar(
             expandedHeight: 260,
@@ -34,9 +33,7 @@ class PlayerProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => context.pop(),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: _PlayerHeader(player),
-            ),
+            flexibleSpace: FlexibleSpaceBar(background: _PlayerHeader(player)),
           ),
 
           /// CONTENT
@@ -46,7 +43,6 @@ class PlayerProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   /// NAME
                   Text(
                     player?.name ?? "Player",
@@ -115,14 +111,12 @@ class _PlayerHeader extends ConsumerWidget {
     final db = ref.read(databaseProvider);
 
     await (db.update(db.players)..where((p) => p.id.equals(player!.id))).write(
-      PlayersCompanion(
-        profilePath: Value(image.path),
-      ),
+      PlayersCompanion(profilePath: Value(image.path)),
     );
 
-    final updated = await (db.select(db.players)
-          ..where((p) => p.id.equals(player!.id)))
-        .getSingle();
+    final updated = await (db.select(
+      db.players,
+    )..where((p) => p.id.equals(player!.id))).getSingle();
 
     ref.read(playerStateProvider.notifier).state = updated;
   }
@@ -139,7 +133,6 @@ class _PlayerHeader extends ConsumerWidget {
 
     return Stack(
       children: [
-
         /// BACKGROUND
         Positioned.fill(
           child: Image.asset(
@@ -150,9 +143,7 @@ class _PlayerHeader extends ConsumerWidget {
 
         /// DARK OVERLAY
         Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-          ),
+          child: Container(color: Colors.black.withOpacity(0.5)),
         ),
 
         /// BLUR
@@ -171,14 +162,10 @@ class _PlayerHeader extends ConsumerWidget {
             onTap: () => _changeAvatar(context, ref),
             child: Stack(
               children: [
-
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.black,
-                  child: CircleAvatar(
-                    radius: 46,
-                    backgroundImage: avatar,
-                  ),
+                  child: CircleAvatar(radius: 46, backgroundImage: avatar),
                 ),
 
                 Positioned(
@@ -240,19 +227,13 @@ class _InfoRow extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white54,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
             ),
           ),
         ],

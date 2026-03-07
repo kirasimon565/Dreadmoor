@@ -8,7 +8,7 @@ import 'core/state/game_state.dart';
 import 'ui/navigation/app_router.dart';
 import 'ui/theme/dreadmoor_theme.dart';
 
-import 'core/notifications/notification_state.dart';
+import 'features/notifications/notification_state.dart';
 import 'ui/widgets/notification_banner.dart';
 
 void main() async {
@@ -19,26 +19,27 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Colors.black,
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.black,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
 
   await AppDatabase.init();
 
   final db = AppDatabase.instance;
 
-  final existingPlayer =
-      await (db.select(db.players)..limit(1)).getSingleOrNull();
+  final existingPlayer = await (db.select(
+    db.players,
+  )..limit(1)).getSingleOrNull();
 
   runZonedGuarded(
     () => runApp(
       ProviderScope(
-        overrides: [
-          playerStateProvider.overrideWith((ref) => existingPlayer),
-        ],
+        overrides: [playerStateProvider.overrideWith((ref) => existingPlayer)],
         child: const DreadmoorApp(),
       ),
     ),
@@ -57,7 +58,6 @@ class DreadmoorApp extends ConsumerStatefulWidget {
 
 class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
     with WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
@@ -72,7 +72,6 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-
     final scheduler = ref.read(globalSchedulerProvider);
 
     if (state == AppLifecycleState.paused ||
@@ -100,7 +99,6 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
       debugShowCheckedModeBanner: false,
 
       builder: (context, child) {
-
         final media = MediaQuery.of(context);
 
         return MediaQuery(
@@ -111,7 +109,6 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
             backgroundColor: const Color(0xFF0A0A0A),
             body: Stack(
               children: [
-
                 child!,
 
                 /// Global vignette
@@ -130,8 +127,7 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
                 ),
 
                 /// Notification banners
-                if (notifications.isNotEmpty)
-                  const NotificationBanner(),
+                if (notifications.isNotEmpty) const NotificationBanner(),
               ],
             ),
           ),

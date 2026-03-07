@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'game_state.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -52,36 +52,38 @@ class RecapLine {
 //         the UI layer (padding between RecapLineWidgets).
 // ─────────────────────────────────────────────────────────────
 
-final recapProvider = FutureProvider.family<List<RecapLine>, String>(
-  (ref, episodeId) async {
-    // FIX 3: ref.read, not ref.watch, inside async provider body
-    final db = ref.read(databaseProvider);
+final recapProvider = FutureProvider.family<List<RecapLine>, String>((
+  ref,
+  episodeId,
+) async {
+  // FIX 3: ref.read, not ref.watch, inside async provider body
+  final db = ref.read(databaseProvider);
 
-    // All story flags as a flat map for easy lookup
-    final flagRows = await db.select(db.storyState).get();
-    final flags = {for (final f in flagRows) f.key: f.value};
+  // All story flags as a flat map for easy lookup
+  final flagRows = await db.select(db.storyState).get();
+  final flags = {for (final f in flagRows) f.key: f.value};
 
-    // FIX 2: Removed duplicate `evidence` select — flags covers all StoryState rows.
-    // Evidence keys are distinguished by their key prefix (e.g. 'found_').
+  // FIX 2: Removed duplicate `evidence` select — flags covers all StoryState rows.
+  // Evidence keys are distinguished by their key prefix (e.g. 'found_').
 
-    // Last message in the thread — used for the closing line
-    final lastMessage = await (db.select(db.messages)
-          ..orderBy([
-            (m) => OrderingTerm(
-                  expression: m.timestamp,
-                  mode: OrderingMode.desc,
-                ),
-          ])
-          ..limit(1))
-        .getSingleOrNull();
+  // Last message in the thread — used for the closing line
+  final lastMessage =
+      await (db.select(db.messages)
+            ..orderBy([
+              (m) => OrderingTerm(
+                expression: m.timestamp,
+                mode: OrderingMode.desc,
+              ),
+            ])
+            ..limit(1))
+          .getSingleOrNull();
 
-    return _buildLines(
-      episodeId: episodeId,
-      flags: flags,
-      hasLastMessage: lastMessage != null,
-    );
-  },
-);
+  return _buildLines(
+    episodeId: episodeId,
+    flags: flags,
+    hasLastMessage: lastMessage != null,
+  );
+});
 
 // ─────────────────────────────────────────────────────────────
 // Line builder — typed output consumed by the redesigned screen
@@ -103,38 +105,42 @@ List<RecapLine> _buildLines({
     case 'ep03':
       lines.addAll(_ep03Lines(flags));
     default:
-      lines.add(const RecapLine(
-        type: RecapLineType.body,
-        text: 'You returned to Dreadmoor. The city remembers everything.',
-      ));
+      lines.add(
+        const RecapLine(
+          type: RecapLineType.body,
+          text: 'You returned to Dreadmoor. The city remembers everything.',
+        ),
+      );
   }
 
   // ── Evidence block (shared across episodes, flag-driven) ───
   final evidenceLines = _buildEvidenceLines(flags);
   if (evidenceLines.isNotEmpty) {
-    lines.add(const RecapLine(
-      type: RecapLineType.category,
-      text: 'Evidence On File',
-    ));
+    lines.add(
+      const RecapLine(type: RecapLineType.category, text: 'Evidence On File'),
+    );
     lines.addAll(evidenceLines);
   }
 
   // ── Closing line ───────────────────────────────────────────
   if (hasLastMessage) {
-    lines.add(const RecapLine(
-      type: RecapLineType.category,
-      text: 'Last Transmission',
-    ));
-    lines.add(const RecapLine(
-      type: RecapLineType.cliffhanger,
-      text: 'The last message ended in silence.',
-    ));
+    lines.add(
+      const RecapLine(type: RecapLineType.category, text: 'Last Transmission'),
+    );
+    lines.add(
+      const RecapLine(
+        type: RecapLineType.cliffhanger,
+        text: 'The last message ended in silence.',
+      ),
+    );
   }
 
-  lines.add(const RecapLine(
-    type: RecapLineType.body,
-    text: 'Now, the investigation continues...',
-  ));
+  lines.add(
+    const RecapLine(
+      type: RecapLineType.body,
+      text: 'Now, the investigation continues...',
+    ),
+  );
 
   return lines;
 }
@@ -147,26 +153,32 @@ List<RecapLine> _buildEvidenceLines(Map<String, bool> flags) {
   final lines = <RecapLine>[];
 
   if (flags['found_factory_phone'] == true) {
-    lines.add(const RecapLine(
-      type: RecapLineType.evidence,
-      text: "Rebecca's phone — recovered near the abandoned factory.",
-    ));
+    lines.add(
+      const RecapLine(
+        type: RecapLineType.evidence,
+        text: "Rebecca's phone — recovered near the abandoned factory.",
+      ),
+    );
   }
 
   if (flags['saw_highway_crash'] == true) {
-    lines.add(const RecapLine(
-      type: RecapLineType.evidence,
-      text: 'Highway crash scene — evidence raised new questions.',
-    ));
+    lines.add(
+      const RecapLine(
+        type: RecapLineType.evidence,
+        text: 'Highway crash scene — evidence raised new questions.',
+      ),
+    );
   }
 
   // Diary fragments — any key starting with 'found_diary'
   final hasDiary = flags.keys.any((k) => k.startsWith('found_diary'));
   if (hasDiary) {
-    lines.add(const RecapLine(
-      type: RecapLineType.evidence,
-      text: "Rebecca's diary — fragments revealed disturbing details.",
-    ));
+    lines.add(
+      const RecapLine(
+        type: RecapLineType.evidence,
+        text: "Rebecca's diary — fragments revealed disturbing details.",
+      ),
+    );
   }
 
   return lines;
@@ -178,10 +190,7 @@ List<RecapLine> _buildEvidenceLines(Map<String, bool> flags) {
 
 List<RecapLine> _ep01Lines(Map<String, bool> flags) {
   return [
-    const RecapLine(
-      type: RecapLineType.category,
-      text: 'The Vanishing',
-    ),
+    const RecapLine(type: RecapLineType.category, text: 'The Vanishing'),
     const RecapLine(
       type: RecapLineType.body,
       text:
@@ -207,10 +216,7 @@ List<RecapLine> _ep01Lines(Map<String, bool> flags) {
 
 List<RecapLine> _ep02Lines(Map<String, bool> flags) {
   return [
-    const RecapLine(
-      type: RecapLineType.category,
-      text: 'Silent Echoes',
-    ),
+    const RecapLine(type: RecapLineType.category, text: 'Silent Echoes'),
     const RecapLine(
       type: RecapLineType.body,
       text:
@@ -231,10 +237,7 @@ List<RecapLine> _ep02Lines(Map<String, bool> flags) {
 
 List<RecapLine> _ep03Lines(Map<String, bool> flags) {
   return [
-    const RecapLine(
-      type: RecapLineType.category,
-      text: 'Broken Glass',
-    ),
+    const RecapLine(type: RecapLineType.category, text: 'Broken Glass'),
     const RecapLine(
       type: RecapLineType.body,
       text: 'Every lead fractured into more questions. The city was lying.',

@@ -7,13 +7,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
-import '../../widgets/chat_bubble.dart';
-import '../../widgets/choice_overlay.dart';
-import '../../widgets/gun_typing_indicator.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
+import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
+import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 import 'chat_header_neon_group.dart';
 import 'intercept_banner.dart';
 
@@ -40,14 +40,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
     final db = ref.read(databaseProvider);
 
-    _threadStream = (db.select(db.threads)
-          ..where((t) => t.id.equals(widget.threadId)))
-        .watchSingleOrNull();
+    _threadStream = (db.select(
+      db.threads,
+    )..where((t) => t.id.equals(widget.threadId))).watchSingleOrNull();
 
-    _messagesStream = (db.select(db.messages)
-          ..where((m) => m.threadId.equals(widget.threadId))
-          ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
-        .watch();
+    _messagesStream =
+        (db.select(db.messages)
+              ..where((m) => m.threadId.equals(widget.threadId))
+              ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
+            .watch();
 
     // Mark this thread as active
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -164,8 +165,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     if (messages.length != _lastMessageCount) {
                       _lastMessageCount = messages.length;
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _scrollToBottom(
-                            animated: _lastMessageCount > 1);
+                        _scrollToBottom(animated: _lastMessageCount > 1);
                       });
                     }
 
@@ -173,7 +173,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 20),
+                        horizontal: 16,
+                        vertical: 20,
+                      ),
                       // +1 for typing indicator / spacer at end
                       itemCount: messages.length + 1,
                       itemBuilder: (context, index) {
@@ -187,7 +189,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               if (typing) {
                                 return const Padding(
                                   padding: EdgeInsets.only(
-                                      left: 8, bottom: 16, top: 4),
+                                    left: 8,
+                                    bottom: 16,
+                                    top: 4,
+                                  ),
                                   child: GunTypingIndicator(),
                                 );
                               }
@@ -201,7 +206,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         final isMe = msg.isPlayerMessage;
 
                         return ChatBubble(
-                          text: msg.content,
+                          text: msg.content ?? "",
                           isMe: isMe,
                           senderId: msg.senderId,
                           timestamp: msg.timestamp,

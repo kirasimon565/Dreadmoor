@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class CustomScreenHeader extends StatelessWidget {
   final String title;

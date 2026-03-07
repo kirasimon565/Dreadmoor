@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/browser/article_model.dart';
+import 'package:dreadmoor/features/browser/article_model.dart';
 
 class ArticleViewerScreen extends StatelessWidget {
   final Article article;
 
-  const ArticleViewerScreen({
-    super.key,
-    required this.article,
-  });
+  const ArticleViewerScreen({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +14,7 @@ class ArticleViewerScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          Image.asset(
-            "assets/branding/dreadmoor_daily_logo.png",
-            height: 60,
-          ),
+          Image.asset("assets/branding/dreadmoor_daily_logo.png", height: 60),
 
           const SizedBox(height: 20),
 
@@ -54,10 +47,7 @@ class ArticleViewerScreen extends StatelessWidget {
 
           Text(
             article.caption,
-            style: GoogleFonts.sourceSerif4(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
+            style: GoogleFonts.sourceSerif4(fontSize: 12, color: Colors.grey),
           ),
 
           const SizedBox(height: 24),
@@ -67,10 +57,7 @@ class ArticleViewerScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: Text(
                 p,
-                style: GoogleFonts.sourceSerif4(
-                  fontSize: 17,
-                  height: 1.6,
-                ),
+                style: GoogleFonts.sourceSerif4(fontSize: 17, height: 1.6),
               ),
             ),
           ),

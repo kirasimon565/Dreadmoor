@@ -40,7 +40,10 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
 
     try {
       await controller.initialize();
-      if (!mounted) { await controller.dispose(); return; }
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
 
       await controller.setLooping(true);
       await controller.setVolume(0);
@@ -51,7 +54,10 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
       // Size becomes non-zero once the codec produces its first output frame.
       final gotFrame = await _waitForFirstFrame(controller);
 
-      if (!mounted) { await controller.dispose(); return; }
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
 
       if (!gotFrame) {
         // Timed out â€” device genuinely can't decode this video
@@ -74,8 +80,7 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
   // âœ… Poll until size is non-zero or timeout expires.
   // On Android 10, size is zero until the first frame is decoded.
   // Polling every 100ms with a 3s timeout covers all slow devices.
-  Future<bool> _waitForFirstFrame(
-      VideoPlayerController controller) async {
+  Future<bool> _waitForFirstFrame(VideoPlayerController controller) async {
     const pollInterval = Duration(milliseconds: 100);
     const timeout = Duration(seconds: 3);
     final deadline = DateTime.now().add(timeout);
@@ -115,12 +120,12 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           Image.asset(
             widget.fallbackAsset,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                const ColoredBox(color: Colors.black),
+            errorBuilder: (_, __, ___) => const ColoredBox(color: Colors.black),
           ),
           ColoredBox(
-            color: Colors.black.withOpacity(
-                widget.darkenOpacity.clamp(0.0, 0.95)),
+            color: Colors.black.withValues(
+              alpha: widget.darkenOpacity.clamp(0.0, 0.95),
+            ),
           ),
         ],
       );
@@ -147,8 +152,9 @@ class _FogVideoBackgroundState extends State<FogVideoBackground>
           ),
         ),
         ColoredBox(
-          color: Colors.black.withOpacity(
-              widget.darkenOpacity.clamp(0.0, 0.95)),
+          color: Colors.black.withValues(
+            alpha: widget.darkenOpacity.clamp(0.0, 0.95),
+          ),
         ),
       ],
     );

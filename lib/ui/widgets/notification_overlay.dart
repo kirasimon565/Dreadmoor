@@ -8,11 +8,6 @@ class NotificationOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        child,
-        const NotificationBanner(),
-      ],
-    );
+    return Stack(children: [child, const NotificationBanner()]);
   }
 }

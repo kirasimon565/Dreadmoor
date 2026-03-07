@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
-import '../../widgets/fog_video_background.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/fog_video_background.dart';
 
 bool get isDebugMode {
   bool inDebug = false;
@@ -236,7 +236,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 // â”€â”€ Bottom bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 28, vertical: 20),
+                    horizontal: 28,
+                    vertical: 20,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -292,11 +294,17 @@ class _MusicIndicatorState extends State<_MusicIndicator>
     super.initState();
     _bars = [
       AnimationController(
-          vsync: this, duration: const Duration(milliseconds: 500)),
+        vsync: this,
+        duration: const Duration(milliseconds: 500),
+      ),
       AnimationController(
-          vsync: this, duration: const Duration(milliseconds: 700)),
+        vsync: this,
+        duration: const Duration(milliseconds: 700),
+      ),
       AnimationController(
-          vsync: this, duration: const Duration(milliseconds: 600)),
+        vsync: this,
+        duration: const Duration(milliseconds: 600),
+      ),
     ];
     if (widget.playing) {
       for (var c in _bars) {
@@ -406,8 +414,9 @@ class _HeroButtonState extends State<_HeroButton> {
                     : DreadmoorColors.surface.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: DreadmoorColors.accentCyan
-                      .withOpacity(_pressed ? 0.8 : 0.4),
+                  color: DreadmoorColors.accentCyan.withValues(
+                    alpha: _pressed ? 0.8 : 0.4,
+                  ),
                   width: 0.8,
                 ),
               ),

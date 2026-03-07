@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/state/game_state.dart';
-import '../theme/colors.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class ChoiceOverlay extends ConsumerWidget {
   const ChoiceOverlay({super.key});
@@ -86,10 +86,7 @@ class ChoiceOverlay extends ConsumerWidget {
 }
 
 class _ChoiceButton extends StatefulWidget {
-  const _ChoiceButton({
-    required this.text,
-    required this.onTap,
-  });
+  const _ChoiceButton({required this.text, required this.onTap});
 
   final String text;
   final VoidCallback onTap;

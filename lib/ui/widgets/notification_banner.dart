@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/notifications/app_notification.dart';
-import '../../core/notifications/notification_state.dart';
+import 'package:dreadmoor/features/notifications/app_notification.dart';
+import 'package:dreadmoor/features/notifications/notification_state.dart';
 
 class NotificationBanner extends ConsumerWidget {
   const NotificationBanner({super.key});
@@ -24,9 +24,7 @@ class NotificationBanner extends ConsumerWidget {
       right: 10,
       child: GestureDetector(
         onTap: () {
-          ref
-              .read(notificationProvider.notifier)
-              .dismiss(notification.id);
+          ref.read(notificationProvider.notifier).dismiss(notification.id);
 
           final payload = notification.payload;
 
@@ -42,20 +40,14 @@ class NotificationBanner extends ConsumerWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.75),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                  ),
+                  const Icon(Icons.notifications, color: Colors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

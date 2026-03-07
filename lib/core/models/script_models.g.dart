@@ -46,10 +46,13 @@ EventScript _$EventScriptFromJson(Map<String, dynamic> json) => EventScript(
       sender: json['sender'] as String?,
       text: json['text'] as String?,
       choiceId: json['choiceId'] as String?,
-      options:
-          (json['options'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      options: (json['options'] as List<dynamic>?)
+          ?.map((e) => ChoiceOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
       duration: (json['duration'] as num?)?.toInt(),
-      meta: json['meta'] as Map<String, dynamic>?,
+      meta: json['meta'] == null
+          ? null
+          : EventMeta.fromJson(json['meta'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
@@ -63,4 +66,23 @@ Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
       'options': instance.options,
       'duration': instance.duration,
       'meta': instance.meta,
+    };
+
+EventMeta _$EventMetaFromJson(Map<String, dynamic> json) => EventMeta(
+      delayAfter: (json['delayAfter'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$EventMetaToJson(EventMeta instance) => <String, dynamic>{
+      'delayAfter': instance.delayAfter,
+    };
+
+ChoiceOption _$ChoiceOptionFromJson(Map<String, dynamic> json) => ChoiceOption(
+      text: json['text'] as String,
+      jumpto: json['jumpto'] as String,
+    );
+
+Map<String, dynamic> _$ChoiceOptionToJson(ChoiceOption instance) =>
+    <String, dynamic>{
+      'text': instance.text,
+      'jumpto': instance.jumpto,
     };

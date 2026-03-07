@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:collection/collection.dart';
 
 import '../../../core/state/investigation_state.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class EvidenceDetailScreen extends ConsumerWidget {
   final String evidenceId;
@@ -16,8 +16,7 @@ class EvidenceDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // ✅ Safe lookup — no crash if evidence ID doesn't exist
-    final evidence =
-        allEvidence.firstWhereOrNull((e) => e.id == evidenceId);
+    final evidence = allEvidence.firstWhereOrNull((e) => e.id == evidenceId);
 
     if (evidence == null) {
       return Scaffold(
@@ -31,7 +30,9 @@ class EvidenceDetailScreen extends ConsumerWidget {
           title: Text(
             "NOT FOUND",
             style: GoogleFonts.michroma(
-                color: DreadmoorColors.accentRed, fontSize: 13),
+              color: DreadmoorColors.accentRed,
+              fontSize: 13,
+            ),
           ),
         ),
         body: Center(
@@ -153,13 +154,16 @@ class EvidenceDetailScreen extends ConsumerWidget {
                       // Type badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(3),
                           border: Border.all(
-                              color: Colors.white.withOpacity(0.15),
-                              width: 0.5),
+                            color: Colors.white.withOpacity(0.15),
+                            width: 0.5,
+                          ),
                         ),
                         child: Text(
                           evidence.type.toUpperCase(),
@@ -182,9 +186,7 @@ class EvidenceDetailScreen extends ConsumerWidget {
             bottom: MediaQuery.of(context).padding.bottom + 20,
             left: 0,
             right: 0,
-            child: Center(
-              child: _ZoomHint(),
-            ),
+            child: Center(child: _ZoomHint()),
           ),
         ],
       ),
@@ -232,19 +234,23 @@ class _ZoomHintState extends State<_ZoomHint>
     return FadeTransition(
       opacity: _fade,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.6),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: Colors.white.withOpacity(0.1), width: 0.5),
+            color: Colors.white.withOpacity(0.1),
+            width: 0.5,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.zoom_in_rounded,
-                size: 14, color: Colors.white.withOpacity(0.4)),
+            Icon(
+              Icons.zoom_in_rounded,
+              size: 14,
+              color: Colors.white.withOpacity(0.4),
+            ),
             const SizedBox(width: 6),
             Text(
               "Pinch to zoom",
