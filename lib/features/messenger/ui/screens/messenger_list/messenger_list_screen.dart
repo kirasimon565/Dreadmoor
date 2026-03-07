@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -237,9 +236,13 @@ class _MessengerHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         children: [
+
+          /// SETTINGS ICON RESTORED
           IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: onAddContact,
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              context.push(Routes.settings);
+            },
           ),
 
           const Spacer(),
@@ -255,14 +258,15 @@ class _MessengerHeader extends StatelessWidget {
               ),
               Text(
                 "Your chats and stories",
-                style: GoogleFonts.inter(
-                    color: Colors.white54, fontSize: 12),
+                style:
+                    GoogleFonts.inter(color: Colors.white54, fontSize: 12),
               ),
             ],
           ),
 
           const Spacer(),
 
+          /// ADD CONTACT ICON
           IconButton(
             icon: const Icon(Icons.person_add_alt_1),
             onPressed: onAddContact,
@@ -358,43 +362,46 @@ class _BottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.08)),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _navItem(context, Icons.chat_bubble_outline, "Chat",
-              Routes.messenger),
-          _navItem(context, Icons.extension_outlined, "Puzzle", "/puzzle"),
-          _navItem(context, Icons.person_outline, "Profile",
-              Routes.playerProfile),
-          _navItem(context, Icons.grid_view_outlined, "Apps", "/apps"),
-          _navItem(context, Icons.store_outlined, "Store", "/store"),
-        ],
-      ),
-    );
-  }
+    return BottomNavigationBar(
+      backgroundColor: Colors.black,
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white54,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
 
-  Widget _navItem(
-      BuildContext context, IconData icon, String label, String route) {
-    return GestureDetector(
-      onTap: () => context.go(route),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white70),
-          const SizedBox(height: 4),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white54, fontSize: 11)),
-        ],
-      ),
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            context.go(Routes.messenger);
+            break;
+          case 1:
+            context.go('/puzzle');
+            break;
+          case 2:
+            context.go(Routes.playerProfile);
+            break;
+          case 3:
+            context.go('/apps');
+            break;
+          case 4:
+            context.go('/store');
+            break;
+        }
+      },
+
+      items: const [
+        BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline), label: "Chat"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.extension_outlined), label: "Puzzle"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline), label: "Profile"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.grid_view_outlined), label: "Apps"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.store_outlined), label: "Store"),
+      ],
     );
   }
 }
