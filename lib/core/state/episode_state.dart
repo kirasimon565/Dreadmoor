@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/persistence/drift_database.dart';
 import 'game_state.dart';
 
@@ -12,14 +13,23 @@ class EpisodeWithProgress {
   });
 }
 
+/// Stream of all episodes with progress
 final episodesProvider = StreamProvider<List<EpisodeWithProgress>>((ref) {
   final db = ref.watch(databaseProvider);
 
   return db.select(db.episodes).watch().map((rows) {
-    return rows.map((ep) {
-      final progress = (ep.progress ?? 0) / 100.0;
-      return EpisodeWithProgress(episode: ep, progress: progress);
-    }).toList()
-      ..sort((a, b) => a.episode.id.compareTo(b.episode.id));
+    final episodes = rows.map((ep) {
+      final progress = (ep.progress / 100).clamp(0.0, 1.0);
+
+      return EpisodeWithProgress(
+        episode: ep,
+        progress: progress,
+      );
+    }).toList();
+
+    /// Sort episodes like ep01, ep02, ep03...
+    episodes.sort((a, b) => a.episode.id.compareTo(b.episode.id));
+
+    return episodes;
   });
 });
