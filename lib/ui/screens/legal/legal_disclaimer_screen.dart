@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
+import '../../theme/colors.dart';
+import '../../widgets/custom_screen_header.dart';
+import '../../widgets/shared_screen_painters.dart';
 
 class LegalDisclaimerScreen extends StatelessWidget {
   const LegalDisclaimerScreen({super.key});

@@ -7,6 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
+import '../../navigation/routes.dart';
+import '../../theme/colors.dart';
+import '../../widgets/shared_screen_painters.dart';
 
 class FatalErrorScreen extends StatefulWidget {
   final String? error;

@@ -38,7 +38,6 @@ class _RecapScreenState extends ConsumerState<RecapScreen>
   // How many lines have been revealed so far
   int _revealedCount = 0;
   bool _allRevealed = false;
-  bool _skipped = false;
 
   // Timers for sequential reveal
   final List<Timer> _timers = [];
@@ -130,7 +129,6 @@ class _RecapScreenState extends ConsumerState<RecapScreen>
   void _skipAll(List<RecapLine> lines) {
     _cancelTimers();
     setState(() {
-      _skipped = true;
       _revealedCount = lines.length;
       _allRevealed = true;
     });
