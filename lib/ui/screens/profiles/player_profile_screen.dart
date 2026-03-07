@@ -13,355 +13,236 @@ import '../../../core/persistence/drift_database.dart';
 import '../../../core/state/game_state.dart';
 import '../../theme/colors.dart';
 
-class PlayerProfileScreen extends ConsumerStatefulWidget {
+class PlayerProfileScreen extends ConsumerWidget {
   const PlayerProfileScreen({super.key});
 
   @override
-  ConsumerState<PlayerProfileScreen> createState() =>
-      _PlayerProfileScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final player = ref.watch(playerStateProvider);
 
-class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
-  // ✅ Stream created once in initState — not recreated on every rebuild
-  late final Stream<Player?> _playerStream;
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
 
-  @override
-  void initState() {
-    super.initState();
-    final db = ref.read(databaseProvider);
-    _playerStream = (db.select(db.players)..limit(1)).watchSingleOrNull();
-  }
-
-  Future<void> _updateProfilePic(Player player) async {
-    final picker = ImagePicker();
-    try {
-      final result =
-          await picker.pickImage(source: ImageSource.gallery);
-      if (result == null) return;
-
-      final db = ref.read(databaseProvider);
-      // ✅ WHERE clause scopes update to THIS player's row only
-      await (db.update(db.players)..where((p) => p.id.equals(player.id)))
-          .write(PlayersCompanion(profilePath: Value(result.path)));
-
-      HapticFeedback.lightImpact();
-    } catch (e) {
-      debugPrint('⚠️ Profile pic update failed: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: DreadmoorColors.surface,
-            content: Text(
-              'Could not update photo.',
-              style: GoogleFonts.inter(color: DreadmoorColors.textPrimary),
+          /// HEADER
+          SliverAppBar(
+            expandedHeight: 260,
+            pinned: true,
+            backgroundColor: Colors.black,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: _PlayerHeader(player),
             ),
           ),
-        );
-      }
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: DreadmoorColors.background,
-      body: StreamBuilder<Player?>(
-        stream: _playerStream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(
-                  color: DreadmoorColors.accentCyan),
-            );
-          }
+          /// CONTENT
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-          final player = snapshot.data;
-          if (player == null) {
-            return const Center(
-              child: CircularProgressIndicator(
-                  color: DreadmoorColors.accentCyan),
-            );
-          }
-
-          final hasPhoto = player.profilePath != null &&
-              player.profilePath!.isNotEmpty;
-          final genderLabel =
-              player.gender.toLowerCase() == 'female' ? "FEMALE" : "MALE";
-
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // ── Parallax header ───────────────────────────────────
-              SliverAppBar(
-                expandedHeight: 400,
-                pinned: true,
-                stretch: true,
-                backgroundColor: DreadmoorColors.background,
-                elevation: 0,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      context.pop();
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: true,
-                  titlePadding: const EdgeInsets.only(
-                      bottom: 16, left: 48, right: 48),
-                  title: Text(
-                    player.name.toUpperCase(),
-                    style: GoogleFonts.michroma(
+                  /// NAME
+                  Text(
+                    player?.name ?? "Player",
+                    style: GoogleFonts.inter(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
-                      fontSize: 13,
-                      letterSpacing: 2.5,
-                      shadows: const [
-                        Shadow(color: Colors.black, blurRadius: 12),
-                        Shadow(color: Colors.black, blurRadius: 24),
-                      ],
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  stretchModes: const [
-                    StretchMode.zoomBackground,
-                    StretchMode.fadeTitle,
-                  ],
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Profile photo or placeholder
-                      hasPhoto
-                          ? Image.file(
-                              File(player.profilePath!),
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              errorBuilder: (_, __, ___) =>
-                                  _PhotoPlaceholder(gender: player.gender),
-                            )
-                          : _PhotoPlaceholder(gender: player.gender),
 
-                      // Bottom fade
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.transparent,
-                              DreadmoorColors.background,
-                            ],
-                            stops: [0.0, 0.5, 1.0],
-                          ),
-                        ),
-                      ),
+                  const SizedBox(height: 6),
 
-                      // Camera button — centered at bottom of photo area
-                      Positioned(
-                        bottom: 20,
-                        right: 20,
-                        child: GestureDetector(
-                          onTap: () => _updateProfilePic(player),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.65),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: DreadmoorColors.accentCyan
-                                    .withOpacity(0.5),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: DreadmoorColors.accentCyan,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Grain overlay
-                      IgnorePointer(
-                        child: Opacity(
-                          opacity: 0.04,
-                          child: Image.asset(
-                            'assets/ui/glitch_overlay.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const SizedBox(),
-                          ),
-                        ),
-                      ),
-                    ],
+                  /// GENDER
+                  Text(
+                    player?.gender ?? "",
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: Colors.white70,
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 30),
+
+                  _SectionTitle("Profile"),
+
+                  const SizedBox(height: 12),
+
+                  Text(
+                    "This is your investigator profile. You can change your photo anytime.",
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.white70,
+                      height: 1.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  _SectionTitle("Account"),
+
+                  const SizedBox(height: 12),
+
+                  _InfoRow("Name", player?.name ?? ""),
+                  _InfoRow("Gender", player?.gender ?? ""),
+                ],
               ),
-
-              // ── Info panel ────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Agent info rows
-                      _InfoRow(label: "CODENAME", value: player.name),
-                      _InfoRow(label: "IDENTITY", value: genderLabel),
-                      const _InfoRow(
-                          label: "CLEARANCE", value: "LEVEL 1 — INVESTIGATOR"),
-
-                      const SizedBox(height: 24),
-
-                      // Locked notice
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.03),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.07),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.lock_outline_rounded,
-                              size: 14,
-                              color: DreadmoorColors.textMeta,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                "NAME AND IDENTITY ARE PERMANENT AND CANNOT BE CHANGED.",
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  color: DreadmoorColors.textMeta
-                                      .withOpacity(0.6),
-                                  letterSpacing: 0.8,
-                                  height: 1.5,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Change photo hint
-                      GestureDetector(
-                        onTap: () => _updateProfilePic(player),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14),
-                          decoration: BoxDecoration(
-                            color: DreadmoorColors.accentCyan
-                                .withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: DreadmoorColors.accentCyan
-                                  .withOpacity(0.25),
-                              width: 0.6,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.camera_alt_outlined,
-                                size: 16,
-                                color: DreadmoorColors.accentCyan,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                "CHANGE PROFILE PHOTO",
-                                style: GoogleFonts.michroma(
-                                  fontSize: 11,
-                                  color: DreadmoorColors.accentCyan,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Photo placeholder ──────────────────────────────────────────────────────
+class _PlayerHeader extends ConsumerWidget {
+  final Player? player;
 
-class _PhotoPlaceholder extends StatelessWidget {
-  final String gender;
-  const _PhotoPlaceholder({required this.gender});
+  const _PlayerHeader(this.player);
+
+  Future<void> _changeAvatar(BuildContext context, WidgetRef ref) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) return;
+
+    final db = ref.read(databaseProvider);
+
+    await (db.update(db.players)..where((p) => p.id.equals(player!.id))).write(
+      PlayersCompanion(
+        profilePath: Value(image.path),
+      ),
+    );
+
+    final updated = await (db.select(db.players)
+          ..where((p) => p.id.equals(player!.id)))
+        .getSingle();
+
+    ref.read(playerStateProvider.notifier).state = updated;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ImageProvider avatar;
+
+    if (player?.profilePath != null) {
+      avatar = FileImage(File(player!.profilePath!));
+    } else {
+      avatar = const AssetImage("assets/characters/player_default.png");
+    }
+
+    return Stack(
+      children: [
+
+        /// BACKGROUND
+        Positioned.fill(
+          child: Image.asset(
+            "assets/backgrounds/profile_bg.jpg",
+            fit: BoxFit.cover,
+          ),
+        ),
+
+        /// DARK OVERLAY
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withOpacity(0.5),
+          ),
+        ),
+
+        /// BLUR
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+
+        /// AVATAR
+        Positioned(
+          bottom: -45,
+          left: 20,
+          child: GestureDetector(
+            onTap: () => _changeAvatar(context, ref),
+            child: Stack(
+              children: [
+
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.black,
+                  child: CircleAvatar(
+                    radius: 46,
+                    backgroundImage: avatar,
+                  ),
+                ),
+
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.black87,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle(this.title);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: DreadmoorColors.surface,
-      child: Center(
-        child: Icon(
-          gender.toLowerCase() == 'female'
-              ? Icons.person_2_outlined
-              : Icons.person_outline_rounded,
-          size: 80,
-          color: Colors.white.withOpacity(0.15),
-        ),
+    return Text(
+      title.toUpperCase(),
+      style: GoogleFonts.inter(
+        fontSize: 12,
+        letterSpacing: 1.4,
+        color: Colors.white54,
       ),
     );
   }
 }
-
-// ── Shared info row ────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
-  const _InfoRow({required this.label, required this.value});
+
+  const _InfoRow(this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 110,
+            width: 100,
             child: Text(
               label,
-              style: GoogleFonts.michroma(
-                fontSize: 10,
-                color: DreadmoorColors.textMeta,
-                letterSpacing: 1.2,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.white54,
               ),
             ),
           ),
@@ -369,9 +250,8 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               value,
               style: GoogleFonts.inter(
-                fontSize: 13,
-                color: DreadmoorColors.textPrimary,
-                height: 1.4,
+                fontSize: 14,
+                color: Colors.white,
               ),
             ),
           ),
