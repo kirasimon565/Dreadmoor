@@ -8,8 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -110,35 +108,16 @@ class _PlayerHeader extends ConsumerWidget {
 
     if (image == null) return;
 
-    // Copy to permanent storage
-    final appDocDir = await getApplicationDocumentsDirectory();
-    final fileName =
-        'profile_${player!.id}_${DateTime.now().millisecondsSinceEpoch}${p.extension(image.path)}';
-    final permanentPath = p.join(appDocDir.path, fileName);
-
-    await image.saveTo(permanentPath);
-
     final db = ref.read(databaseProvider);
-
-    // Delete old avatar if exists
-    if (player?.profilePath != null) {
-      final oldPath = p.join(appDocDir.path, player!.profilePath!);
-      final oldFile = File(oldPath);
-      if (await oldFile.exists()) {
-        await oldFile.delete();
-      }
-    }
 
     await (db.update(db.players)..where((p) => p.id.equals(player!.id))).write(
       PlayersCompanion(profilePath: Value(image.path)),
-      PlayersCompanion(
-        profilePath: Value(fileName),
-      ),
     );
 
     final updated = await (db.select(
       db.players,
-    )..where((p) => p.id.equals(player!.id))).getSingle();
+    )..where((p) => p.id.equals(player!.id)))
+        .getSingle();
 
     ref.read(playerStateProvider.notifier).state = updated;
   }
@@ -157,23 +136,6 @@ class _PlayerHeader extends ConsumerWidget {
       children: [
         /// BACKGROUND
         Positioned.fill(
-    return FutureBuilder<Directory>(
-      future: getApplicationDocumentsDirectory(),
-      builder: (context, snapshot) {
-        ImageProvider avatar;
-
-        if (player?.profilePath != null && snapshot.hasData) {
-          final fullPath = p.join(snapshot.data!.path, player!.profilePath!);
-          avatar = FileImage(File(fullPath));
-        } else {
-          avatar = const AssetImage("assets/characters/player_default.png");
-        }
-
-        return Stack(
-          children: [
-
-            /// BACKGROUND
-            Positioned.fill(
           child: Image.asset(
             "assets/backgrounds/profile_bg.jpg",
             fit: BoxFit.cover,
@@ -206,7 +168,6 @@ class _PlayerHeader extends ConsumerWidget {
                   backgroundColor: Colors.black,
                   child: CircleAvatar(radius: 46, backgroundImage: avatar),
                 ),
-
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -215,47 +176,19 @@ class _PlayerHeader extends ConsumerWidget {
                     decoration: const BoxDecoration(
                       color: Colors.black87,
                       shape: BoxShape.circle,
-            /// AVATAR
-            Positioned(
-              bottom: -45,
-              left: 20,
-              child: GestureDetector(
-                onTap: () => _changeAvatar(context, ref),
-                child: Stack(
-                  children: [
-
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black,
-                      child: CircleAvatar(
-                        radius: 46,
-                        backgroundImage: avatar,
-                      ),
                     ),
-
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.black87,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
+                    child: const Icon(
+                      Icons.edit,
+                      size: 16,
+                      color: Colors.white,
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }

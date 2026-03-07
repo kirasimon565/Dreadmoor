@@ -8,11 +8,6 @@ import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_painters.dart';
 
 class SaveLoadScreen extends ConsumerWidget {
   const SaveLoadScreen({super.key});
