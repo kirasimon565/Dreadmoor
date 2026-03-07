@@ -6,10 +6,6 @@ import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_painters.dart';
 
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key});

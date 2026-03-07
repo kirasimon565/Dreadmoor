@@ -44,31 +44,10 @@ final characterProvider = FutureProvider.family<CharacterProfile?, String>((
 
   final thread = await (db.select(
     db.threads,
-  )..where((t) => t.id.equals(characterId))).getSingleOrNull();
+  )..where((t) => t.id.equals(characterId)))
+      .getSingleOrNull();
 
   if (thread == null) return null;
-
-  return _mapThreadToProfile(thread);
-});
-
-/// ------------------------------------------------------------
-/// ALL CHARACTERS
-/// ------------------------------------------------------------
-
-final charactersProvider = FutureProvider<List<CharacterProfile>>((ref) async {
-  final db = ref.watch(databaseProvider);
-
-  final threads = await db.select(db.threads).get();
-
-  return threads.map(_mapThreadToProfile).toList();
-});
-
-/// ------------------------------------------------------------
-/// HELPERS
-/// ------------------------------------------------------------
-
-CharacterProfile _mapThreadToProfile(Thread thread) {
-  final characterId = thread.id;
 
   /// Participants list stored as CSV
   final participants = thread.participants.split(',');
@@ -131,4 +110,3 @@ final charactersProvider = FutureProvider<List<CharacterProfile>>((ref) async {
 
   return profiles;
 });
-}
