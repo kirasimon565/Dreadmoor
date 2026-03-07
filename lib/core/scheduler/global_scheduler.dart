@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 
-import '../../core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 import '../models/script_models.dart';
 import '../state/game_state.dart';
 
@@ -47,6 +47,13 @@ class GlobalScheduler {
   }
 
   /// Start episode playback
+  Future<void> startThread(String episodeId, String threadId) async {
+    // Stub functionality to avoid undefined method errors.
+    // Replace with correct implementation if necessary.
+    ref.read(activeThreadIdProvider.notifier).state = threadId;
+    await startEpisode(episodeId);
+  }
+
   Future<void> startEpisode(String episodeId) async {
     _timer?.cancel();
 
@@ -141,15 +148,17 @@ class GlobalScheduler {
     if (event.type == 'message') {
       await _ensureThreadExists(event.threadId!, event.sender!);
 
-      final id = await db.into(db.messages).insert(
-  MessagesCompanion.insert(
-    threadId: event.threadId!,
-    senderId: event.sender!,
-    content: event.text!,
-    sequence: _eventIndex,
-    timestamp: Value(DateTime.now()),
-  ),
-);
+      final id = await db
+          .into(db.messages)
+          .insert(
+            MessagesCompanion.insert(
+              threadId: event.threadId!,
+              senderId: event.sender!,
+              content: Value(event.text!),
+              sequence: _eventIndex,
+              timestamp: Value(DateTime.now()),
+            ),
+          );
 
       await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
           .write(ThreadsCompanion(lastMessageId: Value(id)));
@@ -175,15 +184,18 @@ class GlobalScheduler {
     if (event.type == 'system') {
       await _ensureThreadExists(event.threadId!, 'system');
 
-      await db.into(db.messages).insert(
-        MessagesCompanion.insert(
-          threadId: event.threadId!,
-          senderId: 'system',
-          content: event.text ?? '',
-          type: const Value('system'),
-          timestamp: Value(DateTime.now()),
-        ),
-      );
+      await db
+          .into(db.messages)
+          .insert(
+            MessagesCompanion.insert(
+              threadId: event.threadId!,
+              senderId: 'system',
+              content: Value(event.text ?? ''),
+              type: const Value('system'),
+              sequence: _eventIndex,
+              timestamp: Value(DateTime.now()),
+            ),
+          );
 
       _eventIndex++;
       _scheduleNextTick();
@@ -211,13 +223,15 @@ class GlobalScheduler {
   Future<void> _ensureThreadExists(String threadId, String sender) async {
     final db = ref.read(databaseProvider);
 
-    final existing =
-        await (db.select(db.threads)..where((t) => t.id.equals(threadId)))
-            .getSingleOrNull();
+    final existing = await (db.select(
+      db.threads,
+    )..where((t) => t.id.equals(threadId))).getSingleOrNull();
 
     if (existing != null) return;
 
-    await db.into(db.threads).insert(
+    await db
+        .into(db.threads)
+        .insert(
           ThreadsCompanion.insert(
             id: threadId,
             title: threadId,
@@ -235,16 +249,14 @@ class GlobalScheduler {
 
     if (active == threadId) return;
 
-    final thread =
-        await (db.select(db.threads)..where((t) => t.id.equals(threadId)))
-            .getSingleOrNull();
+    final thread = await (db.select(
+      db.threads,
+    )..where((t) => t.id.equals(threadId))).getSingleOrNull();
 
     if (thread == null) return;
 
     await (db.update(db.threads)..where((t) => t.id.equals(threadId))).write(
-      ThreadsCompanion(
-        unreadCount: Value(thread.unreadCount + 1),
-      ),
+      ThreadsCompanion(unreadCount: Value(thread.unreadCount + 1)),
     );
   }
 

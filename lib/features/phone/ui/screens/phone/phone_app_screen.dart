@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class PhoneAppScreen extends ConsumerStatefulWidget {
   const PhoneAppScreen({super.key});
@@ -15,7 +15,6 @@ class PhoneAppScreen extends ConsumerStatefulWidget {
 }
 
 class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
-
   String _number = "";
 
   bool _incomingCall = false;
@@ -41,11 +40,9 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
   }
 
   void _call() {
-
     if (_number.isEmpty) return;
 
     setState(() {
-
       _activeCall = true;
 
       _callerNumber = _number;
@@ -53,19 +50,13 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
 
       history.insert(
         0,
-        CallEntry(
-          name: _callerName,
-          number: _number,
-          time: DateTime.now(),
-        ),
+        CallEntry(name: _callerName, number: _number, time: DateTime.now()),
       );
     });
   }
 
   String _resolveName(String number) {
-
     switch (number) {
-
       case "911":
         return "Emergency";
 
@@ -85,7 +76,6 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
   }
 
   void simulateIncomingCall(String name, String number) {
-
     setState(() {
       _incomingCall = true;
       _callerName = name;
@@ -108,7 +98,6 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     if (_incomingCall) {
       return _IncomingCallScreen(
         name: _callerName,
@@ -127,11 +116,10 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: DreadmoorColors.background,
       body: SafeArea(
         child: Column(
           children: [
-
             const SizedBox(height: 20),
 
             Text(
@@ -169,7 +157,6 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 IconButton(
                   icon: const Icon(Icons.backspace, color: Colors.white),
                   onPressed: _delete,
@@ -191,13 +178,10 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
               child: ListView.builder(
                 itemCount: history.length,
                 itemBuilder: (context, index) {
-
                   final call = history[index];
 
                   return ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.person),
-                    ),
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(
                       call.name,
                       style: const TextStyle(color: Colors.white),
@@ -207,13 +191,13 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
                       style: const TextStyle(color: Colors.white70),
                     ),
                     trailing: Text(
-                      "${call.time.hour}:${call.time.minute.toString().padLeft(2,'0')}",
+                      "${call.time.hour}:${call.time.minute.toString().padLeft(2, '0')}",
                       style: const TextStyle(color: Colors.white54),
                     ),
                   );
                 },
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -221,7 +205,6 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
   }
 
   Widget _dial(String value) {
-
     return GestureDetector(
       onTap: () => _press(value),
       child: Center(
@@ -235,10 +218,7 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
           child: Center(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 26,
-                color: Colors.white,
-              ),
+              style: const TextStyle(fontSize: 26, color: Colors.white),
             ),
           ),
         ),
@@ -248,7 +228,6 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
 }
 
 class _IncomingCallScreen extends StatelessWidget {
-
   final String name;
   final String number;
   final VoidCallback onAccept;
@@ -263,40 +242,28 @@ class _IncomingCallScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            const CircleAvatar(
-              radius: 60,
-              child: Icon(Icons.person, size: 60),
-            ),
+            const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60)),
 
             const SizedBox(height: 20),
 
             Text(
               name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 28),
             ),
 
-            Text(
-              number,
-              style: const TextStyle(color: Colors.white54),
-            ),
+            Text(number, style: const TextStyle(color: Colors.white54)),
 
             const SizedBox(height: 40),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 FloatingActionButton(
                   backgroundColor: Colors.red,
                   onPressed: onDecline,
@@ -311,7 +278,7 @@ class _IncomingCallScreen extends StatelessWidget {
                   child: const Icon(Icons.call),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -320,7 +287,6 @@ class _IncomingCallScreen extends StatelessWidget {
 }
 
 class _ActiveCallScreen extends StatelessWidget {
-
   final String name;
   final String number;
   final VoidCallback onEnd;
@@ -333,33 +299,22 @@ class _ActiveCallScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            const CircleAvatar(
-              radius: 60,
-              child: Icon(Icons.person, size: 60),
-            ),
+            const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60)),
 
             const SizedBox(height: 20),
 
             Text(
               name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 28),
             ),
 
-            Text(
-              "Calling...",
-              style: const TextStyle(color: Colors.white54),
-            ),
+            Text("Calling...", style: const TextStyle(color: Colors.white54)),
 
             const SizedBox(height: 40),
 
@@ -376,14 +331,9 @@ class _ActiveCallScreen extends StatelessWidget {
 }
 
 class CallEntry {
-
   final String name;
   final String number;
   final DateTime time;
 
-  CallEntry({
-    required this.name,
-    required this.number,
-    required this.time,
-  });
+  CallEntry({required this.name, required this.number, required this.time});
 }

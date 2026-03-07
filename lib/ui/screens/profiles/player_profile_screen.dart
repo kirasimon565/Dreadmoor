@@ -11,9 +11,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class PlayerProfileScreen extends ConsumerWidget {
   const PlayerProfileScreen({super.key});
@@ -23,10 +23,9 @@ class PlayerProfileScreen extends ConsumerWidget {
     final player = ref.watch(playerStateProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: DreadmoorColors.background,
       body: CustomScrollView(
         slivers: [
-
           /// HEADER
           SliverAppBar(
             expandedHeight: 260,
@@ -36,9 +35,7 @@ class PlayerProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => context.pop(),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: _PlayerHeader(player),
-            ),
+            flexibleSpace: FlexibleSpaceBar(background: _PlayerHeader(player)),
           ),
 
           /// CONTENT
@@ -48,7 +45,6 @@ class PlayerProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   /// NAME
                   Text(
                     player?.name ?? "Player",
@@ -134,20 +130,33 @@ class _PlayerHeader extends ConsumerWidget {
     }
 
     await (db.update(db.players)..where((p) => p.id.equals(player!.id))).write(
+      PlayersCompanion(profilePath: Value(image.path)),
       PlayersCompanion(
         profilePath: Value(fileName),
       ),
     );
 
-    final updated = await (db.select(db.players)
-          ..where((p) => p.id.equals(player!.id)))
-        .getSingle();
+    final updated = await (db.select(
+      db.players,
+    )..where((p) => p.id.equals(player!.id))).getSingle();
 
     ref.read(playerStateProvider.notifier).state = updated;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ImageProvider avatar;
+
+    if (player?.profilePath != null) {
+      avatar = FileImage(File(player!.profilePath!));
+    } else {
+      avatar = const AssetImage("assets/characters/player_default.png");
+    }
+
+    return Stack(
+      children: [
+        /// BACKGROUND
+        Positioned.fill(
     return FutureBuilder<Directory>(
       future: getApplicationDocumentsDirectory(),
       builder: (context, snapshot) {
@@ -173,9 +182,7 @@ class _PlayerHeader extends ConsumerWidget {
 
         /// DARK OVERLAY
         Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-          ),
+          child: Container(color: Colors.black.withOpacity(0.5)),
         ),
 
         /// BLUR
@@ -186,6 +193,28 @@ class _PlayerHeader extends ConsumerWidget {
           ),
         ),
 
+        /// AVATAR
+        Positioned(
+          bottom: -45,
+          left: 20,
+          child: GestureDetector(
+            onTap: () => _changeAvatar(context, ref),
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.black,
+                  child: CircleAvatar(radius: 46, backgroundImage: avatar),
+                ),
+
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.black87,
+                      shape: BoxShape.circle,
             /// AVATAR
             Positioned(
               bottom: -45,
@@ -265,19 +294,13 @@ class _InfoRow extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white54,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
             ),
           ),
         ],

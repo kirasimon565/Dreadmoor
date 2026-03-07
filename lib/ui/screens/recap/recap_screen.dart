@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/state/recap_state.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class RecapScreen extends ConsumerStatefulWidget {
   final String episodeId;
@@ -19,7 +19,6 @@ class RecapScreen extends ConsumerStatefulWidget {
 
 class _RecapScreenState extends ConsumerState<RecapScreen>
     with TickerProviderStateMixin {
-
   // One controller per revealed line for independent fade-in
   final List<AnimationController> _lineControllers = [];
   final List<Animation<double>> _lineOpacities = [];
@@ -88,12 +87,12 @@ class _RecapScreenState extends ConsumerState<RecapScreen>
         duration: const Duration(milliseconds: 700),
       );
       _lineControllers.add(ctrl);
-      _lineOpacities.add(
-        CurvedAnimation(parent: ctrl, curve: Curves.easeOut),
-      );
+      _lineOpacities.add(CurvedAnimation(parent: ctrl, curve: Curves.easeOut));
       _lineSlides.add(
-        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
-            .animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOut)),
+        Tween<Offset>(
+          begin: const Offset(0, 0.15),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOut)),
       );
     }
 
@@ -263,34 +262,37 @@ class _RecapScreenState extends ConsumerState<RecapScreen>
             Positioned(
               bottom: 40,
               right: 44,
-              child: recapAsync.whenData((lines) {
-                return TextButton(
-                  onPressed: () => _skipAll(lines),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'SKIP',
-                        style: GoogleFonts.michroma(
-                          fontSize: 10,
-                          letterSpacing: 3,
-                          color: Colors.white.withOpacity(0.3),
+              child:
+                  recapAsync.whenData((lines) {
+                    return TextButton(
+                      onPressed: () => _skipAll(lines),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white.withOpacity(0.3),
-                        size: 14,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'SKIP',
+                            style: GoogleFonts.michroma(
+                              fontSize: 10,
+                              letterSpacing: 3,
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white.withOpacity(0.3),
+                            size: 14,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              }).value ??
+                    );
+                  }).value ??
                   const SizedBox.shrink(),
             ),
         ],
@@ -594,7 +596,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
                     BoxShadow(
                       color: DreadmoorColors.glowCyan.withOpacity(0.2),
                       blurRadius: 20,
-                    )
+                    ),
                   ]
                 : [],
           ),
@@ -687,15 +689,9 @@ class _FilmGrainPainter extends CustomPainter {
     final vignette = Paint()
       ..shader = RadialGradient(
         radius: 1.1,
-        colors: [
-          Colors.transparent,
-          Colors.black.withOpacity(0.75),
-        ],
+        colors: [Colors.transparent, Colors.black.withOpacity(0.75)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      vignette,
-    );
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), vignette);
 
     // Grain — pseudo-random dots based on seed
     final grainPaint = Paint()..color = Colors.white.withOpacity(0.03);

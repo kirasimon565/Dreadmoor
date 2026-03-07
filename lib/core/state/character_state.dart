@@ -36,13 +36,15 @@ class CharacterProfile {
 /// CHARACTER PROFILE PROVIDER
 /// ------------------------------------------------------------
 
-final characterProvider =
-    FutureProvider.family<CharacterProfile?, String>((ref, characterId) async {
+final characterProvider = FutureProvider.family<CharacterProfile?, String>((
+  ref,
+  characterId,
+) async {
   final db = ref.watch(databaseProvider);
 
-  final thread = await (db.select(db.threads)
-        ..where((t) => t.id.equals(characterId)))
-      .getSingleOrNull();
+  final thread = await (db.select(
+    db.threads,
+  )..where((t) => t.id.equals(characterId))).getSingleOrNull();
 
   if (thread == null) return null;
 
@@ -93,9 +95,7 @@ CharacterProfile _mapThreadToProfile(Thread thread) {
     "Location": "Dreadmoor",
   };
 
-  final notes = <String>[
-    "Profile discovered during investigation.",
-  ];
+  final notes = <String>["Profile discovered during investigation."];
 
   return CharacterProfile(
     id: characterId,
@@ -108,4 +108,27 @@ CharacterProfile _mapThreadToProfile(Thread thread) {
     info: info,
     notes: notes,
   );
+});
+
+/// ------------------------------------------------------------
+/// ALL CHARACTERS
+/// ------------------------------------------------------------
+
+final charactersProvider = FutureProvider<List<CharacterProfile>>((ref) async {
+  final db = ref.watch(databaseProvider);
+
+  final threads = await db.select(db.threads).get();
+
+  final profiles = <CharacterProfile>[];
+
+  for (final thread in threads) {
+    final character = await ref.read(characterProvider(thread.id).future);
+
+    if (character != null) {
+      profiles.add(character);
+    }
+  }
+
+  return profiles;
+});
 }

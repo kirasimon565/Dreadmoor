@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
+import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart'; // FIX: was private classes
 import '../../navigation/routes.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
@@ -16,9 +20,7 @@ class CreditsScreen extends StatelessWidget {
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(painter: const ScanlinePainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
 
           Column(
             children: [
@@ -58,14 +60,25 @@ class CreditsScreen extends StatelessWidget {
                       const HRule(),
 
                       const SizedBox(height: 32),
-                      const _CreditRow(role: 'CREATED BY', name: 'BLACKMOON STUDIO'),
-                      const SizedBox(height: 24),
-                      const _CreditRow(role: 'DESIGN & DEVELOPMENT', name: 'BLACKMOON STUDIO'),
-                      const SizedBox(height: 24),
-                      const _CreditRow(role: 'STORY & NARRATIVE', name: 'BLACKMOON STUDIO'),
+                      const _CreditRow(
+                        role: 'CREATED BY',
+                        name: 'BLACKMOON STUDIO',
+                      ),
                       const SizedBox(height: 24),
                       const _CreditRow(
-                          role: 'BUILT WITH', name: 'FLUTTER · RIVERPOD · DRIFT'),
+                        role: 'DESIGN & DEVELOPMENT',
+                        name: 'BLACKMOON STUDIO',
+                      ),
+                      const SizedBox(height: 24),
+                      const _CreditRow(
+                        role: 'STORY & NARRATIVE',
+                        name: 'BLACKMOON STUDIO',
+                      ),
+                      const SizedBox(height: 24),
+                      const _CreditRow(
+                        role: 'BUILT WITH',
+                        name: 'FLUTTER · RIVERPOD · DRIFT',
+                      ),
 
                       const SizedBox(height: 40),
                       const HRule(),
@@ -80,7 +93,9 @@ class CreditsScreen extends StatelessWidget {
                             Icon(
                               Icons.article_outlined,
                               size: 13,
-                              color: DreadmoorColors.accentCyan.withOpacity(0.8),
+                              color: DreadmoorColors.accentCyan.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -102,7 +117,9 @@ class CreditsScreen extends StatelessWidget {
                         style: GoogleFonts.michroma(
                           fontSize: 9,
                           letterSpacing: 1.5,
-                          color: DreadmoorColors.textMeta.withOpacity(0.5),
+                          color: DreadmoorColors.textMeta.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -111,7 +128,9 @@ class CreditsScreen extends StatelessWidget {
                         style: GoogleFonts.michroma(
                           fontSize: 8,
                           letterSpacing: 2,
-                          color: DreadmoorColors.textMeta.withOpacity(0.3),
+                          color: DreadmoorColors.textMeta.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
 
@@ -170,7 +189,9 @@ class _StampText extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        border: Border.all(color: DreadmoorColors.textMeta.withOpacity(0.25)),
+        border: Border.all(
+          color: DreadmoorColors.textMeta.withOpacity(0.25),
+        ),
       ),
       child: Text(
         text,
@@ -192,13 +213,30 @@ class _FallbackLogoPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawRect(
-        Rect.fromLTWH(4, 4, size.width - 8, size.height - 8), paint);
+      Rect.fromLTWH(4, 4, size.width - 8, size.height - 8),
+      paint,
+    );
     final cx = size.width / 2;
     final cy = size.height / 2;
     canvas.drawLine(
-        Offset(cx - 10, cy - 12), Offset(cx - 10, cy + 12), paint..strokeWidth = 2);
-    canvas.drawArc(Rect.fromLTWH(cx - 10, cy - 12, 20, 12), -1.57, 3.14, false, paint);
-    canvas.drawArc(Rect.fromLTWH(cx - 10, cy, 22, 12), -1.57, 3.14, false, paint);
+      Offset(cx - 10, cy - 12),
+      Offset(cx - 10, cy + 12),
+      paint..strokeWidth = 2,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(cx - 10, cy - 12, 20, 12),
+      -1.57,
+      3.14,
+      false,
+      paint,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(cx - 10, cy, 22, 12),
+      -1.57,
+      3.14,
+      false,
+      paint,
+    );
   }
 
   @override

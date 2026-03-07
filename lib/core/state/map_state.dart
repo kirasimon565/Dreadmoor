@@ -81,12 +81,14 @@ final unlockedLocationsProvider = FutureProvider<Set<String>>((ref) async {
   return flags.where((f) => f.value).map((f) => f.key).toSet();
 });
 
-final unlockedMapLocationsProvider =
-    FutureProvider<List<MapLocation>>((ref) async {
+final unlockedMapLocationsProvider = FutureProvider<List<MapLocation>>((
+  ref,
+) async {
   final unlockedKeys = await ref.read(unlockedLocationsProvider.future);
   return allMapLocations
-      .where((loc) =>
-          loc.requiredFlag == null ||
-          unlockedKeys.contains(loc.requiredFlag))
+      .where(
+        (loc) =>
+            loc.requiredFlag == null || unlockedKeys.contains(loc.requiredFlag),
+      )
       .toList();
 });

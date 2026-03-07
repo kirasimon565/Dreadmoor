@@ -9,15 +9,7 @@ import 'tables.dart';
 
 part 'drift_database.g.dart';
 
-@DriftDatabase(
-  tables: [
-    Players,
-    Threads,
-    Messages,
-    StoryState,
-    Episodes,
-  ],
-)
+@DriftDatabase(tables: [Players, Threads, Messages, StoryState, Episodes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
@@ -45,19 +37,19 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-        },
-        onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            // future migration
-          }
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // future migration
+      }
 
-          if (from < 3) {
-            // reserved for message/event upgrades
-          }
-        },
-      );
+      if (from < 3) {
+        // reserved for message/event upgrades
+      }
+    },
+  );
 
   // ---------------------------
   // INIT
@@ -97,13 +89,8 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
 
-    final file = File(
-      p.join(dbFolder.path, 'dreadmoor.sqlite'),
-    );
+    final file = File(p.join(dbFolder.path, 'dreadmoor.sqlite'));
 
-    return NativeDatabase(
-      file,
-      logStatements: false,
-    );
+    return NativeDatabase(file, logStatements: false);
   });
 }

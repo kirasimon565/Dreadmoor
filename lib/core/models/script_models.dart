@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'script_models.g.dart';
 
-
 /// ------------------------------------------------------------
 /// EPISODE
 /// ------------------------------------------------------------
@@ -29,8 +28,6 @@ class EpisodeScript {
   Map<String, dynamic> toJson() => _$EpisodeScriptToJson(this);
 }
 
-
-
 /// ------------------------------------------------------------
 /// SCENE
 /// ------------------------------------------------------------
@@ -40,18 +37,13 @@ class SceneScript {
   final String sceneId;
   final List<EventScript> events;
 
-  SceneScript({
-    required this.sceneId,
-    required this.events,
-  });
+  SceneScript({required this.sceneId, required this.events});
 
   factory SceneScript.fromJson(Map<String, dynamic> json) =>
       _$SceneScriptFromJson(json);
 
   Map<String, dynamic> toJson() => _$SceneScriptToJson(this);
 }
-
-
 
 /// ------------------------------------------------------------
 /// EVENT
@@ -67,11 +59,11 @@ class EventScript {
   final String? text;
 
   final String? choiceId;
-  final List<String>? options;
+  final List<ChoiceOption>? options;
 
   final int? duration;
 
-  final Map<String, dynamic>? meta;
+  final EventMeta? meta;
 
   EventScript({
     required this.id,
@@ -86,7 +78,6 @@ class EventScript {
   });
 
   factory EventScript.fromJson(Map<String, dynamic> json) {
-
     return EventScript(
       id: json['id'],
       type: json['type'],
@@ -94,14 +85,37 @@ class EventScript {
       sender: json['sender'],
       text: json['text'],
       duration: json['duration'],
-      meta: json['meta'] != null
-          ? EventMeta.fromJson(json['meta'])
-          : null,
+      meta: json['meta'] != null ? EventMeta.fromJson(json['meta']) : null,
       options: json['options'] != null
           ? (json['options'] as List)
-              .map((e) => ChoiceOption.fromJson(e))
-              .toList()
+                .map((e) => ChoiceOption.fromJson(e))
+                .toList()
           : null,
     );
   }
+}
+
+@JsonSerializable()
+class EventMeta {
+  final int? delayAfter;
+
+  EventMeta({this.delayAfter});
+
+  factory EventMeta.fromJson(Map<String, dynamic> json) =>
+      _$EventMetaFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EventMetaToJson(this);
+}
+
+@JsonSerializable()
+class ChoiceOption {
+  final String text;
+  final String jumpto;
+
+  ChoiceOption({required this.text, required this.jumpto});
+
+  factory ChoiceOption.fromJson(Map<String, dynamic> json) =>
+      _$ChoiceOptionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChoiceOptionToJson(this);
 }

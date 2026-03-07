@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
-import '../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class GunTypingIndicator extends StatelessWidget {
   const GunTypingIndicator({super.key});
@@ -41,11 +41,11 @@ class GunTypingIndicator extends StatelessWidget {
                 ],
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                child: CompactGunTypingIndicator(
-                  animate: !reduceMotion,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
                 ),
+                child: CompactGunTypingIndicator(animate: !reduceMotion),
               ),
             ),
           ),
@@ -56,10 +56,7 @@ class GunTypingIndicator extends StatelessWidget {
 }
 
 class CompactGunTypingIndicator extends StatelessWidget {
-  const CompactGunTypingIndicator({
-    super.key,
-    this.animate = true,
-  });
+  const CompactGunTypingIndicator({super.key, this.animate = true});
 
   final bool animate;
 

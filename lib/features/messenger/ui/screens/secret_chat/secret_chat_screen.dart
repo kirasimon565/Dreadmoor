@@ -7,10 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../theme/colors.dart';
-import '../../widgets/chat_bubble.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 
 class SecretChatScreen extends ConsumerStatefulWidget {
   final String threadId;
@@ -35,14 +35,15 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
     // ✅ ref.read — we only need the db instance once to set up streams
     final db = ref.read(databaseProvider);
 
-    _threadStream = (db.select(db.threads)
-          ..where((t) => t.id.equals(widget.threadId)))
-        .watchSingleOrNull();
+    _threadStream = (db.select(
+      db.threads,
+    )..where((t) => t.id.equals(widget.threadId))).watchSingleOrNull();
 
-    _messagesStream = (db.select(db.messages)
-          ..where((m) => m.threadId.equals(widget.threadId))
-          ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
-        .watch();
+    _messagesStream =
+        (db.select(db.messages)
+              ..where((m) => m.threadId.equals(widget.threadId))
+              ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
+            .watch();
   }
 
   @override
@@ -134,8 +135,9 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                           style: GoogleFonts.michroma(
                             fontSize: 11,
                             letterSpacing: 3.0,
-                            color:
-                                DreadmoorColors.accentRed.withOpacity(0.4),
+                            color: DreadmoorColors.accentRed.withValues(
+                              alpha: 0.4,
+                            ),
                           ),
                         ),
                       );
@@ -145,7 +147,9 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 20),
+                        horizontal: 16,
+                        vertical: 20,
+                      ),
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final msg = messages[index];
@@ -153,7 +157,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                         return Opacity(
                           opacity: 0.72,
                           child: ChatBubble(
-                            text: msg.content,
+                            text: msg.content ?? "",
                             isMe: false,
                             senderId: msg.senderId,
                             timestamp: msg.timestamp,
@@ -182,10 +186,7 @@ class _SecretHeader extends StatelessWidget {
   final Stream<Thread?> threadStream;
   final VoidCallback onClose;
 
-  const _SecretHeader({
-    required this.threadStream,
-    required this.onClose,
-  });
+  const _SecretHeader({required this.threadStream, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -243,14 +244,14 @@ class _SecretHeader extends StatelessWidget {
                     StreamBuilder<Thread?>(
                       stream: threadStream,
                       builder: (context, snapshot) {
-                        final title =
-                            snapshot.data?.title ?? "UNKNOWN SOURCE";
+                        final title = snapshot.data?.title ?? "UNKNOWN SOURCE";
                         return Text(
                           title.toUpperCase(),
                           style: GoogleFonts.inter(
                             fontSize: 10,
-                            color:
-                                DreadmoorColors.accentRed.withOpacity(0.55),
+                            color: DreadmoorColors.accentRed.withValues(
+                              alpha: 0.55,
+                            ),
                             letterSpacing: 1.0,
                           ),
                         );
@@ -298,9 +299,10 @@ class _SpyStatusBarState extends State<_SpyStatusBar>
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
 
-    _blinkOpacity = Tween<double>(begin: 0.45, end: 1.0).animate(
-      CurvedAnimation(parent: _blink, curve: Curves.easeInOut),
-    );
+    _blinkOpacity = Tween<double>(
+      begin: 0.45,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _blink, curve: Curves.easeInOut));
   }
 
   @override

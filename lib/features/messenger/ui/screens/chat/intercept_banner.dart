@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class InterceptBanner extends StatefulWidget {
   /// Controls whether the banner is shown.
@@ -96,7 +96,9 @@ class _InterceptBannerState extends State<InterceptBanner>
                   // Content
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 18),
+                      vertical: 10,
+                      horizontal: 18,
+                    ),
                     child: Row(
                       children: [
                         // Pulsing warning icon
@@ -121,8 +123,9 @@ class _InterceptBannerState extends State<InterceptBanner>
                                 style: GoogleFonts.inter(
                                   fontSize: 9,
                                   letterSpacing: 1.0,
-                                  color: DreadmoorColors.accentRed
-                                      .withOpacity(0.65),
+                                  color: DreadmoorColors.accentRed.withValues(
+                                    alpha: 0.65,
+                                  ),
                                 ),
                               ),
                             ],
@@ -161,9 +164,10 @@ class _PulsingIconState extends State<_PulsingIcon>
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
-    _opacity = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
-    );
+    _opacity = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut));
   }
 
   @override

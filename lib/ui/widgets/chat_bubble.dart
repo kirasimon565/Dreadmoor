@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class ChatBubble extends StatelessWidget {
   const ChatBubble({
@@ -59,43 +59,47 @@ class ChatBubble extends StatelessWidget {
                   color: isSecret
                       ? DreadmoorColors.accentRed.withOpacity(0.08)
                       : isMe
-                          ? DreadmoorColors.accentCyan.withOpacity(0.12)
-                          : DreadmoorColors.surface.withOpacity(0.35),
+                      ? DreadmoorColors.accentCyan.withOpacity(0.12)
+                      : DreadmoorColors.surface.withOpacity(0.35),
                   border: Border.all(
                     color: isSecret
                         ? DreadmoorColors.accentRed.withOpacity(0.35)
                         : isMe
-                            ? DreadmoorColors.accentCyan.withOpacity(0.28)
-                            : Colors.white.withOpacity(0.08),
+                        ? DreadmoorColors.accentCyan.withOpacity(0.28)
+                        : Colors.white.withOpacity(0.08),
                     width: 0.6,
                   ),
                   boxShadow: isSecret
                       ? [
                           BoxShadow(
-                            color: DreadmoorColors.accentRed.withOpacity(0.12),
+                            color: DreadmoorColors.accentRed.withValues(
+                              alpha: 0.12,
+                            ),
                             blurRadius: 14,
                             offset: const Offset(0, 2),
                           ),
                         ]
                       : isMe
-                          ? const [
-                              BoxShadow(
-                                color: DreadmoorColors.glowCyan,
-                                blurRadius: 14,
-                                offset: Offset(0, 2),
-                              ),
-                            ]
-                          : const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 10,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
+                      ? const [
+                          BoxShadow(
+                            color: DreadmoorColors.glowCyan,
+                            blurRadius: 14,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
+                      : const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
                 ),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
+                  ),
                   child: SelectableText(
                     text,
                     style: GoogleFonts.inter(

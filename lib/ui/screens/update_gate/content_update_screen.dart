@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class ContentUpdateScreen extends StatefulWidget {
   const ContentUpdateScreen({super.key});
@@ -79,7 +79,9 @@ class _ContentUpdateScreenState extends State<ContentUpdateScreen> {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
-                    valueColor: AlwaysStoppedAnimation(DreadmoorColors.accentCyan),
+                    valueColor: AlwaysStoppedAnimation(
+                      DreadmoorColors.accentCyan,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),

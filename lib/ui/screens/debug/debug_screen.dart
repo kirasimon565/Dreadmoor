@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
 // Guard: this screen must never appear in release builds
 class DebugScreen extends StatelessWidget {
@@ -114,10 +114,7 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
           _TerminalLog(log: _log, cursorOpacity: _cursorOpacity),
 
           // ── Divider ──────────────────────────────────────────
-          Container(
-            height: 1,
-            color: const Color(0xFF1A3A1A),
-          ),
+          Container(height: 1, color: const Color(0xFF1A3A1A)),
 
           // ── Action panels ─────────────────────────────────────
           Expanded(
@@ -147,114 +144,93 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
                 _termAction(
                   key: 'ep01_start',
                   label: 'START EP01 / AMELIA CHAT',
-                  onTap: () => _run(
-                    'ep01_start',
-                    'START EP01 / AMELIA CHAT',
-                    () async {
-                      // FIX 1: ref.read inside lambda, not ref.watch in build
-                      final scheduler = ref.read(globalSchedulerProvider);
-                      await scheduler.startThread('ep01', 'amelia_chat');
-                      if (context.mounted) context.go('/messenger');
-                    },
-                  ),
+                  onTap: () =>
+                      _run('ep01_start', 'START EP01 / AMELIA CHAT', () async {
+                        // FIX 1: ref.read inside lambda, not ref.watch in build
+                        final scheduler = ref.read(globalSchedulerProvider);
+                        await scheduler.startThread('ep01', 'amelia_chat');
+                        if (context.mounted) context.go('/messenger');
+                      }),
                 ),
                 _termAction(
                   key: 'replay',
                   label: 'REPLAY CURRENT THREAD',
-                  onTap: () => _run(
-                    'replay',
-                    'REPLAY CURRENT THREAD',
-                    () async {
-                      final ep = ref.read(currentEpisodeIdProvider);
-                      final thread = ref.read(activeThreadIdProvider);
-                      if (ep == null || thread == null) {
-                        throw Exception('No active episode or thread');
-                      }
-                      final scheduler = ref.read(globalSchedulerProvider);
-                      await scheduler.startThread(ep, thread);
-                      if (context.mounted) context.go('/chat/$thread');
-                    },
-                  ),
+                  onTap: () =>
+                      _run('replay', 'REPLAY CURRENT THREAD', () async {
+                        final ep = ref.read(currentEpisodeIdProvider);
+                        final thread = ref.read(activeThreadIdProvider);
+                        if (ep == null || thread == null) {
+                          throw Exception('No active episode or thread');
+                        }
+                        final scheduler = ref.read(globalSchedulerProvider);
+                        await scheduler.startThread(ep, thread);
+                        if (context.mounted) context.go('/chat/$thread');
+                      }),
                 ),
 
                 _section('FLAGS'),
                 _termAction(
                   key: 'unlock_flags',
                   label: 'UNLOCK ALL FLAGS',
-                  onTap: () => _run(
-                    'unlock_flags',
-                    'UNLOCK ALL FLAGS',
-                    () async {
-                      // FIX 4: insertOrReplace — original insert() crashes if
-                      //         the flag key already exists in StoryState
-                      await db.batch((b) {
-                        for (final flag in [
-                          'found_factory_phone',
-                          'confronted_amelia',
-                          'visited_factory',
-                          'saw_highway_crash',
-                          'found_diary_01',
-                          'trusted_detective',
-                          'contacted_informant',
-                          'found_recording',
-                          'confronted_mayor',
-                        ]) {
-                          b.insert(
-                            db.storyState,
-                            StoryStateCompanion.insert(
-                              key: flag,
-                              value: const Value(true),
-                            ),
-                            mode: InsertMode.insertOrReplace, // FIX 4
-                          );
-                        }
-                      });
-                    },
-                  ),
+                  onTap: () =>
+                      _run('unlock_flags', 'UNLOCK ALL FLAGS', () async {
+                        // FIX 4: insertOrReplace — original insert() crashes if
+                        //         the flag key already exists in StoryState
+                        await db.batch((b) {
+                          for (final flag in [
+                            'found_factory_phone',
+                            'confronted_amelia',
+                            'visited_factory',
+                            'saw_highway_crash',
+                            'found_diary_01',
+                            'trusted_detective',
+                            'contacted_informant',
+                            'found_recording',
+                            'confronted_mayor',
+                          ]) {
+                            b.insert(
+                              db.storyState,
+                              StoryStateCompanion.insert(
+                                key: flag,
+                                value: const Value(true),
+                              ),
+                              mode: InsertMode.insertOrReplace, // FIX 4
+                            );
+                          }
+                        });
+                      }),
                 ),
                 _termAction(
                   key: 'clear_flags',
                   label: 'CLEAR ALL FLAGS',
-                  onTap: () => _run(
-                    'clear_flags',
-                    'CLEAR ALL FLAGS',
-                    () async {
-                      await db.delete(db.storyState).go();
-                    },
-                  ),
+                  onTap: () => _run('clear_flags', 'CLEAR ALL FLAGS', () async {
+                    await db.delete(db.storyState).go();
+                  }),
                 ),
 
                 _section('TIME'),
                 _termAction(
                   key: 'time_7d',
                   label: 'SIMULATE +7 DAYS',
-                  onTap: () => _run(
-                    'time_7d',
-                    'SIMULATE +7 DAYS',
-                    () async {
-                      // FIX 3: Was `updated_at - 7` which subtracts 7ms.
-                      // Drift stores dateTime as Unix milliseconds.
-                      // 7 days = 7 * 24 * 60 * 60 * 1000 = 604800000 ms
-                      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-                      await db.customUpdate(
-                        'UPDATE story_state SET updated_at = updated_at - $sevenDaysMs',
-                      );
-                    },
-                  ),
+                  onTap: () => _run('time_7d', 'SIMULATE +7 DAYS', () async {
+                    // FIX 3: Was `updated_at - 7` which subtracts 7ms.
+                    // Drift stores dateTime as Unix milliseconds.
+                    // 7 days = 7 * 24 * 60 * 60 * 1000 = 604800000 ms
+                    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+                    await db.customUpdate(
+                      'UPDATE story_state SET updated_at = updated_at - $sevenDaysMs',
+                    );
+                  }),
                 ),
                 _termAction(
                   key: 'time_1d',
                   label: 'SIMULATE +1 DAY',
-                  onTap: () => _run(
-                    'time_1d',
-                    'SIMULATE +1 DAY',
-                    () async {
-                      const oneDayMs = 24 * 60 * 60 * 1000;
-                      await db.customUpdate(
-                        'UPDATE story_state SET updated_at = updated_at - $oneDayMs',
-                      );
-                    },
-                  ),
+                  onTap: () => _run('time_1d', 'SIMULATE +1 DAY', () async {
+                    const oneDayMs = 24 * 60 * 60 * 1000;
+                    await db.customUpdate(
+                      'UPDATE story_state SET updated_at = updated_at - $oneDayMs',
+                    );
+                  }),
                 ),
 
                 _section('DB INSPECTOR'),
@@ -332,12 +308,7 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              height: 1,
-              color: const Color(0xFF1A3A1A),
-            ),
-          ),
+          Expanded(child: Container(height: 1, color: const Color(0xFF1A3A1A))),
         ],
       ),
     );
@@ -434,9 +405,7 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
             border: Border.all(
-              color: isLoading
-                  ? Colors.red
-                  : Colors.red.withOpacity(0.4),
+              color: isLoading ? Colors.red : Colors.red.withOpacity(0.4),
               width: 1,
             ),
             color: Colors.red.withOpacity(isLoading ? 0.1 : 0.04),
@@ -586,11 +555,11 @@ class _TerminalLogState extends State<_TerminalLog> {
   }
 
   Color _levelColor(_LogLevel l) => switch (l) {
-        _LogLevel.system => const Color(0xFF2E6B2E),
-        _LogLevel.cmd => const Color(0xFF7CBF7C),
-        _LogLevel.ok => const Color(0xFF4CAF50),
-        _LogLevel.error => Colors.red,
-      };
+    _LogLevel.system => const Color(0xFF2E6B2E),
+    _LogLevel.cmd => const Color(0xFF7CBF7C),
+    _LogLevel.ok => const Color(0xFF4CAF50),
+    _LogLevel.error => Colors.red,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -689,8 +658,10 @@ class _DbInspector extends StatelessWidget {
           final flags = snapshot.data![3] as List<StoryStateData>;
           final episodes = snapshot.data![4] as List<Episode>;
 
-          final activeFlags =
-              flags.where((f) => f.value).map((f) => f.key).toList();
+          final activeFlags = flags
+              .where((f) => f.value)
+              .map((f) => f.key)
+              .toList();
 
           return Container(
             padding: const EdgeInsets.all(12),
@@ -710,13 +681,9 @@ class _DbInspector extends StatelessWidget {
                 ),
                 if (activeFlags.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Container(
-                    height: 1,
-                    color: const Color(0xFF1A3A1A),
-                  ),
+                  Container(height: 1, color: const Color(0xFF1A3A1A)),
                   const SizedBox(height: 8),
-                  for (final f in activeFlags)
-                    _dbLine('  ✓ $f'),
+                  for (final f in activeFlags) _dbLine('  ✓ $f'),
                 ],
               ],
             ),

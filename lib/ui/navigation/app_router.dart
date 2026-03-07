@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/state/game_state.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
-import '../screens/chat/chat_screen.dart';
+import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
 import '../screens/credits/credits_screen.dart';
 import '../screens/debug/debug_screen.dart';
 import '../screens/episode_select/episode_select_screen.dart';
 import '../screens/error/fatal_error_screen.dart';
 import '../screens/legal/legal_disclaimer_screen.dart';
-import '../screens/messenger_list/messenger_list_screen.dart';
+import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
 import '../screens/player_setup/player_setup_screen.dart';
 import '../screens/profiles/character_profile_screen.dart';
 import '../screens/profiles/player_profile_screen.dart';
 import '../screens/recap/recap_screen.dart';
 import '../screens/save_load/save_load_screen.dart';
-import '../screens/secret_chat/secret_chat_screen.dart';
+import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/studio_intro/studio_intro_screen.dart';
 import '../screens/update_gate/content_update_screen.dart';
@@ -26,28 +26,25 @@ import 'routes.dart';
 
 class DreadmoorPage<T> extends CustomTransitionPage<T> {
   DreadmoorPage({required super.child, required super.key})
-      : super(
-          transitionDuration: const Duration(milliseconds: 450),
-          reverseTransitionDuration: const Duration(milliseconds: 350),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final fade = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOut,
-            );
+    : super(
+        transitionDuration: const Duration(milliseconds: 450),
+        reverseTransitionDuration: const Duration(milliseconds: 350),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final fade = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          );
 
-            final scale = Tween<double>(begin: 1.04, end: 1.0).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              ),
-            );
+          final scale = Tween<double>(begin: 1.04, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          );
 
-            return FadeTransition(
-              opacity: fade,
-              child: ScaleTransition(scale: scale, child: child),
-            );
-          },
-        );
+          return FadeTransition(
+            opacity: fade,
+            child: ScaleTransition(scale: scale, child: child),
+          );
+        },
+      );
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -128,8 +125,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/secret/:threadId',
         name: 'secret',
         pageBuilder: (context, state) {
-          final id =
-              state.pathParameters['threadId'] ?? 'spy_amelia_michael';
+          final id = state.pathParameters['threadId'] ?? 'spy_amelia_michael';
 
           return DreadmoorPage(
             key: state.pageKey,
@@ -154,15 +150,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.playerProfile,
         name: 'playerProfile',
-        pageBuilder: (context, state) =>
-            DreadmoorPage(key: state.pageKey, child: const PlayerProfileScreen()),
+        pageBuilder: (context, state) => DreadmoorPage(
+          key: state.pageKey,
+          child: const PlayerProfileScreen(),
+        ),
       ),
 
       GoRoute(
         path: Routes.episodes,
         name: 'episodes',
-        pageBuilder: (context, state) =>
-            DreadmoorPage(key: state.pageKey, child: const EpisodeSelectScreen()),
+        pageBuilder: (context, state) => DreadmoorPage(
+          key: state.pageKey,
+          child: const EpisodeSelectScreen(),
+        ),
       ),
 
       GoRoute(
@@ -209,15 +209,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.legal,
         name: 'legal',
-        pageBuilder: (context, state) =>
-            DreadmoorPage(key: state.pageKey, child: const LegalDisclaimerScreen()),
+        pageBuilder: (context, state) => DreadmoorPage(
+          key: state.pageKey,
+          child: const LegalDisclaimerScreen(),
+        ),
       ),
 
       GoRoute(
         path: Routes.update,
         name: 'update',
-        pageBuilder: (context, state) =>
-            DreadmoorPage(key: state.pageKey, child: const ContentUpdateScreen()),
+        pageBuilder: (context, state) => DreadmoorPage(
+          key: state.pageKey,
+          child: const ContentUpdateScreen(),
+        ),
       ),
 
       GoRoute(

@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
-import '../../widgets/custom_screen_header.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -32,7 +32,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       // ✅ StoryState.value is BoolColumn — store true as the save flag.
       //    updatedAt is automatically set to now(), giving us the save time.
-      await db.into(db.storyState).insertOnConflictUpdate(
+      await db
+          .into(db.storyState)
+          .insertOnConflictUpdate(
             StoryStateCompanion.insert(
               key: 'game_saved',
               value: const Value(true),
@@ -70,9 +72,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<String?> _getLastSaveTime() async {
     final db = ref.read(databaseProvider);
     try {
-      final row = await (db.select(db.storyState)
-            ..where((s) => s.key.equals('game_saved')))
-          .getSingleOrNull();
+      final row = await (db.select(
+        db.storyState,
+      )..where((s) => s.key.equals('game_saved'))).getSingleOrNull();
       if (row == null || !row.value) return null;
       final dt = row.updatedAt;
       return '${dt.day}/${dt.month}/${dt.year}  '
@@ -89,9 +91,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       // Verify a save exists
-      final saveRow = await (db.select(db.storyState)
-            ..where((s) => s.key.equals('game_saved')))
-          .getSingleOrNull();
+      final saveRow = await (db.select(
+        db.storyState,
+      )..where((s) => s.key.equals('game_saved'))).getSingleOrNull();
 
       if (saveRow == null || !saveRow.value) {
         if (mounted) {
@@ -100,8 +102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               backgroundColor: DreadmoorColors.surface,
               content: Text(
                 'No saved game found.',
-                style:
-                    GoogleFonts.inter(color: DreadmoorColors.textSecondary),
+                style: GoogleFonts.inter(color: DreadmoorColors.textSecondary),
               ),
             ),
           );
@@ -111,10 +112,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
       // ✅ Find the most recently active thread by latest message timestamp.
       //    This is the correct way since StoryState can't store strings.
-      final latestMessage = await (db.select(db.messages)
-            ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
-            ..limit(1))
-          .getSingleOrNull();
+      final latestMessage =
+          await (db.select(db.messages)
+                ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
+                ..limit(1))
+              .getSingleOrNull();
 
       if (mounted) {
         if (latestMessage != null) {
@@ -162,8 +164,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               "CANCEL",
-              style:
-                  GoogleFonts.michroma(color: DreadmoorColors.textSecondary),
+              style: GoogleFonts.michroma(color: DreadmoorColors.textSecondary),
             ),
           ),
           TextButton(
@@ -223,7 +224,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-
                 // ── GAMEPLAY ───────────────────────────────────────────
                 _section("GAMEPLAY"),
                 _toggle(
@@ -325,163 +325,160 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // ── Reusable widgets ─────────────────────────────────────────────────────
 
   Widget _section(String title) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Text(
-          title,
-          style: GoogleFonts.michroma(
-            fontSize: 10,
-            color: DreadmoorColors.textMeta,
-            letterSpacing: 1.5,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Text(
+      title,
+      style: GoogleFonts.michroma(
+        fontSize: 10,
+        color: DreadmoorColors.textMeta,
+        letterSpacing: 1.5,
+      ),
+    ),
+  );
 
   Widget _toggle(
     String title,
     String subtitle,
     bool value,
     ValueChanged<bool> onChanged,
-  ) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: GestureDetector(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onChanged(!value);
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  ) => Padding(
+    padding: const EdgeInsets.only(bottom: 24),
+    child: GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onChanged(!value);
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style:
-                        GoogleFonts.inter(fontSize: 14, color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      color: Colors.white.withOpacity(0.54),
-                    ),
-                  ),
-                ],
+              Text(
+                title,
+                style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
               ),
-              _switch(value),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: Colors.white.withOpacity(0.54),
+                ),
+              ),
             ],
           ),
-        ),
-      );
+          _switch(value),
+        ],
+      ),
+    ),
+  );
 
   Widget _switch(bool value) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 44,
-        height: 24,
+    duration: const Duration(milliseconds: 200),
+    width: 44,
+    height: 24,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      color: value
+          ? DreadmoorColors.accentCyan.withOpacity(0.2)
+          : Colors.white.withOpacity(0.1),
+      border: Border.all(
+        color: value
+            ? DreadmoorColors.accentCyan
+            : Colors.white.withOpacity(0.2),
+      ),
+      boxShadow: value
+          ? [BoxShadow(color: DreadmoorColors.glowCyan, blurRadius: 8)]
+          : [],
+    ),
+    child: Align(
+      alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        width: 18,
+        height: 18,
+        margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: value
-              ? DreadmoorColors.accentCyan.withOpacity(0.2)
-              : Colors.white.withOpacity(0.1),
-          border: Border.all(
-            color: value
-                ? DreadmoorColors.accentCyan
-                : Colors.white.withOpacity(0.2),
-          ),
-          boxShadow: value
-              ? [BoxShadow(color: DreadmoorColors.glowCyan, blurRadius: 8)]
-              : [],
+          shape: BoxShape.circle,
+          color: value ? DreadmoorColors.accentCyan : Colors.white54,
         ),
-        child: Align(
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 18,
-            height: 18,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: value ? DreadmoorColors.accentCyan : Colors.white54,
-            ),
-          ),
-        ),
-      );
+      ),
+    ),
+  );
 
   Widget _nav(String label, String route) => ListTile(
-        contentPadding: EdgeInsets.zero,
-        onTap: () => context.push(route),
-        title: Text(
-          label,
-          style: GoogleFonts.michroma(fontSize: 12, color: Colors.white),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-      );
+    contentPadding: EdgeInsets.zero,
+    onTap: () => context.push(route),
+    title: Text(
+      label,
+      style: GoogleFonts.michroma(fontSize: 12, color: Colors.white),
+    ),
+    trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+  );
 
   Widget _actionTile({
     required String label,
     required String subtitle,
     required IconData icon,
     required VoidCallback onTap,
-  }) =>
-      ListTile(
-        contentPadding: EdgeInsets.zero,
-        onTap: onTap,
-        leading: Icon(icon, color: DreadmoorColors.accentCyan, size: 20),
-        title: Text(
-          label,
-          style: GoogleFonts.michroma(fontSize: 12, color: Colors.white),
-        ),
-        subtitle: Text(
-          subtitle,
+  }) => ListTile(
+    contentPadding: EdgeInsets.zero,
+    onTap: onTap,
+    leading: Icon(icon, color: DreadmoorColors.accentCyan, size: 20),
+    title: Text(
+      label,
+      style: GoogleFonts.michroma(fontSize: 12, color: Colors.white),
+    ),
+    subtitle: Text(
+      subtitle,
+      style: GoogleFonts.inter(
+        fontSize: 10,
+        color: Colors.white.withOpacity(0.45),
+      ),
+    ),
+  );
+
+  Widget _creditEntry(String role, String name) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          role,
           style: GoogleFonts.inter(
-            fontSize: 10,
+            fontSize: 11,
             color: Colors.white.withOpacity(0.45),
           ),
         ),
-      );
-
-  Widget _creditEntry(String role, String name) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              role,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: Colors.white.withOpacity(0.45),
-              ),
-            ),
-            Text(
-              name,
-              style: GoogleFonts.michroma(
-                fontSize: 11,
-                color: Colors.white.withOpacity(0.75),
-                letterSpacing: 1.0,
-              ),
-            ),
-          ],
-        ),
-      );
-
-  Widget _resetButton() => ListTile(
-        contentPadding: EdgeInsets.zero,
-        onTap: _confirmReset,
-        title: Text(
-          "Reset Progress",
+        Text(
+          name,
           style: GoogleFonts.michroma(
-            fontSize: 12,
-            color: DreadmoorColors.accentRed,
+            fontSize: 11,
+            color: Colors.white.withOpacity(0.75),
+            letterSpacing: 1.0,
           ),
         ),
-        subtitle: Text(
-          "Erases all data and restarts the story.",
-          style: GoogleFonts.inter(fontSize: 10, color: Colors.white54),
-        ),
-        trailing: Icon(
-          Icons.warning_amber_rounded,
-          color: DreadmoorColors.accentRed,
-        ),
-      );
+      ],
+    ),
+  );
+
+  Widget _resetButton() => ListTile(
+    contentPadding: EdgeInsets.zero,
+    onTap: _confirmReset,
+    title: Text(
+      "Reset Progress",
+      style: GoogleFonts.michroma(
+        fontSize: 12,
+        color: DreadmoorColors.accentRed,
+      ),
+    ),
+    subtitle: Text(
+      "Erases all data and restarts the story.",
+      style: GoogleFonts.inter(fontSize: 10, color: Colors.white54),
+    ),
+    trailing: Icon(
+      Icons.warning_amber_rounded,
+      color: DreadmoorColors.accentRed,
+    ),
+  );
 }

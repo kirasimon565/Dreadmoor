@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum NotificationType {
-  message,
-  article,
-  system,
-}
+enum NotificationType { message, article, system }
 
 class AppNotification {
   final String id;

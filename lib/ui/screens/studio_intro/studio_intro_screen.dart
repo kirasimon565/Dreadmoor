@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class StudioIntroScreen extends ConsumerStatefulWidget {
   const StudioIntroScreen({super.key});
@@ -134,8 +134,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
     // ✅ Load player and set playerStateProvider BEFORE navigating
     // so the router redirect sees the correct state immediately
     final db = ref.read(databaseProvider);
-    final player =
-        await (db.select(db.players)..limit(1)).getSingleOrNull();
+    final player = await (db.select(db.players)..limit(1)).getSingleOrNull();
 
     if (!mounted) return;
 
@@ -238,8 +237,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                     FadeTransition(
                       opacity: _disclaimerFade,
                       child: Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 48),
                         child: Text(
                           "These characters and places are purely fictional.\n"
                           "Any resemblance to actual persons or events is purely coincidental.",
@@ -280,10 +278,8 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                         animate: true,
                         fit: BoxFit.contain,
                         // Graceful fallback if JSON is missing
-                        errorBuilder: (_, __, ___) => const SizedBox(
-                          width: 28,
-                          height: 28,
-                        ),
+                        errorBuilder: (_, __, ___) =>
+                            const SizedBox(width: 28, height: 28),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -291,7 +287,9 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                       "Loading",
                       style: GoogleFonts.inter(
                         fontSize: 10,
-                        color: DreadmoorColors.accentCyan.withOpacity(0.45),
+                        color: DreadmoorColors.accentCyan.withValues(
+                          alpha: 0.45,
+                        ),
                         letterSpacing: 1.5,
                       ),
                     ),

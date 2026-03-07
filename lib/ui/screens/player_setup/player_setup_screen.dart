@@ -6,10 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/persistence/drift_database.dart';
-import '../../../core/state/game_state.dart';
-import '../../navigation/routes.dart';
-import '../../theme/colors.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/navigation/routes.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class PlayerSetupScreen extends ConsumerStatefulWidget {
   const PlayerSetupScreen({super.key});
@@ -34,9 +34,9 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
 
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter your name.')));
       return;
     }
 
@@ -47,9 +47,9 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
       final db = ref.read(databaseProvider);
 
       // Check if player already exists
-      final existing = await (db.select(db.players)..limit(1))
-          .getSingleOrNull()
-          .timeout(const Duration(seconds: 5));
+      final existing = await (db.select(
+        db.players,
+      )..limit(1)).getSingleOrNull().timeout(const Duration(seconds: 5));
 
       if (existing != null) {
         // ✅ Set in-memory state immediately — router sees it instantly
@@ -71,10 +71,10 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
           .timeout(const Duration(seconds: 5));
 
       // Fetch the inserted player row
-      final newPlayer = await (db.select(db.players)
-            ..where((p) => p.id.equals(id)))
-          .getSingleOrNull()
-          .timeout(const Duration(seconds: 5));
+      final newPlayer =
+          await (db.select(db.players)..where((p) => p.id.equals(id)))
+              .getSingleOrNull()
+              .timeout(const Duration(seconds: 5));
 
       if (newPlayer != null) {
         // ✅ Set in-memory state BEFORE navigating.
@@ -269,8 +269,9 @@ class _GlassInputField extends StatelessWidget {
                   cursorColor: DreadmoorColors.accentCyan,
                   decoration: InputDecoration.collapsed(
                     hintText: hint,
-                    hintStyle:
-                        GoogleFonts.inter(color: DreadmoorColors.textMeta),
+                    hintStyle: GoogleFonts.inter(
+                      color: DreadmoorColors.textMeta,
+                    ),
                   ),
                 ),
               ),
@@ -348,10 +349,7 @@ class _ConfirmButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _ConfirmButton({
-    required this.label,
-    required this.onTap,
-  });
+  const _ConfirmButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

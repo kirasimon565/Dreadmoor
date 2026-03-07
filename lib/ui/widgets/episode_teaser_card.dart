@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../theme/colors.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class EpisodeTeaserCard extends StatefulWidget {
   final String episodeId;
@@ -106,8 +106,8 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                       color: widget.isLocked
                           ? Colors.transparent
                           : _isHovered
-                              ? _statusColor.withOpacity(0.4)
-                              : Colors.transparent,
+                          ? _statusColor.withOpacity(0.4)
+                          : Colors.transparent,
                       width: 1,
                     ),
                   ),
@@ -132,7 +132,9 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                     if (widget.isLocked)
                       Positioned.fill(
                         child: Container(
-                          color: DreadmoorColors.background.withOpacity(0.55),
+                          color: DreadmoorColors.background.withValues(
+                            alpha: 0.55,
+                          ),
                         ),
                       ),
 
@@ -153,7 +155,9 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                   fontSize: 48,
                                   height: 1.0,
                                   color: widget.isLocked
-                                      ? DreadmoorColors.textMeta.withOpacity(0.25)
+                                      ? DreadmoorColors.textMeta.withValues(
+                                          alpha: 0.25,
+                                        )
                                       : _statusColor.withOpacity(0.18),
                                   letterSpacing: -2,
                                 ),
@@ -166,11 +170,14 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                     // Status badge
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 3),
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
                                       decoration: BoxDecoration(
                                         border: Border.all(
-                                          color: _statusColor.withOpacity(
-                                              widget.isLocked ? 0.4 : 0.7),
+                                          color: _statusColor.withValues(
+                                            alpha: widget.isLocked ? 0.4 : 0.7,
+                                          ),
                                           width: 1,
                                         ),
                                       ),
@@ -179,21 +186,24 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                         style: GoogleFonts.michroma(
                                           fontSize: 9,
                                           letterSpacing: 2.5,
-                                          color: _statusColor.withOpacity(
-                                              widget.isLocked ? 0.5 : 1.0),
+                                          color: _statusColor.withValues(
+                                            alpha: widget.isLocked ? 0.5 : 1.0,
+                                          ),
                                         ),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     // Episode title
                                     Text(
-                                      widget.isLocked ? '??? ?????' : widget.title,
+                                      widget.isLocked
+                                          ? '??? ?????'
+                                          : widget.title,
                                       style: GoogleFonts.michroma(
                                         fontSize: 15,
                                         letterSpacing: 1.5,
                                         color: widget.isLocked
                                             ? DreadmoorColors.textMeta
-                                                .withOpacity(0.4)
+                                                  .withOpacity(0.4)
                                             : DreadmoorColors.textPrimary,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -208,10 +218,12 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                   widget.isLocked
                                       ? Icons.lock_outline
                                       : widget.progress == 100
-                                          ? Icons.replay_rounded
-                                          : Icons.play_arrow_rounded,
+                                      ? Icons.replay_rounded
+                                      : Icons.play_arrow_rounded,
                                   color: widget.isLocked
-                                      ? DreadmoorColors.textMeta.withOpacity(0.3)
+                                      ? DreadmoorColors.textMeta.withValues(
+                                          alpha: 0.3,
+                                        )
                                       : _statusColor.withOpacity(0.8),
                                   size: 22,
                                 ),
@@ -225,8 +237,12 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                           Container(
                             height: 1,
                             color: widget.isLocked
-                                ? DreadmoorColors.textMeta.withOpacity(0.12)
-                                : DreadmoorColors.textMeta.withOpacity(0.2),
+                                ? DreadmoorColors.textMeta.withValues(
+                                    alpha: 0.12,
+                                  )
+                                : DreadmoorColors.textMeta.withValues(
+                                    alpha: 0.2,
+                                  ),
                           ),
 
                           const SizedBox(height: 12),
@@ -240,7 +256,9 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                               fontSize: 13,
                               height: 1.6,
                               color: widget.isLocked
-                                  ? DreadmoorColors.textMeta.withOpacity(0.35)
+                                  ? DreadmoorColors.textMeta.withValues(
+                                      alpha: 0.35,
+                                    )
                                   : DreadmoorColors.textSecondary,
                               letterSpacing: widget.isLocked ? 1.2 : 0.2,
                             ),
@@ -263,8 +281,9 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  color: DreadmoorColors.accentRed
-                                      .withOpacity(0.5),
+                                  color: DreadmoorColors.accentRed.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -272,8 +291,9 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                   style: GoogleFonts.michroma(
                                     fontSize: 9,
                                     letterSpacing: 3,
-                                    color: DreadmoorColors.accentRed
-                                        .withOpacity(0.5),
+                                    color: DreadmoorColors.accentRed.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                                 ),
                               ],
