@@ -3,6 +3,10 @@ name: Generate Drift Files
 on:
   push:
     branches: [ Production_Dreadmoor ]
+    paths:
+      - "lib/**/*.dart"
+      - "pubspec.yaml"
+      - "pubspec.lock"
   workflow_dispatch:
 
 jobs:
@@ -16,7 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install the correct Flutter version
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -37,6 +40,10 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add .
-          git commit -m "auto: generate drift files" || echo "No changes"
-          git push
+          git add **/*.g.dart
+          if git diff --cached --quiet; then
+            echo "No generated files changed"
+          else
+            git commit -m "auto: generate drift files"
+            git push
+          fi
