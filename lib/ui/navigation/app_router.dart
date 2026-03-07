@@ -5,49 +5,58 @@ import 'package:go_router/go_router.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 
 import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
-import '../screens/credits/credits_screen.dart';
-import '../screens/debug/debug_screen.dart';
-import '../screens/episode_select/episode_select_screen.dart';
+import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
+import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
+
+import 'package:dreadmoor/features/apps/ui/apps_screen.dart';
+import 'package:dreadmoor/features/puzzle/ui/puzzle_screen.dart';
+import 'package:dreadmoor/features/store/ui/store_screen.dart';
+
+import 'package:dreadmoor/features/browser/ui/screens/browser/browser_screen.dart';
+import 'package:dreadmoor/features/phone/ui/screens/phone/phone_app_screen.dart';
+
+import '../screens/player_setup/player_setup_screen.dart';
+import '../screens/settings/settings_screen.dart';
+import '../screens/welcome/welcome_screen.dart';
+import '../screens/studio_intro/studio_intro_screen.dart';
 import '../screens/error/fatal_error_screen.dart';
 import '../screens/legal/legal_disclaimer_screen.dart';
-import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
-import '../screens/player_setup/player_setup_screen.dart';
-import '../screens/profiles/character_profile_screen.dart';
 import '../screens/profiles/player_profile_screen.dart';
-import '../screens/recap/recap_screen.dart';
+import '../screens/profiles/character_profile_screen.dart';
 import '../screens/save_load/save_load_screen.dart';
-import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
-import '../screens/settings/settings_screen.dart';
-import '../screens/studio_intro/studio_intro_screen.dart';
 import '../screens/update_gate/content_update_screen.dart';
-import '../screens/welcome/welcome_screen.dart';
+import '../screens/episode_select/episode_select_screen.dart';
+import '../screens/credits/credits_screen.dart';
+import '../screens/debug/debug_screen.dart';
+import '../screens/recap/recap_screen.dart';
 
 import 'routes.dart';
 
 class DreadmoorPage<T> extends CustomTransitionPage<T> {
   DreadmoorPage({required super.child, required super.key})
-    : super(
-        transitionDuration: const Duration(milliseconds: 450),
-        reverseTransitionDuration: const Duration(milliseconds: 350),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final fade = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOut,
-          );
+      : super(
+          transitionDuration: const Duration(milliseconds: 450),
+          reverseTransitionDuration: const Duration(milliseconds: 350),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final fade = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            );
 
-          final scale = Tween<double>(begin: 1.04, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-          );
+            final scale = Tween<double>(begin: 1.04, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            );
 
-          return FadeTransition(
-            opacity: fade,
-            child: ScaleTransition(scale: scale, child: child),
-          );
-        },
-      );
+            return FadeTransition(
+              opacity: fade,
+              child: ScaleTransition(scale: scale, child: child),
+            );
+          },
+        );
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+
   final router = GoRouter(
     initialLocation: Routes.studio,
 
@@ -55,6 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
 
     redirect: (context, state) {
+
       final player = ref.read(playerStateProvider);
       final hasCompletedSetup = player != null;
 
@@ -78,40 +88,93 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
 
     routes: [
+
+      /// Studio intro
       GoRoute(
         path: Routes.studio,
-        name: 'studio',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const StudioIntroScreen()),
       ),
 
+      /// Player setup
       GoRoute(
         path: Routes.setup,
-        name: 'setup',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const PlayerSetupScreen()),
       ),
 
+      /// Welcome
       GoRoute(
         path: Routes.welcome,
-        name: 'welcome',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const WelcomeScreen()),
       ),
 
-      GoRoute(
-        path: Routes.messenger,
-        name: 'messenger',
-        pageBuilder: (context, state) => DreadmoorPage(
-          key: state.pageKey,
-          child: const MessengerListScreen(),
-        ),
+      /// SHELL ROUTE (MAIN APP UI)
+      ShellRoute(
+        builder: (context, state, child) {
+          return child;
+        },
+
+        routes: [
+
+          /// Messenger
+          GoRoute(
+            path: Routes.messenger,
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const MessengerListScreen()),
+          ),
+
+          /// Puzzle
+          GoRoute(
+            path: '/puzzle',
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const PuzzleScreen()),
+          ),
+
+          /// Apps
+          GoRoute(
+            path: '/apps',
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const AppsScreen()),
+          ),
+
+          /// Store
+          GoRoute(
+            path: '/store',
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const StoreScreen()),
+          ),
+
+          /// Browser
+          GoRoute(
+            path: '/browser',
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const BrowserScreen()),
+          ),
+
+          /// Phone
+          GoRoute(
+            path: '/phone',
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const PhoneAppScreen()),
+          ),
+
+          /// Player profile
+          GoRoute(
+            path: Routes.playerProfile,
+            pageBuilder: (context, state) =>
+                DreadmoorPage(key: state.pageKey, child: const PlayerProfileScreen()),
+          ),
+
+        ],
       ),
 
+      /// Chat
       GoRoute(
         path: '/chat/:threadId',
-        name: 'chat',
         pageBuilder: (context, state) {
+
           final id = state.pathParameters['threadId'] ?? 'group_chat';
 
           return DreadmoorPage(
@@ -121,11 +184,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      /// Secret chat
       GoRoute(
         path: '/secret/:threadId',
-        name: 'secret',
         pageBuilder: (context, state) {
-          final id = state.pathParameters['threadId'] ?? 'spy_amelia_michael';
+
+          final id = state.pathParameters['threadId'] ?? 'spy';
 
           return DreadmoorPage(
             key: state.pageKey,
@@ -134,11 +198,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      /// Character profile
       GoRoute(
         path: '/profiles/:characterId',
-        name: 'profile',
         pageBuilder: (context, state) {
-          final id = state.pathParameters['characterId'] ?? 'amelia';
+
+          final id = state.pathParameters['characterId'] ?? 'unknown';
 
           return DreadmoorPage(
             key: state.pageKey,
@@ -147,28 +212,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      GoRoute(
-        path: Routes.playerProfile,
-        name: 'playerProfile',
-        pageBuilder: (context, state) => DreadmoorPage(
-          key: state.pageKey,
-          child: const PlayerProfileScreen(),
-        ),
-      ),
-
+      /// Episodes
       GoRoute(
         path: Routes.episodes,
-        name: 'episodes',
-        pageBuilder: (context, state) => DreadmoorPage(
-          key: state.pageKey,
-          child: const EpisodeSelectScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const EpisodeSelectScreen()),
       ),
 
+      /// Recap
       GoRoute(
         path: '/recap/:episodeId',
-        name: 'recap',
         pageBuilder: (context, state) {
+
           final id = state.pathParameters['episodeId'] ?? 'ep01';
 
           return DreadmoorPage(
@@ -178,55 +233,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      /// Settings
       GoRoute(
         path: Routes.settings,
-        name: 'settings',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const SettingsScreen()),
       ),
 
+      /// Save
       GoRoute(
         path: Routes.save,
-        name: 'save',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const SaveLoadScreen()),
       ),
 
+      /// Credits
       GoRoute(
         path: Routes.credits,
-        name: 'credits',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const CreditsScreen()),
       ),
 
+      /// Debug
       GoRoute(
         path: Routes.debug,
-        name: 'debug',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const DebugScreen()),
       ),
 
+      /// Legal
       GoRoute(
         path: Routes.legal,
-        name: 'legal',
-        pageBuilder: (context, state) => DreadmoorPage(
-          key: state.pageKey,
-          child: const LegalDisclaimerScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const LegalDisclaimerScreen()),
       ),
 
+      /// Update
       GoRoute(
         path: Routes.update,
-        name: 'update',
-        pageBuilder: (context, state) => DreadmoorPage(
-          key: state.pageKey,
-          child: const ContentUpdateScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const ContentUpdateScreen()),
       ),
 
+      /// Error
       GoRoute(
         path: Routes.error,
-        name: 'error',
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
       ),
