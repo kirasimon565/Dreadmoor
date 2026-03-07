@@ -9,15 +9,18 @@ jobs:
   build_runner:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install the SAME Flutter version you use
+      # Install Flutter based on project configuration
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.0"
+          flutter-version-file: pubspec.yaml
           channel: stable
 
       - name: Flutter version
@@ -31,8 +34,8 @@ jobs:
 
       - name: Commit generated files
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add .
-          git commit -m "auto: generate drift files" || echo "No changes"
+          git commit -m "auto: generate drift files" || echo "No changes to commit"
           git push
