@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 
@@ -9,23 +10,28 @@ import '../state/game_state.dart';
 
 class GlobalScheduler {
   final Ref ref;
+
   Timer? _timer;
-  String? _currentLineId;
-  ThreadScript? _currentScript;
+
+  EpisodeScript? _episode;
+
+  int _sceneIndex = 0;
+  int _eventIndex = 0;
+
   final _rng = Random();
 
   GlobalScheduler(this.ref);
 
-  static Future<void> prepare() async {
-    // Reserved for future: background isolates, content prefetch, etc.
-  }
+  static Future<void> prepare() async {}
 
-  /// 🔥 Hard reset: clears DB + runtime scheduler state
+  /// Hard reset
   Future<void> resetAll() async {
     _timer?.cancel();
     _timer = null;
-    _currentLineId = null;
-    _currentScript = null;
+
+    _episode = null;
+    _sceneIndex = 0;
+    _eventIndex = 0;
 
     final db = ref.read(databaseProvider);
 
@@ -40,161 +46,182 @@ class GlobalScheduler {
     ref.read(waitingForChoiceProvider.notifier).state = false;
   }
 
-  Future<void> startThread(String episodeId, String threadId) async {
+  /// Start episode playback
+  Future<void> startEpisode(String episodeId) async {
     _timer?.cancel();
 
-    try {
-      final script =
-          await ref.read(scriptLoaderProvider).loadThreadScript(episodeId, threadId);
+    final loader = ref.read(scriptLoaderProvider);
 
-      _currentScript = script;
-      _currentLineId = script.script.isNotEmpty ? script.script.first.id : null;
+    final episode = await loader.loadEpisode(episodeId);
 
-      ref.read(currentEpisodeIdProvider.notifier).state = episodeId;
-      ref.read(activeThreadIdProvider.notifier).state = threadId;
-      ref.read(isSchedulerPausedProvider.notifier).state = false;
-      ref.read(waitingForChoiceProvider.notifier).state = false;
+    _episode = episode;
 
-      final db = ref.read(databaseProvider);
+    _sceneIndex = 0;
+    _eventIndex = 0;
 
-      await db.into(db.threads).insertOnConflictUpdate(
-        ThreadsCompanion.insert(
-          id: threadId,
-          title: script.title,
-          participants: script.participants.join(','),
-          unreadCount: const Value(0),
-          isTyping: const Value(false),
-          isLocked: const Value(false),
-          isSecret: const Value(false),
-        ),
-      );
+    ref.read(currentEpisodeIdProvider.notifier).state = episodeId;
+    ref.read(isSchedulerPausedProvider.notifier).state = false;
+    ref.read(waitingForChoiceProvider.notifier).state = false;
 
-      _scheduleNextTick();
-    } catch (e) {
-      // ignore: avoid_print
-      print('❌ Scheduler startThread error: $e');
-    }
+    _scheduleNextTick();
   }
 
-  Future<void> _scheduleNextTick() async {
+  void _scheduleNextTick() {
     _timer?.cancel();
 
-    if (_currentScript == null ||
-        _currentLineId == null ||
-        ref.read(isSchedulerPausedProvider) ||
-        ref.read(waitingForChoiceProvider)) {
-      return;
+    if (_episode == null) return;
+
+    if (ref.read(isSchedulerPausedProvider)) return;
+    if (ref.read(waitingForChoiceProvider)) return;
+
+    final scene = _episode!.scenes[_sceneIndex];
+
+    if (_eventIndex >= scene.events.length) {
+      _sceneIndex++;
+      _eventIndex = 0;
+
+      if (_sceneIndex >= _episode!.scenes.length) {
+        return;
+      }
     }
 
-    final line = _currentScript!.script.firstWhere(
-      (l) => l.id == _currentLineId,
-      orElse: () => throw Exception('Line $_currentLineId not found'),
-    );
+    final event = _episode!.scenes[_sceneIndex].events[_eventIndex];
 
-    int delay = line.delay ?? 600;
+    int delay = 500;
 
-    if (line.content != null) {
-      delay += (line.content!.length * 28);
+    if (event.type == 'message' && event.text != null) {
+      delay += event.text!.length * 28;
     }
 
-    delay += _rng.nextInt(400);
+    if (event.type == 'typing') {
+      delay = event.duration ?? 1500;
+    }
 
-    if (line.senderId != 'player' && line.type == 'text') {
+    if (event.meta?.delayAfter != null) {
+      delay += event.meta!.delayAfter!;
+    }
+
+    delay += _rng.nextInt(300);
+
+    if (event.type == 'typing') {
       final db = ref.read(databaseProvider);
-      await (db.update(db.threads)..where((t) => t.id.equals(_currentScript!.id)))
-          .write(const ThreadsCompanion(isTyping: Value(true)));
+
+      db.update(db.threads)
+        ..where((t) => t.id.equals(event.sender!))
+        ..write(const ThreadsCompanion(isTyping: Value(true)));
     }
 
     _timer = Timer(Duration(milliseconds: delay), () async {
-      await _executeLine(line);
+      await _executeEvent(event);
     });
   }
 
-  Future<void> _executeLine(ScriptLine line) async {
+  Future<void> _executeEvent(EventScript event) async {
     final db = ref.read(databaseProvider);
 
-    if (line.type == 'text' && line.senderId != 'player') {
-      await (db.update(db.threads)..where((t) => t.id.equals(_currentScript!.id)))
+    if (event.type == 'typing') {
+      await (db.update(db.threads)..where((t) => t.id.equals(event.sender!)))
           .write(const ThreadsCompanion(isTyping: Value(false)));
-    }
 
-    if (line.type == 'text') {
-      final id = await db.into(db.messages).insert(
-        MessagesCompanion.insert(
-          threadId: _currentScript!.id,
-          senderId: line.senderId!,
-          content: line.content!,
-          timestamp: Value(DateTime.now()),
-        ),
-      );
-
-      await _incrementUnread(db);
-
-      await (db.update(db.threads)..where((t) => t.id.equals(_currentScript!.id)))
-          .write(ThreadsCompanion(lastMessageId: Value(id)));
-
-      _currentLineId = line.next;
+      _eventIndex++;
       _scheduleNextTick();
       return;
     }
 
-    if (line.type == 'player_text') {
+    if (event.type == 'message') {
       final id = await db.into(db.messages).insert(
         MessagesCompanion.insert(
-          threadId: _currentScript!.id,
-          senderId: 'player',
-          content: line.content!,
-          isPlayerMessage: const Value(true),
+          threadId: event.threadId!,
+          senderId: event.sender!,
+          content: event.text!,
           timestamp: Value(DateTime.now()),
         ),
       );
 
-      await (db.update(db.threads)..where((t) => t.id.equals(_currentScript!.id)))
+      await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
           .write(ThreadsCompanion(lastMessageId: Value(id)));
 
-      _currentLineId = line.next;
+      await _incrementUnread(db, event.threadId!);
+
+      _eventIndex++;
       _scheduleNextTick();
       return;
     }
 
-    if (line.type == 'choice') {
+    if (event.type == 'system') {
+      await db.into(db.messages).insert(
+        MessagesCompanion.insert(
+          threadId: event.threadId!,
+          senderId: 'system',
+          content: event.text ?? '',
+          type: const Value('system'),
+        ),
+      );
+
+      _eventIndex++;
+      _scheduleNextTick();
+      return;
+    }
+
+    if (event.type == 'choice') {
       ref.read(waitingForChoiceProvider.notifier).state = true;
       return;
     }
 
-    _currentLineId = null;
+    _eventIndex++;
+    _scheduleNextTick();
   }
 
-  Future<void> _incrementUnread(AppDatabase db) async {
+  Future<void> _incrementUnread(AppDatabase db, String threadId) async {
     final active = ref.read(activeThreadIdProvider);
-    if (active == _currentScript!.id) return;
 
-    final thread = await (db.select(db.threads)
-          ..where((t) => t.id.equals(_currentScript!.id)))
-        .getSingleOrNull();
+    if (active == threadId) return;
+
+    final thread =
+        await (db.select(db.threads)..where((t) => t.id.equals(threadId)))
+            .getSingleOrNull();
 
     if (thread == null) return;
 
-    await (db.update(db.threads)..where((t) => t.id.equals(thread.id))).write(
+    await (db.update(db.threads)..where((t) => t.id.equals(threadId))).write(
       ThreadsCompanion(
-        unreadCount: Value((thread.unreadCount ?? 0) + 1),
+        unreadCount: Value(thread.unreadCount + 1),
       ),
     );
   }
 
-  void submitChoice(String jumptoId) {
-    _currentLineId = jumptoId;
+  void submitChoice(String jumpto) {
+    if (_episode == null) return;
+
+    for (int s = 0; s < _episode!.scenes.length; s++) {
+      final scene = _episode!.scenes[s];
+
+      for (int e = 0; e < scene.events.length; e++) {
+        if (scene.events[e].id == jumpto) {
+          _sceneIndex = s;
+          _eventIndex = e;
+          break;
+        }
+      }
+    }
+
     ref.read(waitingForChoiceProvider.notifier).state = false;
+
     _scheduleNextTick();
   }
 
   List<ChoiceOption>? getCurrentChoices() {
-    if (_currentScript == null || _currentLineId == null) return null;
+    if (_episode == null) return null;
 
-    try {
-      final line = _currentScript!.script.firstWhere((l) => l.id == _currentLineId);
-      if (line.type == 'choice') return line.options;
-    } catch (_) {}
+    final scene = _episode!.scenes[_sceneIndex];
+
+    if (_eventIndex >= scene.events.length) return null;
+
+    final event = scene.events[_eventIndex];
+
+    if (event.type == 'choice') {
+      return event.options;
+    }
 
     return null;
   }
