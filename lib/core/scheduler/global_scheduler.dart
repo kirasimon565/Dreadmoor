@@ -51,7 +51,6 @@ class GlobalScheduler {
     _timer?.cancel();
 
     final loader = ref.read(scriptLoaderProvider);
-
     final episode = await loader.loadEpisode(episodeId);
 
     _episode = episode;
@@ -70,9 +69,12 @@ class GlobalScheduler {
     _timer?.cancel();
 
     if (_episode == null) return;
-
     if (ref.read(isSchedulerPausedProvider)) return;
     if (ref.read(waitingForChoiceProvider)) return;
+
+    if (_sceneIndex >= _episode!.scenes.length) {
+      return;
+    }
 
     final scene = _episode!.scenes[_sceneIndex];
 
@@ -107,7 +109,7 @@ class GlobalScheduler {
       final db = ref.read(databaseProvider);
 
       db.update(db.threads)
-        ..where((t) => t.id.equals(event.sender!))
+        ..where((t) => t.id.equals(event.threadId!))
         ..write(const ThreadsCompanion(isTyping: Value(true)));
     }
 
@@ -119,8 +121,12 @@ class GlobalScheduler {
   Future<void> _executeEvent(EventScript event) async {
     final db = ref.read(databaseProvider);
 
+    /// ----------------------
+    /// TYPING EVENT
+    /// ----------------------
+
     if (event.type == 'typing') {
-      await (db.update(db.threads)..where((t) => t.id.equals(event.sender!)))
+      await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
           .write(const ThreadsCompanion(isTyping: Value(false)));
 
       _eventIndex++;
@@ -128,12 +134,18 @@ class GlobalScheduler {
       return;
     }
 
+    /// ----------------------
+    /// MESSAGE EVENT
+    /// ----------------------
+
     if (event.type == 'message') {
+      await _ensureThreadExists(event.threadId!, event.sender!);
+
       final id = await db.into(db.messages).insert(
         MessagesCompanion.insert(
           threadId: event.threadId!,
           senderId: event.sender!,
-          content: event.text!,
+          content: event.text ?? '',
           timestamp: Value(DateTime.now()),
         ),
       );
@@ -143,18 +155,32 @@ class GlobalScheduler {
 
       await _incrementUnread(db, event.threadId!);
 
+      /// Notification trigger hook
+      final activeThread = ref.read(activeThreadIdProvider);
+
+      if (activeThread != event.threadId) {
+        // notification system will connect here
+      }
+
       _eventIndex++;
       _scheduleNextTick();
       return;
     }
 
+    /// ----------------------
+    /// SYSTEM MESSAGE
+    /// ----------------------
+
     if (event.type == 'system') {
+      await _ensureThreadExists(event.threadId!, 'system');
+
       await db.into(db.messages).insert(
         MessagesCompanion.insert(
           threadId: event.threadId!,
           senderId: 'system',
           content: event.text ?? '',
           type: const Value('system'),
+          timestamp: Value(DateTime.now()),
         ),
       );
 
@@ -163,13 +189,44 @@ class GlobalScheduler {
       return;
     }
 
+    /// ----------------------
+    /// CHOICE EVENT
+    /// ----------------------
+
     if (event.type == 'choice') {
       ref.read(waitingForChoiceProvider.notifier).state = true;
       return;
     }
 
+    /// ----------------------
+    /// UNKNOWN EVENT
+    /// ----------------------
+
     _eventIndex++;
     _scheduleNextTick();
+  }
+
+  /// Ensure thread exists before writing messages
+  Future<void> _ensureThreadExists(String threadId, String sender) async {
+    final db = ref.read(databaseProvider);
+
+    final existing =
+        await (db.select(db.threads)..where((t) => t.id.equals(threadId)))
+            .getSingleOrNull();
+
+    if (existing != null) return;
+
+    await db.into(db.threads).insert(
+          ThreadsCompanion.insert(
+            id: threadId,
+            title: threadId,
+            participants: sender,
+            unreadCount: const Value(0),
+            isTyping: const Value(false),
+            isLocked: const Value(false),
+            isSecret: const Value(false),
+          ),
+        );
   }
 
   Future<void> _incrementUnread(AppDatabase db, String threadId) async {
@@ -212,6 +269,8 @@ class GlobalScheduler {
 
   List<ChoiceOption>? getCurrentChoices() {
     if (_episode == null) return null;
+
+    if (_sceneIndex >= _episode!.scenes.length) return null;
 
     final scene = _episode!.scenes[_sceneIndex];
 
