@@ -6,75 +6,59 @@ part of 'script_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-EpisodeMeta _$EpisodeMetaFromJson(Map<String, dynamic> json) => EpisodeMeta(
-      id: json['id'] as String,
+EpisodeScript _$EpisodeScriptFromJson(Map<String, dynamic> json) =>
+    EpisodeScript(
+      episodeId: json['episodeId'] as String,
       title: json['title'] as String,
-      description: json['description'] as String,
-      isLocked: json['isLocked'] as bool? ?? true,
-      threads:
-          (json['threads'] as List<dynamic>).map((e) => e as String).toList(),
-    );
-
-Map<String, dynamic> _$EpisodeMetaToJson(EpisodeMeta instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'description': instance.description,
-      'isLocked': instance.isLocked,
-      'threads': instance.threads,
-    };
-
-ThreadScript _$ThreadScriptFromJson(Map<String, dynamic> json) => ThreadScript(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      participants: (json['participants'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-      script: (json['script'] as List<dynamic>)
-          .map((e) => ScriptLine.fromJson(e as Map<String, dynamic>))
+      version: (json['version'] as num).toInt(),
+      format: json['format'] as String,
+      scenes: (json['scenes'] as List<dynamic>)
+          .map((e) => SceneScript.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$ThreadScriptToJson(ThreadScript instance) =>
+Map<String, dynamic> _$EpisodeScriptToJson(EpisodeScript instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'episodeId': instance.episodeId,
       'title': instance.title,
-      'participants': instance.participants,
-      'script': instance.script,
+      'version': instance.version,
+      'format': instance.format,
+      'scenes': instance.scenes,
     };
 
-ScriptLine _$ScriptLineFromJson(Map<String, dynamic> json) => ScriptLine(
+SceneScript _$SceneScriptFromJson(Map<String, dynamic> json) => SceneScript(
+      sceneId: json['sceneId'] as String,
+      events: (json['events'] as List<dynamic>)
+          .map((e) => EventScript.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$SceneScriptToJson(SceneScript instance) =>
+    <String, dynamic>{
+      'sceneId': instance.sceneId,
+      'events': instance.events,
+    };
+
+EventScript _$EventScriptFromJson(Map<String, dynamic> json) => EventScript(
       id: json['id'] as String,
       type: json['type'] as String,
-      senderId: json['senderId'] as String?,
-      content: json['content'] as String?,
-      delay: (json['delay'] as num?)?.toInt(),
-      next: json['next'] as String?,
-      options: (json['options'] as List<dynamic>?)
-          ?.map((e) => ChoiceOption.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      jumpto: json['jumpto'] as String?,
+      sender: json['sender'] as String?,
+      text: json['text'] as String?,
+      choiceId: json['choiceId'] as String?,
+      options:
+          (json['options'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      duration: (json['duration'] as num?)?.toInt(),
+      meta: json['meta'] as Map<String, dynamic>?,
     );
 
-Map<String, dynamic> _$ScriptLineToJson(ScriptLine instance) =>
+Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
-      'senderId': instance.senderId,
-      'content': instance.content,
-      'delay': instance.delay,
-      'next': instance.next,
-      'options': instance.options,
-      'jumpto': instance.jumpto,
-    };
-
-ChoiceOption _$ChoiceOptionFromJson(Map<String, dynamic> json) => ChoiceOption(
-      text: json['text'] as String,
-      jumpto: json['jumpto'] as String,
-    );
-
-Map<String, dynamic> _$ChoiceOptionToJson(ChoiceOption instance) =>
-    <String, dynamic>{
+      'sender': instance.sender,
       'text': instance.text,
-      'jumpto': instance.jumpto,
+      'choiceId': instance.choiceId,
+      'options': instance.options,
+      'duration': instance.duration,
+      'meta': instance.meta,
     };
