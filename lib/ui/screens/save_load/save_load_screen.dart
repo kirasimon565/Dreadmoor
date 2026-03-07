@@ -7,7 +7,7 @@ import '../../../core/persistence/drift_database.dart';
 import '../../../core/state/game_state.dart';
 import '../../theme/colors.dart';
 import '../../widgets/custom_screen_header.dart';
-import '../../widgets/shared_screen_painters.dart'; // FIX: was private classes
+import '../../widgets/shared_screen_painters.dart';
 
 class SaveLoadScreen extends ConsumerWidget {
   const SaveLoadScreen({super.key});
