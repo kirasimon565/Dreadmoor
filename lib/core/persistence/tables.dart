@@ -1,29 +1,51 @@
 import 'package:drift/drift.dart';
 
+
+// --------------------------------------------------
+// PLAYER
+// --------------------------------------------------
+
 class Players extends Table {
   IntColumn get id => integer().autoIncrement()();
+
   TextColumn get name => text()();
+
   TextColumn get gender => text()();
+
   TextColumn get profilePath => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  DateTimeColumn get createdAt =>
+      dateTime().withDefault(currentDateAndTime)();
 }
+
+
+
+// --------------------------------------------------
+// THREADS (CHAT LIST)
+// --------------------------------------------------
 
 class Threads extends Table {
   TextColumn get id => text()();
+
   TextColumn get title => text()();
 
-  /// id of last visible message
+  /// last visible message
   IntColumn get lastMessageId => integer().nullable()();
 
-  BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
-  BoolColumn get isTyping => boolean().withDefault(const Constant(false))();
+  BoolColumn get isLocked =>
+      boolean().withDefault(const Constant(false))();
 
-  /// for secret chats / intercepts
-  BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
+  BoolColumn get isTyping =>
+      boolean().withDefault(const Constant(false))();
 
-  IntColumn get unreadCount => integer().withDefault(const Constant(0))();
+  /// secret chat / intercept
+  BoolColumn get isSecret =>
+      boolean().withDefault(const Constant(false))();
 
-  /// JSON list of participant ids
+  IntColumn get unreadCount =>
+      integer().withDefault(const Constant(0))();
+
+  /// JSON participant list
   TextColumn get participants => text()();
 
   @override
@@ -42,8 +64,17 @@ class Threads extends Table {
       ];
 }
 
+
+
+// --------------------------------------------------
+// MESSAGES
+// --------------------------------------------------
+
 class Messages extends Table {
   IntColumn get id => integer().autoIncrement()();
+
+  /// eventId from episode JSON (e001, e002, etc.)
+  TextColumn get eventId => text().nullable()();
 
   /// chat thread
   TextColumn get threadId =>
@@ -52,19 +83,21 @@ class Messages extends Table {
   /// sender character id
   TextColumn get senderId => text()();
 
-  /// visible message text
+  /// message text
   TextColumn get content => text().nullable()();
 
+  /// message type
   /// text / image / video / audio / system / typing / choice
   TextColumn get type =>
       text().withDefault(const Constant('text'))();
 
-  /// attachment path (video, image, audio)
+  /// attachment
   TextColumn get mediaPath => text().nullable()();
 
-  /// ordering control (important for scripted playback)
+  /// ordering for playback
   IntColumn get sequence => integer()();
 
+  /// event timestamp
   DateTimeColumn get timestamp =>
       dateTime().withDefault(currentDateAndTime)();
 
@@ -77,7 +110,12 @@ class Messages extends Table {
   BoolColumn get isRead =>
       boolean().withDefault(const Constant(false))();
 
-  /// JSON metadata (choices, pauses, typing indicators)
+  /// JSON metadata
+  /// contains:
+  /// choiceId
+  /// delayAfter
+  /// typing.duration
+  /// etc
   TextColumn get meta => text().nullable()();
 
   @override
@@ -90,13 +128,22 @@ class Messages extends Table {
           'messages_sequence_idx',
           'CREATE INDEX messages_sequence_idx ON messages (sequence)',
         ),
+        Index(
+          'messages_event_idx',
+          'CREATE INDEX messages_event_idx ON messages (event_id)',
+        ),
       ];
 }
+
+
+
+// --------------------------------------------------
+// STORY FLAGS
+// --------------------------------------------------
 
 class StoryState extends Table {
   TextColumn get key => text()();
 
-  /// story flags
   BoolColumn get value =>
       boolean().withDefault(const Constant(false))();
 
@@ -107,14 +154,25 @@ class StoryState extends Table {
   Set<Column> get primaryKey => {key};
 }
 
+
+
+// --------------------------------------------------
+// EPISODES
+// --------------------------------------------------
+
 class Episodes extends Table {
   TextColumn get id => text()();
 
   BoolColumn get isUnlocked =>
       boolean().withDefault(const Constant(false))();
 
+  /// playback progress (event index)
   IntColumn get progress =>
       integer().withDefault(const Constant(0))();
+
+  /// episode version (for future updates)
+  IntColumn get version =>
+      integer().withDefault(const Constant(1))();
 
   @override
   Set<Column> get primaryKey => {id};
