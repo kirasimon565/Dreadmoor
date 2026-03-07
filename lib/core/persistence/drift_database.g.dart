@@ -468,11 +468,17 @@ class $ThreadsTable extends Threads with TableInfo<$ThreadsTable, Thread> {
 class Thread extends DataClass implements Insertable<Thread> {
   final String id;
   final String title;
+
+  /// last visible message
   final int? lastMessageId;
   final bool isLocked;
   final bool isTyping;
+
+  /// secret chat / intercept
   final bool isSecret;
   final int unreadCount;
+
+  /// JSON participant list
   final String participants;
   const Thread(
       {required this.id,
@@ -758,6 +764,12 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _eventIdMeta =
+      const VerificationMeta('eventId');
+  @override
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+      'event_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _threadIdMeta =
       const VerificationMeta('threadId');
   @override
@@ -777,8 +789,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-      'content', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      'content', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
@@ -786,6 +798,18 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('text'));
+  static const VerificationMeta _mediaPathMeta =
+      const VerificationMeta('mediaPath');
+  @override
+  late final GeneratedColumn<String> mediaPath = GeneratedColumn<String>(
+      'media_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _sequenceMeta =
+      const VerificationMeta('sequence');
+  @override
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+      'sequence', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _timestampMeta =
       const VerificationMeta('timestamp');
   @override
@@ -823,17 +847,26 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_read" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _metaMeta = const VerificationMeta('meta');
+  @override
+  late final GeneratedColumn<String> meta = GeneratedColumn<String>(
+      'meta', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
+        eventId,
         threadId,
         senderId,
         content,
         type,
+        mediaPath,
+        sequence,
         timestamp,
         isPlayerMessage,
         isSecret,
-        isRead
+        isRead,
+        meta
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -847,6 +880,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(_eventIdMeta,
+          eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta));
     }
     if (data.containsKey('thread_id')) {
       context.handle(_threadIdMeta,
@@ -863,12 +900,20 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     if (data.containsKey('content')) {
       context.handle(_contentMeta,
           content.isAcceptableOrUnknown(data['content']!, _contentMeta));
-    } else if (isInserting) {
-      context.missing(_contentMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
           _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    }
+    if (data.containsKey('media_path')) {
+      context.handle(_mediaPathMeta,
+          mediaPath.isAcceptableOrUnknown(data['media_path']!, _mediaPathMeta));
+    }
+    if (data.containsKey('sequence')) {
+      context.handle(_sequenceMeta,
+          sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta));
+    } else if (isInserting) {
+      context.missing(_sequenceMeta);
     }
     if (data.containsKey('timestamp')) {
       context.handle(_timestampMeta,
@@ -888,6 +933,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       context.handle(_isReadMeta,
           isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta));
     }
+    if (data.containsKey('meta')) {
+      context.handle(
+          _metaMeta, meta.isAcceptableOrUnknown(data['meta']!, _metaMeta));
+    }
     return context;
   }
 
@@ -899,14 +948,20 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     return Message(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      eventId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}event_id']),
       threadId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
       senderId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sender_id'])!,
       content: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}content']),
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      mediaPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}media_path']),
+      sequence: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sequence'])!,
       timestamp: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
       isPlayerMessage: attachedDatabase.typeMapping.read(
@@ -915,6 +970,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_secret'])!,
       isRead: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_read'])!,
+      meta: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}meta']),
     );
   }
 
@@ -926,50 +983,104 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
 
 class Message extends DataClass implements Insertable<Message> {
   final int id;
+
+  /// eventId from episode JSON (e001, e002, etc.)
+  final String? eventId;
+
+  /// chat thread
   final String threadId;
+
+  /// sender character id
   final String senderId;
-  final String content;
+
+  /// message text
+  final String? content;
+
+  /// message type
+  /// text / image / video / audio / system / typing / choice
   final String type;
+
+  /// attachment
+  final String? mediaPath;
+
+  /// ordering for playback
+  final int sequence;
+
+  /// event timestamp
   final DateTime timestamp;
   final bool isPlayerMessage;
   final bool isSecret;
   final bool isRead;
+
+  /// JSON metadata
+  /// contains:
+  /// choiceId
+  /// delayAfter
+  /// typing.duration
+  /// etc
+  final String? meta;
   const Message(
       {required this.id,
+      this.eventId,
       required this.threadId,
       required this.senderId,
-      required this.content,
+      this.content,
       required this.type,
+      this.mediaPath,
+      required this.sequence,
       required this.timestamp,
       required this.isPlayerMessage,
       required this.isSecret,
-      required this.isRead});
+      required this.isRead,
+      this.meta});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || eventId != null) {
+      map['event_id'] = Variable<String>(eventId);
+    }
     map['thread_id'] = Variable<String>(threadId);
     map['sender_id'] = Variable<String>(senderId);
-    map['content'] = Variable<String>(content);
+    if (!nullToAbsent || content != null) {
+      map['content'] = Variable<String>(content);
+    }
     map['type'] = Variable<String>(type);
+    if (!nullToAbsent || mediaPath != null) {
+      map['media_path'] = Variable<String>(mediaPath);
+    }
+    map['sequence'] = Variable<int>(sequence);
     map['timestamp'] = Variable<DateTime>(timestamp);
     map['is_player_message'] = Variable<bool>(isPlayerMessage);
     map['is_secret'] = Variable<bool>(isSecret);
     map['is_read'] = Variable<bool>(isRead);
+    if (!nullToAbsent || meta != null) {
+      map['meta'] = Variable<String>(meta);
+    }
     return map;
   }
 
   MessagesCompanion toCompanion(bool nullToAbsent) {
     return MessagesCompanion(
       id: Value(id),
+      eventId: eventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventId),
       threadId: Value(threadId),
       senderId: Value(senderId),
-      content: Value(content),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
       type: Value(type),
+      mediaPath: mediaPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaPath),
+      sequence: Value(sequence),
       timestamp: Value(timestamp),
       isPlayerMessage: Value(isPlayerMessage),
       isSecret: Value(isSecret),
       isRead: Value(isRead),
+      meta: meta == null && nullToAbsent ? const Value.absent() : Value(meta),
     );
   }
 
@@ -978,14 +1089,18 @@ class Message extends DataClass implements Insertable<Message> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Message(
       id: serializer.fromJson<int>(json['id']),
+      eventId: serializer.fromJson<String?>(json['eventId']),
       threadId: serializer.fromJson<String>(json['threadId']),
       senderId: serializer.fromJson<String>(json['senderId']),
-      content: serializer.fromJson<String>(json['content']),
+      content: serializer.fromJson<String?>(json['content']),
       type: serializer.fromJson<String>(json['type']),
+      mediaPath: serializer.fromJson<String?>(json['mediaPath']),
+      sequence: serializer.fromJson<int>(json['sequence']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
       isPlayerMessage: serializer.fromJson<bool>(json['isPlayerMessage']),
       isSecret: serializer.fromJson<bool>(json['isSecret']),
       isRead: serializer.fromJson<bool>(json['isRead']),
+      meta: serializer.fromJson<String?>(json['meta']),
     );
   }
   @override
@@ -993,51 +1108,67 @@ class Message extends DataClass implements Insertable<Message> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'eventId': serializer.toJson<String?>(eventId),
       'threadId': serializer.toJson<String>(threadId),
       'senderId': serializer.toJson<String>(senderId),
-      'content': serializer.toJson<String>(content),
+      'content': serializer.toJson<String?>(content),
       'type': serializer.toJson<String>(type),
+      'mediaPath': serializer.toJson<String?>(mediaPath),
+      'sequence': serializer.toJson<int>(sequence),
       'timestamp': serializer.toJson<DateTime>(timestamp),
       'isPlayerMessage': serializer.toJson<bool>(isPlayerMessage),
       'isSecret': serializer.toJson<bool>(isSecret),
       'isRead': serializer.toJson<bool>(isRead),
+      'meta': serializer.toJson<String?>(meta),
     };
   }
 
   Message copyWith(
           {int? id,
+          Value<String?> eventId = const Value.absent(),
           String? threadId,
           String? senderId,
-          String? content,
+          Value<String?> content = const Value.absent(),
           String? type,
+          Value<String?> mediaPath = const Value.absent(),
+          int? sequence,
           DateTime? timestamp,
           bool? isPlayerMessage,
           bool? isSecret,
-          bool? isRead}) =>
+          bool? isRead,
+          Value<String?> meta = const Value.absent()}) =>
       Message(
         id: id ?? this.id,
+        eventId: eventId.present ? eventId.value : this.eventId,
         threadId: threadId ?? this.threadId,
         senderId: senderId ?? this.senderId,
-        content: content ?? this.content,
+        content: content.present ? content.value : this.content,
         type: type ?? this.type,
+        mediaPath: mediaPath.present ? mediaPath.value : this.mediaPath,
+        sequence: sequence ?? this.sequence,
         timestamp: timestamp ?? this.timestamp,
         isPlayerMessage: isPlayerMessage ?? this.isPlayerMessage,
         isSecret: isSecret ?? this.isSecret,
         isRead: isRead ?? this.isRead,
+        meta: meta.present ? meta.value : this.meta,
       );
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
       id: data.id.present ? data.id.value : this.id,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
       threadId: data.threadId.present ? data.threadId.value : this.threadId,
       senderId: data.senderId.present ? data.senderId.value : this.senderId,
       content: data.content.present ? data.content.value : this.content,
       type: data.type.present ? data.type.value : this.type,
+      mediaPath: data.mediaPath.present ? data.mediaPath.value : this.mediaPath,
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
       isPlayerMessage: data.isPlayerMessage.present
           ? data.isPlayerMessage.value
           : this.isPlayerMessage,
       isSecret: data.isSecret.present ? data.isSecret.value : this.isSecret,
       isRead: data.isRead.present ? data.isRead.value : this.isRead,
+      meta: data.meta.present ? data.meta.value : this.meta,
     );
   }
 
@@ -1045,114 +1176,162 @@ class Message extends DataClass implements Insertable<Message> {
   String toString() {
     return (StringBuffer('Message(')
           ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
           ..write('threadId: $threadId, ')
           ..write('senderId: $senderId, ')
           ..write('content: $content, ')
           ..write('type: $type, ')
+          ..write('mediaPath: $mediaPath, ')
+          ..write('sequence: $sequence, ')
           ..write('timestamp: $timestamp, ')
           ..write('isPlayerMessage: $isPlayerMessage, ')
           ..write('isSecret: $isSecret, ')
-          ..write('isRead: $isRead')
+          ..write('isRead: $isRead, ')
+          ..write('meta: $meta')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, threadId, senderId, content, type,
-      timestamp, isPlayerMessage, isSecret, isRead);
+  int get hashCode => Object.hash(
+      id,
+      eventId,
+      threadId,
+      senderId,
+      content,
+      type,
+      mediaPath,
+      sequence,
+      timestamp,
+      isPlayerMessage,
+      isSecret,
+      isRead,
+      meta);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Message &&
           other.id == this.id &&
+          other.eventId == this.eventId &&
           other.threadId == this.threadId &&
           other.senderId == this.senderId &&
           other.content == this.content &&
           other.type == this.type &&
+          other.mediaPath == this.mediaPath &&
+          other.sequence == this.sequence &&
           other.timestamp == this.timestamp &&
           other.isPlayerMessage == this.isPlayerMessage &&
           other.isSecret == this.isSecret &&
-          other.isRead == this.isRead);
+          other.isRead == this.isRead &&
+          other.meta == this.meta);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<int> id;
+  final Value<String?> eventId;
   final Value<String> threadId;
   final Value<String> senderId;
-  final Value<String> content;
+  final Value<String?> content;
   final Value<String> type;
+  final Value<String?> mediaPath;
+  final Value<int> sequence;
   final Value<DateTime> timestamp;
   final Value<bool> isPlayerMessage;
   final Value<bool> isSecret;
   final Value<bool> isRead;
+  final Value<String?> meta;
   const MessagesCompanion({
     this.id = const Value.absent(),
+    this.eventId = const Value.absent(),
     this.threadId = const Value.absent(),
     this.senderId = const Value.absent(),
     this.content = const Value.absent(),
     this.type = const Value.absent(),
+    this.mediaPath = const Value.absent(),
+    this.sequence = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.isPlayerMessage = const Value.absent(),
     this.isSecret = const Value.absent(),
     this.isRead = const Value.absent(),
+    this.meta = const Value.absent(),
   });
   MessagesCompanion.insert({
     this.id = const Value.absent(),
+    this.eventId = const Value.absent(),
     required String threadId,
     required String senderId,
-    required String content,
+    this.content = const Value.absent(),
     this.type = const Value.absent(),
+    this.mediaPath = const Value.absent(),
+    required int sequence,
     this.timestamp = const Value.absent(),
     this.isPlayerMessage = const Value.absent(),
     this.isSecret = const Value.absent(),
     this.isRead = const Value.absent(),
+    this.meta = const Value.absent(),
   })  : threadId = Value(threadId),
         senderId = Value(senderId),
-        content = Value(content);
+        sequence = Value(sequence);
   static Insertable<Message> custom({
     Expression<int>? id,
+    Expression<String>? eventId,
     Expression<String>? threadId,
     Expression<String>? senderId,
     Expression<String>? content,
     Expression<String>? type,
+    Expression<String>? mediaPath,
+    Expression<int>? sequence,
     Expression<DateTime>? timestamp,
     Expression<bool>? isPlayerMessage,
     Expression<bool>? isSecret,
     Expression<bool>? isRead,
+    Expression<String>? meta,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (eventId != null) 'event_id': eventId,
       if (threadId != null) 'thread_id': threadId,
       if (senderId != null) 'sender_id': senderId,
       if (content != null) 'content': content,
       if (type != null) 'type': type,
+      if (mediaPath != null) 'media_path': mediaPath,
+      if (sequence != null) 'sequence': sequence,
       if (timestamp != null) 'timestamp': timestamp,
       if (isPlayerMessage != null) 'is_player_message': isPlayerMessage,
       if (isSecret != null) 'is_secret': isSecret,
       if (isRead != null) 'is_read': isRead,
+      if (meta != null) 'meta': meta,
     });
   }
 
   MessagesCompanion copyWith(
       {Value<int>? id,
+      Value<String?>? eventId,
       Value<String>? threadId,
       Value<String>? senderId,
-      Value<String>? content,
+      Value<String?>? content,
       Value<String>? type,
+      Value<String?>? mediaPath,
+      Value<int>? sequence,
       Value<DateTime>? timestamp,
       Value<bool>? isPlayerMessage,
       Value<bool>? isSecret,
-      Value<bool>? isRead}) {
+      Value<bool>? isRead,
+      Value<String?>? meta}) {
     return MessagesCompanion(
       id: id ?? this.id,
+      eventId: eventId ?? this.eventId,
       threadId: threadId ?? this.threadId,
       senderId: senderId ?? this.senderId,
       content: content ?? this.content,
       type: type ?? this.type,
+      mediaPath: mediaPath ?? this.mediaPath,
+      sequence: sequence ?? this.sequence,
       timestamp: timestamp ?? this.timestamp,
       isPlayerMessage: isPlayerMessage ?? this.isPlayerMessage,
       isSecret: isSecret ?? this.isSecret,
       isRead: isRead ?? this.isRead,
+      meta: meta ?? this.meta,
     );
   }
 
@@ -1161,6 +1340,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
     }
     if (threadId.present) {
       map['thread_id'] = Variable<String>(threadId.value);
@@ -1174,6 +1356,12 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
+    if (mediaPath.present) {
+      map['media_path'] = Variable<String>(mediaPath.value);
+    }
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
+    }
     if (timestamp.present) {
       map['timestamp'] = Variable<DateTime>(timestamp.value);
     }
@@ -1186,6 +1374,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (isRead.present) {
       map['is_read'] = Variable<bool>(isRead.value);
     }
+    if (meta.present) {
+      map['meta'] = Variable<String>(meta.value);
+    }
     return map;
   }
 
@@ -1193,14 +1384,18 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   String toString() {
     return (StringBuffer('MessagesCompanion(')
           ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
           ..write('threadId: $threadId, ')
           ..write('senderId: $senderId, ')
           ..write('content: $content, ')
           ..write('type: $type, ')
+          ..write('mediaPath: $mediaPath, ')
+          ..write('sequence: $sequence, ')
           ..write('timestamp: $timestamp, ')
           ..write('isPlayerMessage: $isPlayerMessage, ')
           ..write('isSecret: $isSecret, ')
-          ..write('isRead: $isRead')
+          ..write('isRead: $isRead, ')
+          ..write('meta: $meta')
           ..write(')'))
         .toString();
   }
@@ -1463,8 +1658,16 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _versionMeta =
+      const VerificationMeta('version');
   @override
-  List<GeneratedColumn> get $columns => [id, isUnlocked, progress];
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+      'version', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  @override
+  List<GeneratedColumn> get $columns => [id, isUnlocked, progress, version];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1490,6 +1693,10 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
       context.handle(_progressMeta,
           progress.isAcceptableOrUnknown(data['progress']!, _progressMeta));
     }
+    if (data.containsKey('version')) {
+      context.handle(_versionMeta,
+          version.isAcceptableOrUnknown(data['version']!, _versionMeta));
+    }
     return context;
   }
 
@@ -1505,6 +1712,8 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_unlocked'])!,
       progress: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}progress'])!,
+      version: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}version'])!,
     );
   }
 
@@ -1517,15 +1726,24 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
 class Episode extends DataClass implements Insertable<Episode> {
   final String id;
   final bool isUnlocked;
+
+  /// playback progress (event index)
   final int progress;
+
+  /// episode version (for future updates)
+  final int version;
   const Episode(
-      {required this.id, required this.isUnlocked, required this.progress});
+      {required this.id,
+      required this.isUnlocked,
+      required this.progress,
+      required this.version});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['is_unlocked'] = Variable<bool>(isUnlocked);
     map['progress'] = Variable<int>(progress);
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -1534,6 +1752,7 @@ class Episode extends DataClass implements Insertable<Episode> {
       id: Value(id),
       isUnlocked: Value(isUnlocked),
       progress: Value(progress),
+      version: Value(version),
     );
   }
 
@@ -1544,6 +1763,7 @@ class Episode extends DataClass implements Insertable<Episode> {
       id: serializer.fromJson<String>(json['id']),
       isUnlocked: serializer.fromJson<bool>(json['isUnlocked']),
       progress: serializer.fromJson<int>(json['progress']),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -1553,13 +1773,17 @@ class Episode extends DataClass implements Insertable<Episode> {
       'id': serializer.toJson<String>(id),
       'isUnlocked': serializer.toJson<bool>(isUnlocked),
       'progress': serializer.toJson<int>(progress),
+      'version': serializer.toJson<int>(version),
     };
   }
 
-  Episode copyWith({String? id, bool? isUnlocked, int? progress}) => Episode(
+  Episode copyWith(
+          {String? id, bool? isUnlocked, int? progress, int? version}) =>
+      Episode(
         id: id ?? this.id,
         isUnlocked: isUnlocked ?? this.isUnlocked,
         progress: progress ?? this.progress,
+        version: version ?? this.version,
       );
   Episode copyWithCompanion(EpisodesCompanion data) {
     return Episode(
@@ -1567,6 +1791,7 @@ class Episode extends DataClass implements Insertable<Episode> {
       isUnlocked:
           data.isUnlocked.present ? data.isUnlocked.value : this.isUnlocked,
       progress: data.progress.present ? data.progress.value : this.progress,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -1575,49 +1800,56 @@ class Episode extends DataClass implements Insertable<Episode> {
     return (StringBuffer('Episode(')
           ..write('id: $id, ')
           ..write('isUnlocked: $isUnlocked, ')
-          ..write('progress: $progress')
+          ..write('progress: $progress, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, isUnlocked, progress);
+  int get hashCode => Object.hash(id, isUnlocked, progress, version);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Episode &&
           other.id == this.id &&
           other.isUnlocked == this.isUnlocked &&
-          other.progress == this.progress);
+          other.progress == this.progress &&
+          other.version == this.version);
 }
 
 class EpisodesCompanion extends UpdateCompanion<Episode> {
   final Value<String> id;
   final Value<bool> isUnlocked;
   final Value<int> progress;
+  final Value<int> version;
   final Value<int> rowid;
   const EpisodesCompanion({
     this.id = const Value.absent(),
     this.isUnlocked = const Value.absent(),
     this.progress = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   EpisodesCompanion.insert({
     required String id,
     this.isUnlocked = const Value.absent(),
     this.progress = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
   static Insertable<Episode> custom({
     Expression<String>? id,
     Expression<bool>? isUnlocked,
     Expression<int>? progress,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (isUnlocked != null) 'is_unlocked': isUnlocked,
       if (progress != null) 'progress': progress,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1626,11 +1858,13 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
       {Value<String>? id,
       Value<bool>? isUnlocked,
       Value<int>? progress,
+      Value<int>? version,
       Value<int>? rowid}) {
     return EpisodesCompanion(
       id: id ?? this.id,
       isUnlocked: isUnlocked ?? this.isUnlocked,
       progress: progress ?? this.progress,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1647,6 +1881,9 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
     if (progress.present) {
       map['progress'] = Variable<int>(progress.value);
     }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1659,6 +1896,7 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
           ..write('id: $id, ')
           ..write('isUnlocked: $isUnlocked, ')
           ..write('progress: $progress, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2150,25 +2388,33 @@ typedef $$ThreadsTableProcessedTableManager = ProcessedTableManager<
     PrefetchHooks Function({bool messagesRefs})>;
 typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   Value<int> id,
+  Value<String?> eventId,
   required String threadId,
   required String senderId,
-  required String content,
+  Value<String?> content,
   Value<String> type,
+  Value<String?> mediaPath,
+  required int sequence,
   Value<DateTime> timestamp,
   Value<bool> isPlayerMessage,
   Value<bool> isSecret,
   Value<bool> isRead,
+  Value<String?> meta,
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<int> id,
+  Value<String?> eventId,
   Value<String> threadId,
   Value<String> senderId,
-  Value<String> content,
+  Value<String?> content,
   Value<String> type,
+  Value<String?> mediaPath,
+  Value<int> sequence,
   Value<DateTime> timestamp,
   Value<bool> isPlayerMessage,
   Value<bool> isSecret,
   Value<bool> isRead,
+  Value<String?> meta,
 });
 
 final class $$MessagesTableReferences
@@ -2202,6 +2448,9 @@ class $$MessagesTableFilterComposer
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get eventId => $composableBuilder(
+      column: $table.eventId, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get senderId => $composableBuilder(
       column: $table.senderId, builder: (column) => ColumnFilters(column));
 
@@ -2210,6 +2459,12 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mediaPath => $composableBuilder(
+      column: $table.mediaPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sequence => $composableBuilder(
+      column: $table.sequence, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get timestamp => $composableBuilder(
       column: $table.timestamp, builder: (column) => ColumnFilters(column));
@@ -2223,6 +2478,9 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<bool> get isRead => $composableBuilder(
       column: $table.isRead, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get meta => $composableBuilder(
+      column: $table.meta, builder: (column) => ColumnFilters(column));
 
   $$ThreadsTableFilterComposer get threadId {
     final $$ThreadsTableFilterComposer composer = $composerBuilder(
@@ -2257,6 +2515,9 @@ class $$MessagesTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get eventId => $composableBuilder(
+      column: $table.eventId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get senderId => $composableBuilder(
       column: $table.senderId, builder: (column) => ColumnOrderings(column));
 
@@ -2265,6 +2526,12 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mediaPath => $composableBuilder(
+      column: $table.mediaPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sequence => $composableBuilder(
+      column: $table.sequence, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get timestamp => $composableBuilder(
       column: $table.timestamp, builder: (column) => ColumnOrderings(column));
@@ -2278,6 +2545,9 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<bool> get isRead => $composableBuilder(
       column: $table.isRead, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get meta => $composableBuilder(
+      column: $table.meta, builder: (column) => ColumnOrderings(column));
 
   $$ThreadsTableOrderingComposer get threadId {
     final $$ThreadsTableOrderingComposer composer = $composerBuilder(
@@ -2312,6 +2582,9 @@ class $$MessagesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+
   GeneratedColumn<String> get senderId =>
       $composableBuilder(column: $table.senderId, builder: (column) => column);
 
@@ -2320,6 +2593,12 @@ class $$MessagesTableAnnotationComposer
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaPath =>
+      $composableBuilder(column: $table.mediaPath, builder: (column) => column);
+
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
 
   GeneratedColumn<DateTime> get timestamp =>
       $composableBuilder(column: $table.timestamp, builder: (column) => column);
@@ -2332,6 +2611,9 @@ class $$MessagesTableAnnotationComposer
 
   GeneratedColumn<bool> get isRead =>
       $composableBuilder(column: $table.isRead, builder: (column) => column);
+
+  GeneratedColumn<String> get meta =>
+      $composableBuilder(column: $table.meta, builder: (column) => column);
 
   $$ThreadsTableAnnotationComposer get threadId {
     final $$ThreadsTableAnnotationComposer composer = $composerBuilder(
@@ -2378,47 +2660,63 @@ class $$MessagesTableTableManager extends RootTableManager<
               $$MessagesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
+            Value<String?> eventId = const Value.absent(),
             Value<String> threadId = const Value.absent(),
             Value<String> senderId = const Value.absent(),
-            Value<String> content = const Value.absent(),
+            Value<String?> content = const Value.absent(),
             Value<String> type = const Value.absent(),
+            Value<String?> mediaPath = const Value.absent(),
+            Value<int> sequence = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<bool> isPlayerMessage = const Value.absent(),
             Value<bool> isSecret = const Value.absent(),
             Value<bool> isRead = const Value.absent(),
+            Value<String?> meta = const Value.absent(),
           }) =>
               MessagesCompanion(
             id: id,
+            eventId: eventId,
             threadId: threadId,
             senderId: senderId,
             content: content,
             type: type,
+            mediaPath: mediaPath,
+            sequence: sequence,
             timestamp: timestamp,
             isPlayerMessage: isPlayerMessage,
             isSecret: isSecret,
             isRead: isRead,
+            meta: meta,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
+            Value<String?> eventId = const Value.absent(),
             required String threadId,
             required String senderId,
-            required String content,
+            Value<String?> content = const Value.absent(),
             Value<String> type = const Value.absent(),
+            Value<String?> mediaPath = const Value.absent(),
+            required int sequence,
             Value<DateTime> timestamp = const Value.absent(),
             Value<bool> isPlayerMessage = const Value.absent(),
             Value<bool> isSecret = const Value.absent(),
             Value<bool> isRead = const Value.absent(),
+            Value<String?> meta = const Value.absent(),
           }) =>
               MessagesCompanion.insert(
             id: id,
+            eventId: eventId,
             threadId: threadId,
             senderId: senderId,
             content: content,
             type: type,
+            mediaPath: mediaPath,
+            sequence: sequence,
             timestamp: timestamp,
             isPlayerMessage: isPlayerMessage,
             isSecret: isSecret,
             isRead: isRead,
+            meta: meta,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>
@@ -2619,12 +2917,14 @@ typedef $$EpisodesTableCreateCompanionBuilder = EpisodesCompanion Function({
   required String id,
   Value<bool> isUnlocked,
   Value<int> progress,
+  Value<int> version,
   Value<int> rowid,
 });
 typedef $$EpisodesTableUpdateCompanionBuilder = EpisodesCompanion Function({
   Value<String> id,
   Value<bool> isUnlocked,
   Value<int> progress,
+  Value<int> version,
   Value<int> rowid,
 });
 
@@ -2645,6 +2945,9 @@ class $$EpisodesTableFilterComposer
 
   ColumnFilters<int> get progress => $composableBuilder(
       column: $table.progress, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get version => $composableBuilder(
+      column: $table.version, builder: (column) => ColumnFilters(column));
 }
 
 class $$EpisodesTableOrderingComposer
@@ -2664,6 +2967,9 @@ class $$EpisodesTableOrderingComposer
 
   ColumnOrderings<int> get progress => $composableBuilder(
       column: $table.progress, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get version => $composableBuilder(
+      column: $table.version, builder: (column) => ColumnOrderings(column));
 }
 
 class $$EpisodesTableAnnotationComposer
@@ -2683,6 +2989,9 @@ class $$EpisodesTableAnnotationComposer
 
   GeneratedColumn<int> get progress =>
       $composableBuilder(column: $table.progress, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
 }
 
 class $$EpisodesTableTableManager extends RootTableManager<
@@ -2711,24 +3020,28 @@ class $$EpisodesTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<bool> isUnlocked = const Value.absent(),
             Value<int> progress = const Value.absent(),
+            Value<int> version = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               EpisodesCompanion(
             id: id,
             isUnlocked: isUnlocked,
             progress: progress,
+            version: version,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<bool> isUnlocked = const Value.absent(),
             Value<int> progress = const Value.absent(),
+            Value<int> version = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               EpisodesCompanion.insert(
             id: id,
             isUnlocked: isUnlocked,
             progress: progress,
+            version: version,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
