@@ -2,7 +2,7 @@ name: Generate Drift Files
 
 on:
   push:
-    branches: [ main ]
+    branches: [ Production_Dreadmoor ]
   workflow_dispatch:
 
 jobs:
