@@ -2,77 +2,89 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'script_models.g.dart';
 
-@JsonSerializable()
-class EpisodeMeta {
-  final String id;
-  final String title;
-  final String description;
-  final bool isLocked;
-  final List<String> threads;
 
-  EpisodeMeta({
-    required this.id,
+/// ------------------------------------------------------------
+/// EPISODE
+/// ------------------------------------------------------------
+
+@JsonSerializable()
+class EpisodeScript {
+  final String episodeId;
+  final String title;
+  final int version;
+  final String format;
+  final List<SceneScript> scenes;
+
+  EpisodeScript({
+    required this.episodeId,
     required this.title,
-    required this.description,
-    this.isLocked = true,
-    required this.threads,
+    required this.version,
+    required this.format,
+    required this.scenes,
   });
 
-  factory EpisodeMeta.fromJson(Map<String, dynamic> json) => _$EpisodeMetaFromJson(json);
-  Map<String, dynamic> toJson() => _$EpisodeMetaToJson(this);
+  factory EpisodeScript.fromJson(Map<String, dynamic> json) =>
+      _$EpisodeScriptFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EpisodeScriptToJson(this);
 }
 
-@JsonSerializable()
-class ThreadScript {
-  final String id;
-  final String title;
-  final List<String> participants;
-  final List<ScriptLine> script;
 
-  ThreadScript({
-    required this.id,
-    required this.title,
-    required this.participants,
-    required this.script,
+
+/// ------------------------------------------------------------
+/// SCENE
+/// ------------------------------------------------------------
+
+@JsonSerializable()
+class SceneScript {
+  final String sceneId;
+  final List<EventScript> events;
+
+  SceneScript({
+    required this.sceneId,
+    required this.events,
   });
 
-  factory ThreadScript.fromJson(Map<String, dynamic> json) => _$ThreadScriptFromJson(json);
-  Map<String, dynamic> toJson() => _$ThreadScriptToJson(this);
+  factory SceneScript.fromJson(Map<String, dynamic> json) =>
+      _$SceneScriptFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SceneScriptToJson(this);
 }
 
-@JsonSerializable()
-class ScriptLine {
-  final String id;
-  final String type; // text, choice, player_text
-  final String? senderId;
-  final String? content;
-  final int? delay;
-  final String? next;
-  final List<ChoiceOption>? options;
-  final String? jumpto; // For jumping to another line ID
 
-  ScriptLine({
+
+/// ------------------------------------------------------------
+/// EVENT
+/// ------------------------------------------------------------
+
+@JsonSerializable()
+class EventScript {
+  final String id;
+  final String type;
+
+  final String? sender;
+  final String? text;
+
+  final String? choiceId;
+  final List<String>? options;
+
+  final int? duration;
+
+  final Map<String, dynamic>? meta;
+
+  EventScript({
     required this.id,
     required this.type,
-    this.senderId,
-    this.content,
-    this.delay,
-    this.next,
+    this.sender,
+    this.text,
+    this.choiceId,
     this.options,
-    this.jumpto,
+    this.duration,
+    this.meta,
   });
 
-  factory ScriptLine.fromJson(Map<String, dynamic> json) => _$ScriptLineFromJson(json);
-  Map<String, dynamic> toJson() => _$ScriptLineToJson(this);
-}
+  factory EventScript.fromJson(Map<String, dynamic> json) =>
+      _$EventScriptFromJson(json);
 
-@JsonSerializable()
-class ChoiceOption {
-  final String text;
-  final String jumpto;
-
-  ChoiceOption({required this.text, required this.jumpto});
-
-  factory ChoiceOption.fromJson(Map<String, dynamic> json) => _$ChoiceOptionFromJson(json);
-  Map<String, dynamic> toJson() => _$ChoiceOptionToJson(this);
+  Map<String, dynamic> toJson() => _$EventScriptToJson(this);
 }
