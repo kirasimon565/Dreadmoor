@@ -62,6 +62,7 @@ class EventScript {
   final String id;
   final String type;
 
+  final String? threadId;
   final String? sender;
   final String? text;
 
@@ -75,6 +76,7 @@ class EventScript {
   EventScript({
     required this.id,
     required this.type,
+    this.threadId,
     this.sender,
     this.text,
     this.choiceId,
@@ -83,8 +85,23 @@ class EventScript {
     this.meta,
   });
 
-  factory EventScript.fromJson(Map<String, dynamic> json) =>
-      _$EventScriptFromJson(json);
+  factory EventScript.fromJson(Map<String, dynamic> json) {
 
-  Map<String, dynamic> toJson() => _$EventScriptToJson(this);
+    return EventScript(
+      id: json['id'],
+      type: json['type'],
+      threadId: json['threadId'],
+      sender: json['sender'],
+      text: json['text'],
+      duration: json['duration'],
+      meta: json['meta'] != null
+          ? EventMeta.fromJson(json['meta'])
+          : null,
+      options: json['options'] != null
+          ? (json['options'] as List)
+              .map((e) => ChoiceOption.fromJson(e))
+              .toList()
+          : null,
+    );
+  }
 }
