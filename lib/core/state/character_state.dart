@@ -46,6 +46,28 @@ final characterProvider =
 
   if (thread == null) return null;
 
+  return _mapThreadToProfile(thread);
+});
+
+/// ------------------------------------------------------------
+/// ALL CHARACTERS
+/// ------------------------------------------------------------
+
+final charactersProvider = FutureProvider<List<CharacterProfile>>((ref) async {
+  final db = ref.watch(databaseProvider);
+
+  final threads = await db.select(db.threads).get();
+
+  return threads.map(_mapThreadToProfile).toList();
+});
+
+/// ------------------------------------------------------------
+/// HELPERS
+/// ------------------------------------------------------------
+
+CharacterProfile _mapThreadToProfile(Thread thread) {
+  final characterId = thread.id;
+
   /// Participants list stored as CSV
   final participants = thread.participants.split(',');
 
@@ -86,27 +108,4 @@ final characterProvider =
     info: info,
     notes: notes,
   );
-});
-
-/// ------------------------------------------------------------
-/// ALL CHARACTERS
-/// ------------------------------------------------------------
-
-final charactersProvider = FutureProvider<List<CharacterProfile>>((ref) async {
-  final db = ref.watch(databaseProvider);
-
-  final threads = await db.select(db.threads).get();
-
-  final profiles = <CharacterProfile>[];
-
-  for (final thread in threads) {
-    final character =
-        await ref.read(characterProvider(thread.id).future);
-
-    if (character != null) {
-      profiles.add(character);
-    }
-  }
-
-  return profiles;
-});
+}
