@@ -6,7 +6,7 @@ part 'script_models.g.dart';
 /// EPISODE
 /// ------------------------------------------------------------
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class EpisodeScript {
   final String episodeId;
   final String title;
@@ -32,7 +32,7 @@ class EpisodeScript {
 /// SCENE
 /// ------------------------------------------------------------
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class SceneScript {
   final String sceneId;
   final List<EventScript> events;
@@ -49,7 +49,7 @@ class SceneScript {
 /// EVENT
 /// ------------------------------------------------------------
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class EventScript {
   final String id;
   final String type;
@@ -77,6 +77,38 @@ class EventScript {
     this.meta,
   });
 
+  factory EventScript.fromJson(Map<String, dynamic> json) =>
+      _$EventScriptFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EventScriptToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class EventMeta {
+  final int? delayAfter;
+
+  EventMeta({this.delayAfter});
+
+  factory EventMeta.fromJson(Map<String, dynamic> json) =>
+      _$EventMetaFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EventMetaToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class ChoiceOption {
+  final String text;
+  final String jumpto;
+
+  ChoiceOption({
+    required this.text,
+    required this.jumpto,
+  });
+
+  factory ChoiceOption.fromJson(Map<String, dynamic> json) =>
+      _$ChoiceOptionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChoiceOptionToJson(this);
   factory EventScript.fromJson(Map<String, dynamic> json) {
     return EventScript(
       id: json['id'],
