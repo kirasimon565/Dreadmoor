@@ -82,6 +82,7 @@ class GlobalScheduler {
     if (_episode == null) return;
     if (ref.read(isSchedulerPausedProvider)) return;
     if (ref.read(waitingForChoiceProvider)) return;
+    if (ref.read(waitingForPuzzleProvider)) return;
 
     if (_sceneIndex >= _episode!.scenes.length) {
       return;
@@ -250,6 +251,15 @@ class GlobalScheduler {
     }
 
     /// ----------------------
+    /// PUZZLE EVENT
+    /// ----------------------
+
+    if (event.type == 'puzzle') {
+      ref.read(waitingForPuzzleProvider.notifier).state = true;
+      return;
+    }
+
+    /// ----------------------
     /// CHOICE EVENT
     /// ----------------------
 
@@ -324,6 +334,12 @@ class GlobalScheduler {
 
     ref.read(waitingForChoiceProvider.notifier).state = false;
 
+    _scheduleNextTick();
+  }
+
+  void completePuzzle() {
+    ref.read(waitingForPuzzleProvider.notifier).state = false;
+    _eventIndex++;
     _scheduleNextTick();
   }
 

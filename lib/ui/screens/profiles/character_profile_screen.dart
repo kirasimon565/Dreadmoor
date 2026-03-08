@@ -59,11 +59,6 @@ class _CharacterProfileScreenState extends ConsumerState<CharacterProfileScreen>
     }
   }
 
-  final String? characterId;
-  final String? threadId;
-
-  const CharacterProfileScreen({super.key, this.characterId, this.threadId});
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {

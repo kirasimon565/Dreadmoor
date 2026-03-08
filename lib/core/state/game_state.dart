@@ -81,6 +81,9 @@ final isSchedulerPausedProvider = StateProvider<bool>((ref) => false);
 /// Waiting for player choice
 final waitingForChoiceProvider = StateProvider<bool>((ref) => false);
 
+/// Waiting for puzzle completion
+final waitingForPuzzleProvider = StateProvider<bool>((ref) => false);
+
 /// ---------------------------
 /// GLOBAL SCHEDULER
 /// ---------------------------

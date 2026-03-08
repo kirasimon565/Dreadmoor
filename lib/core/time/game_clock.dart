@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/drift.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 
 /// The game clock states. Starts at 23:42 Sunday, March 8
 /// Stored internally as minutes since 00:00 Sunday, March 8
@@ -9,21 +10,37 @@ final _initialGameTimeMinutes = 1422;
 const _gameClockKey = 'game_clock_minutes';
 
 class GameClockNotifier extends StateNotifier<int> {
-  GameClockNotifier() : super(_initialGameTimeMinutes) {
-    _loadFromPrefs();
+  final Ref _ref;
+
+  GameClockNotifier(this._ref) : super(_initialGameTimeMinutes) {
+    _loadFromDb();
   }
 
-  Future<void> _loadFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedTime = prefs.getInt(_gameClockKey);
-    if (savedTime != null) {
-      state = savedTime;
+  Future<void> _loadFromDb() async {
+    final db = _ref.read(databaseProvider);
+    final row = await (db.select(db.storyState)..where((t) => t.key.equals(_gameClockKey))).getSingleOrNull();
+
+    if (row != null && row.stringValue != null) {
+      final savedTime = int.tryParse(row.stringValue!);
+      if (savedTime != null) {
+        state = savedTime;
+      }
+    } else {
+      // First boot: create the row automatically with the default value
+      await _saveToDb(_initialGameTimeMinutes);
     }
   }
 
-  Future<void> _saveToPrefs(int time) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_gameClockKey, time);
+  Future<void> _saveToDb(int time) async {
+    final db = _ref.read(databaseProvider);
+    await db.into(db.storyState).insertOnConflictUpdate(
+      StoryStateCompanion(
+        key: const Value(_gameClockKey),
+        value: const Value(true),
+        stringValue: Value(time.toString()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   /// Advances the game clock by [minutes]
@@ -31,19 +48,19 @@ class GameClockNotifier extends StateNotifier<int> {
   void advanceTime(int minutes) {
     if (minutes <= 0) return;
     state = state + minutes;
-    _saveToPrefs(state);
+    _saveToDb(state);
   }
 
   /// Sets the game clock to a specific time (minutes from Sunday 00:00)
   void setTime(int totalMinutes) {
     state = totalMinutes;
-    _saveToPrefs(state);
+    _saveToDb(state);
   }
 }
 
 /// The global provider for the game clock.
 final gameClockProvider = StateNotifierProvider<GameClockNotifier, int>((ref) {
-  return GameClockNotifier();
+  return GameClockNotifier(ref);
 });
 
 /// A helper provider to format the current game time as a string.
