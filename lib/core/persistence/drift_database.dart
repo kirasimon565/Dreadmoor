@@ -9,7 +9,7 @@ import 'tables.dart';
 
 part 'drift_database.g.dart';
 
-@DriftDatabase(tables: [Players, Threads, Messages, StoryState, Episodes])
+@DriftDatabase(tables: [Players, Characters, Threads, Messages, StoryState, Episodes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   // ---------------------------
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   // ---------------------------
   // MIGRATIONS
