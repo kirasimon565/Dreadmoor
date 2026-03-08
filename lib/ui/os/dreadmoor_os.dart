@@ -46,6 +46,7 @@ class DreadmoorOS extends ConsumerWidget {
                 },
                 onDecline: () {
                   ref.read(phoneProvider.notifier).declineIncomingCall(ref.read(gameClockProvider));
+                  ref.read(globalSchedulerProvider).resume();
                 },
               ),
             ),
