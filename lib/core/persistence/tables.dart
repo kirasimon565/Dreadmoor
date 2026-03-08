@@ -13,7 +13,32 @@ class Players extends Table {
 
   TextColumn get profilePath => text().nullable()();
 
+  TextColumn get phoneNumber => text().withDefault(const Constant('+1 (555) 000-0000'))();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// --------------------------------------------------
+// CHARACTERS
+// --------------------------------------------------
+
+class Characters extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get name => text()();
+
+  TextColumn get phoneNumber => text()();
+
+  TextColumn get avatarPath => text().nullable()();
+
+  TextColumn get bio => text().nullable()();
+
+  TextColumn get knownInfo => text().nullable()();
+
+  TextColumn get investigationNotes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 // --------------------------------------------------

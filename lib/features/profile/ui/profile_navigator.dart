@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:dreadmoor/features/profile/ui/screens/player_profile_screen.dart';
+import 'package:dreadmoor/ui/screens/profiles/player_profile_screen.dart';
 
 class ProfileRoutes {
   static const player = '/';

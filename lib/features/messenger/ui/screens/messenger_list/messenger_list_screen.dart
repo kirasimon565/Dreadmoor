@@ -54,17 +54,33 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
             onPressed: () async {
               if (phoneNumber.isNotEmpty) {
                 final db = ref.read(databaseProvider);
-                // Create a new thread for the added contact if it doesn't exist
-                final threadId = 'contact_$phoneNumber';
 
-                final existing = await (db.select(db.threads)..where((t) => t.id.equals(threadId))).getSingleOrNull();
+                // Validate if number exists in Characters table
+                final character = await (db.select(db.characters)..where((c) => c.phoneNumber.equals(phoneNumber))).getSingleOrNull();
 
-                if (existing == null) {
+                if (!context.mounted) return;
+
+                if (character == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Number not recognized.', style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white)),
+                      backgroundColor: DreadmoorColors.accentRed.withOpacity(0.8),
+                    )
+                  );
+                  return;
+                }
+
+                // Valid character found, check if thread exists
+                final threadId = character.id; // Usually threadId matches characterId or a specific format
+
+                final existingThread = await (db.select(db.threads)..where((t) => t.id.equals(threadId))).getSingleOrNull();
+
+                if (existingThread == null) {
                   await db.into(db.threads).insert(
                     ThreadsCompanion.insert(
                       id: threadId,
-                      title: phoneNumber,
-                      participants: 'unknown',
+                      title: character.name,
+                      participants: character.id,
                       unreadCount: const Value(0),
                       isTyping: const Value(false),
                       isLocked: const Value(false),
@@ -74,10 +90,10 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                 }
 
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Contact $phoneNumber added', style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white)))
-                  );
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close the dialog
+                  // Automatically open the chat thread for the added contact
+                  ref.read(activeThreadIdProvider.notifier).state = threadId;
+                  Navigator.of(context).pushNamed(MessengerRoutes.chat, arguments: threadId);
                 }
               }
             },

@@ -33,6 +33,14 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
   late final GeneratedColumn<String> profilePath = GeneratedColumn<String>(
       'profile_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _phoneNumberMeta =
+      const VerificationMeta('phoneNumber');
+  @override
+  late final GeneratedColumn<String> phoneNumber = GeneratedColumn<String>(
+      'phone_number', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('+1 (555) 000-0000'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -43,7 +51,7 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
       defaultValue: currentDateAndTime);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, gender, profilePath, createdAt];
+      [id, name, gender, profilePath, phoneNumber, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -75,6 +83,12 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
           profilePath.isAcceptableOrUnknown(
               data['profile_path']!, _profilePathMeta));
     }
+    if (data.containsKey('phone_number')) {
+      context.handle(
+          _phoneNumberMeta,
+          phoneNumber.isAcceptableOrUnknown(
+              data['phone_number']!, _phoneNumberMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -96,6 +110,8 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
           .read(DriftSqlType.string, data['${effectivePrefix}gender'])!,
       profilePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}profile_path']),
+      phoneNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}phone_number'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -112,12 +128,14 @@ class Player extends DataClass implements Insertable<Player> {
   final String name;
   final String gender;
   final String? profilePath;
+  final String phoneNumber;
   final DateTime createdAt;
   const Player(
       {required this.id,
       required this.name,
       required this.gender,
       this.profilePath,
+      required this.phoneNumber,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -128,6 +146,7 @@ class Player extends DataClass implements Insertable<Player> {
     if (!nullToAbsent || profilePath != null) {
       map['profile_path'] = Variable<String>(profilePath);
     }
+    map['phone_number'] = Variable<String>(phoneNumber);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -140,6 +159,7 @@ class Player extends DataClass implements Insertable<Player> {
       profilePath: profilePath == null && nullToAbsent
           ? const Value.absent()
           : Value(profilePath),
+      phoneNumber: Value(phoneNumber),
       createdAt: Value(createdAt),
     );
   }
@@ -152,6 +172,7 @@ class Player extends DataClass implements Insertable<Player> {
       name: serializer.fromJson<String>(json['name']),
       gender: serializer.fromJson<String>(json['gender']),
       profilePath: serializer.fromJson<String?>(json['profilePath']),
+      phoneNumber: serializer.fromJson<String>(json['phoneNumber']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -163,6 +184,7 @@ class Player extends DataClass implements Insertable<Player> {
       'name': serializer.toJson<String>(name),
       'gender': serializer.toJson<String>(gender),
       'profilePath': serializer.toJson<String?>(profilePath),
+      'phoneNumber': serializer.toJson<String>(phoneNumber),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -172,12 +194,14 @@ class Player extends DataClass implements Insertable<Player> {
           String? name,
           String? gender,
           Value<String?> profilePath = const Value.absent(),
+          String? phoneNumber,
           DateTime? createdAt}) =>
       Player(
         id: id ?? this.id,
         name: name ?? this.name,
         gender: gender ?? this.gender,
         profilePath: profilePath.present ? profilePath.value : this.profilePath,
+        phoneNumber: phoneNumber ?? this.phoneNumber,
         createdAt: createdAt ?? this.createdAt,
       );
   Player copyWithCompanion(PlayersCompanion data) {
@@ -187,6 +211,8 @@ class Player extends DataClass implements Insertable<Player> {
       gender: data.gender.present ? data.gender.value : this.gender,
       profilePath:
           data.profilePath.present ? data.profilePath.value : this.profilePath,
+      phoneNumber:
+          data.phoneNumber.present ? data.phoneNumber.value : this.phoneNumber,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -198,13 +224,15 @@ class Player extends DataClass implements Insertable<Player> {
           ..write('name: $name, ')
           ..write('gender: $gender, ')
           ..write('profilePath: $profilePath, ')
+          ..write('phoneNumber: $phoneNumber, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, gender, profilePath, createdAt);
+  int get hashCode =>
+      Object.hash(id, name, gender, profilePath, phoneNumber, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -213,6 +241,7 @@ class Player extends DataClass implements Insertable<Player> {
           other.name == this.name &&
           other.gender == this.gender &&
           other.profilePath == this.profilePath &&
+          other.phoneNumber == this.phoneNumber &&
           other.createdAt == this.createdAt);
 }
 
@@ -221,12 +250,14 @@ class PlayersCompanion extends UpdateCompanion<Player> {
   final Value<String> name;
   final Value<String> gender;
   final Value<String?> profilePath;
+  final Value<String> phoneNumber;
   final Value<DateTime> createdAt;
   const PlayersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.gender = const Value.absent(),
     this.profilePath = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   PlayersCompanion.insert({
@@ -234,6 +265,7 @@ class PlayersCompanion extends UpdateCompanion<Player> {
     required String name,
     required String gender,
     this.profilePath = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
     this.createdAt = const Value.absent(),
   })  : name = Value(name),
         gender = Value(gender);
@@ -242,6 +274,7 @@ class PlayersCompanion extends UpdateCompanion<Player> {
     Expression<String>? name,
     Expression<String>? gender,
     Expression<String>? profilePath,
+    Expression<String>? phoneNumber,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -249,6 +282,7 @@ class PlayersCompanion extends UpdateCompanion<Player> {
       if (name != null) 'name': name,
       if (gender != null) 'gender': gender,
       if (profilePath != null) 'profile_path': profilePath,
+      if (phoneNumber != null) 'phone_number': phoneNumber,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -258,12 +292,14 @@ class PlayersCompanion extends UpdateCompanion<Player> {
       Value<String>? name,
       Value<String>? gender,
       Value<String?>? profilePath,
+      Value<String>? phoneNumber,
       Value<DateTime>? createdAt}) {
     return PlayersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       gender: gender ?? this.gender,
       profilePath: profilePath ?? this.profilePath,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -283,6 +319,9 @@ class PlayersCompanion extends UpdateCompanion<Player> {
     if (profilePath.present) {
       map['profile_path'] = Variable<String>(profilePath.value);
     }
+    if (phoneNumber.present) {
+      map['phone_number'] = Variable<String>(phoneNumber.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -296,7 +335,405 @@ class PlayersCompanion extends UpdateCompanion<Player> {
           ..write('name: $name, ')
           ..write('gender: $gender, ')
           ..write('profilePath: $profilePath, ')
+          ..write('phoneNumber: $phoneNumber, ')
           ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CharactersTable extends Characters
+    with TableInfo<$CharactersTable, Character> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CharactersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _phoneNumberMeta =
+      const VerificationMeta('phoneNumber');
+  @override
+  late final GeneratedColumn<String> phoneNumber = GeneratedColumn<String>(
+      'phone_number', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _avatarPathMeta =
+      const VerificationMeta('avatarPath');
+  @override
+  late final GeneratedColumn<String> avatarPath = GeneratedColumn<String>(
+      'avatar_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _bioMeta = const VerificationMeta('bio');
+  @override
+  late final GeneratedColumn<String> bio = GeneratedColumn<String>(
+      'bio', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _knownInfoMeta =
+      const VerificationMeta('knownInfo');
+  @override
+  late final GeneratedColumn<String> knownInfo = GeneratedColumn<String>(
+      'known_info', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _investigationNotesMeta =
+      const VerificationMeta('investigationNotes');
+  @override
+  late final GeneratedColumn<String> investigationNotes =
+      GeneratedColumn<String>('investigation_notes', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, name, phoneNumber, avatarPath, bio, knownInfo, investigationNotes];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'characters';
+  @override
+  VerificationContext validateIntegrity(Insertable<Character> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('phone_number')) {
+      context.handle(
+          _phoneNumberMeta,
+          phoneNumber.isAcceptableOrUnknown(
+              data['phone_number']!, _phoneNumberMeta));
+    } else if (isInserting) {
+      context.missing(_phoneNumberMeta);
+    }
+    if (data.containsKey('avatar_path')) {
+      context.handle(
+          _avatarPathMeta,
+          avatarPath.isAcceptableOrUnknown(
+              data['avatar_path']!, _avatarPathMeta));
+    }
+    if (data.containsKey('bio')) {
+      context.handle(
+          _bioMeta, bio.isAcceptableOrUnknown(data['bio']!, _bioMeta));
+    }
+    if (data.containsKey('known_info')) {
+      context.handle(_knownInfoMeta,
+          knownInfo.isAcceptableOrUnknown(data['known_info']!, _knownInfoMeta));
+    }
+    if (data.containsKey('investigation_notes')) {
+      context.handle(
+          _investigationNotesMeta,
+          investigationNotes.isAcceptableOrUnknown(
+              data['investigation_notes']!, _investigationNotesMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Character map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Character(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      phoneNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}phone_number'])!,
+      avatarPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}avatar_path']),
+      bio: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}bio']),
+      knownInfo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}known_info']),
+      investigationNotes: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}investigation_notes']),
+    );
+  }
+
+  @override
+  $CharactersTable createAlias(String alias) {
+    return $CharactersTable(attachedDatabase, alias);
+  }
+}
+
+class Character extends DataClass implements Insertable<Character> {
+  final String id;
+  final String name;
+  final String phoneNumber;
+  final String? avatarPath;
+  final String? bio;
+  final String? knownInfo;
+  final String? investigationNotes;
+  const Character(
+      {required this.id,
+      required this.name,
+      required this.phoneNumber,
+      this.avatarPath,
+      this.bio,
+      this.knownInfo,
+      this.investigationNotes});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['phone_number'] = Variable<String>(phoneNumber);
+    if (!nullToAbsent || avatarPath != null) {
+      map['avatar_path'] = Variable<String>(avatarPath);
+    }
+    if (!nullToAbsent || bio != null) {
+      map['bio'] = Variable<String>(bio);
+    }
+    if (!nullToAbsent || knownInfo != null) {
+      map['known_info'] = Variable<String>(knownInfo);
+    }
+    if (!nullToAbsent || investigationNotes != null) {
+      map['investigation_notes'] = Variable<String>(investigationNotes);
+    }
+    return map;
+  }
+
+  CharactersCompanion toCompanion(bool nullToAbsent) {
+    return CharactersCompanion(
+      id: Value(id),
+      name: Value(name),
+      phoneNumber: Value(phoneNumber),
+      avatarPath: avatarPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avatarPath),
+      bio: bio == null && nullToAbsent ? const Value.absent() : Value(bio),
+      knownInfo: knownInfo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(knownInfo),
+      investigationNotes: investigationNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(investigationNotes),
+    );
+  }
+
+  factory Character.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Character(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      phoneNumber: serializer.fromJson<String>(json['phoneNumber']),
+      avatarPath: serializer.fromJson<String?>(json['avatarPath']),
+      bio: serializer.fromJson<String?>(json['bio']),
+      knownInfo: serializer.fromJson<String?>(json['knownInfo']),
+      investigationNotes:
+          serializer.fromJson<String?>(json['investigationNotes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'phoneNumber': serializer.toJson<String>(phoneNumber),
+      'avatarPath': serializer.toJson<String?>(avatarPath),
+      'bio': serializer.toJson<String?>(bio),
+      'knownInfo': serializer.toJson<String?>(knownInfo),
+      'investigationNotes': serializer.toJson<String?>(investigationNotes),
+    };
+  }
+
+  Character copyWith(
+          {String? id,
+          String? name,
+          String? phoneNumber,
+          Value<String?> avatarPath = const Value.absent(),
+          Value<String?> bio = const Value.absent(),
+          Value<String?> knownInfo = const Value.absent(),
+          Value<String?> investigationNotes = const Value.absent()}) =>
+      Character(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        phoneNumber: phoneNumber ?? this.phoneNumber,
+        avatarPath: avatarPath.present ? avatarPath.value : this.avatarPath,
+        bio: bio.present ? bio.value : this.bio,
+        knownInfo: knownInfo.present ? knownInfo.value : this.knownInfo,
+        investigationNotes: investigationNotes.present
+            ? investigationNotes.value
+            : this.investigationNotes,
+      );
+  Character copyWithCompanion(CharactersCompanion data) {
+    return Character(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      phoneNumber:
+          data.phoneNumber.present ? data.phoneNumber.value : this.phoneNumber,
+      avatarPath:
+          data.avatarPath.present ? data.avatarPath.value : this.avatarPath,
+      bio: data.bio.present ? data.bio.value : this.bio,
+      knownInfo: data.knownInfo.present ? data.knownInfo.value : this.knownInfo,
+      investigationNotes: data.investigationNotes.present
+          ? data.investigationNotes.value
+          : this.investigationNotes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Character(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('phoneNumber: $phoneNumber, ')
+          ..write('avatarPath: $avatarPath, ')
+          ..write('bio: $bio, ')
+          ..write('knownInfo: $knownInfo, ')
+          ..write('investigationNotes: $investigationNotes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, name, phoneNumber, avatarPath, bio, knownInfo, investigationNotes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Character &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.phoneNumber == this.phoneNumber &&
+          other.avatarPath == this.avatarPath &&
+          other.bio == this.bio &&
+          other.knownInfo == this.knownInfo &&
+          other.investigationNotes == this.investigationNotes);
+}
+
+class CharactersCompanion extends UpdateCompanion<Character> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> phoneNumber;
+  final Value<String?> avatarPath;
+  final Value<String?> bio;
+  final Value<String?> knownInfo;
+  final Value<String?> investigationNotes;
+  final Value<int> rowid;
+  const CharactersCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
+    this.avatarPath = const Value.absent(),
+    this.bio = const Value.absent(),
+    this.knownInfo = const Value.absent(),
+    this.investigationNotes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CharactersCompanion.insert({
+    required String id,
+    required String name,
+    required String phoneNumber,
+    this.avatarPath = const Value.absent(),
+    this.bio = const Value.absent(),
+    this.knownInfo = const Value.absent(),
+    this.investigationNotes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        name = Value(name),
+        phoneNumber = Value(phoneNumber);
+  static Insertable<Character> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? phoneNumber,
+    Expression<String>? avatarPath,
+    Expression<String>? bio,
+    Expression<String>? knownInfo,
+    Expression<String>? investigationNotes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (phoneNumber != null) 'phone_number': phoneNumber,
+      if (avatarPath != null) 'avatar_path': avatarPath,
+      if (bio != null) 'bio': bio,
+      if (knownInfo != null) 'known_info': knownInfo,
+      if (investigationNotes != null) 'investigation_notes': investigationNotes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CharactersCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<String>? phoneNumber,
+      Value<String?>? avatarPath,
+      Value<String?>? bio,
+      Value<String?>? knownInfo,
+      Value<String?>? investigationNotes,
+      Value<int>? rowid}) {
+    return CharactersCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      avatarPath: avatarPath ?? this.avatarPath,
+      bio: bio ?? this.bio,
+      knownInfo: knownInfo ?? this.knownInfo,
+      investigationNotes: investigationNotes ?? this.investigationNotes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (phoneNumber.present) {
+      map['phone_number'] = Variable<String>(phoneNumber.value);
+    }
+    if (avatarPath.present) {
+      map['avatar_path'] = Variable<String>(avatarPath.value);
+    }
+    if (bio.present) {
+      map['bio'] = Variable<String>(bio.value);
+    }
+    if (knownInfo.present) {
+      map['known_info'] = Variable<String>(knownInfo.value);
+    }
+    if (investigationNotes.present) {
+      map['investigation_notes'] = Variable<String>(investigationNotes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CharactersCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('phoneNumber: $phoneNumber, ')
+          ..write('avatarPath: $avatarPath, ')
+          ..write('bio: $bio, ')
+          ..write('knownInfo: $knownInfo, ')
+          ..write('investigationNotes: $investigationNotes, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1907,6 +2344,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $PlayersTable players = $PlayersTable(this);
+  late final $CharactersTable characters = $CharactersTable(this);
   late final $ThreadsTable threads = $ThreadsTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $StoryStateTable storyState = $StoryStateTable(this);
@@ -1916,7 +2354,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [players, threads, messages, storyState, episodes];
+      [players, characters, threads, messages, storyState, episodes];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
@@ -1936,6 +2374,7 @@ typedef $$PlayersTableCreateCompanionBuilder = PlayersCompanion Function({
   required String name,
   required String gender,
   Value<String?> profilePath,
+  Value<String> phoneNumber,
   Value<DateTime> createdAt,
 });
 typedef $$PlayersTableUpdateCompanionBuilder = PlayersCompanion Function({
@@ -1943,6 +2382,7 @@ typedef $$PlayersTableUpdateCompanionBuilder = PlayersCompanion Function({
   Value<String> name,
   Value<String> gender,
   Value<String?> profilePath,
+  Value<String> phoneNumber,
   Value<DateTime> createdAt,
 });
 
@@ -1966,6 +2406,9 @@ class $$PlayersTableFilterComposer
 
   ColumnFilters<String> get profilePath => $composableBuilder(
       column: $table.profilePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get phoneNumber => $composableBuilder(
+      column: $table.phoneNumber, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -1992,6 +2435,9 @@ class $$PlayersTableOrderingComposer
   ColumnOrderings<String> get profilePath => $composableBuilder(
       column: $table.profilePath, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get phoneNumber => $composableBuilder(
+      column: $table.phoneNumber, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
@@ -2016,6 +2462,9 @@ class $$PlayersTableAnnotationComposer
 
   GeneratedColumn<String> get profilePath => $composableBuilder(
       column: $table.profilePath, builder: (column) => column);
+
+  GeneratedColumn<String> get phoneNumber => $composableBuilder(
+      column: $table.phoneNumber, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2048,6 +2497,7 @@ class $$PlayersTableTableManager extends RootTableManager<
             Value<String> name = const Value.absent(),
             Value<String> gender = const Value.absent(),
             Value<String?> profilePath = const Value.absent(),
+            Value<String> phoneNumber = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               PlayersCompanion(
@@ -2055,6 +2505,7 @@ class $$PlayersTableTableManager extends RootTableManager<
             name: name,
             gender: gender,
             profilePath: profilePath,
+            phoneNumber: phoneNumber,
             createdAt: createdAt,
           ),
           createCompanionCallback: ({
@@ -2062,6 +2513,7 @@ class $$PlayersTableTableManager extends RootTableManager<
             required String name,
             required String gender,
             Value<String?> profilePath = const Value.absent(),
+            Value<String> phoneNumber = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               PlayersCompanion.insert(
@@ -2069,6 +2521,7 @@ class $$PlayersTableTableManager extends RootTableManager<
             name: name,
             gender: gender,
             profilePath: profilePath,
+            phoneNumber: phoneNumber,
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
@@ -2089,6 +2542,203 @@ typedef $$PlayersTableProcessedTableManager = ProcessedTableManager<
     $$PlayersTableUpdateCompanionBuilder,
     (Player, BaseReferences<_$AppDatabase, $PlayersTable, Player>),
     Player,
+    PrefetchHooks Function()>;
+typedef $$CharactersTableCreateCompanionBuilder = CharactersCompanion Function({
+  required String id,
+  required String name,
+  required String phoneNumber,
+  Value<String?> avatarPath,
+  Value<String?> bio,
+  Value<String?> knownInfo,
+  Value<String?> investigationNotes,
+  Value<int> rowid,
+});
+typedef $$CharactersTableUpdateCompanionBuilder = CharactersCompanion Function({
+  Value<String> id,
+  Value<String> name,
+  Value<String> phoneNumber,
+  Value<String?> avatarPath,
+  Value<String?> bio,
+  Value<String?> knownInfo,
+  Value<String?> investigationNotes,
+  Value<int> rowid,
+});
+
+class $$CharactersTableFilterComposer
+    extends Composer<_$AppDatabase, $CharactersTable> {
+  $$CharactersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get phoneNumber => $composableBuilder(
+      column: $table.phoneNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get avatarPath => $composableBuilder(
+      column: $table.avatarPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get bio => $composableBuilder(
+      column: $table.bio, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get knownInfo => $composableBuilder(
+      column: $table.knownInfo, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get investigationNotes => $composableBuilder(
+      column: $table.investigationNotes,
+      builder: (column) => ColumnFilters(column));
+}
+
+class $$CharactersTableOrderingComposer
+    extends Composer<_$AppDatabase, $CharactersTable> {
+  $$CharactersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get phoneNumber => $composableBuilder(
+      column: $table.phoneNumber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get avatarPath => $composableBuilder(
+      column: $table.avatarPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get bio => $composableBuilder(
+      column: $table.bio, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get knownInfo => $composableBuilder(
+      column: $table.knownInfo, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get investigationNotes => $composableBuilder(
+      column: $table.investigationNotes,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$CharactersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CharactersTable> {
+  $$CharactersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get phoneNumber => $composableBuilder(
+      column: $table.phoneNumber, builder: (column) => column);
+
+  GeneratedColumn<String> get avatarPath => $composableBuilder(
+      column: $table.avatarPath, builder: (column) => column);
+
+  GeneratedColumn<String> get bio =>
+      $composableBuilder(column: $table.bio, builder: (column) => column);
+
+  GeneratedColumn<String> get knownInfo =>
+      $composableBuilder(column: $table.knownInfo, builder: (column) => column);
+
+  GeneratedColumn<String> get investigationNotes => $composableBuilder(
+      column: $table.investigationNotes, builder: (column) => column);
+}
+
+class $$CharactersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CharactersTable,
+    Character,
+    $$CharactersTableFilterComposer,
+    $$CharactersTableOrderingComposer,
+    $$CharactersTableAnnotationComposer,
+    $$CharactersTableCreateCompanionBuilder,
+    $$CharactersTableUpdateCompanionBuilder,
+    (Character, BaseReferences<_$AppDatabase, $CharactersTable, Character>),
+    Character,
+    PrefetchHooks Function()> {
+  $$CharactersTableTableManager(_$AppDatabase db, $CharactersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CharactersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CharactersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CharactersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> phoneNumber = const Value.absent(),
+            Value<String?> avatarPath = const Value.absent(),
+            Value<String?> bio = const Value.absent(),
+            Value<String?> knownInfo = const Value.absent(),
+            Value<String?> investigationNotes = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CharactersCompanion(
+            id: id,
+            name: name,
+            phoneNumber: phoneNumber,
+            avatarPath: avatarPath,
+            bio: bio,
+            knownInfo: knownInfo,
+            investigationNotes: investigationNotes,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String name,
+            required String phoneNumber,
+            Value<String?> avatarPath = const Value.absent(),
+            Value<String?> bio = const Value.absent(),
+            Value<String?> knownInfo = const Value.absent(),
+            Value<String?> investigationNotes = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CharactersCompanion.insert(
+            id: id,
+            name: name,
+            phoneNumber: phoneNumber,
+            avatarPath: avatarPath,
+            bio: bio,
+            knownInfo: knownInfo,
+            investigationNotes: investigationNotes,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CharactersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CharactersTable,
+    Character,
+    $$CharactersTableFilterComposer,
+    $$CharactersTableOrderingComposer,
+    $$CharactersTableAnnotationComposer,
+    $$CharactersTableCreateCompanionBuilder,
+    $$CharactersTableUpdateCompanionBuilder,
+    (Character, BaseReferences<_$AppDatabase, $CharactersTable, Character>),
+    Character,
     PrefetchHooks Function()>;
 typedef $$ThreadsTableCreateCompanionBuilder = ThreadsCompanion Function({
   required String id,
@@ -3069,6 +3719,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$PlayersTableTableManager get players =>
       $$PlayersTableTableManager(_db, _db.players);
+  $$CharactersTableTableManager get characters =>
+      $$CharactersTableTableManager(_db, _db.characters);
   $$ThreadsTableTableManager get threads =>
       $$ThreadsTableTableManager(_db, _db.threads);
   $$MessagesTableTableManager get messages =>

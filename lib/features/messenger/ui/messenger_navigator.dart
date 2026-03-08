@@ -4,7 +4,7 @@ import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger
 import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/settings/settings_screen.dart';
-import 'package:dreadmoor/features/profile/ui/screens/character_profile_screen.dart';
+import 'package:dreadmoor/ui/screens/profiles/character_profile_screen.dart';
 
 class MessengerRoutes {
   static const list = '/';

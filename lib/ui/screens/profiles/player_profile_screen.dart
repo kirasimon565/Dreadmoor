@@ -1,94 +1,254 @@
 import 'dart:io';
-import 'dart:ui';
-
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
-import 'package:dreadmoor/core/persistence/drift_database.dart';
-import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/ui/os/components/os_header.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 
 class PlayerProfileScreen extends ConsumerWidget {
   const PlayerProfileScreen({super.key});
+
+  Future<void> _pickImage(BuildContext context, WidgetRef ref, Player player) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final docDir = await getApplicationDocumentsDirectory();
+      final fileName = 'player_avatar_${DateTime.now().millisecondsSinceEpoch}.png';
+      final savedImage = await pickedFile.saveTo(p.join(docDir.path, fileName));
+
+      final db = ref.read(databaseProvider);
+
+      // Delete old file if exists to prevent storage leak
+      if (player.profilePath != null) {
+        final oldFile = File(p.join(docDir.path, player.profilePath!));
+        if (await oldFile.exists()) {
+          await oldFile.delete();
+        }
+      }
+
+      await (db.update(db.players)..where((tbl) => tbl.id.equals(player.id)))
+          .write(PlayersCompanion(profilePath: drift.Value(fileName)));
+
+      // Update riverpod state so UI refreshes immediately
+      final updatedPlayer = await (db.select(db.players)..where((tbl) => tbl.id.equals(player.id))).getSingle();
+      ref.read(playerStateProvider.notifier).state = updatedPlayer;
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final player = ref.watch(playerStateProvider);
 
+    if (player == null) {
+        return const Scaffold(
+            backgroundColor: DreadmoorColors.background,
+            body: Center(child: CircularProgressIndicator(color: DreadmoorColors.accentCyan)),
+        );
+    }
+
+    // Resolve profile image path
+    Widget avatarWidget = const Icon(Icons.person, size: 48, color: DreadmoorColors.accentCyan);
+    if (player.profilePath != null) {
+       // Cannot easily build sync File widget here without futurebuilder, but for UI we can just use FutureBuilder locally
+    }
+
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
-      body: CustomScrollView(
-        slivers: [
-          /// HEADER
-          SliverAppBar(
-            expandedHeight: 260,
-            pinned: true,
-            backgroundColor: Colors.black,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const OSHeader(
+              title: "MY PROFILE",
+              subtitle: "INVESTIGATOR PORTAL",
             ),
-            flexibleSpace: FlexibleSpaceBar(background: _PlayerHeader(player)),
-          ),
-
-          /// CONTENT
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// NAME
-                  Text(
-                    player?.name ?? "Player",
-                    style: GoogleFonts.inter(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+            Expanded(
+              child: DefaultTabController(
+                length: 3,
+                child: Column(
+                  children: [
+                    // Profile Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      child: Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _pickImage(context, ref, player),
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    color: DreadmoorColors.surfaceAlt,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: DreadmoorColors.accentCyan.withOpacity(0.5), width: 2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: DreadmoorColors.accentCyan.withOpacity(0.1),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: player.profilePath == null
+                                      ? const Icon(Icons.person, size: 48, color: DreadmoorColors.accentCyan)
+                                      : ClipOval(
+                                          child: FutureBuilder<Directory>(
+                                              future: getApplicationDocumentsDirectory(),
+                                              builder: (context, snapshot) {
+                                                  if (snapshot.hasData) {
+                                                      final file = File(p.join(snapshot.data!.path, player.profilePath!));
+                                                      return Image.file(file, fit: BoxFit.cover);
+                                                  }
+                                                  return const Icon(Icons.person, size: 48, color: DreadmoorColors.accentCyan);
+                                              }
+                                          )
+                                      ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: DreadmoorColors.accentCyan,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: DreadmoorColors.background, width: 2),
+                                  ),
+                                  child: const Icon(Icons.camera_alt, size: 14, color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            player.name.toUpperCase(),
+                            style: DreadmoorTheme.headingStyle.copyWith(
+                              fontSize: 24,
+                              color: Colors.white,
+                              letterSpacing: 2.0,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            player.phoneNumber,
+                            style: DreadmoorTheme.bodyStyle.copyWith(
+                              fontSize: 14,
+                              color: DreadmoorColors.textSecondary,
+                              letterSpacing: 2.0,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 6),
-
-                  /// GENDER
-                  Text(
-                    player?.gender ?? "",
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.white70,
+                    // Tabs
+                    TabBar(
+                      indicatorColor: DreadmoorColors.accentCyan,
+                      labelColor: DreadmoorColors.accentCyan,
+                      unselectedLabelColor: DreadmoorColors.textSecondary,
+                      labelStyle: DreadmoorTheme.bodyStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                      tabs: const [
+                        Tab(text: "ID CARD"),
+                        Tab(text: "BIO"),
+                        Tab(text: "EVIDENCE"),
+                      ],
                     ),
-                  ),
 
-                  const SizedBox(height: 30),
-
-                  _SectionTitle("Profile"),
-
-                  const SizedBox(height: 12),
-
-                  Text(
-                    "This is your investigator profile. You can change your photo anytime.",
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: Colors.white70,
-                      height: 1.5,
+                    // Tab Content
+                    const Expanded(
+                      child: TabBarView(
+                        children: [
+                          _IdTab(),
+                          _BioTab(),
+                          _EvidenceTab(),
+                        ],
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  _SectionTitle("Account"),
-
-                  const SizedBox(height: 12),
-
-                  _InfoRow("Name", player?.name ?? ""),
-                  _InfoRow("Gender", player?.gender ?? ""),
-                ],
+                  ],
+                ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IdTab extends StatelessWidget {
+  const _IdTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: DreadmoorColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "DREADMOOR P.D.",
+                  style: DreadmoorTheme.headingStyle.copyWith(
+                    fontSize: 16,
+                    color: DreadmoorColors.accentCyan,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                const Icon(Icons.local_police, color: DreadmoorColors.accentCyan),
+              ],
+            ),
+            const Divider(color: Colors.white24, height: 32),
+            _buildDetailRow("Rank", "Detective"),
+            _buildDetailRow("Status", "Active"),
+            _buildDetailRow("Clearance", "Level 4"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: DreadmoorTheme.bodyStyle.copyWith(
+              fontSize: 12,
+              color: DreadmoorColors.textMeta,
+            ),
+          ),
+          Text(
+            value,
+            style: DreadmoorTheme.bodyStyle.copyWith(
+              fontSize: 14,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -97,95 +257,29 @@ class PlayerProfileScreen extends ConsumerWidget {
   }
 }
 
-class _PlayerHeader extends ConsumerWidget {
-  final Player? player;
-
-  const _PlayerHeader(this.player);
-
-  Future<void> _changeAvatar(BuildContext context, WidgetRef ref) async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image == null) return;
-
-    final db = ref.read(databaseProvider);
-
-    await (db.update(db.players)..where((p) => p.id.equals(player!.id))).write(
-      PlayersCompanion(profilePath: Value(image.path)),
-    );
-
-    final updated = await (db.select(
-      db.players,
-    )..where((p) => p.id.equals(player!.id)))
-        .getSingle();
-
-    ref.read(playerStateProvider.notifier).state = updated;
-  }
+class _BioTab extends StatelessWidget {
+  const _BioTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ImageProvider avatar;
-
-    if (player?.profilePath != null) {
-      avatar = FileImage(File(player!.profilePath!));
-    } else {
-      avatar = const AssetImage("assets/characters/player_default.png");
-    }
-
-    return Stack(
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(24),
       children: [
-        /// BACKGROUND
-        Positioned.fill(
-          child: Image.asset(
-            "assets/backgrounds/profile_bg.jpg",
-            fit: BoxFit.cover,
+        Text(
+          "PERSONAL DETAILS",
+          style: DreadmoorTheme.headingStyle.copyWith(
+            fontSize: 12,
+            color: DreadmoorColors.textSecondary,
+            letterSpacing: 1.5,
           ),
         ),
-
-        /// DARK OVERLAY
-        Positioned.fill(
-          child: Container(color: Colors.black.withOpacity(0.5)),
-        ),
-
-        /// BLUR
-        Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-
-        /// AVATAR
-        Positioned(
-          bottom: -45,
-          left: 20,
-          child: GestureDetector(
-            onTap: () => _changeAvatar(context, ref),
-            child: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.black,
-                  child: CircleAvatar(radius: 46, backgroundImage: avatar),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Colors.black87,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        const SizedBox(height: 16),
+        Text(
+          "You are a detective investigating the disappearance of Rebecca Stone in the town of Dreadmoor. The case has recently gone cold, until tonight.",
+          style: DreadmoorTheme.bodyStyle.copyWith(
+            fontSize: 14,
+            color: Colors.white70,
+            height: 1.6,
           ),
         ),
       ],
@@ -193,47 +287,22 @@ class _PlayerHeader extends ConsumerWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const _SectionTitle(this.title);
+class _EvidenceTab extends StatelessWidget {
+  const _EvidenceTab();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title.toUpperCase(),
-      style: GoogleFonts.inter(
-        fontSize: 12,
-        letterSpacing: 1.4,
-        color: Colors.white54,
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
+          Icon(Icons.folder_open, size: 48, color: DreadmoorColors.textMeta),
+          const SizedBox(height: 16),
+          Text(
+            "NO EVIDENCE RECEIVED",
+            style: DreadmoorTheme.bodyStyle.copyWith(
+              color: DreadmoorColors.textMeta,
+              letterSpacing: 2.0,
             ),
           ),
         ],

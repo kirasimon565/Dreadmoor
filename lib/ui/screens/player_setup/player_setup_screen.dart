@@ -20,12 +20,14 @@ class PlayerSetupScreen extends ConsumerStatefulWidget {
 
 class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   String _selectedGender = 'female';
   bool _saving = false;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -33,10 +35,19 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
     if (!mounted || _saving) return;
 
     final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please enter your name.')));
+      return;
+    }
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter your phone number.')));
       return;
     }
 
@@ -65,6 +76,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
             PlayersCompanion.insert(
               name: name,
               gender: _selectedGender,
+              phoneNumber: Value(phone),
               createdAt: Value(DateTime.now()),
             ),
           )
@@ -160,6 +172,14 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
                     label: "YOUR NAME",
                     hint: "Enter your name",
                     controller: _nameController,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  _GlassInputField(
+                    label: "PHONE NUMBER",
+                    hint: "Enter phone number",
+                    controller: _phoneController,
                   ),
 
                   const SizedBox(height: 24),

@@ -64,112 +64,112 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
               subtitle: "Dialer & History",
             ),
 
-            // Top section (15%): Typed phone number display
-            Expanded(
-              flex: 15,
-              child: Container(
-                width: double.infinity,
-                color: DreadmoorColors.surfaceAlt,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  _number.isEmpty ? "Enter Number" : _number,
-                  style: DreadmoorTheme.headingStyle.copyWith(
-                    fontSize: 28,
-                    color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
-                    letterSpacing: 2,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+            // Top section: Typed phone number display (roughly 15%)
+            Container(
+              height: MediaQuery.of(context).size.height * 0.12,
+              width: double.infinity,
+              color: DreadmoorColors.surfaceAlt,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                _number.isEmpty ? "Enter Number" : _number,
+                style: DreadmoorTheme.headingStyle.copyWith(
+                  fontSize: 28,
+                  color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
+                  letterSpacing: 2,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
 
-            // Middle section (35%): Dial pad buttons
-            Expanded(
-              flex: 35,
-              child: Container(
-                color: DreadmoorColors.surfaceAlt,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isCompact = constraints.maxHeight < 280;
-                    final vSpacing = isCompact ? 8.0 : 16.0;
+            // Middle section: Dial pad buttons (roughly 35%)
+            Container(
+              height: MediaQuery.of(context).size.height * 0.38,
+              color: DreadmoorColors.surfaceAlt,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxHeight < 280;
+                  final vSpacing = isCompact ? 8.0 : 16.0;
 
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 56),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _dial("1", "", isCompact),
-                                  _dial("2", "ABC", isCompact),
-                                  _dial("3", "DEF", isCompact),
-                                ],
-                              ),
-                              SizedBox(height: vSpacing),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _dial("4", "GHI", isCompact),
-                                  _dial("5", "JKL", isCompact),
-                                  _dial("6", "MNO", isCompact),
-                                ],
-                              ),
-                              SizedBox(height: vSpacing),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _dial("7", "PQRS", isCompact),
-                                  _dial("8", "TUV", isCompact),
-                                  _dial("9", "WXYZ", isCompact),
-                                ],
-                              ),
-                              SizedBox(height: vSpacing),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _dial("*", "", isCompact),
-                                  _dial("0", "+", isCompact),
-                                  _dial("#", "", isCompact),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: vSpacing * 1.5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 56),
+                        child: Column(
                           children: [
-                            const SizedBox(width: 56), // spacer
-                            GestureDetector(
-                              onTap: _call,
-                              child: Container(
-                                width: isCompact ? 48 : 56,
-                                height: isCompact ? 48 : 56,
-                                decoration: const BoxDecoration(
-                                  color: DreadmoorColors.accentCyan,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.call, color: Colors.black, size: isCompact ? 20 : 24),
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _dial("1", "", isCompact),
+                                _dial("2", "ABC", isCompact),
+                                _dial("3", "DEF", isCompact),
+                              ],
                             ),
-                            SizedBox(
-                              width: 56,
+                            SizedBox(height: vSpacing),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _dial("4", "GHI", isCompact),
+                                _dial("5", "JKL", isCompact),
+                                _dial("6", "MNO", isCompact),
+                              ],
+                            ),
+                            SizedBox(height: vSpacing),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _dial("7", "PQRS", isCompact),
+                                _dial("8", "TUV", isCompact),
+                                _dial("9", "WXYZ", isCompact),
+                              ],
+                            ),
+                            SizedBox(height: vSpacing),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _dial("*", "", isCompact),
+                                _dial("0", "+", isCompact),
+                                _dial("#", "", isCompact),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: vSpacing * 1.5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(width: 80), // offset to center the row
+                          SizedBox(
+                            width: 80,
+                            child: Center(
                               child: IconButton(
                                 icon: Icon(Icons.backspace, color: DreadmoorColors.textSecondary, size: isCompact ? 20 : 24),
                                 onPressed: _delete,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    );
-                  }
-                ),
+                          ),
+                          const SizedBox(width: 24),
+                          GestureDetector(
+                            onTap: _call,
+                            child: Container(
+                              width: isCompact ? 48 : 56,
+                              height: isCompact ? 48 : 56,
+                              decoration: const BoxDecoration(
+                                color: DreadmoorColors.accentCyan,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.call, color: Colors.black, size: isCompact ? 20 : 24),
+                            ),
+                          ),
+                          const SizedBox(width: 80),
+                        ],
+                      ),
+                    ],
+                  );
+                }
               ),
             ),
 
@@ -179,9 +179,8 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
               color: DreadmoorColors.divider,
             ),
 
-            // Bottom section (50%): Call History
+            // Bottom section: Call History (Takes remaining space, roughly 50%)
             Expanded(
-              flex: 50,
               child: Container(
                 color: DreadmoorColors.background,
                 child: history.isEmpty
