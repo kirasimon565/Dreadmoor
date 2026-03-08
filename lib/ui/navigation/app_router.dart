@@ -3,20 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:dreadmoor/core/state/game_state.dart';
-
-import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
-import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
-import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
-
-import 'package:dreadmoor/features/apps/ui/screens/apps/apps_screen.dart';
-import 'package:dreadmoor/features/puzzle/ui/screens/puzzle/puzzle_screen.dart';
-import 'package:dreadmoor/features/store/ui/screens/store/store_screen.dart';
-
-import 'package:dreadmoor/features/browser/ui/screens/browser/dreadmoor_browser_screen.dart';
-import 'package:dreadmoor/features/browser/ui/screens/browser/article_viewer_screen.dart';
-import 'package:dreadmoor/features/browser/article_model.dart';
-
-import 'package:dreadmoor/features/phone/ui/screens/phone/phone_app_screen.dart';
+import 'package:dreadmoor/ui/os/dreadmoor_os.dart';
 
 import '../screens/player_setup/player_setup_screen.dart';
 import '../screens/settings/settings_screen.dart';
@@ -24,8 +11,6 @@ import '../screens/welcome/welcome_screen.dart';
 import '../screens/studio_intro/studio_intro_screen.dart';
 import '../screens/error/fatal_error_screen.dart';
 import '../screens/legal/legal_disclaimer_screen.dart';
-import '../screens/profiles/player_profile_screen.dart';
-import '../screens/profiles/character_profile_screen.dart';
 import '../screens/save_load/save_load_screen.dart';
 import '../screens/update_gate/content_update_screen.dart';
 import '../screens/episode_select/episode_select_screen.dart';
@@ -84,7 +69,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (hasCompletedSetup && onSetup) {
-        return Routes.welcome;
+        return Routes.os; // Redirect to OS
       }
 
       return null;
@@ -113,127 +98,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             DreadmoorPage(key: state.pageKey, child: const WelcomeScreen()),
       ),
 
-      /// MAIN APP SHELL
-      ShellRoute(
-        builder: (context, state, child) {
-          return child;
-        },
-
-        routes: [
-
-          /// Messenger
-          GoRoute(
-            path: Routes.messenger,
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const MessengerListScreen()),
-          ),
-
-          /// Puzzle
-          GoRoute(
-            path: '/puzzle',
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const PuzzleScreen()),
-          ),
-
-          /// Apps
-          GoRoute(
-            path: '/apps',
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const AppsScreen()),
-          ),
-
-          /// Store
-          GoRoute(
-            path: '/store',
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const StoreScreen()),
-          ),
-
-          /// Browser
-          GoRoute(
-  path: '/browser',
-  pageBuilder: (context, state) {
-
-    final article = state.extra as Article;
-
-    return DreadmoorPage(
-      key: state.pageKey,
-      child: DreadmoorBrowserScreen(article: article),
-    );
-  },
-),
-
-          /// Article viewer
-          GoRoute(
-  path: '/article',
-  pageBuilder: (context, state) {
-
-    final article = state.extra as Article;
-
-    return DreadmoorPage(
-      key: state.pageKey,
-      child: ArticleViewerScreen(article: article),
-    );
-  },
-),
-
-          /// Phone
-          GoRoute(
-            path: '/phone',
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const PhoneAppScreen()),
-          ),
-
-          /// Player profile
-          GoRoute(
-            path: Routes.playerProfile,
-            pageBuilder: (context, state) =>
-                DreadmoorPage(key: state.pageKey, child: const PlayerProfileScreen()),
-          ),
-        ],
-      ),
-
-      /// Chat
+      /// DREADMOOR OS (Main Application Container)
       GoRoute(
-        path: '/chat/:threadId',
-        pageBuilder: (context, state) {
-
-          final id = state.pathParameters['threadId'] ?? 'group_chat';
-
-          return DreadmoorPage(
-            key: state.pageKey,
-            child: ChatScreen(threadId: id),
-          );
-        },
+        path: Routes.os,
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const DreadmoorOS()),
       ),
 
-      /// Secret chat
-      GoRoute(
-        path: '/secret/:threadId',
-        pageBuilder: (context, state) {
-
-          final id = state.pathParameters['threadId'] ?? 'spy';
-
-          return DreadmoorPage(
-            key: state.pageKey,
-            child: SecretChatScreen(threadId: id),
-          );
-        },
-      ),
-
-      /// Character profile
-      GoRoute(
-        path: '/profiles/:characterId',
-        pageBuilder: (context, state) {
-
-          final id = state.pathParameters['characterId'] ?? 'unknown';
-
-          return DreadmoorPage(
-            key: state.pageKey,
-            child: CharacterProfileScreen(characterId: id),
-          );
-        },
-      ),
+      // Other global routes (not part of the Phone OS)
 
       /// Episodes
       GoRoute(
