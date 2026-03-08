@@ -1,38 +1,34 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 
-class AppsScreen extends StatelessWidget {
+class AppsScreen extends ConsumerWidget {
   const AppsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+    final timeString = DateFormat('h:mm').format(now);
+    final dateString = DateFormat('EEEE, MMMM d').format(now);
+
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
       body: Stack(
         children: [
-
-          /// Background image
-          Positioned.fill(
-            child: Image.asset(
-              "assets/backgrounds/apps_bg.jpg",
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          /// Fog overlay
+          // Subtle atmospheric background
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.4),
+                  radius: 1.2,
                   colors: [
-                    Colors.transparent,
-                    Color(0xCC000000),
+                    DreadmoorColors.surfaceAlt,
+                    DreadmoorColors.background,
                   ],
                 ),
               ),
@@ -41,194 +37,144 @@ class AppsScreen extends StatelessWidget {
 
           SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 60),
 
-                /// Top bar
+                // Lock/Home Screen Clock Widget
+                Column(
+                  children: [
+                    Text(
+                      timeString,
+                      style: DreadmoorTheme.headingStyle.copyWith(
+                        fontSize: 64,
+                        fontWeight: FontWeight.w300,
+                        color: DreadmoorColors.textPrimary,
+                        letterSpacing: 2,
+                        shadows: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.5),
+                                blurRadius: 20,
+                            )
+                        ]
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      dateString.toUpperCase(),
+                      style: DreadmoorTheme.bodyStyle.copyWith(
+                        fontSize: 14,
+                        color: DreadmoorColors.textSecondary,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const Spacer(),
+
+                // Apps Grid
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 32,
+                    crossAxisSpacing: 20,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
-
-                      const Icon(Icons.menu, color: Colors.white70),
-
-                      const Spacer(),
-
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.white70),
-                        onPressed: () {
-                          context.go('/settings');
-                        },
-                      )
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.chat_bubble,
+                        label: "Messenger",
+                        app: PhoneApp.messenger,
+                        color: DreadmoorColors.accentCyan,
+                      ),
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.public,
+                        label: "Browser",
+                        app: PhoneApp.browser,
+                        color: Colors.blueAccent,
+                      ),
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.phone,
+                        label: "Phone",
+                        app: PhoneApp.phone,
+                        color: Colors.greenAccent,
+                      ),
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.storefront,
+                        label: "Store",
+                        app: PhoneApp.store,
+                        color: Colors.orangeAccent,
+                      ),
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.extension,
+                        label: "Puzzle",
+                        app: PhoneApp.puzzle,
+                        color: DreadmoorColors.accentRed,
+                      ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 30),
-
-                /// Title
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    "Apps",
-                    style: GoogleFonts.playfairDisplay(
-                      color: Colors.white,
-                      fontSize: 42,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                /// Description
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    "These applications are available on your device.\n"
-                    "More apps will unlock as the investigation progresses.",
-                    style: GoogleFonts.roboto(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                /// Apps container
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.55),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.08),
-                            ),
-                          ),
-                          padding: const EdgeInsets.all(20),
-                          child: GridView(
-                            physics: const BouncingScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 18,
-                              mainAxisSpacing: 22,
-                            ),
-                            children: [
-
-                              /// PHONE APP
-                              _appIcon(
-                                context,
-                                icon: Icons.call,
-                                label: "Phone",
-                                color: const Color(0xFF53D769),
-                                route: "/phone",
-                              ),
-
-                              /// PUZZLE
-                              _appIcon(
-                                context,
-                                icon: Icons.extension,
-                                label: "Puzzle",
-                                color: const Color(0xFF7A5CFF),
-                                route: "/puzzle",
-                              ),
-
-                              /// BROWSER
-                              _appIcon(
-                                context,
-                                icon: Icons.public,
-                                label: "Browser",
-                                color: const Color(0xFF4DA3FF),
-                                route: "/browser",
-                              ),
-
-                              /// LOCKED SLOT
-                              _lockedApp(),
-
-                              _lockedApp(),
-                              _lockedApp(),
-                              _lockedApp(),
-                              _lockedApp(),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
+                const SizedBox(height: 48), // Padding above bottom nav
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  /// Active app icon
-  Widget _appIcon(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required Color color,
-        required String route,
-      }) {
+  Widget _buildAppIcon(WidgetRef ref, {
+    required IconData icon,
+    required String label,
+    required PhoneApp app,
+    required Color color,
+  }) {
     return GestureDetector(
-      onTap: () => context.go(route),
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        ref.read(activeAppProvider.notifier).state = app;
+      },
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            height: 62,
-            width: 62,
+            height: 56,
+            width: 56,
             decoration: BoxDecoration(
-              color: color,
+              color: DreadmoorColors.surface, // Solid surface for app icons
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.35),
-                  blurRadius: 12,
-                )
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 28),
+            child: Icon(icon, color: color, size: 28),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
+            style: DreadmoorTheme.bodyStyle.copyWith(
+              color: DreadmoorColors.textPrimary,
+              fontSize: 11,
+              shadows: [
+                 BoxShadow(color: Colors.black, blurRadius: 4)
+              ]
             ),
-          )
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
-      ),
-    );
-  }
-
-  /// Locked placeholder
-  Widget _lockedApp() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.15),
-          style: BorderStyle.solid,
-        ),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.lock_outline,
-          color: Colors.white24,
-        ),
       ),
     );
   }

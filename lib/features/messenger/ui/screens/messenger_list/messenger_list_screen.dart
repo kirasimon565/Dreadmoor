@@ -1,275 +1,118 @@
-import 'dart:async';
 import 'dart:ui';
-
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
-import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/features/messenger/ui/messenger_navigator.dart';
+import 'package:dreadmoor/ui/os/components/os_header.dart';
 
 class MessengerListScreen extends ConsumerStatefulWidget {
   const MessengerListScreen({super.key});
 
   @override
-  ConsumerState<MessengerListScreen> createState() =>
-      _MessengerListScreenState();
+  ConsumerState<MessengerListScreen> createState() => _MessengerListScreenState();
 }
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
-  bool _showNotificationCenter = false;
-
   @override
   Widget build(BuildContext context) {
     final db = ref.watch(databaseProvider);
 
-    final threadsStream =
-        (db.select(db.threads)..orderBy([
-          (t) => OrderingTerm(
-                expression: t.lastMessageId,
-                mode: OrderingMode.desc,
-              )
-        ]))
-            .join([
-      leftOuterJoin(
-        db.messages,
-        db.messages.id.equalsExp(db.threads.lastMessageId),
-      ),
+    final threadsStream = (db.select(db.threads)..orderBy([
+      (t) => OrderingTerm(expression: t.lastMessageId, mode: OrderingMode.desc)
+    ])).join([
+      leftOuterJoin(db.messages, db.messages.id.equalsExp(db.threads.lastMessageId)),
     ]).watch();
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                const _PhoneStatusBar(),
-
-                const SizedBox(height: 6),
-
-                _MessengerHeader(
-                  onAddContact: _showAddContactDialog,
-                ),
-
-                const SizedBox(height: 12),
-
-                Expanded(
-                  child: StreamBuilder(
-                    stream: threadsStream,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(
-                            child: CircularProgressIndicator());
-                      }
-
-                      final rows = snapshot.data!;
-
-                      if (rows.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            "No conversations yet",
-                            style: TextStyle(color: Colors.white54),
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        itemCount: rows.length,
-                        itemBuilder: (context, index) {
-                          final thread = rows[index].readTable(db.threads);
-
-                          final message =
-                              rows[index].readTableOrNull(db.messages);
-
-                          final time = message?.timestamp != null
-                              ? DateFormat.Hm().format(message!.timestamp!)
-                              : '';
-
-                          return GestureDetector(
-                            onTap: () {
-                              ref
-                                  .read(activeThreadIdProvider.notifier)
-                                  .state = thread.id;
-
-                              context.push(Routes.chat(thread.id));
-                            },
-                            child: _ThreadTile(
-                              thread: thread,
-                              message: message,
-                              time: time,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-
-                const _BottomNavigationBar(),
-              ],
+      body: Column(
+        children: [
+          OSHeader(
+            title: "MESSENGER",
+            subtitle: "SECURE CONNECTION",
+            leading: null,
+            trailing: GestureDetector(
+                onTap: () {
+                    // Show add contact dialog
+                },
+                child: const Icon(Icons.person_add_alt_1, color: DreadmoorColors.textSecondary, size: 20)
             ),
-
-            if (_showNotificationCenter) const _NotificationCenter(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddContactDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController();
-
-        return Dialog(
-          backgroundColor: DreadmoorColors.surface,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          ),
+          Expanded(
+            child: Stack(
               children: [
-                Text(
-                  "Add Contact Number",
-                  style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.phone,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: "Enter phone number",
-                    hintStyle: const TextStyle(color: Colors.white38),
-                    filled: true,
-                    fillColor: Colors.black,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                // Subtle background gradient for depth
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          DreadmoorColors.surfaceAlt.withOpacity(0.3),
+                          DreadmoorColors.background,
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancel"),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
+                StreamBuilder(
+                  stream: threadsStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator(color: DreadmoorColors.accentCyan));
+                    }
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text("Number saved (future episode feature)"),
+                    final rows = snapshot.data!;
+
+                    if (rows.isEmpty) {
+                      return Center(
+                        child: Text(
+                          "No secure connections established.",
+                          style: DreadmoorTheme.bodyStyle.copyWith(color: DreadmoorColors.textSecondary),
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      itemCount: rows.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12), // Using spacing instead of dividers for a cleaner look
+                      itemBuilder: (context, index) {
+                        final thread = rows[index].readTable(db.threads);
+                        final message = rows[index].readTableOrNull(db.messages);
+                        final time = message?.timestamp != null
+                            ? DateFormat.Hm().format(message!.timestamp!)
+                            : '';
+
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            ref.read(activeThreadIdProvider.notifier).state = thread.id;
+                            if (thread.isSecret) {
+                                Navigator.of(context).pushNamed(MessengerRoutes.secret, arguments: thread.id);
+                            } else {
+                                Navigator.of(context).pushNamed(MessengerRoutes.chat, arguments: thread.id);
+                            }
+                          },
+                          child: _ThreadTile(
+                            thread: thread,
+                            message: message,
+                            time: time,
                           ),
                         );
                       },
-                      child: const Text("Save"),
-                    )
-                  ],
-                )
+                    );
+                  },
+                ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _PhoneStatusBar extends StatelessWidget {
-  const _PhoneStatusBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final time = DateFormat.Hm().format(DateTime.now());
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          Text(time,
-              style: const TextStyle(color: Colors.white, fontSize: 12)),
-
-          const Spacer(),
-
-          const Icon(Icons.signal_cellular_4_bar,
-              size: 16, color: Colors.white),
-
-          const SizedBox(width: 6),
-
-          const Icon(Icons.wifi, size: 16, color: Colors.white),
-
-          const SizedBox(width: 6),
-
-          const Icon(Icons.battery_full, size: 16, color: Colors.white),
-        ],
-      ),
-    );
-  }
-}
-
-class _MessengerHeader extends StatelessWidget {
-  final VoidCallback onAddContact;
-
-  const _MessengerHeader({required this.onAddContact});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Row(
-        children: [
-
-          /// SETTINGS ICON RESTORED
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              context.push(Routes.settings);
-            },
-          ),
-
-          const Spacer(),
-
-          Column(
-            children: [
-              Text(
-                "Messenger",
-                style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600),
-              ),
-              Text(
-                "Your chats and stories",
-                style:
-                    GoogleFonts.inter(color: Colors.white54, fontSize: 12),
-              ),
-            ],
-          ),
-
-          const Spacer(),
-
-          /// ADD CONTACT ICON
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1),
-            onPressed: onAddContact,
           ),
         ],
       ),
@@ -290,139 +133,108 @@ class _ThreadTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+    final hasUnread = thread.unreadCount > 0;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: DreadmoorColors.surface.withOpacity(hasUnread ? 0.9 : 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasUnread ? DreadmoorColors.accentCyan.withOpacity(0.3) : DreadmoorColors.borderSubtle,
+          width: hasUnread ? 1.0 : 0.5,
+        ),
+        boxShadow: hasUnread ? [
+          BoxShadow(
+            color: DreadmoorColors.glowCyan.withOpacity(0.1),
+            blurRadius: 8,
+          )
+        ] : null,
+      ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Colors.grey.shade800,
-            child: const Icon(Icons.person),
+          // Avatar
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: DreadmoorColors.surfaceGlass,
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: hasUnread ? DreadmoorColors.accentCyan.withOpacity(0.5) : DreadmoorColors.borderGlass,
+                  width: hasUnread ? 1.5 : 1.0,
+              ),
+            ),
+            child: thread.isSecret
+              ? Icon(Icons.security, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed)
+              : Icon(Icons.person, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary),
           ),
-
-          const SizedBox(width: 12),
-
+          const SizedBox(width: 16),
+          // Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   thread.title,
-                  style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15),
-                ),
-
-                const SizedBox(height: 4),
-
-                Text(
-                  message?.content ?? "",
+                  style: DreadmoorTheme.headingStyle.copyWith(
+                    color: DreadmoorColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style:
-                      const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  message?.content ?? "",
+                  style: DreadmoorTheme.bodyStyle.copyWith(
+                    color: hasUnread ? DreadmoorColors.textPrimary : DreadmoorColors.textSecondary,
+                    fontSize: 14,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-
+          const SizedBox(width: 12),
+          // Meta
           Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 time,
-                style:
-                    const TextStyle(fontSize: 11, color: Colors.white54),
+                style: DreadmoorTheme.bodyStyle.copyWith(
+                  color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textMeta,
+                  fontSize: 11,
+                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                ),
               ),
-
-              if (thread.unreadCount > 0)
+              if (hasUnread) ...[
+                const SizedBox(height: 8),
                 Container(
-                  margin: const EdgeInsets.only(top: 6),
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DreadmoorColors.accentCyan.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: DreadmoorColors.accentCyan.withOpacity(0.5)),
                   ),
                   child: Text(
                     thread.unreadCount.toString(),
-                    style: const TextStyle(
-                        color: Colors.white, fontSize: 10),
+                    style: DreadmoorTheme.bodyStyle.copyWith(
+                      color: DreadmoorColors.accentCyan,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
+              ],
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BottomNavigationBar extends StatelessWidget {
-  const _BottomNavigationBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white54,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            context.go(Routes.messenger);
-            break;
-          case 1:
-            context.go('/puzzle');
-            break;
-          case 2:
-            context.go(Routes.playerProfile);
-            break;
-          case 3:
-            context.go('/apps');
-            break;
-          case 4:
-            context.go('/store');
-            break;
-        }
-      },
-
-      items: const [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline), label: "Chat"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.extension_outlined), label: "Puzzle"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline), label: "Profile"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_outlined), label: "Apps"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.store_outlined), label: "Store"),
-      ],
-    );
-  }
-}
-
-class _NotificationCenter extends StatelessWidget {
-  const _NotificationCenter();
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          color: Colors.black.withOpacity(0.8),
-          child: const Center(
-            child: Text(
-              "Notification Center",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
       ),
     );
   }
