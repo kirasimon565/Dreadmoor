@@ -20,6 +20,7 @@ class PhoneAppScreen extends ConsumerStatefulWidget {
 
 class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
   String _number = "";
+  bool _isDialPadOpen = false;
 
   void _press(String value) {
     setState(() {
@@ -43,9 +44,10 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
 
     phoneNotifier.startCall(resolved, _number, currentTime);
 
-    // Clear typed number after dialing
+    // Clear typed number after dialing and close the pad
     setState(() {
       _number = "";
+      _isDialPadOpen = false;
     });
   }
 
@@ -54,239 +56,297 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
     final phoneState = ref.watch(phoneProvider);
     final history = phoneState.history;
 
-    return Scaffold(
-      backgroundColor: DreadmoorColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const OSHeader(
-              title: "PHONE",
-              subtitle: "Dialer & History",
-            ),
-
-            // Top section: Typed phone number display (roughly 15%)
-            Container(
-              height: MediaQuery.of(context).size.height * 0.12,
-              width: double.infinity,
-              color: DreadmoorColors.surfaceAlt,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                _number.isEmpty ? "Enter Number" : _number,
-                style: DreadmoorTheme.headingStyle.copyWith(
-                  fontSize: 28,
-                  color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
-                  letterSpacing: 2,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-
-            // Middle section: Dial pad buttons (roughly 35%)
-            Container(
-              height: MediaQuery.of(context).size.height * 0.38,
-              color: DreadmoorColors.surfaceAlt,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isCompact = constraints.maxHeight < 280;
-                  final vSpacing = isCompact ? 8.0 : 16.0;
-
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 56),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _dial("1", "", isCompact),
-                                _dial("2", "ABC", isCompact),
-                                _dial("3", "DEF", isCompact),
-                              ],
-                            ),
-                            SizedBox(height: vSpacing),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _dial("4", "GHI", isCompact),
-                                _dial("5", "JKL", isCompact),
-                                _dial("6", "MNO", isCompact),
-                              ],
-                            ),
-                            SizedBox(height: vSpacing),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _dial("7", "PQRS", isCompact),
-                                _dial("8", "TUV", isCompact),
-                                _dial("9", "WXYZ", isCompact),
-                              ],
-                            ),
-                            SizedBox(height: vSpacing),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _dial("*", "", isCompact),
-                                _dial("0", "+", isCompact),
-                                _dial("#", "", isCompact),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: vSpacing * 1.5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(width: 80), // offset to center the row
-                          SizedBox(
-                            width: 80,
-                            child: Center(
-                              child: IconButton(
-                                icon: Icon(Icons.backspace, color: DreadmoorColors.textSecondary, size: isCompact ? 20 : 24),
-                                onPressed: _delete,
-                              ),
+    return PopScope(
+      canPop: !_isDialPadOpen,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          setState(() {
+            _isDialPadOpen = false;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: DreadmoorColors.background,
+        floatingActionButton: _isDialPadOpen ? null : FloatingActionButton(
+          backgroundColor: DreadmoorColors.accentCyan,
+          onPressed: () {
+            setState(() {
+              _isDialPadOpen = true;
+            });
+          },
+          child: const Icon(Icons.dialpad, color: Colors.black),
+        ),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Base Layer: Header and Call History
+              Column(
+                children: [
+                  const OSHeader(
+                    title: "PHONE",
+                    subtitle: "Dialer & History",
+                  ),
+                  Expanded(
+                    child: history.isEmpty
+                      ? Center(
+                          child: Text(
+                            "No calls yet",
+                            style: DreadmoorTheme.bodyStyle.copyWith(
+                              color: DreadmoorColors.textMeta,
+                              fontSize: 14,
                             ),
                           ),
-                          const SizedBox(width: 24),
-                          GestureDetector(
-                            onTap: _call,
-                            child: Container(
-                              width: isCompact ? 48 : 56,
-                              height: isCompact ? 48 : 56,
-                              decoration: const BoxDecoration(
-                                color: DreadmoorColors.accentCyan,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.call, color: Colors.black, size: isCompact ? 20 : 24),
-                            ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16).copyWith(bottom: 100),
+                          itemCount: history.length,
+                          separatorBuilder: (context, index) => Divider(
+                            color: Colors.white.withOpacity(0.05),
+                            height: 24,
                           ),
-                          const SizedBox(width: 80),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-              ),
-            ),
+                          itemBuilder: (context, index) {
+                            final call = history[index];
+                            final timeStr = formatGameTime(call.time);
 
-            // Divider
-            Container(
-              height: 1,
-              color: DreadmoorColors.divider,
-            ),
+                            IconData iconData;
+                            Color iconColor;
+                            String typeText;
+                            if (call.isMissed) {
+                              iconData = Icons.call_missed;
+                              iconColor = DreadmoorColors.accentRed;
+                              typeText = "Missed";
+                            } else if (call.isIncoming) {
+                              iconData = Icons.call_received;
+                              iconColor = DreadmoorColors.textSecondary;
+                              typeText = "Incoming";
+                            } else {
+                              iconData = Icons.call_made;
+                              iconColor = DreadmoorColors.textSecondary;
+                              typeText = "Outgoing";
+                            }
 
-            // Bottom section: Call History (Takes remaining space, roughly 50%)
-            Expanded(
-              child: Container(
-                color: DreadmoorColors.background,
-                child: history.isEmpty
-                  ? Center(
-                      child: Text(
-                        "No calls yet",
-                        style: DreadmoorTheme.bodyStyle.copyWith(
-                          color: DreadmoorColors.textMeta,
-                          fontSize: 14,
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: history.length,
-                      separatorBuilder: (context, index) => Divider(
-                        color: Colors.white.withOpacity(0.05),
-                        height: 24,
-                      ),
-                      itemBuilder: (context, index) {
-                        final call = history[index];
-                        final timeStr = formatGameTime(call.time);
+                            String metaString = timeStr;
+                            if (call.durationSeconds > 0) {
+                                final m = call.durationSeconds ~/ 60;
+                                final s = (call.durationSeconds % 60).toString().padLeft(2, '0');
+                                metaString += " • $m:$s";
+                            }
 
-                        IconData iconData;
-                        Color iconColor;
-                        if (call.isMissed) {
-                          iconData = Icons.call_missed;
-                          iconColor = DreadmoorColors.accentRed;
-                        } else if (call.isIncoming) {
-                          iconData = Icons.call_received;
-                          iconColor = DreadmoorColors.textSecondary;
-                        } else {
-                          iconData = Icons.call_made;
-                          iconColor = DreadmoorColors.textSecondary;
-                        }
-
-                        return Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: DreadmoorColors.surfaceAlt,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.person, color: Colors.white54, size: 24),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    call.name,
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
-                                      color: call.isMissed ? DreadmoorColors.accentRed : Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                            return Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: DreadmoorColors.surfaceAlt,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: DreadmoorColors.borderSubtle),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
+                                  child: const Icon(Icons.person, color: Colors.white54, size: 24),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(iconData, size: 12, color: iconColor),
-                                      const SizedBox(width: 4),
                                       Text(
-                                        call.number,
+                                        call.name,
                                         style: DreadmoorTheme.bodyStyle.copyWith(
-                                          color: DreadmoorColors.textMeta,
-                                          fontSize: 12,
+                                          color: call.isMissed ? DreadmoorColors.accentRed : Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
                                         ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(iconData, size: 12, color: iconColor),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            typeText,
+                                            style: DreadmoorTheme.bodyStyle.copyWith(
+                                              color: DreadmoorColors.textMeta,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
+                                ),
                                 Text(
-                                  timeStr,
+                                  metaString,
                                   style: DreadmoorTheme.bodyStyle.copyWith(
                                     color: DreadmoorColors.textSecondary,
                                     fontSize: 12,
                                   ),
                                 ),
-                                if (call.durationSeconds > 0) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "${call.durationSeconds ~/ 60}:${(call.durationSeconds % 60).toString().padLeft(2, '0')}",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
-                                      color: DreadmoorColors.textMeta,
-                                      fontSize: 10,
+                              ],
+                            );
+                          },
+                        ),
+                  ),
+                ],
+              ),
+
+              // Top Layer: Sliding Dial Pad
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                bottom: _isDialPadOpen ? 0 : -MediaQuery.of(context).size.height,
+                left: 0,
+                right: 0,
+                child: GestureDetector(
+                  onVerticalDragEnd: (details) {
+                    if (details.primaryVelocity! > 200) {
+                      setState(() {
+                        _isDialPadOpen = false;
+                      });
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: DreadmoorColors.background,
+                      border: Border(top: BorderSide(color: DreadmoorColors.borderSubtle)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, -5),
+                        )
+                      ]
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Handle bar
+                        Center(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 12, bottom: 12),
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: DreadmoorColors.textMeta.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        // Number Display
+                        Container(
+                          height: 60,
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            _number.isEmpty ? "Enter Number" : _number,
+                            style: DreadmoorTheme.headingStyle.copyWith(
+                              fontSize: 28,
+                              color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
+                              letterSpacing: 2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        const Divider(color: DreadmoorColors.divider, height: 1),
+
+                        // Dial Pad
+                        Container(
+                          padding: const EdgeInsets.only(top: 24, bottom: 40),
+                          color: DreadmoorColors.surfaceAlt,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isCompact = MediaQuery.of(context).size.height < 700;
+                              final vSpacing = isCompact ? 12.0 : 20.0;
+
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 56),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _dial("1", "", isCompact),
+                                            _dial("2", "ABC", isCompact),
+                                            _dial("3", "DEF", isCompact),
+                                          ],
+                                        ),
+                                        SizedBox(height: vSpacing),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _dial("4", "GHI", isCompact),
+                                            _dial("5", "JKL", isCompact),
+                                            _dial("6", "MNO", isCompact),
+                                          ],
+                                        ),
+                                        SizedBox(height: vSpacing),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _dial("7", "PQRS", isCompact),
+                                            _dial("8", "TUV", isCompact),
+                                            _dial("9", "WXYZ", isCompact),
+                                          ],
+                                        ),
+                                        SizedBox(height: vSpacing),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _dial("*", "", isCompact),
+                                            _dial("0", "+", isCompact),
+                                            _dial("#", "", isCompact),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ]
-                              ],
-                            ),
-                          ],
-                        );
-                      },
+                                  SizedBox(height: vSpacing * 1.5),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(width: 80),
+                                      SizedBox(
+                                        width: 80,
+                                        child: Center(
+                                          child: IconButton(
+                                            icon: Icon(Icons.backspace, color: DreadmoorColors.textSecondary, size: isCompact ? 20 : 24),
+                                            onPressed: _delete,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 24),
+                                      GestureDetector(
+                                        onTap: _call,
+                                        child: Container(
+                                          width: isCompact ? 56 : 64,
+                                          height: isCompact ? 56 : 64,
+                                          decoration: const BoxDecoration(
+                                            color: DreadmoorColors.accentCyan,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(Icons.call, color: Colors.black, size: isCompact ? 24 : 28),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 80),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            }
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
