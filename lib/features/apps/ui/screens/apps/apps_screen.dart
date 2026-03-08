@@ -5,15 +5,21 @@ import 'package:intl/intl.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
+import 'package:dreadmoor/core/time/game_clock.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
 class AppsScreen extends ConsumerWidget {
   const AppsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-    final timeString = DateFormat('h:mm').format(now);
-    final dateString = DateFormat('EEEE, MMMM d').format(now);
+    final totalMinutes = ref.watch(gameClockProvider);
+    final timeString = formatGameTime(totalMinutes);
+    final dateString = formatGameDateFull(totalMinutes);
+
+    // Browser unlocking logic tied directly to the story's "article_read" flag
+    final flags = ref.watch(gameFlagsProvider);
+    final browserUnlocked = flags['article_read'] == true;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
@@ -82,40 +88,20 @@ class AppsScreen extends ConsumerWidget {
                     crossAxisSpacing: 20,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      _buildAppIcon(
-                        ref,
-                        icon: Icons.chat_bubble,
-                        label: "Messenger",
-                        app: PhoneApp.messenger,
-                        color: DreadmoorColors.accentCyan,
-                      ),
-                      _buildAppIcon(
-                        ref,
-                        icon: Icons.public,
-                        label: "Browser",
-                        app: PhoneApp.browser,
-                        color: Colors.blueAccent,
-                      ),
+                      if (browserUnlocked)
+                        _buildAppIcon(
+                          ref,
+                          icon: Icons.public,
+                          label: "Browser",
+                          app: PhoneApp.browser,
+                          color: Colors.blueAccent,
+                        ),
                       _buildAppIcon(
                         ref,
                         icon: Icons.phone,
                         label: "Phone",
                         app: PhoneApp.phone,
-                        color: Colors.greenAccent,
-                      ),
-                      _buildAppIcon(
-                        ref,
-                        icon: Icons.storefront,
-                        label: "Store",
-                        app: PhoneApp.store,
-                        color: Colors.orangeAccent,
-                      ),
-                      _buildAppIcon(
-                        ref,
-                        icon: Icons.extension,
-                        label: "Puzzle",
-                        app: PhoneApp.puzzle,
-                        color: DreadmoorColors.accentRed,
+                        color: DreadmoorColors.accentCyan,
                       ),
                     ],
                   ),

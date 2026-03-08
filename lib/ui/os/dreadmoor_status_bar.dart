@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/core/time/game_clock.dart';
 
 class DreadmoorStatusBar extends ConsumerWidget {
   const DreadmoorStatusBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final timeString = ref.watch(gameClockStringProvider);
+
     return Container(
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -26,7 +29,7 @@ class DreadmoorStatusBar extends ConsumerWidget {
         children: [
           // Time
           Text(
-            '23:42', // Mock phone time
+            timeString,
             style: DreadmoorTheme.bodyStyle.copyWith(
               fontSize: 12,
               color: DreadmoorColors.textSecondary,

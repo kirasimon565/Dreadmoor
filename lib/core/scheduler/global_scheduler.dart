@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/time/game_clock.dart';
 import '../models/script_models.dart';
 import '../state/game_state.dart';
 
@@ -148,6 +149,11 @@ class GlobalScheduler {
     if (event.type == 'message') {
       await _ensureThreadExists(event.threadId!, event.sender!);
 
+      // Construct a DateTime out of the game clock total minutes
+      // This bridges the story system to the old Drift schema seamlessly.
+      final totalMinutes = ref.read(gameClockProvider);
+      final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
+
       final id = await db
           .into(db.messages)
           .insert(
@@ -156,7 +162,7 @@ class GlobalScheduler {
               senderId: event.sender!,
               content: Value(event.text!),
               sequence: _eventIndex,
-              timestamp: Value(DateTime.now()),
+              timestamp: Value(gameTime),
             ),
           );
 
@@ -184,6 +190,9 @@ class GlobalScheduler {
     if (event.type == 'system') {
       await _ensureThreadExists(event.threadId!, 'system');
 
+      final totalMinutes = ref.read(gameClockProvider);
+      final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
+
       await db
           .into(db.messages)
           .insert(
@@ -193,7 +202,7 @@ class GlobalScheduler {
               content: Value(event.text ?? ''),
               type: const Value('system'),
               sequence: _eventIndex,
-              timestamp: Value(DateTime.now()),
+              timestamp: Value(gameTime),
             ),
           );
 

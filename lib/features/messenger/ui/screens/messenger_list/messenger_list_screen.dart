@@ -19,6 +19,52 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 }
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
+
+  void _showAddContactDialog(BuildContext context) {
+    String phoneNumber = "";
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: DreadmoorColors.surfaceAlt,
+        title: Text(
+          "Add Contact",
+          style: DreadmoorTheme.headingStyle.copyWith(color: Colors.white, fontSize: 18),
+        ),
+        content: TextField(
+          style: const TextStyle(color: Colors.white),
+          keyboardType: TextInputType.phone,
+          decoration: InputDecoration(
+            hintText: "Enter phone number",
+            hintStyle: const TextStyle(color: Colors.white54),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: DreadmoorColors.accentCyan),
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+          ),
+          onChanged: (value) => phoneNumber = value,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () {
+              // TODO: Implement the actual add contact logic via story flag or engine
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Contact $phoneNumber added', style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white)))
+              );
+              Navigator.pop(context);
+            },
+            child: const Text("Add", style: TextStyle(color: DreadmoorColors.accentCyan)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final db = ref.watch(databaseProvider);
@@ -36,10 +82,15 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
           OSHeader(
             title: "MESSENGER",
             subtitle: "SECURE CONNECTION",
-            leading: null,
+            leading: GestureDetector(
+                onTap: () {
+                    Navigator.of(context).pushNamed(MessengerRoutes.settings);
+                },
+                child: const Icon(Icons.settings, color: DreadmoorColors.textSecondary, size: 20)
+            ),
             trailing: GestureDetector(
                 onTap: () {
-                    // Show add contact dialog
+                    _showAddContactDialog(context);
                 },
                 child: const Icon(Icons.person_add_alt_1, color: DreadmoorColors.textSecondary, size: 20)
             ),
@@ -87,9 +138,11 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                       itemBuilder: (context, index) {
                         final thread = rows[index].readTable(db.threads);
                         final message = rows[index].readTableOrNull(db.messages);
-                        final time = message?.timestamp != null
-                            ? DateFormat.Hm().format(message!.timestamp!)
-                            : '';
+
+                        String time = '';
+                        if (message?.timestamp != null) {
+                          time = '${message!.timestamp!.hour.toString().padLeft(2, '0')}:${message!.timestamp!.minute.toString().padLeft(2, '0')}';
+                        }
 
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,

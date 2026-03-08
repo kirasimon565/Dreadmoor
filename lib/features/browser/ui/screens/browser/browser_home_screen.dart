@@ -1,39 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/features/browser/article_model.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
-class BrowserHomeScreen extends StatelessWidget {
+class BrowserHomeScreen extends ConsumerWidget {
   const BrowserHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final mockArticles = [
-      Article(
-        id: '1',
-        headline: 'Woman Missing After Factory Party',
-        subheadline: 'Police begin investigation after strange events at an abandoned factory.',
-        photo: 'assets/branding/dreadmoor_daily_logo.png', // Placeholder
-        caption: 'The abandoned factory on the outskirts of town.',
-        body: [
-          'Late last night, authorities received multiple reports of a disturbance at the old textile factory. What started as an unauthorized gathering quickly escalated into a chaotic scene.',
-          'Eyewitnesses claim to have seen flashing lights and heard unidentifiable noises originating from the main production floor before the power was abruptly cut.',
-          'The investigation is ongoing. If you have any information, please contact the local authorities immediately.'
-        ],
-      ),
-      Article(
-        id: '2',
-        headline: 'Mayor Announces New Curfew',
-        subheadline: 'In response to recent events, a strict curfew is now in effect.',
-        photo: 'assets/branding/dreadmoor_daily_logo.png',
-        caption: 'Mayor speaking at the town hall.',
-        body: [
-          'Effective immediately, all residents must remain indoors between the hours of 10:00 PM and 6:00 AM.',
-          'This measure has been put in place to ensure the safety of our community while authorities work to resolve the current situation.'
-        ],
-      )
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Reveal the article content only once the story triggers the specific flag.
+    final flags = ref.watch(gameFlagsProvider);
+    final hasArticle = flags['article_read'] == true;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
@@ -41,19 +21,65 @@ class BrowserHomeScreen extends StatelessWidget {
         children: [
           _buildTopBar(),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 24),
-                const Divider(color: DreadmoorColors.divider, height: 1),
-                const SizedBox(height: 24),
-                ...mockArticles.map((article) => _buildArticleCard(context, article)),
-              ],
+            child: hasArticle
+                ? _buildContent(context)
+                : _buildEmptyState(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.public_off, size: 64, color: DreadmoorColors.textMeta.withOpacity(0.5)),
+          const SizedBox(height: 24),
+          Text(
+            "NO SIGNAL",
+            style: DreadmoorTheme.headingStyle.copyWith(
+              color: DreadmoorColors.textMeta,
+              letterSpacing: 4.0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Check your connection or wait for updates.",
+            style: DreadmoorTheme.bodyStyle.copyWith(
+              color: DreadmoorColors.textSecondary,
+              fontSize: 12,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final storyArticle = Article(
+      id: '1',
+      headline: 'Woman Missing After Factory Party',
+      subheadline: 'Police begin investigation after strange events at an abandoned factory.',
+      photo: 'assets/branding/dreadmoor_daily_logo.png', // Placeholder
+      caption: 'The abandoned factory on the outskirts of town.',
+      body: [
+        'Late last night, authorities received multiple reports of a disturbance at the old textile factory. What started as an unauthorized gathering quickly escalated into a chaotic scene.',
+        'Eyewitnesses claim to have seen flashing lights and heard unidentifiable noises originating from the main production floor before the power was abruptly cut.',
+        'The investigation is ongoing. If you have any information, please contact the local authorities immediately.'
+      ],
+    );
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      children: [
+        _buildHeader(),
+        const SizedBox(height: 24),
+        const Divider(color: DreadmoorColors.divider, height: 1),
+        const SizedBox(height: 24),
+        _buildArticleCard(context, storyArticle),
+      ],
     );
   }
 
@@ -176,11 +202,12 @@ class BrowserHomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'June 12, 2007',
+              'March 8', // Syncs with Game Time start day
               style: DreadmoorTheme.bodyStyle.copyWith(
                 fontSize: 11,
                 color: DreadmoorColors.textMeta,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
               ),
             ),
           ],

@@ -110,6 +110,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   return OSHeader(
                     title: thread?.title ?? 'UNKNOWN',
                     subtitle: thread?.isTyping == true ? 'typing...' : 'online',
+                    onTitleTap: () {
+                      Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
+                    },
                     leading: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
@@ -118,15 +121,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       },
                       child: const Icon(Icons.arrow_back_ios, color: DreadmoorColors.textSecondary, size: 20),
                     ),
-                    trailing: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: DreadmoorColors.surfaceGlass,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: DreadmoorColors.borderGlass),
+                    trailing: GestureDetector(
+                      onTap: () {
+                         // Opens Character Profile
+                         Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
+                      },
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: DreadmoorColors.surfaceGlass,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: DreadmoorColors.borderGlass),
+                        ),
+                        child: const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16),
                       ),
-                      child: const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16),
                     ),
                   );
                 },
@@ -171,10 +180,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         }
 
                         final msg = messages[index];
-                        // Add spacing between groups of messages
+
+                        // Grouping logic
                         bool isFirstInGroup = true;
                         if (index > 0 && messages[index - 1].senderId == msg.senderId) {
                             isFirstInGroup = false;
+                        }
+
+                        // Group timestamps by minute
+                        bool isLastInMinuteGroup = true;
+                        if (index < messages.length - 1) {
+                          final nextMsg = messages[index + 1];
+                          if (nextMsg.senderId == msg.senderId && msg.timestamp != null && nextMsg.timestamp != null) {
+                             if (msg.timestamp!.hour == nextMsg.timestamp!.hour && msg.timestamp!.minute == nextMsg.timestamp!.minute) {
+                               isLastInMinuteGroup = false;
+                             }
+                          }
                         }
 
                         return Padding(
@@ -183,7 +204,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             text: msg.content ?? "",
                             isMe: msg.isPlayerMessage,
                             senderId: msg.senderId,
-                            timestamp: msg.timestamp,
+                            // Only pass timestamp if it's the last message in that minute group
+                            timestamp: isLastInMinuteGroup ? msg.timestamp : null,
                             isSecret: msg.isSecret,
                           ),
                         );
