@@ -58,18 +58,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final loc = state.uri.toString();
 
-      final onSetup = loc == Routes.setup;
       final onStudio = loc == Routes.studio;
+      final onSetup = loc == Routes.setup;
+      final onWelcome = loc == Routes.welcome;
       final onLegal = loc == Routes.legal;
+      final onOS = loc == Routes.os;
 
+      /// Allow these routes freely
       if (onStudio || onLegal) return null;
 
+      /// Player must complete setup first
       if (!hasCompletedSetup && !onSetup) {
         return Routes.setup;
       }
 
+      /// After setup, go to welcome screen
       if (hasCompletedSetup && onSetup) {
-        return Routes.os; // Redirect to OS
+        return Routes.welcome;
+      }
+
+      /// From welcome → OS
+      if (hasCompletedSetup && onWelcome) {
+        return null;
+      }
+
+      /// If player already setup but tries to access other early routes
+      if (hasCompletedSetup && !onOS && !onWelcome) {
+        return Routes.os;
       }
 
       return null;
@@ -98,14 +113,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             DreadmoorPage(key: state.pageKey, child: const WelcomeScreen()),
       ),
 
-      /// DREADMOOR OS (Main Application Container)
+      /// MAIN PHONE OS
       GoRoute(
         path: Routes.os,
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const DreadmoorOS()),
       ),
-
-      // Other global routes (not part of the Phone OS)
 
       /// Episodes
       GoRoute(
