@@ -112,7 +112,7 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
             textScaleFactor: media.textScaleFactor.clamp(0.9, 1.1),
           ),
           child: Scaffold(
-            backgroundColor: const Color(0xFF0A0A0A),
+            backgroundColor: DreadmoorTheme.darkTheme.scaffoldBackgroundColor,
             body: Stack(
               children: [
                 child!,
