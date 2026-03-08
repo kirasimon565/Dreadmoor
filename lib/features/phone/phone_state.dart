@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 
 enum CallState { idle, incoming, active }
@@ -17,6 +19,24 @@ class CallEntry {
     required this.isIncoming,
     required this.isMissed,
   });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'number': number,
+        'time': time,
+        'isIncoming': isIncoming,
+        'isMissed': isMissed,
+      };
+
+  factory CallEntry.fromJson(Map<String, dynamic> json) {
+    return CallEntry(
+      name: json['name'],
+      number: json['number'],
+      time: json['time'],
+      isIncoming: json['isIncoming'],
+      isMissed: json['isMissed'],
+    );
+  }
 }
 
 class PhoneState {
@@ -48,13 +68,37 @@ class PhoneState {
 }
 
 class PhoneNotifier extends StateNotifier<PhoneState> {
+  static const _historyKey = 'phone_call_history';
+
   PhoneNotifier()
       : super(PhoneState(
           callState: CallState.idle,
           callerName: '',
           callerNumber: '',
           history: [],
-        ));
+        )) {
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_historyKey);
+    if (jsonString != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        final history = decoded.map((e) => CallEntry.fromJson(e)).toList();
+        state = state.copyWith(history: history);
+      } catch (e) {
+        // Handle decoding error
+      }
+    }
+  }
+
+  Future<void> _saveHistory(List<CallEntry> history) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = jsonEncode(history.map((e) => e.toJson()).toList());
+    await prefs.setString(_historyKey, jsonString);
+  }
 
   void startCall(String name, String number, int time) {
     final entry = CallEntry(
@@ -65,12 +109,14 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       isMissed: false,
     );
 
+    final newHistory = [entry, ...state.history];
     state = state.copyWith(
       callState: CallState.active,
       callerName: name,
       callerNumber: number,
-      history: [entry, ...state.history],
+      history: newHistory,
     );
+    _saveHistory(newHistory);
   }
 
   void receiveIncomingCall(String name, String number) {
@@ -92,10 +138,12 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       isMissed: false,
     );
 
+    final newHistory = [entry, ...state.history];
     state = state.copyWith(
       callState: CallState.active,
-      history: [entry, ...state.history],
+      history: newHistory,
     );
+    _saveHistory(newHistory);
   }
 
   void declineIncomingCall(int time) {
@@ -109,10 +157,12 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       isMissed: true,
     );
 
+    final newHistory = [entry, ...state.history];
     state = state.copyWith(
       callState: CallState.idle,
-      history: [entry, ...state.history],
+      history: newHistory,
     );
+    _saveHistory(newHistory);
   }
 
   void endActiveCall() {

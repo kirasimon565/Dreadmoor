@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/features/notifications/notification_state.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 
 class NotificationBanner extends ConsumerWidget {
   const NotificationBanner({super.key});
@@ -29,7 +30,15 @@ class NotificationBanner extends ConsumerWidget {
           if (payload != null) {
             final route = payload["route"];
             if (route != null) {
-              Navigator.of(context).pushNamed(route, arguments: payload);
+              if (route == '/browser') {
+                  ref.read(activeAppProvider.notifier).state = PhoneApp.browser;
+              } else if (route == '/chat') {
+                  ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
+                  // The messenger navigator handles pushing the chat screen internally.
+                  // Usually we'd use a deep link mechanism here, but changing the tab gets them to the app.
+              } else {
+                  Navigator.of(context).pushNamed(route, arguments: payload);
+              }
             }
           }
         },
@@ -39,7 +48,7 @@ class NotificationBanner extends ConsumerWidget {
             color: const Color(0xFF242830), // Surface
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: const Color(0xFF00FFD1).withOpacity(0.3), // Cyan tint to make it pop slightly
               width: 1,
             ),
             boxShadow: [

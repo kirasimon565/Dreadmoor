@@ -57,6 +57,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
     final rng = Random();
 
+    // Hardcode a start point and end point visually
+    // 3 = Start Node, 4 = End Node
+    _gridTypes[0] = 3;
+    _gridTypes[totalCells - 1] = 4;
+    _targetRotations[0] = 0;
+    _targetRotations[totalCells - 1] = 0;
+
     // We create a mock "path" that the user needs to align
     // For simplicity, we just scatter pieces that have a specific correct rotation
     int nodesPlaced = 0;
@@ -75,7 +82,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   void _handleTap(int index) {
     if (_isSolved) return;
 
-    if (_gridTypes[index] != 0) {
+    // Only rotate straight and corner paths, not endpoints or empty space
+    if (_gridTypes[index] == 1 || _gridTypes[index] == 2) {
       setState(() {
         _gridRotations[index] = (_gridRotations[index] + 1) % 4;
         _checkWin();
@@ -86,7 +94,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   void _checkWin() {
     bool allAligned = true;
     for (int i = 0; i < _gridTypes.length; i++) {
-      if (_gridTypes[i] != 0 && _gridRotations[i] != _targetRotations[i]) {
+      // Only check alignment for rotatable pieces
+      if ((_gridTypes[i] == 1 || _gridTypes[i] == 2) && _gridRotations[i] != _targetRotations[i]) {
         // For straight pieces (type 1), 0deg and 180deg are visually identical,
         // same for 90 and 270. We account for this logic:
         if (_gridTypes[i] == 1) {
@@ -279,21 +288,33 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                               isAligned = rot == _targetRotations[index];
                           }
 
+                          final isEndpoint = type == 3 || type == 4;
+
+                          Color bgColor = DreadmoorColors.surface;
+                          Color borderColor = Colors.white.withOpacity(0.05);
+
+                          if (type == 3) {
+                             bgColor = DreadmoorColors.accentCyan.withOpacity(0.2);
+                             borderColor = DreadmoorColors.accentCyan;
+                          } else if (type == 4) {
+                             bgColor = isAligned ? DreadmoorColors.accentCyan.withOpacity(0.2) : DreadmoorColors.accentRed.withOpacity(0.2);
+                             borderColor = isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed;
+                          } else if (type != 0) {
+                             bgColor = isAligned ? DreadmoorColors.accentCyan.withOpacity(0.15) : DreadmoorColors.surfaceAlt;
+                             borderColor = isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed.withOpacity(0.4);
+                          }
+
                           return GestureDetector(
                             onTap: () => _handleTap(index),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               decoration: BoxDecoration(
-                                color: type != 0
-                                    ? (isAligned ? DreadmoorColors.accentCyan.withOpacity(0.15) : DreadmoorColors.surfaceAlt)
-                                    : DreadmoorColors.surface,
+                                color: bgColor,
                                 border: Border.all(
-                                  color: type != 0
-                                      ? (isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed.withOpacity(0.4))
-                                      : Colors.white.withOpacity(0.05),
+                                  color: borderColor,
                                   width: type != 0 ? 1.5 : 1.0,
                                 ),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(isEndpoint ? 8 : 4),
                               ),
                               child: type == 0
                                   ? Center(
@@ -305,13 +326,24 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                                         ),
                                       ),
                                     )
-                                  : AnimatedRotation(
-                                      turns: rot * 0.25,
-                                      duration: const Duration(milliseconds: 200),
-                                      child: CustomPaint(
-                                        painter: _PathPainter(type: type, color: isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed),
-                                      ),
-                                    ),
+                                  : isEndpoint
+                                      ? Center(
+                                          child: Text(
+                                            type == 3 ? "SRC" : "DST",
+                                            style: DreadmoorTheme.bodyStyle.copyWith(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: type == 3 ? DreadmoorColors.accentCyan : (isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed),
+                                            ),
+                                          ),
+                                        )
+                                      : AnimatedRotation(
+                                          turns: rot * 0.25,
+                                          duration: const Duration(milliseconds: 200),
+                                          child: CustomPaint(
+                                            painter: _PathPainter(type: type, color: isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed),
+                                          ),
+                                        ),
                             ),
                           );
                         },
