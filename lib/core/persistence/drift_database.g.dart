@@ -2213,6 +2213,17 @@ class $StoryStateTable extends StoryState
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _stringValueMeta = const VerificationMeta(
+    'stringValue',
+  );
+  @override
+  late final GeneratedColumn<String> stringValue = GeneratedColumn<String>(
+    'string_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -2255,9 +2266,12 @@ class $StoryStateTable extends StoryState
     }
     if (data.containsKey('string_value')) {
       context.handle(
+        _stringValueMeta,
+        stringValue.isAcceptableOrUnknown(
+          data['string_value']!,
           _stringValueMeta,
-          stringValue.isAcceptableOrUnknown(
-              data['string_value']!, _stringValueMeta));
+        ),
+      );
     }
     if (data.containsKey('updated_at')) {
       context.handle(
@@ -2282,6 +2296,10 @@ class $StoryStateTable extends StoryState
         DriftSqlType.bool,
         data['${effectivePrefix}value'],
       )!,
+      stringValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}string_value'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -2303,6 +2321,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
   const StoryStateData({
     required this.key,
     required this.value,
+    this.stringValue,
     required this.updatedAt,
   });
   @override
@@ -2351,23 +2370,24 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     };
   }
 
-  StoryStateData copyWith(
-          {String? key,
-          bool? value,
-          Value<String?> stringValue = const Value.absent(),
-          DateTime? updatedAt}) =>
-      StoryStateData(
-        key: key ?? this.key,
-        value: value ?? this.value,
-        stringValue: stringValue.present ? stringValue.value : this.stringValue,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  StoryStateData copyWith({
+    String? key,
+    bool? value,
+    Value<String?> stringValue = const Value.absent(),
+    DateTime? updatedAt,
+  }) => StoryStateData(
+    key: key ?? this.key,
+    value: value ?? this.value,
+    stringValue: stringValue.present ? stringValue.value : this.stringValue,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   StoryStateData copyWithCompanion(StoryStateCompanion data) {
     return StoryStateData(
       key: data.key.present ? data.key.value : this.key,
       value: data.value.present ? data.value.value : this.value,
-      stringValue:
-          data.stringValue.present ? data.stringValue.value : this.stringValue,
+      stringValue: data.stringValue.present
+          ? data.stringValue.value
+          : this.stringValue,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2434,6 +2454,7 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
   StoryStateCompanion copyWith({
     Value<String>? key,
     Value<bool>? value,
+    Value<String?>? stringValue,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -4103,6 +4124,7 @@ typedef $$StoryStateTableCreateCompanionBuilder =
     StoryStateCompanion Function({
       required String key,
       Value<bool> value,
+      Value<String?> stringValue,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -4110,6 +4132,7 @@ typedef $$StoryStateTableUpdateCompanionBuilder =
     StoryStateCompanion Function({
       Value<String> key,
       Value<bool> value,
+      Value<String?> stringValue,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -4134,7 +4157,9 @@ class $$StoryStateTableFilterComposer
   );
 
   ColumnFilters<String> get stringValue => $composableBuilder(
-      column: $table.stringValue, builder: (column) => ColumnFilters(column));
+    column: $table.stringValue,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
@@ -4162,7 +4187,9 @@ class $$StoryStateTableOrderingComposer
   );
 
   ColumnOrderings<String> get stringValue => $composableBuilder(
-      column: $table.stringValue, builder: (column) => ColumnOrderings(column));
+    column: $table.stringValue,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
@@ -4186,7 +4213,9 @@ class $$StoryStateTableAnnotationComposer
       $composableBuilder(column: $table.value, builder: (column) => column);
 
   GeneratedColumn<String> get stringValue => $composableBuilder(
-      column: $table.stringValue, builder: (column) => column);
+    column: $table.stringValue,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -4225,11 +4254,13 @@ class $$StoryStateTableTableManager
               ({
                 Value<String> key = const Value.absent(),
                 Value<bool> value = const Value.absent(),
+                Value<String?> stringValue = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoryStateCompanion(
                 key: key,
                 value: value,
+                stringValue: stringValue,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -4237,11 +4268,13 @@ class $$StoryStateTableTableManager
               ({
                 required String key,
                 Value<bool> value = const Value.absent(),
+                Value<String?> stringValue = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoryStateCompanion.insert(
                 key: key,
                 value: value,
+                stringValue: stringValue,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
