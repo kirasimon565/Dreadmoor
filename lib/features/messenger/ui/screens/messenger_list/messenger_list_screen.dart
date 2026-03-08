@@ -51,12 +51,35 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
             child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: Implement the actual add contact logic via story flag or engine
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Contact $phoneNumber added', style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white)))
-              );
-              Navigator.pop(context);
+            onPressed: () async {
+              if (phoneNumber.isNotEmpty) {
+                final db = ref.read(databaseProvider);
+                // Create a new thread for the added contact if it doesn't exist
+                final threadId = 'contact_$phoneNumber';
+
+                final existing = await (db.select(db.threads)..where((t) => t.id.equals(threadId))).getSingleOrNull();
+
+                if (existing == null) {
+                  await db.into(db.threads).insert(
+                    ThreadsCompanion.insert(
+                      id: threadId,
+                      title: phoneNumber,
+                      participants: 'unknown',
+                      unreadCount: const drift.Value(0),
+                      isTyping: const drift.Value(false),
+                      isLocked: const drift.Value(false),
+                      isSecret: const drift.Value(false),
+                    ),
+                  );
+                }
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Contact $phoneNumber added', style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white)))
+                  );
+                  Navigator.pop(context);
+                }
+              }
             },
             child: const Text("Add", style: TextStyle(color: DreadmoorColors.accentCyan)),
           ),

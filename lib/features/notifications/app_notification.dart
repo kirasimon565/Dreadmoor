@@ -7,7 +7,7 @@ class AppNotification {
   final NotificationType type;
   final String title;
   final String message;
-  final DateTime createdAt;
+  final int createdAtMinutes; // Uses GameClock totalMinutes
   final Map<String, dynamic>? payload;
 
   AppNotification({
@@ -15,7 +15,7 @@ class AppNotification {
     required this.type,
     required this.title,
     required this.message,
-    required this.createdAt,
+    required this.createdAtMinutes,
     this.payload,
   });
 }

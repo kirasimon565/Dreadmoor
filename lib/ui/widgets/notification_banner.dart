@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:dreadmoor/features/notifications/app_notification.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
 
 class NotificationBanner extends ConsumerWidget {
@@ -10,13 +8,13 @@ class NotificationBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifications = ref.watch(notificationProvider);
+    final notifState = ref.watch(notificationProvider);
 
-    if (notifications.isEmpty) {
+    if (notifState.activeBanners.isEmpty) {
       return const SizedBox();
     }
 
-    final notification = notifications.last;
+    final notification = notifState.activeBanners.last;
 
     return Positioned(
       top: MediaQuery.of(context).padding.top + 10,
@@ -24,7 +22,7 @@ class NotificationBanner extends ConsumerWidget {
       right: 10,
       child: GestureDetector(
         onTap: () {
-          ref.read(notificationProvider.notifier).dismiss(notification.id);
+          ref.read(notificationProvider.notifier).dismissBanner(notification.id);
 
           final payload = notification.payload;
 

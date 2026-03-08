@@ -16,9 +16,12 @@ class PuzzleScreen extends StatefulWidget {
 class _PuzzleScreenState extends State<PuzzleScreen> {
   static const int gridSize = 5;
 
-  // Grid state: 0 = empty, 1 = node, 2 = connection path
-  late List<int> _grid;
-  late List<bool> _activeNodes;
+  // 0 = empty, 1 = straight path, 2 = corner path
+  late List<int> _gridTypes;
+  // Rotation states: 0 = 0deg, 1 = 90deg, 2 = 180deg, 3 = 270deg
+  late List<int> _gridRotations;
+  // Target rotation required to "solve" the path segment
+  late List<int> _targetRotations;
 
   bool _isSolved = false;
   int _corruptionLevel = 87; // visual fluff
@@ -45,18 +48,24 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   void _generateDataGrid() {
-    _grid = List.generate(gridSize * gridSize, (index) => 0);
-    _activeNodes = List.generate(gridSize * gridSize, (index) => false);
+    final totalCells = gridSize * gridSize;
+    _gridTypes = List.generate(totalCells, (index) => 0);
+    _gridRotations = List.generate(totalCells, (index) => 0);
+    _targetRotations = List.generate(totalCells, (index) => 0);
     _isSolved = false;
     _corruptionLevel = 87;
 
-    // Place some "corrupted data nodes" that need to be activated by tapping
     final rng = Random();
+
+    // We create a mock "path" that the user needs to align
+    // For simplicity, we just scatter pieces that have a specific correct rotation
     int nodesPlaced = 0;
-    while (nodesPlaced < 7) {
-      int idx = rng.nextInt(gridSize * gridSize);
-      if (_grid[idx] == 0) {
-        _grid[idx] = 1; // Node
+    while (nodesPlaced < 12) {
+      int idx = rng.nextInt(totalCells);
+      if (_gridTypes[idx] == 0) {
+        _gridTypes[idx] = rng.nextBool() ? 1 : 2; // Randomly straight or corner
+        _targetRotations[idx] = rng.nextInt(4); // The correct orientation
+        _gridRotations[idx] = (_targetRotations[idx] + rng.nextInt(3) + 1) % 4; // Scramble
         nodesPlaced++;
       }
     }
@@ -66,25 +75,33 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   void _handleTap(int index) {
     if (_isSolved) return;
 
-    setState(() {
-      if (_grid[index] == 1) {
-        // Toggle node activation
-        _activeNodes[index] = !_activeNodes[index];
+    if (_gridTypes[index] != 0) {
+      setState(() {
+        _gridRotations[index] = (_gridRotations[index] + 1) % 4;
         _checkWin();
-      }
-    });
+      });
+    }
   }
 
   void _checkWin() {
-    bool allNodesActive = true;
-    for (int i = 0; i < _grid.length; i++) {
-      if (_grid[i] == 1 && !_activeNodes[i]) {
-        allNodesActive = false;
-        break;
+    bool allAligned = true;
+    for (int i = 0; i < _gridTypes.length; i++) {
+      if (_gridTypes[i] != 0 && _gridRotations[i] != _targetRotations[i]) {
+        // For straight pieces (type 1), 0deg and 180deg are visually identical,
+        // same for 90 and 270. We account for this logic:
+        if (_gridTypes[i] == 1) {
+            if (_gridRotations[i] % 2 != _targetRotations[i] % 2) {
+                allAligned = false;
+                break;
+            }
+        } else {
+            allAligned = false;
+            break;
+        }
       }
     }
 
-    if (allNodesActive) {
+    if (allAligned) {
       setState(() {
         _isSolved = true;
         _corruptionLevel = 0;
@@ -100,7 +117,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           title: Text(
-            "ACCESS GRANTED",
+            "SIGNAL RESTORED",
             style: DreadmoorTheme.headingStyle.copyWith(
               color: DreadmoorColors.accentCyan,
               letterSpacing: 2.0,
@@ -110,10 +127,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.lock_open, color: DreadmoorColors.accentCyan, size: 48),
+              const Icon(Icons.sensors, color: DreadmoorColors.accentCyan, size: 48),
               const SizedBox(height: 16),
               Text(
-                "Data fragments successfully recovered.\nSystem integrity restored.",
+                "Data fragments successfully aligned.\nMedia file decrypted.",
                 style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
@@ -211,7 +228,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
                   // Instructions
                   Text(
-                    "INITIALIZE ALL CORRUPTED SECTORS TO RECOVER DATA FRAGMENT.",
+                    "ALIGN DATA FRAGMENTS TO RECONNECT THE SIGNAL PATH AND DECRYPT MEDIA.",
                     style: DreadmoorTheme.bodyStyle.copyWith(
                       color: DreadmoorColors.textSecondary,
                       fontSize: 11,
@@ -251,47 +268,50 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                         ),
                         itemCount: gridSize * gridSize,
                         itemBuilder: (context, index) {
-                          final isNode = _grid[index] == 1;
-                          final isActive = _activeNodes[index];
+                          final type = _gridTypes[index];
+                          final rot = _gridRotations[index];
+
+                          // Determine if this specific block is "correct"
+                          bool isAligned = false;
+                          if (type == 1) {
+                              isAligned = rot % 2 == _targetRotations[index] % 2;
+                          } else if (type == 2) {
+                              isAligned = rot == _targetRotations[index];
+                          }
 
                           return GestureDetector(
                             onTap: () => _handleTap(index),
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 200),
                               decoration: BoxDecoration(
-                                color: isNode
-                                    ? (isActive ? DreadmoorColors.accentCyan.withOpacity(0.2) : DreadmoorColors.accentRed.withOpacity(0.1))
+                                color: type != 0
+                                    ? (isAligned ? DreadmoorColors.accentCyan.withOpacity(0.15) : DreadmoorColors.surfaceAlt)
                                     : DreadmoorColors.surface,
                                 border: Border.all(
-                                  color: isNode
-                                      ? (isActive ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed.withOpacity(0.5))
+                                  color: type != 0
+                                      ? (isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed.withOpacity(0.4))
                                       : Colors.white.withOpacity(0.05),
-                                  width: isNode ? 2.0 : 1.0,
+                                  width: type != 0 ? 1.5 : 1.0,
                                 ),
-                                borderRadius: BorderRadius.circular(isNode ? 8 : 4),
-                                boxShadow: isNode && isActive ? [
-                                  BoxShadow(
-                                    color: DreadmoorColors.accentCyan.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    spreadRadius: 1,
-                                  )
-                                ] : [],
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Center(
-                                child: isNode
-                                    ? Icon(
-                                        isActive ? Icons.check : Icons.warning_amber_rounded,
-                                        color: isActive ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed,
-                                        size: 20,
-                                      )
-                                    : Text(
+                              child: type == 0
+                                  ? Center(
+                                      child: Text(
                                         "0x${(index * 3).toRadixString(16).padLeft(2, '0').toUpperCase()}",
                                         style: DreadmoorTheme.bodyStyle.copyWith(
-                                          fontSize: 9,
-                                          color: DreadmoorColors.textMeta.withOpacity(0.3),
+                                          fontSize: 8,
+                                          color: DreadmoorColors.textMeta.withOpacity(0.2),
                                         ),
                                       ),
-                              ),
+                                    )
+                                  : AnimatedRotation(
+                                      turns: rot * 0.25,
+                                      duration: const Duration(milliseconds: 200),
+                                      child: CustomPaint(
+                                        painter: _PathPainter(type: type, color: isAligned ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed),
+                                      ),
+                                    ),
                             ),
                           );
                         },
@@ -305,5 +325,40 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         ],
       ),
     );
+  }
+}
+
+class _PathPainter extends CustomPainter {
+  final int type;
+  final Color color;
+
+  _PathPainter({required this.type, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.square
+      ..style = PaintingStyle.stroke;
+
+    final center = Offset(size.width / 2, size.height / 2);
+
+    if (type == 1) {
+      // Straight line
+      canvas.drawLine(Offset(size.width / 2, 0), Offset(size.width / 2, size.height), paint);
+    } else if (type == 2) {
+      // Corner line (top to right)
+      final path = Path()
+        ..moveTo(size.width / 2, 0)
+        ..lineTo(size.width / 2, size.height / 2)
+        ..lineTo(size.width, size.height / 2);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PathPainter oldDelegate) {
+    return oldDelegate.type != type || oldDelegate.color != color;
   }
 }
