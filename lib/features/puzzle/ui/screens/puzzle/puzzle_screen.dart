@@ -17,242 +17,324 @@ class PuzzleScreen extends ConsumerStatefulWidget {
   ConsumerState<PuzzleScreen> createState() => _PuzzleScreenState();
 }
 
-class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
+class _PuzzleScreenState extends ConsumerState<PuzzleScreen>
+    with SingleTickerProviderStateMixin {
+
+  bool _started = false;
   bool _isGlitching = false;
+
+  int? _previewPivot;
+
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+
+    _shakeAnimation = Tween<double>(begin: 0, end: 6).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.easeOut),
+    );
+  }
+
+  void _triggerShake() {
+    _shakeController.forward(from: 0);
+  }
 
   void _handleWin() {
     setState(() => _isGlitching = true);
+
     HapticFeedback.heavyImpact();
 
-    // Simulate glitch and restore access
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
-        setState(() => _isGlitching = false);
         ref.read(globalSchedulerProvider).completePuzzle();
-        // Return to messenger automatically to continue the story
         Navigator.of(context).pop();
       }
     });
   }
 
   @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     final puzzle = ref.watch(puzzleProvider);
     final notifier = ref.read(puzzleProvider.notifier);
 
-    // Watch for state changes to trigger win animation
-    ref.listen<PuzzleState>(puzzleProvider, (previous, next) {
-      if (previous?.isSolved != true && next.isSolved) {
+    ref.listen<PuzzleState>(puzzleProvider, (prev, next) {
+      if (prev?.isSolved != true && next.isSolved) {
         _handleWin();
       }
     });
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: const Color(0xFF0C1016),
       body: Stack(
         children: [
+
           SafeArea(
             child: Column(
               children: [
+
                 const OSHeader(
-                  title: "SYSTEM OVERRIDE",
-                  subtitle: "MAINFRAME ACCESS",
-                  trailing: Icon(Icons.security, color: DreadmoorColors.accentRed, size: 20),
+                  title: "DREADMOOR OS",
+                  subtitle: "PUZZLE MODULE",
                 ),
 
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        // --- 1. HEADER (Status) ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "STATUS:",
-                                  style: DreadmoorTheme.bodyStyle.copyWith(
-                                    color: DreadmoorColors.textMeta,
-                                    fontSize: 10,
-                                    letterSpacing: 2.0,
-                                  ),
-                                ),
-                                Text(
-                                  puzzle.isSolved ? "RESTORED" : "CORRUPTED",
-                                  style: DreadmoorTheme.headingStyle.copyWith(
-                                    color: puzzle.isSolved ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed,
-                                    fontSize: 14,
-                                    letterSpacing: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  "DATA LOSS:",
-                                  style: DreadmoorTheme.bodyStyle.copyWith(
-                                    color: DreadmoorColors.textMeta,
-                                    fontSize: 10,
-                                    letterSpacing: 2.0,
-                                  ),
-                                ),
-                                Text(
-                                  puzzle.isSolved ? "0%" : "84%",
-                                  style: DreadmoorTheme.headingStyle.copyWith(
-                                    color: puzzle.isSolved ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary,
-                                    fontSize: 14,
-                                    letterSpacing: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                        // --- 2. TARGET PATTERN ---
-                        Column(
-                          children: [
-                            Text(
-                              "[ TARGET SIGNAL ]",
-                              style: DreadmoorTheme.bodyStyle.copyWith(
-                                color: DreadmoorColors.textMeta,
-                                fontSize: 10,
-                                letterSpacing: 2.0,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildMiniBoard(puzzle.targetBoard, puzzle.gridSize),
-                          ],
-                        ),
-
-                        // --- 3. PUZZLE BOARD ---
-                        GestureDetector(
-                          onDoubleTap: notifier.undo, // Two-finger tap equivalent conceptually (easy fallback)
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: DreadmoorColors.surfaceAlt,
-                                border: Border.all(
-                                  color: puzzle.isSolved ? DreadmoorColors.accentCyan : DreadmoorColors.borderSubtle,
-                                  width: puzzle.isSolved ? 2.0 : 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: puzzle.isSolved || _isGlitching ? [
-                                  BoxShadow(
-                                    color: DreadmoorColors.glowCyan.withOpacity(0.3),
-                                    blurRadius: 24,
-                                    spreadRadius: 2,
-                                  )
-                                ] : [],
-                              ),
-                              child: _buildInteractiveBoard(puzzle, notifier),
-                            ),
-                          ),
-                        ),
-
-                        // --- 4. CONTROLS ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "MOVES: ${puzzle.moves}",
-                              style: DreadmoorTheme.headingStyle.copyWith(
-                                color: DreadmoorColors.textSecondary,
-                                fontSize: 12,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                TextButton(
-                                  onPressed: puzzle.history.isEmpty ? null : notifier.undo,
-                                  child: Text(
-                                    "[ UNDO ]",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
-                                      color: puzzle.history.isEmpty ? DreadmoorColors.textDisabled : DreadmoorColors.textSecondary,
-                                      fontSize: 12,
-                                      letterSpacing: 1.0,
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: notifier.reset,
-                                  child: Text(
-                                    "[ RESET ]",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
-                                      color: DreadmoorColors.textSecondary,
-                                      fontSize: 12,
-                                      letterSpacing: 1.0,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: !_started
+                      ? _buildLevelSelection()
+                      : _buildPuzzleBody(puzzle, notifier),
                 ),
               ],
             ),
           ),
 
-          // Glitch Overlay on Win
-          if (_isGlitching)
-            Positioned.fill(
-              child: Container(
-                color: DreadmoorColors.accentCyan.withOpacity(0.2),
-                child: Center(
-                  child: Text(
-                    "ACCESS RESTORED",
-                    style: DreadmoorTheme.headingStyle.copyWith(
-                      color: Colors.white,
-                      fontSize: 32,
-                      letterSpacing: 4.0,
-                      shadows: [
-                        BoxShadow(color: DreadmoorColors.accentCyan, blurRadius: 20)
-                      ]
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          if (_isGlitching) _buildCompletionOverlay(),
         ],
       ),
     );
   }
 
+  // LEVEL SCREEN
+
+  Widget _buildLevelSelection() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+
+          const SizedBox(height: 20),
+
+          Text(
+            "SIGNAL RECOVERY MODULE",
+            style: DreadmoorTheme.headingStyle.copyWith(
+              fontSize: 18,
+              letterSpacing: 3,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          Text(
+            "Decrypt corrupted signal fragments to restore hidden data.",
+            textAlign: TextAlign.center,
+            style: DreadmoorTheme.bodyStyle.copyWith(
+              color: DreadmoorColors.textSecondary,
+            ),
+          ),
+
+          const SizedBox(height: 40),
+
+          _buildPuzzleCard(
+            title: "Signal Reconstruction",
+            subtitle: "Level 1",
+            unlocked: true,
+            onTap: () {
+              setState(() => _started = true);
+            },
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildPuzzleCard(
+            title: "Encrypted Media",
+            subtitle: "Locked",
+            unlocked: false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPuzzleCard({
+    required String title,
+    required String subtitle,
+    bool unlocked = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: unlocked ? onTap : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: DreadmoorColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: unlocked
+                ? DreadmoorColors.accentCyan
+                : Colors.white12,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            Text(
+              title,
+              style: DreadmoorTheme.headingStyle.copyWith(
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              unlocked
+                  ? subtitle
+                  : "Come back when the investigation reaches this stage.",
+              style: DreadmoorTheme.bodyStyle.copyWith(
+                color: DreadmoorColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // PUZZLE BODY
+
+  Widget _buildPuzzleBody(PuzzleState puzzle, PuzzleNotifier notifier) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+
+          _buildStatusHeader(puzzle),
+
+          _buildTargetBoard(puzzle),
+
+          AnimatedBuilder(
+            animation: _shakeController,
+            builder: (_, child) {
+              return Transform.translate(
+                offset: Offset(
+                  sin(_shakeAnimation.value) * 4,
+                  0,
+                ),
+                child: child,
+              );
+            },
+            child: _buildPuzzleBoard(puzzle, notifier),
+          ),
+
+          _buildControls(puzzle, notifier),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusHeader(PuzzleState puzzle) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "STATUS",
+              style: DreadmoorTheme.bodyStyle.copyWith(
+                fontSize: 10,
+                letterSpacing: 2,
+                color: DreadmoorColors.textMeta,
+              ),
+            ),
+            Text(
+              puzzle.isSolved ? "RESTORED" : "CORRUPTED",
+              style: DreadmoorTheme.headingStyle.copyWith(
+                color: puzzle.isSolved
+                    ? DreadmoorColors.accentCyan
+                    : DreadmoorColors.accentRed,
+              ),
+            ),
+          ],
+        ),
+
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              "DATA LOSS",
+              style: DreadmoorTheme.bodyStyle.copyWith(
+                fontSize: 10,
+                letterSpacing: 2,
+                color: DreadmoorColors.textMeta,
+              ),
+            ),
+            Text(
+              puzzle.isSolved ? "0%" : "84%",
+              style: DreadmoorTheme.headingStyle.copyWith(
+                color: DreadmoorColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTargetBoard(PuzzleState puzzle) {
+    return Column(
+      children: [
+
+        Text(
+          "TARGET SIGNAL",
+          style: DreadmoorTheme.bodyStyle.copyWith(
+            fontSize: 10,
+            letterSpacing: 2,
+            color: DreadmoorColors.textMeta,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        _buildMiniBoard(puzzle.targetBoard, puzzle.gridSize),
+      ],
+    );
+  }
+
   Widget _buildMiniBoard(List<int> target, int size) {
-    return Container(
+    return SizedBox(
       width: 120,
       height: 120,
-      decoration: BoxDecoration(
-        color: DreadmoorColors.surface,
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      padding: const EdgeInsets.all(4),
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: size,
-          crossAxisSpacing: 2,
-          mainAxisSpacing: 2,
-        ),
+        gridDelegate:
+        SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: size),
         itemCount: size * size,
         itemBuilder: (context, index) {
-          final val = target[index];
-          return _buildTileVisual(val, true);
+          return _buildTileVisual(target[index], true);
         },
+      ),
+    );
+  }
+
+  Widget _buildPuzzleBoard(PuzzleState puzzle, PuzzleNotifier notifier) {
+    return GestureDetector(
+      onDoubleTap: notifier.undo,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: DreadmoorColors.surfaceAlt,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: _buildInteractiveBoard(puzzle, notifier),
+        ),
       ),
     );
   }
@@ -262,116 +344,204 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+
         final boardSize = constraints.maxWidth;
         final spacing = 4.0;
         final tileSize = (boardSize - (size - 1) * spacing) / size;
 
         return Stack(
           children: [
-            // Base layer: The physical tiles
+
             ...List.generate(size * size, (i) {
-              // Find where tile 'i' is currently located on the board
+
               final currentIndex = puzzle.currentBoard.indexOf(i);
               final r = currentIndex ~/ size;
               final c = currentIndex % size;
 
-              final top = r * (tileSize + spacing);
-              final left = c * (tileSize + spacing);
-
               return AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                top: top,
-                left: left,
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                top: r * (tileSize + spacing),
+                left: c * (tileSize + spacing),
                 width: tileSize,
                 height: tileSize,
                 child: _buildTileVisual(i, false),
               );
             }),
 
-            // Interaction layer: 2x2 touch targets overlaying the intersections
             ...List.generate((size - 1) * (size - 1), (i) {
+
               final r = i ~/ (size - 1);
               final c = i % (size - 1);
 
-              // The pivot is the top-left tile of this 2x2 block
               final pivotIndex = r * size + c;
 
-              final top = r * (tileSize + spacing) + (tileSize / 2);
-              final left = c * (tileSize + spacing) + (tileSize / 2);
-
-              final isPreview = puzzle.previewPivotIndex == pivotIndex;
+              final top = r * (tileSize + spacing) + tileSize / 2;
+              final left = c * (tileSize + spacing) + tileSize / 2;
 
               return Positioned(
                 top: top,
                 left: left,
-                width: tileSize + spacing,
-                height: tileSize + spacing,
+                width: tileSize,
+                height: tileSize,
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     notifier.rotateBlock(pivotIndex);
+                    _triggerShake();
                   },
                   onLongPressStart: (_) {
-                    HapticFeedback.selectionClick();
-                    notifier.setPreview(pivotIndex);
+                    setState(() {
+                      _previewPivot = pivotIndex;
+                    });
                   },
                   onLongPressEnd: (_) {
-                    notifier.setPreview(null);
+                    setState(() {
+                      _previewPivot = null;
+                    });
                   },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isPreview ? DreadmoorColors.accentCyan.withOpacity(0.1) : Colors.transparent,
-                      shape: BoxShape.circle,
-                    ),
-                    // Invisible hit box in the exact center of 4 tiles
-                    child: Center(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isPreview ? DreadmoorColors.accentCyan.withOpacity(0.2) : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
               );
             }),
+
+            if (_previewPivot != null)
+              _buildPreviewOverlay(_previewPivot!, tileSize, spacing, size),
           ],
         );
-      }
+      },
     );
   }
 
-  // Visual representation of a "data fragment"
-  Widget _buildTileVisual(int value, bool isMini) {
-    // Generate a fixed pattern based on the value so it looks like broken media
-    final rng = Random(value * 1234);
-    final isRed = rng.nextBool();
-    final type = rng.nextInt(3); // 0 = file, 1 = binary, 2 = image fragment
+  Widget _buildPreviewOverlay(
+      int pivot,
+      double tileSize,
+      double spacing,
+      int gridSize,
+      ) {
 
-    return Container(
-      decoration: BoxDecoration(
-        color: DreadmoorColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(isMini ? 2 : 4),
-        border: Border.all(
-          color: isRed ? DreadmoorColors.accentRed.withOpacity(0.2) : DreadmoorColors.borderSubtle,
+    final r = pivot ~/ gridSize;
+    final c = pivot % gridSize;
+
+    final top = r * (tileSize + spacing);
+    final left = c * (tileSize + spacing);
+
+    return Positioned(
+      top: top,
+      left: left,
+      child: Container(
+        width: tileSize * 2 + spacing,
+        height: tileSize * 2 + spacing,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: DreadmoorColors.accentCyan,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(6),
+          color: DreadmoorColors.accentCyan.withOpacity(0.08),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.rotate_left,
+            color: DreadmoorColors.accentCyan.withOpacity(0.6),
+            size: 32,
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildControls(PuzzleState puzzle, PuzzleNotifier notifier) {
+    return Column(
+      children: [
+
+        Text(
+          "MOVES: ${puzzle.moves}",
+          style: DreadmoorTheme.headingStyle.copyWith(
+            fontSize: 12,
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            TextButton(
+              onPressed: puzzle.history.isEmpty ? null : notifier.undo,
+              child: const Text("[UNDO]"),
+            ),
+
+            TextButton(
+              onPressed: notifier.reset,
+              child: const Text("[RESTART]"),
+            ),
+
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("[BACK TO CHAT]"),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTileVisual(int value, bool mini) {
+
+    final rng = Random(value * 999);
+    final type = rng.nextInt(4);
+
+    IconData icon;
+
+    switch (type) {
+      case 0:
+        icon = Icons.description;
+        break;
+      case 1:
+        icon = Icons.fingerprint;
+        break;
+      case 2:
+        icon = Icons.photo;
+        break;
+      default:
+        icon = Icons.mic;
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: DreadmoorColors.surface,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.white12),
+      ),
       child: Center(
-        child: type == 0
-          ? Icon(Icons.description, size: isMini ? 12 : 24, color: Colors.white24)
-          : type == 1
-            ? Text(
-                "0x${value.toRadixString(16).padLeft(2, '0')}",
-                style: DreadmoorTheme.bodyStyle.copyWith(
-                  fontSize: isMini ? 8 : 12,
-                  color: Colors.white38,
-                ),
-              )
-            : Icon(Icons.fingerprint, size: isMini ? 12 : 24, color: Colors.white24),
+        child: Icon(
+          icon,
+          size: mini ? 12 : 22,
+          color: Colors.white30,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletionOverlay() {
+    return Container(
+      color: DreadmoorColors.accentCyan.withOpacity(0.2),
+      child: Center(
+        child: Text(
+          "DECRYPTION COMPLETE",
+          style: DreadmoorTheme.headingStyle.copyWith(
+            fontSize: 30,
+            letterSpacing: 4,
+            shadows: [
+              BoxShadow(
+                color: DreadmoorColors.accentCyan,
+                blurRadius: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
