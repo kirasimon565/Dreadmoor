@@ -27,30 +27,33 @@ Map<String, dynamic> _$EpisodeScriptToJson(EpisodeScript instance) =>
     };
 
 SceneScript _$SceneScriptFromJson(Map<String, dynamic> json) => SceneScript(
-  sceneId: json['sceneId'] as String,
-  events: (json['events'] as List<dynamic>)
-      .map((e) => EventScript.fromJson(e as Map<String, dynamic>))
-      .toList(),
-);
+      sceneId: json['sceneId'] as String,
+      events: (json['events'] as List<dynamic>)
+          .map((e) => EventScript.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$SceneScriptToJson(SceneScript instance) =>
-    <String, dynamic>{'sceneId': instance.sceneId, 'events': instance.events};
+    <String, dynamic>{
+      'sceneId': instance.sceneId,
+      'events': instance.events,
+    };
 
 EventScript _$EventScriptFromJson(Map<String, dynamic> json) => EventScript(
-  id: json['id'] as String,
-  type: json['type'] as String,
-  threadId: json['threadId'] as String?,
-  sender: json['sender'] as String?,
-  text: json['text'] as String?,
-  choiceId: json['choiceId'] as String?,
-  options: (json['options'] as List<dynamic>?)
-      ?.map((e) => ChoiceOption.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  duration: (json['duration'] as num?)?.toInt(),
-  meta: json['meta'] == null
-      ? null
-      : EventMeta.fromJson(json['meta'] as Map<String, dynamic>),
-);
+      id: json['id'] as String,
+      type: json['type'] as String,
+      threadId: json['threadId'] as String?,
+      sender: json['sender'] as String?,
+      text: json['text'] as String?,
+      choiceId: json['choiceId'] as String?,
+      options: (json['options'] as List<dynamic>?)
+          ?.map((e) => ChoiceOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      duration: (json['duration'] as num?)?.toInt(),
+      meta: json['meta'] == null
+          ? null
+          : EventMeta.fromJson(json['meta'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
     <String, dynamic>{
@@ -65,17 +68,21 @@ Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
       'meta': instance.meta,
     };
 
-EventMeta _$EventMetaFromJson(Map<String, dynamic> json) =>
-    EventMeta(delayAfter: (json['delayAfter'] as num?)?.toInt());
+EventMeta _$EventMetaFromJson(Map<String, dynamic> json) => EventMeta(
+      delayAfter: (json['delayAfter'] as num?)?.toInt(),
+    );
 
 Map<String, dynamic> _$EventMetaToJson(EventMeta instance) => <String, dynamic>{
-  'delayAfter': instance.delayAfter,
-};
+      'delayAfter': instance.delayAfter,
+    };
 
 ChoiceOption _$ChoiceOptionFromJson(Map<String, dynamic> json) => ChoiceOption(
-  text: json['text'] as String,
-  jumpto: json['jumpto'] as String,
-);
+      text: json['text'] as String,
+      jumpto: json['jumpto'] as String,
+    );
 
 Map<String, dynamic> _$ChoiceOptionToJson(ChoiceOption instance) =>
-    <String, dynamic>{'text': instance.text, 'jumpto': instance.jumpto};
+    <String, dynamic>{
+      'text': instance.text,
+      'jumpto': instance.jumpto,
+    };

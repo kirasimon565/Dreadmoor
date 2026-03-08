@@ -9,7 +9,6 @@ import 'ui/navigation/app_router.dart';
 import 'ui/theme/dreadmoor_theme.dart';
 
 import 'features/notifications/notification_state.dart';
-import 'features/phone/phone_state.dart';
 import 'ui/widgets/notification_banner.dart';
 
 void main() async {
@@ -112,7 +111,7 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
             textScaleFactor: media.textScaleFactor.clamp(0.9, 1.1),
           ),
           child: Scaffold(
-            backgroundColor: DreadmoorTheme.darkTheme.scaffoldBackgroundColor,
+            backgroundColor: const Color(0xFF0A0A0A),
             body: Stack(
               children: [
                 child!,
