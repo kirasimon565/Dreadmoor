@@ -111,12 +111,3 @@ LazyDatabase _openConnection() {
     return NativeDatabase(file, logStatements: false);
   });
 }
-
-// ---------------------------
-// RIVERPOD PROVIDER
-// ---------------------------
-
-/// Global provider used across the app to access the Drift database.
-final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase.instance;
-});
