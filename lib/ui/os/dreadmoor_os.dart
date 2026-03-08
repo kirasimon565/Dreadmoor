@@ -10,6 +10,7 @@ import 'package:dreadmoor/features/phone/phone_state.dart';
 import 'package:dreadmoor/features/phone/ui/screens/call/incoming_call_screen.dart';
 import 'package:dreadmoor/features/phone/ui/screens/call/active_call_screen.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
 class DreadmoorOS extends ConsumerWidget {
   const DreadmoorOS({super.key});
@@ -56,6 +57,7 @@ class DreadmoorOS extends ConsumerWidget {
                 callerNumber: phoneState.callerNumber,
                 onEnd: () {
                   ref.read(phoneProvider.notifier).endActiveCall();
+                  ref.read(globalSchedulerProvider).resume();
                 },
               ),
             ),

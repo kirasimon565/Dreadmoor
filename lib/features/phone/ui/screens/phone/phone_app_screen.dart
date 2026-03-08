@@ -64,101 +64,112 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
               subtitle: "Dialer & History",
             ),
 
-            // Top section: Dialer (Naturally sized and centered)
-            Container(
-              color: DreadmoorColors.surfaceAlt,
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Number Display
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      _number.isEmpty ? "Enter Number" : _number,
-                      style: DreadmoorTheme.headingStyle.copyWith(
-                        fontSize: 28,
-                        color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
-                        letterSpacing: 2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+            // Top section (15%): Typed phone number display
+            Expanded(
+              flex: 15,
+              child: Container(
+                width: double.infinity,
+                color: DreadmoorColors.surfaceAlt,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  _number.isEmpty ? "Enter Number" : _number,
+                  style: DreadmoorTheme.headingStyle.copyWith(
+                    fontSize: 28,
+                    color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
+                    letterSpacing: 2,
                   ),
-                  const SizedBox(height: 24),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
 
-                  // Keypad (Centered & more compact)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 56),
-                    child: Column(
+            // Middle section (35%): Dial pad buttons
+            Expanded(
+              flex: 35,
+              child: Container(
+                color: DreadmoorColors.surfaceAlt,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxHeight < 280;
+                    final vSpacing = isCompact ? 8.0 : 16.0;
+
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _dial("1", ""),
-                            _dial("2", "ABC"),
-                            _dial("3", "DEF"),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 56),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _dial("1", "", isCompact),
+                                  _dial("2", "ABC", isCompact),
+                                  _dial("3", "DEF", isCompact),
+                                ],
+                              ),
+                              SizedBox(height: vSpacing),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _dial("4", "GHI", isCompact),
+                                  _dial("5", "JKL", isCompact),
+                                  _dial("6", "MNO", isCompact),
+                                ],
+                              ),
+                              SizedBox(height: vSpacing),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _dial("7", "PQRS", isCompact),
+                                  _dial("8", "TUV", isCompact),
+                                  _dial("9", "WXYZ", isCompact),
+                                ],
+                              ),
+                              SizedBox(height: vSpacing),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _dial("*", "", isCompact),
+                                  _dial("0", "+", isCompact),
+                                  _dial("#", "", isCompact),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: vSpacing * 1.5),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _dial("4", "GHI"),
-                            _dial("5", "JKL"),
-                            _dial("6", "MNO"),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _dial("7", "PQRS"),
-                            _dial("8", "TUV"),
-                            _dial("9", "WXYZ"),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _dial("*", ""),
-                            _dial("0", "+"),
-                            _dial("#", ""),
+                            const SizedBox(width: 56), // spacer
+                            GestureDetector(
+                              onTap: _call,
+                              child: Container(
+                                width: isCompact ? 48 : 56,
+                                height: isCompact ? 48 : 56,
+                                decoration: const BoxDecoration(
+                                  color: DreadmoorColors.accentCyan,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.call, color: Colors.black, size: isCompact ? 20 : 24),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 56,
+                              child: IconButton(
+                                icon: Icon(Icons.backspace, color: DreadmoorColors.textSecondary, size: isCompact ? 20 : 24),
+                                onPressed: _delete,
+                              ),
+                            ),
                           ],
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const SizedBox(width: 56), // spacer
-                      GestureDetector(
-                        onTap: _call,
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: const BoxDecoration(
-                            color: DreadmoorColors.accentCyan,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.call, color: Colors.black, size: 28),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 56,
-                        child: IconButton(
-                          icon: const Icon(Icons.backspace, color: DreadmoorColors.textSecondary),
-                          onPressed: _delete,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    );
+                  }
+                ),
               ),
             ),
 
@@ -168,8 +179,9 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
               color: DreadmoorColors.divider,
             ),
 
-            // Bottom section: Call History (Takes remaining space)
+            // Bottom section (50%): Call History
             Expanded(
+              flex: 50,
               child: Container(
                 color: DreadmoorColors.background,
                 child: history.isEmpty
@@ -266,12 +278,13 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
     );
   }
 
-  Widget _dial(String number, String letters) {
+  Widget _dial(String number, String letters, bool isCompact) {
+    final size = isCompact ? 48.0 : 56.0;
     return GestureDetector(
       onTap: () => _press(number),
       child: Container(
-        width: 64,
-        height: 64,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: DreadmoorColors.surface,
           shape: BoxShape.circle,
@@ -286,17 +299,17 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
             Text(
               number,
               style: DreadmoorTheme.bodyStyle.copyWith(
-                fontSize: 24,
+                fontSize: isCompact ? 20 : 24,
                 color: Colors.white,
                 fontWeight: FontWeight.w300,
                 height: 1.0,
               ),
             ),
-            if (letters.isNotEmpty)
+            if (letters.isNotEmpty && !isCompact)
               Text(
                 letters,
                 style: DreadmoorTheme.bodyStyle.copyWith(
-                  fontSize: 9,
+                  fontSize: 8,
                   color: DreadmoorColors.textMeta,
                   letterSpacing: 1.0,
                   height: 1.2,

@@ -6,6 +6,9 @@ import 'package:drift/drift.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
+import 'package:dreadmoor/features/phone/phone_state.dart';
+import 'package:dreadmoor/features/notifications/app_notification.dart';
+import 'package:dreadmoor/features/notifications/notification_state.dart';
 import '../models/script_models.dart';
 import '../state/game_state.dart';
 
@@ -175,8 +178,20 @@ class GlobalScheduler {
       final activeThread = ref.read(activeThreadIdProvider);
 
       if (activeThread != event.threadId) {
-        // notification system will connect here
+        ref.read(notificationProvider.notifier).push(
+          AppNotification(
+            id: 'msg_${event.id}',
+            type: NotificationType.message,
+            title: event.sender!,
+            message: event.text ?? 'Sent a message',
+            createdAtMinutes: totalMinutes,
+            payload: {'route': '/chat', 'threadId': event.threadId},
+          ),
+        );
       }
+
+      // Advance game clock
+      ref.read(gameClockProvider.notifier).advanceTime(1);
 
       _eventIndex++;
       _scheduleNextTick();
@@ -209,6 +224,29 @@ class GlobalScheduler {
       _eventIndex++;
       _scheduleNextTick();
       return;
+    }
+
+    /// ----------------------
+    /// CALL EVENT
+    /// ----------------------
+
+    if (event.type == 'call') {
+       // example syntax: text="Anonymous", sender="12345"
+       ref.read(phoneProvider.notifier).receiveIncomingCall(
+         event.text ?? "Unknown",
+         event.sender ?? "000000"
+       );
+
+       // Pause scheduler while call is active
+       ref.read(isSchedulerPausedProvider.notifier).state = true;
+
+       // Wait for call to finish before advancing
+       // In a full implementation, the Phone app ending the call would unpause this.
+
+       _eventIndex++;
+       // Note: the next tick will be blocked until `resume()` is called.
+       _scheduleNextTick();
+       return;
     }
 
     /// ----------------------
