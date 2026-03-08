@@ -11,6 +11,7 @@ class CallEntry {
   final int time;
   final bool isIncoming;
   final bool isMissed;
+  final int durationSeconds;
 
   CallEntry({
     required this.name,
@@ -18,6 +19,7 @@ class CallEntry {
     required this.time,
     required this.isIncoming,
     required this.isMissed,
+    this.durationSeconds = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -26,6 +28,7 @@ class CallEntry {
         'time': time,
         'isIncoming': isIncoming,
         'isMissed': isMissed,
+        'durationSeconds': durationSeconds,
       };
 
   factory CallEntry.fromJson(Map<String, dynamic> json) {
@@ -35,6 +38,7 @@ class CallEntry {
       time: json['time'],
       isIncoming: json['isIncoming'],
       isMissed: json['isMissed'],
+      durationSeconds: json['durationSeconds'] ?? 0,
     );
   }
 }
@@ -107,6 +111,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       time: time,
       isIncoming: false,
       isMissed: false,
+      durationSeconds: 0,
     );
 
     final newHistory = [entry, ...state.history];
@@ -136,6 +141,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       time: time,
       isIncoming: true,
       isMissed: false,
+      durationSeconds: 0,
     );
 
     final newHistory = [entry, ...state.history];
@@ -155,6 +161,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       time: time,
       isIncoming: true,
       isMissed: true,
+      durationSeconds: 0,
     );
 
     final newHistory = [entry, ...state.history];
@@ -165,14 +172,36 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
     _saveHistory(newHistory);
   }
 
-  void endActiveCall() {
+  void endActiveCall(int durationSeconds) {
     if (state.callState != CallState.active) return;
 
-    state = state.copyWith(
-      callState: CallState.idle,
-      callerName: '',
-      callerNumber: '',
-    );
+    // Update the duration of the last call entry (the active one)
+    if (state.history.isNotEmpty) {
+      final activeEntry = state.history.first;
+      final updatedEntry = CallEntry(
+        name: activeEntry.name,
+        number: activeEntry.number,
+        time: activeEntry.time,
+        isIncoming: activeEntry.isIncoming,
+        isMissed: activeEntry.isMissed,
+        durationSeconds: durationSeconds,
+      );
+
+      final newHistory = [updatedEntry, ...state.history.skip(1)];
+      state = state.copyWith(
+        callState: CallState.idle,
+        callerName: '',
+        callerNumber: '',
+        history: newHistory,
+      );
+      _saveHistory(newHistory);
+    } else {
+      state = state.copyWith(
+        callState: CallState.idle,
+        callerName: '',
+        callerNumber: '',
+      );
+    }
   }
 
   String resolveName(String number) {

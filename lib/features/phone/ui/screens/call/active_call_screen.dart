@@ -9,7 +9,7 @@ import 'package:dreadmoor/core/time/game_clock.dart';
 class ActiveCallScreen extends ConsumerStatefulWidget {
   final String callerName;
   final String callerNumber;
-  final VoidCallback onEnd;
+  final Function(int) onEnd; // Pass the final duration in seconds
 
   const ActiveCallScreen({
     super.key,
@@ -121,7 +121,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
             const SizedBox(height: 64),
             // End Call
             GestureDetector(
-              onTap: widget.onEnd,
+              onTap: () => widget.onEnd(_seconds),
               child: Container(
                 width: 72,
                 height: 72,

@@ -65,10 +65,10 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                       id: threadId,
                       title: phoneNumber,
                       participants: 'unknown',
-                      unreadCount: const drift.Value(0),
-                      isTyping: const drift.Value(false),
-                      isLocked: const drift.Value(false),
-                      isSecret: const drift.Value(false),
+                      unreadCount: const Value(0),
+                      isTyping: const Value(false),
+                      isLocked: const Value(false),
+                      isSecret: const Value(false),
                     ),
                   );
                 }
