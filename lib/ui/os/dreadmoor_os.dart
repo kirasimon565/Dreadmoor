@@ -56,8 +56,8 @@ class DreadmoorOS extends ConsumerWidget {
               child: ActiveCallScreen(
                 callerName: phoneState.callerName,
                 callerNumber: phoneState.callerNumber,
-                onEnd: () {
-                  ref.read(phoneProvider.notifier).endActiveCall();
+                onEnd: (durationSeconds) {
+                  ref.read(phoneProvider.notifier).endActiveCall(durationSeconds);
                   ref.read(globalSchedulerProvider).resume();
                 },
               ),

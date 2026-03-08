@@ -259,12 +259,27 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
                                 ],
                               ),
                             ),
-                            Text(
-                              timeStr,
-                              style: DreadmoorTheme.bodyStyle.copyWith(
-                                color: DreadmoorColors.textSecondary,
-                                fontSize: 12,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  timeStr,
+                                  style: DreadmoorTheme.bodyStyle.copyWith(
+                                    color: DreadmoorColors.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                if (call.durationSeconds > 0) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${call.durationSeconds ~/ 60}:${(call.durationSeconds % 60).toString().padLeft(2, '0')}",
+                                    style: DreadmoorTheme.bodyStyle.copyWith(
+                                      color: DreadmoorColors.textMeta,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ]
+                              ],
                             ),
                           ],
                         );

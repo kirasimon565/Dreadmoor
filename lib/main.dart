@@ -73,14 +73,19 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final scheduler = ref.read(globalSchedulerProvider);
+    final phoneState = ref.read(phoneProvider);
 
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       scheduler.pause();
     }
 
+    // Only resume the scheduler if we are NOT currently in the middle of a phone call.
+    // If we are in a call, we want the scheduler to remain paused until the call finishes.
     if (state == AppLifecycleState.resumed) {
-      scheduler.resume();
+      if (phoneState.callState == CallState.idle) {
+        scheduler.resume();
+      }
     }
 
     debugPrint('📱 App lifecycle changed: $state');
@@ -127,7 +132,7 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
                 ),
 
                 /// Notification banners
-                if (notifications.isNotEmpty) const NotificationBanner(),
+                if (notifications.activeBanners.isNotEmpty) const NotificationBanner(),
               ],
             ),
           ),
