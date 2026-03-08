@@ -36,8 +36,8 @@ class GameClockNotifier extends StateNotifier<int> {
     final db = _ref.read(databaseProvider);
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
-        key: Value(_gameClockKey),
-        value: Value(true),
+        key: const Value(_gameClockKey),
+        value: const Value(true),
         stringValue: Value(time.toString()),
         updatedAt: Value(DateTime.now()),
       ),

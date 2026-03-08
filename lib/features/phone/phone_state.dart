@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 
 enum CallState { idle, incoming, active }
@@ -123,8 +124,8 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
 
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
-        key: Value(_historyKey),
-        value: Value(true),
+        key: const Value(_historyKey),
+        value: const Value(true),
         stringValue: Value(jsonString),
         updatedAt: Value(DateTime.now()),
       ),
@@ -236,7 +237,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
       case "911":
         return "Emergency";
       case "558169":
-        return "Jess";
+        return "Ash";
       case "7319":
         return "Rebecca Voicemail";
       default:
