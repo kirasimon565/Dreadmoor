@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 
 class ChatBubble extends StatelessWidget {
   const ChatBubble({
@@ -29,10 +29,14 @@ class ChatBubble extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
+        return Transform.translate(
+          // Slide in slightly from the bottom while fading and scaling
+          offset: Offset(0, 10 * (1 - value)),
+          child: Transform.scale(
+            scale: 0.95 + (0.05 * value),
+            alignment: isMe ? Alignment.bottomRight : Alignment.bottomLeft,
+            child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
+          ),
         );
       },
       child: Align(
@@ -40,10 +44,10 @@ class ChatBubble extends StatelessWidget {
         child: Container(
           constraints: BoxConstraints(maxWidth: maxWidth),
           margin: EdgeInsets.only(
-            top: 6,
-            bottom: 6,
-            left: isMe ? 48 : 12,
-            right: isMe ? 12 : 48,
+            top: 4,
+            bottom: 4,
+            left: isMe ? 48 : 0, // removed side margin to let it hug the edge slightly more naturally
+            right: isMe ? 0 : 48,
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.only(
@@ -53,60 +57,58 @@ class ChatBubble extends StatelessWidget {
               bottomRight: const Radius.circular(18),
             ),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: isSecret
-                      ? DreadmoorColors.accentRed.withOpacity(0.08)
+                      ? DreadmoorColors.accentRed.withOpacity(0.1)
                       : isMe
-                      ? DreadmoorColors.accentCyan.withOpacity(0.12)
-                      : DreadmoorColors.surface.withOpacity(0.35),
+                      ? DreadmoorColors.accentCyan.withOpacity(0.15)
+                      : DreadmoorColors.surfaceAlt.withOpacity(0.6),
                   border: Border.all(
                     color: isSecret
-                        ? DreadmoorColors.accentRed.withOpacity(0.35)
+                        ? DreadmoorColors.accentRed.withOpacity(0.4)
                         : isMe
-                        ? DreadmoorColors.accentCyan.withOpacity(0.28)
-                        : Colors.white.withOpacity(0.08),
-                    width: 0.6,
+                        ? DreadmoorColors.accentCyan.withOpacity(0.3)
+                        : DreadmoorColors.borderSubtle.withOpacity(0.8),
+                    width: 0.8,
                   ),
                   boxShadow: isSecret
                       ? [
                           BoxShadow(
-                            color: DreadmoorColors.accentRed.withValues(
-                              alpha: 0.12,
-                            ),
-                            blurRadius: 14,
-                            offset: const Offset(0, 2),
+                            color: DreadmoorColors.accentRed.withOpacity(0.15),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
                           ),
                         ]
                       : isMe
-                      ? const [
+                      ? [
                           BoxShadow(
-                            color: DreadmoorColors.glowCyan,
-                            blurRadius: 14,
-                            offset: Offset(0, 2),
+                            color: DreadmoorColors.glowCyan.withOpacity(0.2),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
                           ),
                         ]
-                      : const [
+                      : [
                           BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 2),
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 11,
+                    vertical: 12,
                   ),
                   child: SelectableText(
                     text,
-                    style: GoogleFonts.inter(
+                    style: DreadmoorTheme.bodyStyle.copyWith(
                       fontSize: 14,
                       color: isSecret
                           ? DreadmoorColors.accentRed.withOpacity(0.9)
-                          : Colors.white.withOpacity(isMe ? 0.95 : 0.85),
+                          : DreadmoorColors.textPrimary.withOpacity(isMe ? 1.0 : 0.9),
                       height: 1.5,
                       letterSpacing: 0.2,
                       fontWeight: isMe ? FontWeight.w400 : FontWeight.w300,

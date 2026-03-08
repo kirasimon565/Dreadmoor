@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
 class DreadmoorTheme {
+  static TextStyle get headingStyle => GoogleFonts.michroma(
+    color: DreadmoorColors.textPrimary,
+  );
+
+  static TextStyle get bodyStyle => GoogleFonts.inter(
+    color: DreadmoorColors.textPrimary,
+  );
+
   static ThemeData get darkTheme {
     const baseText = TextTheme(
       bodyMedium: TextStyle(color: DreadmoorColors.textPrimary),

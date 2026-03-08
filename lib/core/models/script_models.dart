@@ -93,6 +93,13 @@ class EventScript {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$EventScriptToJson(this);
+    if (meta != null) data['meta'] = meta!.toJson();
+    if (options != null) data['options'] = options!.map((e) => e.toJson()).toList();
+    return data;
+  }
 }
 
 @JsonSerializable()
