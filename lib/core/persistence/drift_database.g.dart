@@ -1852,20 +1852,30 @@ class $StoryStateTable extends StoryState
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
   late final GeneratedColumn<bool> value = GeneratedColumn<bool>(
-      'value', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("value" IN (0, 1))'),
-      defaultValue: const Constant(false));
-  static const VerificationMeta _stringValueMeta =
-      const VerificationMeta('stringValue');
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("value" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _stringValueMeta = const VerificationMeta(
+    'stringValue',
+  );
   @override
   late final GeneratedColumn<String> stringValue = GeneratedColumn<String>(
-      'string_value', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'string_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
       'updated_at', aliasedName, false,
@@ -1896,9 +1906,12 @@ class $StoryStateTable extends StoryState
     }
     if (data.containsKey('string_value')) {
       context.handle(
+        _stringValueMeta,
+        stringValue.isAcceptableOrUnknown(
+          data['string_value']!,
           _stringValueMeta,
-          stringValue.isAcceptableOrUnknown(
-              data['string_value']!, _stringValueMeta));
+        ),
+      );
     }
     if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
@@ -1913,14 +1926,22 @@ class $StoryStateTable extends StoryState
   StoryStateData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StoryStateData(
-      key: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}key'])!,
-      value: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}value'])!,
-      stringValue: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}string_value']),
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}value'],
+      )!,
+      stringValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}string_value'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -1935,11 +1956,12 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
   final bool value;
   final String? stringValue;
   final DateTime updatedAt;
-  const StoryStateData(
-      {required this.key,
-      required this.value,
-      this.stringValue,
-      required this.updatedAt});
+  const StoryStateData({
+    required this.key,
+    required this.value,
+    this.stringValue,
+    required this.updatedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1984,23 +2006,24 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     };
   }
 
-  StoryStateData copyWith(
-          {String? key,
-          bool? value,
-          Value<String?> stringValue = const Value.absent(),
-          DateTime? updatedAt}) =>
-      StoryStateData(
-        key: key ?? this.key,
-        value: value ?? this.value,
-        stringValue: stringValue.present ? stringValue.value : this.stringValue,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  StoryStateData copyWith({
+    String? key,
+    bool? value,
+    Value<String?> stringValue = const Value.absent(),
+    DateTime? updatedAt,
+  }) => StoryStateData(
+    key: key ?? this.key,
+    value: value ?? this.value,
+    stringValue: stringValue.present ? stringValue.value : this.stringValue,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   StoryStateData copyWithCompanion(StoryStateCompanion data) {
     return StoryStateData(
       key: data.key.present ? data.key.value : this.key,
       value: data.value.present ? data.value.value : this.value,
-      stringValue:
-          data.stringValue.present ? data.stringValue.value : this.stringValue,
+      stringValue: data.stringValue.present
+          ? data.stringValue.value
+          : this.stringValue,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2064,12 +2087,13 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
     });
   }
 
-  StoryStateCompanion copyWith(
-      {Value<String>? key,
-      Value<bool>? value,
-      Value<String?>? stringValue,
-      Value<DateTime>? updatedAt,
-      Value<int>? rowid}) {
+  StoryStateCompanion copyWith({
+    Value<String>? key,
+    Value<bool>? value,
+    Value<String?>? stringValue,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
     return StoryStateCompanion(
       key: key ?? this.key,
       value: value ?? this.value,
@@ -3456,32 +3480,36 @@ class $$MessagesTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$MessagesTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $MessagesTable,
-    Message,
-    $$MessagesTableFilterComposer,
-    $$MessagesTableOrderingComposer,
-    $$MessagesTableAnnotationComposer,
-    $$MessagesTableCreateCompanionBuilder,
-    $$MessagesTableUpdateCompanionBuilder,
-    (Message, $$MessagesTableReferences),
-    Message,
-    PrefetchHooks Function({bool threadId})>;
-typedef $$StoryStateTableCreateCompanionBuilder = StoryStateCompanion Function({
-  required String key,
-  Value<bool> value,
-  Value<String?> stringValue,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
-typedef $$StoryStateTableUpdateCompanionBuilder = StoryStateCompanion Function({
-  Value<String> key,
-  Value<bool> value,
-  Value<String?> stringValue,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
+typedef $$MessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MessagesTable,
+      Message,
+      $$MessagesTableFilterComposer,
+      $$MessagesTableOrderingComposer,
+      $$MessagesTableAnnotationComposer,
+      $$MessagesTableCreateCompanionBuilder,
+      $$MessagesTableUpdateCompanionBuilder,
+      (Message, $$MessagesTableReferences),
+      Message,
+      PrefetchHooks Function({bool threadId})
+    >;
+typedef $$StoryStateTableCreateCompanionBuilder =
+    StoryStateCompanion Function({
+      required String key,
+      Value<bool> value,
+      Value<String?> stringValue,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$StoryStateTableUpdateCompanionBuilder =
+    StoryStateCompanion Function({
+      Value<String> key,
+      Value<bool> value,
+      Value<String?> stringValue,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
 
 class $$StoryStateTableFilterComposer
     extends Composer<_$AppDatabase, $StoryStateTable> {
@@ -3499,7 +3527,9 @@ class $$StoryStateTableFilterComposer
       column: $table.value, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get stringValue => $composableBuilder(
-      column: $table.stringValue, builder: (column) => ColumnFilters(column));
+    column: $table.stringValue,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -3521,7 +3551,9 @@ class $$StoryStateTableOrderingComposer
       column: $table.value, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get stringValue => $composableBuilder(
-      column: $table.stringValue, builder: (column) => ColumnOrderings(column));
+    column: $table.stringValue,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
@@ -3543,7 +3575,9 @@ class $$StoryStateTableAnnotationComposer
       $composableBuilder(column: $table.value, builder: (column) => column);
 
   GeneratedColumn<String> get stringValue => $composableBuilder(
-      column: $table.stringValue, builder: (column) => column);
+    column: $table.stringValue,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -3574,34 +3608,34 @@ class $$StoryStateTableTableManager extends RootTableManager<
               $$StoryStateTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$StoryStateTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> key = const Value.absent(),
-            Value<bool> value = const Value.absent(),
-            Value<String?> stringValue = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              StoryStateCompanion(
-            key: key,
-            value: value,
-            stringValue: stringValue,
-            updatedAt: updatedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String key,
-            Value<bool> value = const Value.absent(),
-            Value<String?> stringValue = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              StoryStateCompanion.insert(
-            key: key,
-            value: value,
-            stringValue: stringValue,
-            updatedAt: updatedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> key = const Value.absent(),
+                Value<bool> value = const Value.absent(),
+                Value<String?> stringValue = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoryStateCompanion(
+                key: key,
+                value: value,
+                stringValue: stringValue,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String key,
+                Value<bool> value = const Value.absent(),
+                Value<String?> stringValue = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoryStateCompanion.insert(
+                key: key,
+                value: value,
+                stringValue: stringValue,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
