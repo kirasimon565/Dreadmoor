@@ -3,15 +3,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/core/time/game_clock.dart';
+import 'package:dreadmoor/features/phone/phone_state.dart';
 
-enum CallState {
-  idle,
-  incoming,
-  active,
-}
+import 'package:dreadmoor/ui/os/components/os_header.dart';
 
 class PhoneAppScreen extends ConsumerStatefulWidget {
   const PhoneAppScreen({super.key});
@@ -21,17 +19,7 @@ class PhoneAppScreen extends ConsumerStatefulWidget {
 }
 
 class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
-
   String _number = "";
-
-  CallState _callState = CallState.idle;
-
-  String _callerName = "";
-  String _callerNumber = "";
-
-  final List<CallEntry> history = [];
-
-  Timer? _ringTimer;
 
   void _press(String value) {
     setState(() {
@@ -41,7 +29,6 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
 
   void _delete() {
     if (_number.isEmpty) return;
-
     setState(() {
       _number = _number.substring(0, _number.length - 1);
     });
@@ -50,210 +37,227 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
   void _call() {
     if (_number.isEmpty) return;
 
-    final resolved = _resolveName(_number);
+    final phoneNotifier = ref.read(phoneProvider.notifier);
+    final resolved = phoneNotifier.resolveName(_number);
+    final currentTime = ref.read(gameClockProvider);
 
+    phoneNotifier.startCall(resolved, _number, currentTime);
+
+    // Clear typed number after dialing
     setState(() {
-      _callerNumber = _number;
-      _callerName = resolved;
-
-      _callState = CallState.active;
-
-      history.insert(
-        0,
-        CallEntry(
-          name: resolved,
-          number: _number,
-          time: DateTime.now(),
-        ),
-      );
-    });
-  }
-
-  String _resolveName(String number) {
-
-    switch (number) {
-
-      case "911":
-        return "Emergency";
-
-      case "558169":
-        return "Ash";
-
-      // secret numbers mechanic
-      case "7319":
-        return "Rebecca Voicemail";
-
-      default:
-        return number;
-    }
-  }
-
-  void _endCall() {
-    setState(() {
-      _callState = CallState.idle;
       _number = "";
-    });
-  }
-
-  // STORY ENGINE WILL CALL THIS
-  void simulateIncomingCall(String name, String number) {
-
-    _ringTimer?.cancel();
-
-    setState(() {
-      _callerName = name;
-      _callerNumber = number;
-      _callState = CallState.incoming;
-    });
-
-    // auto-decline after 30 seconds
-    _ringTimer = Timer(
-      const Duration(seconds: 30),
-      () {
-        if (_callState == CallState.incoming) {
-          _declineCall();
-        }
-      },
-    );
-  }
-
-  void _acceptCall() {
-    _ringTimer?.cancel();
-
-    setState(() {
-      _callState = CallState.active;
-
-      history.insert(
-        0,
-        CallEntry(
-          name: _callerName,
-          number: _callerNumber,
-          time: DateTime.now(),
-        ),
-      );
-    });
-  }
-
-  void _declineCall() {
-    _ringTimer?.cancel();
-
-    setState(() {
-      _callState = CallState.idle;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-
-    if (_callState == CallState.incoming) {
-      return _IncomingCallScreen(
-        name: _callerName,
-        number: _callerNumber,
-        onAccept: _acceptCall,
-        onDecline: _declineCall,
-      );
-    }
-
-    if (_callState == CallState.active) {
-      return _ActiveCallScreen(
-        name: _callerName,
-        number: _callerNumber,
-        onEnd: _endCall,
-      );
-    }
+    final phoneState = ref.watch(phoneProvider);
+    final history = phoneState.history;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
       body: SafeArea(
         child: Column(
           children: [
-
-            const SizedBox(height: 20),
-
-            Text(
-              _number.isEmpty ? "Enter Number" : _number,
-              style: GoogleFonts.inter(
-                fontSize: 32,
-                color: Colors.white,
-                letterSpacing: 3,
-              ),
+            const OSHeader(
+              title: "PHONE",
+              subtitle: "Dialer & History",
             ),
 
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 3,
-                childAspectRatio: 1.2,
-                padding: const EdgeInsets.symmetric(horizontal: 40),
+            // Top section: Dialer (Naturally sized and centered)
+            Container(
+              color: DreadmoorColors.surfaceAlt,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Number Display
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      _number.isEmpty ? "Enter Number" : _number,
+                      style: DreadmoorTheme.headingStyle.copyWith(
+                        fontSize: 28,
+                        color: _number.isEmpty ? DreadmoorColors.textMeta : Colors.white,
+                        letterSpacing: 2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
-                  _dial("1"),
-                  _dial("2"),
-                  _dial("3"),
+                  // Keypad (Centered & more compact)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 56),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _dial("1", ""),
+                            _dial("2", "ABC"),
+                            _dial("3", "DEF"),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _dial("4", "GHI"),
+                            _dial("5", "JKL"),
+                            _dial("6", "MNO"),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _dial("7", "PQRS"),
+                            _dial("8", "TUV"),
+                            _dial("9", "WXYZ"),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _dial("*", ""),
+                            _dial("0", "+"),
+                            _dial("#", ""),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-                  _dial("4"),
-                  _dial("5"),
-                  _dial("6"),
-
-                  _dial("7"),
-                  _dial("8"),
-                  _dial("9"),
-
-                  _dial("*"),
-                  _dial("0"),
-                  _dial("#"),
+                  // Action Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(width: 56), // spacer
+                      GestureDetector(
+                        onTap: _call,
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: const BoxDecoration(
+                            color: DreadmoorColors.accentCyan,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.call, color: Colors.black, size: 28),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 56,
+                        child: IconButton(
+                          icon: const Icon(Icons.backspace, color: DreadmoorColors.textSecondary),
+                          onPressed: _delete,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-
-                IconButton(
-                  icon: const Icon(Icons.backspace, color: Colors.white),
-                  onPressed: _delete,
-                ),
-
-                const SizedBox(width: 30),
-
-                FloatingActionButton(
-                  backgroundColor: Colors.green,
-                  onPressed: _call,
-                  child: const Icon(Icons.call),
-                ),
-              ],
+            // Divider
+            Container(
+              height: 1,
+              color: DreadmoorColors.divider,
             ),
 
-            const SizedBox(height: 20),
-
+            // Bottom section: Call History (Takes remaining space)
             Expanded(
-              child: ListView.builder(
-                itemCount: history.length,
-                itemBuilder: (context, index) {
+              child: Container(
+                color: DreadmoorColors.background,
+                child: history.isEmpty
+                  ? Center(
+                      child: Text(
+                        "No calls yet",
+                        style: DreadmoorTheme.bodyStyle.copyWith(
+                          color: DreadmoorColors.textMeta,
+                          fontSize: 14,
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: history.length,
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.white.withOpacity(0.05),
+                        height: 24,
+                      ),
+                      itemBuilder: (context, index) {
+                        final call = history[index];
+                        final timeStr = formatGameTime(call.time);
 
-                  final call = history[index];
+                        IconData iconData;
+                        Color iconColor;
+                        if (call.isMissed) {
+                          iconData = Icons.call_missed;
+                          iconColor = DreadmoorColors.accentRed;
+                        } else if (call.isIncoming) {
+                          iconData = Icons.call_received;
+                          iconColor = DreadmoorColors.textSecondary;
+                        } else {
+                          iconData = Icons.call_made;
+                          iconColor = DreadmoorColors.textSecondary;
+                        }
 
-                  return ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.grey,
-                      child: Icon(Icons.person),
+                        return Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: DreadmoorColors.surfaceAlt,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.person, color: Colors.white54, size: 24),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    call.name,
+                                    style: DreadmoorTheme.bodyStyle.copyWith(
+                                      color: call.isMissed ? DreadmoorColors.accentRed : Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(iconData, size: 12, color: iconColor),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        call.number,
+                                        style: DreadmoorTheme.bodyStyle.copyWith(
+                                          color: DreadmoorColors.textMeta,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              timeStr,
+                              style: DreadmoorTheme.bodyStyle.copyWith(
+                                color: DreadmoorColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    title: Text(
-                      call.name,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      call.number,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    trailing: Text(
-                      "${call.time.hour}:${call.time.minute.toString().padLeft(2, '0')}",
-                      style: const TextStyle(color: Colors.white54),
-                    ),
-                  );
-                },
               ),
             ),
           ],
@@ -262,172 +266,45 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
     );
   }
 
-  Widget _dial(String value) {
-
+  Widget _dial(String number, String letters) {
     return GestureDetector(
-      onTap: () => _press(value),
-      child: Center(
-        child: Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 26,
-                color: Colors.white,
-              ),
-            ),
+      onTap: () => _press(number),
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: DreadmoorColors.surface,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.05),
+            width: 1,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _IncomingCallScreen extends StatelessWidget {
-
-  final String name;
-  final String number;
-
-  final VoidCallback onAccept;
-  final VoidCallback onDecline;
-
-  const _IncomingCallScreen({
-    required this.name,
-    required this.number,
-    required this.onAccept,
-    required this.onDecline,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            const CircleAvatar(
-              radius: 60,
-              child: Icon(Icons.person, size: 60),
-            ),
-
-            const SizedBox(height: 20),
-
-            Text(
-              name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-              ),
-            ),
-
             Text(
               number,
-              style: const TextStyle(color: Colors.white54),
-            ),
-
-            const SizedBox(height: 50),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-
-                FloatingActionButton(
-                  backgroundColor: Colors.red,
-                  onPressed: onDecline,
-                  child: const Icon(Icons.call_end),
-                ),
-
-                const SizedBox(width: 60),
-
-                FloatingActionButton(
-                  backgroundColor: Colors.green,
-                  onPressed: onAccept,
-                  child: const Icon(Icons.call),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActiveCallScreen extends StatelessWidget {
-
-  final String name;
-  final String number;
-
-  final VoidCallback onEnd;
-
-  const _ActiveCallScreen({
-    required this.name,
-    required this.number,
-    required this.onEnd,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-
-            const CircleAvatar(
-              radius: 60,
-              child: Icon(Icons.person, size: 60),
-            ),
-
-            const SizedBox(height: 20),
-
-            Text(
-              name,
-              style: const TextStyle(
+              style: DreadmoorTheme.bodyStyle.copyWith(
+                fontSize: 24,
                 color: Colors.white,
-                fontSize: 28,
+                fontWeight: FontWeight.w300,
+                height: 1.0,
               ),
             ),
-
-            const Text(
-              "Calling...",
-              style: TextStyle(color: Colors.white54),
-            ),
-
-            const SizedBox(height: 50),
-
-            FloatingActionButton(
-              backgroundColor: Colors.red,
-              onPressed: onEnd,
-              child: const Icon(Icons.call_end),
-            ),
+            if (letters.isNotEmpty)
+              Text(
+                letters,
+                style: DreadmoorTheme.bodyStyle.copyWith(
+                  fontSize: 9,
+                  color: DreadmoorColors.textMeta,
+                  letterSpacing: 1.0,
+                  height: 1.2,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-}
-
-class CallEntry {
-
-  final String name;
-  final String number;
-  final DateTime time;
-
-  CallEntry({
-    required this.name,
-    required this.number,
-    required this.time,
-  });
 }

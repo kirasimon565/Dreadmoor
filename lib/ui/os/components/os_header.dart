@@ -9,6 +9,7 @@ class OSHeader extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final String? subtitle;
+  final VoidCallback? onTitleTap;
 
   const OSHeader({
     super.key,
@@ -16,31 +17,29 @@ class OSHeader extends StatelessWidget {
     this.leading,
     this.trailing,
     this.subtitle,
+    this.onTitleTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-          decoration: BoxDecoration(
-            color: DreadmoorColors.surfaceAlt.withOpacity(0.85),
-            border: Border(
-              bottom: BorderSide(
-                color: DreadmoorColors.borderSubtle.withOpacity(0.5),
-                width: 0.5,
-              ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      decoration: BoxDecoration(
+        color: DreadmoorColors.surfaceAlt,
+        border: Border(
+          bottom: BorderSide(
+            color: DreadmoorColors.borderSubtle.withOpacity(0.5),
+            width: 0.5,
           ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
           child: Row(
             children: [
               if (leading != null) ...[
@@ -48,35 +47,39 @@ class OSHeader extends StatelessWidget {
                 const SizedBox(width: 16),
               ],
               Expanded(
-                child: Column(
-                  crossAxisAlignment: leading != null ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title.toUpperCase(),
-                      style: DreadmoorTheme.headingStyle.copyWith(
-                        fontSize: 18,
-                        letterSpacing: 2.0,
-                        color: DreadmoorColors.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onTitleTap,
+                  child: Column(
+                    crossAxisAlignment: leading != null ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        subtitle!,
-                        style: DreadmoorTheme.bodyStyle.copyWith(
-                          fontSize: 11,
-                          color: DreadmoorColors.textSecondary,
-                          letterSpacing: 1.0,
+                        title.toUpperCase(),
+                        style: DreadmoorTheme.headingStyle.copyWith(
+                          fontSize: 18,
+                          letterSpacing: 2.0,
+                          color: DreadmoorColors.textPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ]
-                  ],
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: DreadmoorTheme.bodyStyle.copyWith(
+                            fontSize: 11,
+                            color: DreadmoorColors.textSecondary,
+                            letterSpacing: 1.0,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ]
+                    ],
+                  ),
                 ),
               ),
               if (trailing != null) ...[
@@ -85,8 +88,6 @@ class OSHeader extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
     );
   }
 }

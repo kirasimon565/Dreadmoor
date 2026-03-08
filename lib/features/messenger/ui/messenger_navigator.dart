@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
-import 'package:dreadmoor/ui/screens/profiles/character_profile_screen.dart';
+import 'package:dreadmoor/features/messenger/ui/screens/settings/settings_screen.dart';
+import 'package:dreadmoor/features/profile/ui/screens/character_profile_screen.dart';
 
 class MessengerRoutes {
   static const list = '/';
   static const chat = '/chat';
   static const secret = '/secret';
-  static const profile = '/profile';
+  static const profile = '/profile/character';
+  static const settings = '/settings';
 }
 
 class MessengerNavigator extends StatelessWidget {
@@ -32,8 +34,23 @@ class MessengerNavigator extends StatelessWidget {
           return MaterialPageRoute(builder: (_) => SecretChatScreen(threadId: threadId));
         }
         if (settings.name == MessengerRoutes.profile) {
-          final characterId = settings.arguments as String;
-          return MaterialPageRoute(builder: (_) => CharacterProfileScreen(characterId: characterId));
+          final threadId = settings.arguments as String;
+          return PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => CharacterProfileScreen(threadId: threadId),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              const curve = Curves.ease;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+          );
+        }
+        if (settings.name == MessengerRoutes.settings) {
+          return MaterialPageRoute(builder: (_) => const SettingsScreen());
         }
         return null;
       },

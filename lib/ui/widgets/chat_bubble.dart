@@ -102,17 +102,35 @@ class ChatBubble extends StatelessWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: SelectableText(
-                    text,
-                    style: DreadmoorTheme.bodyStyle.copyWith(
-                      fontSize: 14,
-                      color: isSecret
-                          ? DreadmoorColors.accentRed.withOpacity(0.9)
-                          : DreadmoorColors.textPrimary.withOpacity(isMe ? 1.0 : 0.9),
-                      height: 1.5,
-                      letterSpacing: 0.2,
-                      fontWeight: isMe ? FontWeight.w400 : FontWeight.w300,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SelectableText(
+                        text,
+                        style: DreadmoorTheme.bodyStyle.copyWith(
+                          fontSize: 14,
+                          color: isSecret
+                              ? DreadmoorColors.accentRed.withOpacity(0.9)
+                              : DreadmoorColors.textPrimary.withOpacity(isMe ? 1.0 : 0.9),
+                          height: 1.5,
+                          letterSpacing: 0.2,
+                          fontWeight: isMe ? FontWeight.w400 : FontWeight.w300,
+                        ),
+                      ),
+                      if (timestamp != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          _formatTime(timestamp!),
+                          style: DreadmoorTheme.bodyStyle.copyWith(
+                            fontSize: 10,
+                            color: isSecret
+                                ? DreadmoorColors.accentRed.withOpacity(0.5)
+                                : DreadmoorColors.textMeta.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -121,5 +139,14 @@ class ChatBubble extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    // In a real implementation this would format the Game Time rather than the real-world DateTime.
+    // However, since Drift DB stores DateTime, we extract the hour/minute from it.
+    // The scheduler sets this timestamp from the game clock when it creates the message.
+    final hStr = time.hour.toString().padLeft(2, '0');
+    final mStr = time.minute.toString().padLeft(2, '0');
+    return '$hStr:$mStr';
   }
 }
