@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   // ---------------------------
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   // ---------------------------
   // MIGRATIONS

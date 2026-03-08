@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 
 enum CallState { idle, incoming, active }
@@ -22,22 +21,35 @@ class CallEntry {
     this.durationSeconds = 0,
   });
 
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'number': number,
-        'time': time,
-        'isIncoming': isIncoming,
-        'isMissed': isMissed,
-        'durationSeconds': durationSeconds,
-      };
+  Map<String, dynamic> toJson() {
+    String direction = isIncoming ? (isMissed ? "missed" : "incoming") : "outgoing";
+    return {
+      'name': name,
+      'number': number,
+      'direction': direction,
+      'durationSeconds': durationSeconds,
+      'timestamp': time,
+    };
+  }
 
   factory CallEntry.fromJson(Map<String, dynamic> json) {
+    final direction = json['direction'] as String?;
+    bool isIncoming = false;
+    bool isMissed = false;
+
+    if (direction == "incoming") {
+      isIncoming = true;
+    } else if (direction == "missed") {
+      isIncoming = true;
+      isMissed = true;
+    }
+
     return CallEntry(
-      name: json['name'],
-      number: json['number'],
-      time: json['time'],
-      isIncoming: json['isIncoming'],
-      isMissed: json['isMissed'],
+      name: json['name'] ?? 'Unknown',
+      number: json['number'] ?? '',
+      time: json['timestamp'] ?? 0,
+      isIncoming: isIncoming,
+      isMissed: isMissed,
       durationSeconds: json['durationSeconds'] ?? 0,
     );
   }
@@ -73,8 +85,9 @@ class PhoneState {
 
 class PhoneNotifier extends StateNotifier<PhoneState> {
   static const _historyKey = 'phone_call_history';
+  final Ref _ref;
 
-  PhoneNotifier()
+  PhoneNotifier(this._ref)
       : super(PhoneState(
           callState: CallState.idle,
           callerName: '',
@@ -85,23 +98,35 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
   }
 
   Future<void> _loadHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_historyKey);
-    if (jsonString != null) {
+    final db = _ref.read(databaseProvider);
+    final row = await (db.select(db.storyState)..where((t) => t.key.equals(_historyKey))).getSingleOrNull();
+
+    if (row != null && row.stringValue != null) {
       try {
-        final List<dynamic> decoded = jsonDecode(jsonString);
+        final List<dynamic> decoded = jsonDecode(row.stringValue!);
         final history = decoded.map((e) => CallEntry.fromJson(e)).toList();
         state = state.copyWith(history: history);
       } catch (e) {
         // Handle decoding error
       }
+    } else {
+      // First boot: insert default empty list to prevent missing rows
+      await _saveHistory([]);
     }
   }
 
   Future<void> _saveHistory(List<CallEntry> history) async {
-    final prefs = await SharedPreferences.getInstance();
+    final db = _ref.read(databaseProvider);
     final jsonString = jsonEncode(history.map((e) => e.toJson()).toList());
-    await prefs.setString(_historyKey, jsonString);
+
+    await db.into(db.storyState).insertOnConflictUpdate(
+      StoryStateCompanion(
+        key: const Value(_historyKey),
+        value: const Value(true),
+        stringValue: Value(jsonString),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   void startCall(String name, String number, int time) {
@@ -219,5 +244,5 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
 }
 
 final phoneProvider = StateNotifierProvider<PhoneNotifier, PhoneState>((ref) {
-  return PhoneNotifier();
+  return PhoneNotifier(ref);
 });

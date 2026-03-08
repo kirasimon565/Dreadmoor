@@ -155,6 +155,8 @@ class StoryState extends Table {
 
   BoolColumn get value => boolean().withDefault(const Constant(false))();
 
+  TextColumn get stringValue => text().nullable()();
+
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
