@@ -123,8 +123,8 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
 
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
-        key: const Value(_historyKey),
-        value: const Value(true),
+        key: Value(_historyKey),
+        value: Value(true),
         stringValue: Value(jsonString),
         updatedAt: Value(DateTime.now()),
       ),
