@@ -25,7 +25,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _scrollController = ScrollController();
   late final Stream<Thread?> _threadStream;
-  late final Stream<List<Message>> _messagesStream;
+  late final Stream<List<TypedResult>> _messagesStream;
   int _lastMessageCount = 0;
 
   @override
@@ -38,7 +38,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _messagesStream = (db.select(db.messages)
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
-        .watch();
+        .join([
+          leftOuterJoin(db.characters, db.characters.id.equalsExp(db.messages.senderId)),
+        ]).watch();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -157,7 +159,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
               // Message list
               Expanded(
-                child: StreamBuilder<List<Message>>(
+                child: StreamBuilder<List<TypedResult>>(
                   stream: _messagesStream,
                   builder: (context, snapshot) {
                     final messages = snapshot.data ?? [];
@@ -191,18 +193,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           );
                         }
 
-                        final msg = messages[index];
+                        final row = messages[index];
+                        final msg = row.readTable(ref.read(databaseProvider).messages);
+                        final character = row.readTableOrNull(ref.read(databaseProvider).characters);
 
                         // Grouping logic
                         bool isFirstInGroup = true;
-                        if (index > 0 && messages[index - 1].senderId == msg.senderId) {
-                            isFirstInGroup = false;
+                        if (index > 0) {
+                          final prevMsg = messages[index - 1].readTable(ref.read(databaseProvider).messages);
+                          if (prevMsg.senderId == msg.senderId) {
+                              isFirstInGroup = false;
+                          }
                         }
 
                         // Group timestamps by minute
                         bool isLastInMinuteGroup = true;
                         if (index < messages.length - 1) {
-                          final nextMsg = messages[index + 1];
+                          final nextMsg = messages[index + 1].readTable(ref.read(databaseProvider).messages);
                           if (nextMsg.senderId == msg.senderId && msg.timestamp != null && nextMsg.timestamp != null) {
                              if (msg.timestamp!.hour == nextMsg.timestamp!.hour && msg.timestamp!.minute == nextMsg.timestamp!.minute) {
                                isLastInMinuteGroup = false;
@@ -212,47 +219,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                         return Padding(
                           padding: EdgeInsets.only(top: isFirstInGroup ? 12.0 : 4.0),
-                          child: StreamBuilder<Character?>(
-                            stream: (ref.read(databaseProvider).select(ref.read(databaseProvider).characters)
-                                ..where((c) => c.id.equals(msg.senderId)))
-                                .watchSingleOrNull(),
-                            builder: (context, charSnap) {
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment: msg.isPlayerMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                children: [
-                                  if (!msg.isPlayerMessage && isLastInMinuteGroup)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: DreadmoorColors.borderSubtle),
-                                        ),
-                                        clipBehavior: Clip.hardEdge,
-                                        child: charSnap.data?.avatarPath != null
-                                            ? Image.asset(charSnap.data!.avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary))
-                                            : const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary),
-                                      ),
-                                    )
-                                  else if (!msg.isPlayerMessage)
-                                    const SizedBox(width: 32),
-
-                                  Flexible(
-                                    child: ChatBubble(
-                                      text: msg.content ?? "",
-                                      isMe: msg.isPlayerMessage,
-                                      senderId: msg.senderId,
-                                      // Only pass timestamp if it's the last message in that minute group
-                                      timestamp: isLastInMinuteGroup ? msg.timestamp : null,
-                                      isSecret: msg.isSecret,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: msg.isPlayerMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+                            children: [
+                              if (!msg.isPlayerMessage && isLastInMinuteGroup)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+                                  child: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: DreadmoorColors.borderSubtle),
                                     ),
+                                    clipBehavior: Clip.hardEdge,
+                                    child: character?.avatarPath != null
+                                        ? Image.asset(character!.avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary))
+                                        : const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary),
                                   ),
-                                ],
-                              );
-                            }
+                                )
+                              else if (!msg.isPlayerMessage)
+                                const SizedBox(width: 32),
+
+                              Flexible(
+                                child: ChatBubble(
+                                  text: msg.content ?? "",
+                                  isMe: msg.isPlayerMessage,
+                                  senderId: msg.senderId,
+                                  // Only pass timestamp if it's the last message in that minute group
+                                  timestamp: isLastInMinuteGroup ? msg.timestamp : null,
+                                  isSecret: msg.isSecret,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       },

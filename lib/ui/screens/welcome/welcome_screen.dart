@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:drift/drift.dart' hide Column;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -139,7 +140,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
       if (flag != null && flag.value) {
         // Already seen, skip straight to OS
-        _stopMusicAndNavigate(() => context.go(Routes.messenger));
+        // Also ensure episode is actually running if there's no active game yet
+        // Wait, if hasActiveGame is false here, it means we have no threads,
+        // so we need to start the episode
+        _stopMusicAndNavigate(() {
+          ref.read(globalSchedulerProvider).startEpisode('ep01');
+          context.go(Routes.messenger);
+        });
       } else {
         // First launch: flag not set or false, show intro
         await db.into(db.storyState).insert(

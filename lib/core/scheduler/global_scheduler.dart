@@ -12,6 +12,7 @@ import 'package:dreadmoor/features/notifications/notification_state.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../models/script_models.dart';
 import '../state/game_state.dart';
+import '../persistence/seed_characters.dart';
 
 class GlobalScheduler {
   final Ref ref;

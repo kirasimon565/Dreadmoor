@@ -11,6 +11,7 @@ import 'package:dreadmoor/features/phone/ui/screens/call/incoming_call_screen.da
 import 'package:dreadmoor/features/phone/ui/screens/call/active_call_screen.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/widgets/notification_overlay.dart';
 
 class DreadmoorOS extends ConsumerWidget {
   const DreadmoorOS({super.key});
@@ -24,14 +25,16 @@ class DreadmoorOS extends ConsumerWidget {
       body: Stack(
         children: [
           SafeArea(
-            child: Column(
-              children: [
-                const DreadmoorStatusBar(),
-                const Expanded(
-                  child: DreadmoorAppContainer(),
-                ),
-                const DreadmoorNavigationBar(),
-              ],
+            child: NotificationOverlay(
+              child: Column(
+                children: [
+                  const DreadmoorStatusBar(),
+                  const Expanded(
+                    child: DreadmoorAppContainer(),
+                  ),
+                  const DreadmoorNavigationBar(),
+                ],
+              ),
             ),
           ),
 
