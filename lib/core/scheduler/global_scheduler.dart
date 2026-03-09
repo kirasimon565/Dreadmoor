@@ -160,25 +160,58 @@ class GlobalScheduler {
     }
   }
 
+  // Determine current active thread logic based on episode scene/system markers
+  String _determineCurrentThread(EventScript event) {
+    if (event.threadId != null) return event.threadId!;
+    if (_episode == null) return 'unknown';
+
+    // In ep01.json, there are no threadIds. We infer from the scene ID or sender
+    if (event.sender != null && event.sender != 'player' && event.sender != 'system') {
+        if (_sceneIndex == 2 || _sceneIndex == 4) return 'group_news';
+        if (_sceneIndex == 5) return 'intercept_amelia_michael';
+        return event.sender!;
+    }
+
+    if (_sceneIndex == 0) return 'news';
+    if (_sceneIndex == 1) return 'unknown'; // Scene 2 is unknown text
+    if (_sceneIndex == 2) return 'group_news'; // Scene 3 is group chat
+    if (_sceneIndex == 3) return 'unknown'; // Scene 4 is private chat unknown
+    if (_sceneIndex == 4) return 'group_news'; // Scene 5 is group chat
+    if (_sceneIndex == 5) return 'intercept_amelia_michael'; // Scene 6 is intercept
+    if (_sceneIndex == 6) return 'unknown'; // Scene 7 is incoming call
+
+    return 'unknown';
+  }
+
   Future<void> _executeEvent(EventScript event) async {
     final db = ref.read(databaseProvider);
     final totalMinutes = ref.read(gameClockProvider);
     final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)),
         (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
 
+    final currentThreadId = _determineCurrentThread(event);
+
     /// ----------------------
     /// TYPING EVENT
     /// ----------------------
 
     if (event.type == 'typing') {
-      if (event.threadId != null) {
-        await (db.update(db.threads)
-              ..where((t) => t.id.equals(event.threadId!)))
-            .write(const ThreadsCompanion(isTyping: Value(false)));
-      }
+      await (db.update(db.threads)
+            ..where((t) => t.id.equals(currentThreadId)))
+          .write(const ThreadsCompanion(isTyping: Value(true)));
 
-      _eventIndex++;
-      _scheduleNextTick();
+      // Typing duration simulates the wait
+      final duration = event.duration ?? 1500;
+
+      _timer?.cancel();
+      _timer = Timer(Duration(milliseconds: duration), () async {
+        await (db.update(db.threads)
+              ..where((t) => t.id.equals(currentThreadId)))
+            .write(const ThreadsCompanion(isTyping: Value(false)));
+
+        _eventIndex++;
+        _scheduleNextTick();
+      });
       return;
     }
 
@@ -187,9 +220,16 @@ class GlobalScheduler {
     /// ----------------------
 
     if (event.type == 'message') {
-      final threadId = event.threadId ?? 'system';
+      final threadId = currentThreadId;
       final sender = event.sender ?? 'unknown';
-      await _ensureThreadExists(threadId, sender);
+      final isPlayer = sender == 'player';
+
+      // Ensure the thread exists. If it's a group, name it appropriately.
+      final threadName = threadId == 'group_news' ? "DREADMOOR'S NEWS" :
+                         threadId == 'intercept_amelia_michael' ? "INTERCEPT: Amelia & Michael" :
+                         sender.toUpperCase();
+
+      await _ensureThreadExists(threadId, sender, title: threadName);
 
       final id = await db.into(db.messages).insert(
             MessagesCompanion.insert(
@@ -198,6 +238,7 @@ class GlobalScheduler {
               content: Value(event.text ?? ''),
               sequence: _eventIndex,
               timestamp: Value(gameTime),
+              isPlayerMessage: Value(isPlayer),
             ),
           );
 
@@ -209,12 +250,12 @@ class GlobalScheduler {
       /// Notification trigger hook -> writes to DB
       final activeThread = ref.read(activeThreadIdProvider);
 
-      if (activeThread != threadId) {
+      if (activeThread != threadId && !isPlayer) {
         // Look up the sender name from DB to make notification friendlier
         final charRow = await (db.select(db.characters)
               ..where((c) => c.id.equals(sender)))
             .getSingleOrNull();
-        final displayTitle = charRow?.name ?? sender.toUpperCase();
+        final displayTitle = threadId == 'group_news' ? "DREADMOOR'S NEWS ($sender)" : (charRow?.name ?? sender.toUpperCase());
 
         await db.into(db.notifications).insert(
               NotificationsCompanion.insert(
@@ -447,7 +488,7 @@ class GlobalScheduler {
   }
 
   /// Ensure thread exists before writing messages
-  Future<void> _ensureThreadExists(String threadId, String sender) async {
+  Future<void> _ensureThreadExists(String threadId, String sender, {String? title}) async {
     final db = ref.read(databaseProvider);
 
     final existing = await (db.select(
