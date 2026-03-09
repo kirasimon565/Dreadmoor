@@ -20,23 +20,6 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
-  final Map<String, String?> _avatarCache = {};
-
-  Future<void> _preloadAvatars(AppDatabase db, List<Thread> threads) async {
-    final threadIds = threads.map((t) => t.id).toList();
-    if (threadIds.isEmpty) return;
-
-    final chars = await (db.select(db.characters)
-          ..where((c) => c.id.isIn(threadIds)))
-        .get();
-
-    setState(() {
-      for (var char in chars) {
-        _avatarCache[char.id] = char.avatarPath;
-      }
-    });
-  }
-
   void _showAddContactDialog(BuildContext context) {
     String phoneNumber = "";
     showDialog(
@@ -129,6 +112,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
       (t) => OrderingTerm(expression: t.lastMessageId, mode: OrderingMode.desc)
     ])).join([
       leftOuterJoin(db.messages, db.messages.id.equalsExp(db.threads.lastMessageId)),
+      leftOuterJoin(db.characters, db.characters.id.equalsExp(db.threads.id)),
     ]).watch();
 
     return Scaffold(
@@ -178,12 +162,6 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
                     final rows = snapshot.data!;
 
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        _preloadAvatars(db, rows.map((r) => r.readTable(db.threads)).toList());
-                      }
-                    });
-
                     if (rows.isEmpty) {
                       return Center(
                         child: Text(
@@ -200,6 +178,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                       itemBuilder: (context, index) {
                         final thread = rows[index].readTable(db.threads);
                         final message = rows[index].readTableOrNull(db.messages);
+                        final character = rows[index].readTableOrNull(db.characters);
 
                         String time = '';
                         if (message?.timestamp != null) {
@@ -220,7 +199,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                             thread: thread,
                             message: message,
                             time: time,
-                            avatarPath: _avatarCache[thread.id],
+                            avatarPath: character?.avatarPath,
                           ),
                         );
                       },
