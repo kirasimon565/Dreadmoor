@@ -1,1 +1,4354 @@
-
+{
+  "episodeId": "ep01",
+  "title": "Episode 1",
+  "version": 1,
+  "format": "dreadmoor_v1",
+  "scenes": [
+    {
+      "sceneId": "scene_1",
+      "events": [
+        {
+          "id": "e001",
+          "type": "news",
+          "headline": "Woman Reported Missing Following Midnight Party at Abandoned Factory",
+          "subheadline": "Police are investigating the disappearance of 26-year-old Rebecca Stone following a late-night gathering.",
+          "body": [
+            "Rebecca Stone, 26, was reported missing early Sunday morning after attending a private gathering at an abandoned factory on the outskirts of Dreadmoor.",
+            "According to initial reports, Stone arrived at the location shortly before 11:00 PM on Saturday evening. Witnesses at the gathering stated that she was last seen shortly after midnight. Friends who attended the event told authorities that Stone left the premises on her own.",
+            "The factory, which has been vacant for several years, is located near the eastern industrial district and is not authorized for public use. It remains unclear why the gathering was held at the property.",
+            "Dreadmoor Police confirmed that officers responded to the area shortly after receiving a call from a concerned individual. Investigators are currently reviewing available information and speaking with those who were present that night.",
+            "Authorities have not confirmed whether foul play is suspected. Anyone with information regarding Stone's whereabouts is urged to contact the Dreadmoor Police Department."
+          ],
+          "photo": "Two police cars outside the abandoned factory",
+          "caption": "Officers respond to the abandoned factory on the outskirts of Dreadmoor following reports of a missing person.",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_2",
+      "events": [
+        {
+          "id": "e002",
+          "type": "system",
+          "text": "Notification – Message from Unknown",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e003",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Well… That's convenient.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e004",
+          "type": "message",
+          "sender": "player",
+          "text": "Who the hell are you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e005",
+          "type": "message",
+          "sender": "player",
+          "text": "How did you get my number?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e006",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e007",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Relax… that's the least of your concerns.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e008",
+          "type": "message",
+          "sender": "unknown",
+          "text": "You should be asking about Rebecca.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e009",
+          "type": "choice",
+          "choiceId": "choice_01",
+          "options": [
+            "How do you know her?",
+            "If this is some kind of joke, stop.",
+            "Then talk."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e010",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e011",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Because she trusted me.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e012",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e013",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Does this look like a joke to you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e014",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e015",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Very well. Listen carefully.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e016",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e017",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Rebecca didn't just disappear.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e018",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She went somewhere first.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e019",
+          "type": "message",
+          "sender": "player",
+          "text": "The article said she was at a party.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e020",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e021",
+          "type": "message",
+          "sender": "unknown",
+          "text": "It did",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e022",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They forgot to mention who organized it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e023",
+          "type": "message",
+          "sender": "player",
+          "text": "What does that even mean?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e024",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e025",
+          "type": "message",
+          "sender": "unknown",
+          "text": "It means her sister organized it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e026",
+          "type": "choice",
+          "choiceId": "choice_02",
+          "options": [
+            "What? That doesn't make sense.",
+            "How do you know Amelia organized it?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e027",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e028",
+          "type": "message",
+          "sender": "unknown",
+          "text": "It makes perfect sense.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e029",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She chose the location.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e030",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e031",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Because she invited everyone.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e032",
+          "type": "message",
+          "sender": "unknown",
+          "text": "And she chose the location.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e033",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e034",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She picked the factory on purpose.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e035",
+          "type": "choice",
+          "choiceId": "choice_03",
+          "options": [
+            "Why?",
+            "What was she trying to do?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e036",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e037",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Because it's isolated.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e038",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e039",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Isolated.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e040",
+          "type": "message",
+          "sender": "unknown",
+          "text": "No neighbors. No witnesses.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e041",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e042",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Perfect place to stage a scare.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e043",
+          "type": "message",
+          "sender": "player",
+          "text": "So… you're saying she did it on purpose?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e044",
+          "type": "message",
+          "sender": "player",
+          "text": "To scare her?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e045",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She wanted attention.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e046",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She thought it would be dramatic.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e047",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e048",
+          "type": "message",
+          "sender": "unknown",
+          "text": "That's what Rebecca told me.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e049",
+          "type": "choice",
+          "choiceId": "choice_04",
+          "options": [
+            "She talked to you before she went?",
+            "when?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e050",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e051",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Not before.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e052",
+          "type": "message",
+          "sender": "unknown",
+          "text": "About thirty minutes after she arrived.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e053",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She stepped outside to get a signal and called me.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e054",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e055",
+          "type": "message",
+          "sender": "unknown",
+          "text": "11:30 PM.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e056",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She stepped outside for a signal and called me.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e057",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e058",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Something was off.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e059",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e060",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She was trying to act normal.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e061",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She wasn't.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e062",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e063",
+          "type": "message",
+          "sender": "unknown",
+          "text": "It was like she was in a hurry.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e064",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e065",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She didn't even answer my question.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e066",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e067",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She just hung up.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e068",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e069",
+          "type": "message",
+          "sender": "unknown",
+          "text": "That was the last time I heard her voice.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e070",
+          "type": "message",
+          "sender": "player",
+          "text": "What did you ask her?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e071",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She called me at 11:30.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e072",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e073",
+          "type": "message",
+          "sender": "unknown",
+          "text": "First thing I asked was if she was okay.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e074",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She said she was.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e075",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She wasn't.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e076",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e077",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I asked her if Amelia did something.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e078",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She ignored it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e079",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e080",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Said she'd call me later.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e081",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e082",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She didn't.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e083",
+          "type": "choice",
+          "choiceId": "choice_05",
+          "options": [
+            "So what are you saying?",
+            "What happened after she hung up?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e084",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e085",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I'm saying something doesn't match.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e086",
+          "type": "message",
+          "sender": "unknown",
+          "text": "The timeline they're giving the police doesn't fit.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e087",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e088",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I don't know what happened after.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e089",
+          "type": "message",
+          "sender": "unknown",
+          "text": "But I know she didn't leave when they said she did.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e090",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e091",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They're already aligning their stories.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e092",
+          "type": "message",
+          "sender": "player",
+          "text": "How do you know that?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e093",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Because I can see their private group.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e094",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They're coordinating what to tell the police.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e095",
+          "type": "choice",
+          "choiceId": "choice_06",
+          "options": [
+            "You're saying you can see their group chat?",
+            "You're inside their chat?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e096",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e097",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I can see enough.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e098",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Enough to know they're nervous.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e099",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e100",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Yes.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e101",
+          "type": "message",
+          "sender": "unknown",
+          "text": "And they don't know I am.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e102",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e103",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They're arguing about when she disappeared.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e104",
+          "type": "message",
+          "sender": "unknown",
+          "text": "And their stories don't match.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e105",
+          "type": "choice",
+          "choiceId": "choice_07",
+          "options": [
+            "What is Amelia saying?",
+            "What about the others?",
+            "Show me exactly what they're saying."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e106",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e107",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Amelia says Rebecca left around midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e108",
+          "type": "message",
+          "sender": "unknown",
+          "text": "She says she didn't see where she went.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e109",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e110",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Chris says he never saw her leave.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e111",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Abigail says she thought Rebecca went outside for air.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e112",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Michael hasn't committed to a time.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e113",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e114",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Amelia says midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e115",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Chris says he didn't see her leave.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e116",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Abigail says she assumed she went outside.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e117",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Michael hasn't confirmed anything.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e118",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e119",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They're careful.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e120",
+          "type": "message",
+          "sender": "unknown",
+          "text": "But not careful enough.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e121",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e122",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I can get you inside.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e123",
+          "type": "message",
+          "sender": "unknown",
+          "text": "But you can't reveal what you know.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e124",
+          "type": "choice",
+          "choiceId": "choice_08",
+          "options": [
+            "How are you going to do that?",
+            "Why are you helping me?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e125",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e126",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Leave that to me.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e127",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They won't question a new member right now.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e128",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They're too busy covering themselves.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e129",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e130",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I'm not doing this for you.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e131",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I'm doing it for her.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e132",
+          "type": "message",
+          "sender": "unknown",
+          "text": "And right now, you're the only one who can watch them without raising suspicion.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e133",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e134",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Once you're inside, you observe.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e135",
+          "type": "message",
+          "sender": "unknown",
+          "text": "You don't accuse.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e136",
+          "type": "message",
+          "sender": "unknown",
+          "text": "You don't push.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e137",
+          "type": "message",
+          "sender": "unknown",
+          "text": "You wait for them to slip.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e138",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e139",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Ready?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e140",
+          "type": "choice",
+          "choiceId": "choice_09",
+          "options": [
+            "Do it.",
+            "Wait."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e141",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Good.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e142",
+          "type": "typing",
+          "sender": "unknown",
+          "duration": 1500
+        },
+        {
+          "id": "e143",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Don't say anything stupid.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e144",
+          "type": "system",
+          "text": "You were added to DREADMOOR'S NEWS",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e145",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Hesitating now won't help her.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e146",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Every minute they talk without you in there, they adjust the story.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e147",
+          "type": "message",
+          "sender": "unknown",
+          "text": "I'm adding you.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e148",
+          "type": "system",
+          "text": "You were added to DREADMOOR'S NEWS",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_3",
+      "events": [
+        {
+          "id": "e149",
+          "type": "system",
+          "text": "You were added to the group.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e150",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Who added [PlayerName]?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e151",
+          "type": "message",
+          "sender": "chris",
+          "text": "I didn't.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e152",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Is this some kind of joke?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e153",
+          "type": "message",
+          "sender": "michael",
+          "text": "Slow down. Let's ask before jumping to conclusions.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e154",
+          "type": "typing",
+          "sender": "amelia",
+          "duration": 1500
+        },
+        {
+          "id": "e155",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Fine.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e156",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Who are you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e157",
+          "type": "message",
+          "sender": "amelia",
+          "text": "And how did you get in here?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e158",
+          "type": "choice",
+          "choiceId": "choice_10",
+          "options": [
+            "I think I was added by mistake.",
+            "I'm here about Rebecca.",
+            "That depends. Who's asking?"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e159",
+          "type": "message",
+          "sender": "player",
+          "text": "I think I was added by mistake.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e160",
+          "type": "message",
+          "sender": "chris",
+          "text": "Nobody added you.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e161",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Then how are you here?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e162",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Remove them.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e163",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah just kick—",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e164",
+          "type": "message",
+          "sender": "michael",
+          "text": "Wait.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e165",
+          "type": "message",
+          "sender": "michael",
+          "text": "Let's hear what they want first.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e166",
+          "type": "message",
+          "sender": "player",
+          "text": "I'm here about Rebecca.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e167",
+          "type": "message",
+          "sender": "chris",
+          "text": "Wait what?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e168",
+          "type": "message",
+          "sender": "amelia",
+          "text": "What about her?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e169",
+          "type": "message",
+          "sender": "abigail",
+          "text": "This is public already.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e170",
+          "type": "message",
+          "sender": "chris",
+          "text": "How do you even know about that?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e171",
+          "type": "message",
+          "sender": "michael",
+          "text": "Everyone calm down.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e172",
+          "type": "message",
+          "sender": "player",
+          "text": "That depends. Who's asking?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e173",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Excuse me?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e174",
+          "type": "message",
+          "sender": "chris",
+          "text": "Just remove them.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e175",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Seriously.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e176",
+          "type": "message",
+          "sender": "michael",
+          "text": "Amelia.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e177",
+          "type": "message",
+          "sender": "michael",
+          "text": "Let's not escalate.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e178",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e179",
+          "type": "message",
+          "sender": "michael",
+          "text": "You joined this group for a reason.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e180",
+          "type": "message",
+          "sender": "michael",
+          "text": "So say it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e181",
+          "type": "message",
+          "sender": "michael",
+          "text": "Why are you here?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e182",
+          "type": "choice",
+          "choiceId": "choice_11",
+          "options": [
+            "I'm trying to find Rebecca.",
+            "I saw the news. Something about it doesn't add up."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e183",
+          "type": "message",
+          "sender": "player",
+          "text": "I'm trying to find Rebecca.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e184",
+          "type": "message",
+          "sender": "amelia",
+          "text": "What?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e185",
+          "type": "message",
+          "sender": "chris",
+          "text": "Why would you be looking for her?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e186",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Do we know this person?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e187",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah seriously who is this?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e188",
+          "type": "message",
+          "sender": "michael",
+          "text": "You still haven't told us who you are.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e189",
+          "type": "message",
+          "sender": "player",
+          "text": "I saw the news.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e190",
+          "type": "message",
+          "sender": "player",
+          "text": "Something about it doesn't add up.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e191",
+          "type": "message",
+          "sender": "chris",
+          "text": "What is that supposed to mean?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e192",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Are you accusing us of something?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e193",
+          "type": "message",
+          "sender": "amelia",
+          "text": "This is ridiculous.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e194",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah—",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e195",
+          "type": "message",
+          "sender": "michael",
+          "text": "Let's slow down.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e196",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e197",
+          "type": "message",
+          "sender": "michael",
+          "text": "Whoever you are...",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e198",
+          "type": "message",
+          "sender": "michael",
+          "text": "You clearly didn't join this group by accident.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e199",
+          "type": "message",
+          "sender": "michael",
+          "text": "So start explaining.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e200",
+          "type": "choice",
+          "choiceId": "choice_12",
+          "options": [
+            "I knew Rebecca.",
+            "Does it matter who I am? Rebecca is missing."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e201",
+          "type": "message",
+          "sender": "player",
+          "text": "I knew Rebecca.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e202",
+          "type": "message",
+          "sender": "amelia",
+          "text": "You knew her?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e203",
+          "type": "message",
+          "sender": "chris",
+          "text": "Wait... who are you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e204",
+          "type": "message",
+          "sender": "abigail",
+          "text": "She never mentioned you.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e205",
+          "type": "message",
+          "sender": "michael",
+          "text": "How exactly did you know Rebecca?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e206",
+          "type": "message",
+          "sender": "player",
+          "text": "That's not important right now.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e207",
+          "type": "message",
+          "sender": "player",
+          "text": "What's important is that she disappeared.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e208",
+          "type": "message",
+          "sender": "player",
+          "text": "Does it matter who I am?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e209",
+          "type": "message",
+          "sender": "player",
+          "text": "Rebecca is missing.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e210",
+          "type": "message",
+          "sender": "chris",
+          "text": "That doesn't answer the question.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e211",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Yeah, who even are you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e212",
+          "type": "message",
+          "sender": "amelia",
+          "text": "This is getting ridiculous.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e213",
+          "type": "message",
+          "sender": "chris",
+          "text": "Just remove—",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e214",
+          "type": "message",
+          "sender": "michael",
+          "text": "Answer the question.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e215",
+          "type": "message",
+          "sender": "player",
+          "text": "Like I said, it doesn't matter.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e216",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e217",
+          "type": "message",
+          "sender": "michael",
+          "text": "Actually...",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e218",
+          "type": "message",
+          "sender": "michael",
+          "text": "It might.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e219",
+          "type": "message",
+          "sender": "michael",
+          "text": "Because whoever you are, you somehow got into this group.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e220",
+          "type": "message",
+          "sender": "michael",
+          "text": "And that doesn't happen by accident.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e221",
+          "type": "message",
+          "sender": "michael",
+          "text": "So tell us something useful.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e222",
+          "type": "message",
+          "sender": "michael",
+          "text": "Why are you looking for Rebecca?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e223",
+          "type": "choice",
+          "choiceId": "choice_13",
+          "options": [
+            "Because no one else seems to be.",
+            "Because the story you told the police doesn't make sense."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e224",
+          "type": "message",
+          "sender": "player",
+          "text": "Because no one else seems to be.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e225",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Excuse m–",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e226",
+          "type": "message",
+          "sender": "amelia",
+          "text": "*me",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e227",
+          "type": "message",
+          "sender": "chris",
+          "text": "What is that supposed to mean?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e228",
+          "type": "message",
+          "sender": "abigail",
+          "text": "We've been dealing with this all night.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e229",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah, exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e230",
+          "type": "message",
+          "sender": "michael",
+          "text": "Careful.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e231",
+          "type": "message",
+          "sender": "michael",
+          "text": "You're making assumptions.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e232",
+          "type": "message",
+          "sender": "player",
+          "text": "Because the story you told the police doesn't make sense.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e233",
+          "type": "message",
+          "sender": "chris",
+          "text": "What??",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e234",
+          "type": "message",
+          "sender": "abigail",
+          "text": "You don't know anything.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e235",
+          "type": "message",
+          "sender": "amelia",
+          "text": "This is unbelievable.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e236",
+          "type": "message",
+          "sender": "chris",
+          "text": "Seriously, who even are you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e237",
+          "type": "message",
+          "sender": "michael",
+          "text": "Then enlighten us.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e238",
+          "type": "message",
+          "sender": "michael",
+          "text": "What part of the story doesn't make sense?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e239",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e240",
+          "type": "message",
+          "sender": "michael",
+          "text": "Either way…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e241",
+          "type": "message",
+          "sender": "michael",
+          "text": "You clearly think something happened to her.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e242",
+          "type": "message",
+          "sender": "michael",
+          "text": "So say it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e243",
+          "type": "message",
+          "sender": "michael",
+          "text": "What do you think happened to Rebecca?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e244",
+          "type": "choice",
+          "choiceId": "choice_14",
+          "options": [
+            "I think someone here is lying.",
+            "I think Rebecca didn't leave when you said she did."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e245",
+          "type": "message",
+          "sender": "player",
+          "text": "I think someone here is lying.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e246",
+          "type": "message",
+          "sender": "chris",
+          "text": "What?!",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e247",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Excuse me?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e248",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Are you serious right now?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e249",
+          "type": "message",
+          "sender": "chris",
+          "text": "You don't even know us.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e250",
+          "type": "message",
+          "sender": "michael",
+          "text": "Careful.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e251",
+          "type": "message",
+          "sender": "michael",
+          "text": "Accusing people you just met isn't a great start.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e252",
+          "type": "message",
+          "sender": "player",
+          "text": "I think Rebecca didn't leave when you said she did.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e253",
+          "type": "message",
+          "sender": "chris",
+          "text": "What are you talking about?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e254",
+          "type": "message",
+          "sender": "abigail",
+          "text": "We told the police exactly what happened.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e255",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Yeah. She left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e256",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah… we saw her leave.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e257",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e258",
+          "type": "message",
+          "sender": "michael",
+          "text": "Interesting.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e259",
+          "type": "message",
+          "sender": "michael",
+          "text": "So you think something about that night doesn't add up.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e260",
+          "type": "message",
+          "sender": "michael",
+          "text": "Specifically when Rebecca left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e261",
+          "type": "message",
+          "sender": "chris",
+          "text": "She left around midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e262",
+          "type": "message",
+          "sender": "abigail",
+          "text": "That's what we said.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e263",
+          "type": "message",
+          "sender": "michael",
+          "text": "Around midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e264",
+          "type": "message",
+          "sender": "michael",
+          "text": "Interesting choice of words.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e265",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e266",
+          "type": "message",
+          "sender": "chris",
+          "text": "What's that supposed to mean?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e267",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Yeah, what?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e268",
+          "type": "message",
+          "sender": "amelia",
+          "text": "She left. End of story.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e269",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e270",
+          "type": "message",
+          "sender": "michael",
+          "text": "Around midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e271",
+          "type": "message",
+          "sender": "michael",
+          "text": "Usually means no one actually checked the time.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e272",
+          "type": "system",
+          "text": "Unknown: Watch this.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e273",
+          "type": "message",
+          "sender": "chris",
+          "text": "What difference does it make?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e274",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e275",
+          "type": "message",
+          "sender": "amelia",
+          "text": "She left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_4",
+      "events": [
+        {
+          "id": "e276",
+          "type": "system",
+          "text": "Private Chat – Unknown",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e277",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Watch this.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e278",
+          "type": "video",
+          "file": "party_clip.mp4",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e279",
+          "type": "message",
+          "sender": "player",
+          "text": "Where did you get this?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e280",
+          "type": "message",
+          "sender": "unknown",
+          "text": "From the same place I saw their chat.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e281",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Someone recorded that party.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e282",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Then tried to delete it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e283",
+          "type": "message",
+          "sender": "unknown",
+          "text": "They missed a copy.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e284",
+          "type": "message",
+          "sender": "player",
+          "text": "Rebecca is in the background.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e285",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e286",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Which means something very important.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e287",
+          "type": "message",
+          "sender": "player",
+          "text": "She never left when they said she did.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e288",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Now you're starting to understand.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e289",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Go back to the group.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e290",
+          "type": "message",
+          "sender": "unknown",
+          "text": "And watch them carefully.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e291",
+          "type": "message",
+          "sender": "unknown",
+          "text": "Someone in that chat knows what happened.",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_5",
+      "events": [
+        {
+          "id": "e292",
+          "type": "system",
+          "text": "Group Chat – DREADMOOR'S NEWS",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e293",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e294",
+          "type": "message",
+          "sender": "chris",
+          "text": "Seriously though.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e295",
+          "type": "message",
+          "sender": "chris",
+          "text": "Why does the exact time even matter?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e296",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e297",
+          "type": "message",
+          "sender": "abigail",
+          "text": "She left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e298",
+          "type": "message",
+          "sender": "abigail",
+          "text": "That's the part that matters.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e299",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e300",
+          "type": "message",
+          "sender": "amelia",
+          "text": "She left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e301",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e302",
+          "type": "message",
+          "sender": "michael",
+          "text": "The time matters.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e303",
+          "type": "message",
+          "sender": "michael",
+          "text": "Because the police will ask for it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e304",
+          "type": "message",
+          "sender": "michael",
+          "text": "Again and again.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e305",
+          "type": "message",
+          "sender": "chris",
+          "text": "So?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e306",
+          "type": "message",
+          "sender": "michael",
+          "text": "So if three people give three different answers…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e307",
+          "type": "message",
+          "sender": "michael",
+          "text": "That becomes a problem.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e308",
+          "type": "message",
+          "sender": "abigail",
+          "text": "We're not giving different answers.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e309",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e310",
+          "type": "message",
+          "sender": "chris",
+          "text": "We said the same thing.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e311",
+          "type": "message",
+          "sender": "michael",
+          "text": "Not exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e312",
+          "type": "message",
+          "sender": "michael",
+          "text": "One of you said midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e313",
+          "type": "message",
+          "sender": "michael",
+          "text": "One of you said she went outside.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e314",
+          "type": "message",
+          "sender": "michael",
+          "text": "And one of you said you didn't see her leave at all.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e315",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e316",
+          "type": "message",
+          "sender": "chris",
+          "text": "You're twisting what we said.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e317",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e318",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Stop making it sound like something happened.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e319",
+          "type": "message",
+          "sender": "michael",
+          "text": "I'm not making it sound like anything.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e320",
+          "type": "message",
+          "sender": "michael",
+          "text": "I'm just repeating your words.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e321",
+          "type": "typing",
+          "sender": "amelia",
+          "duration": 1500
+        },
+        {
+          "id": "e322",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Nothing happened.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e323",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Rebecca left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e324",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e325",
+          "type": "message",
+          "sender": "chris",
+          "text": "That's literally what we told the police.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e326",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e327",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e328",
+          "type": "message",
+          "sender": "michael",
+          "text": "And yet…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e329",
+          "type": "message",
+          "sender": "michael",
+          "text": "None of you seem very certain about when.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e330",
+          "type": "message",
+          "sender": "chris",
+          "text": "Because no one was standing there with a stopwatch, Michael.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e331",
+          "type": "message",
+          "sender": "abigail",
+          "text": "It was a party.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e332",
+          "type": "message",
+          "sender": "abigail",
+          "text": "People were drinking.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e333",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e334",
+          "type": "message",
+          "sender": "amelia",
+          "text": "It wasn't some kind of investigation.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e335",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e336",
+          "type": "message",
+          "sender": "michael",
+          "text": "Fair enough.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e337",
+          "type": "message",
+          "sender": "michael",
+          "text": "But Rebecca disappearing afterwards…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e338",
+          "type": "message",
+          "sender": "michael",
+          "text": "Does make the details matter a little more.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e339",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah well she's not here now.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e340",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e341",
+          "type": "message",
+          "sender": "abigail",
+          "text": "And we already told the police everything.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e342",
+          "type": "message",
+          "sender": "amelia",
+          "text": "So I don't understand what this is supposed to prove.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e343",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e344",
+          "type": "message",
+          "sender": "chris",
+          "text": "Actually…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e345",
+          "type": "message",
+          "sender": "chris",
+          "text": "Why are we even arguing about this?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e346",
+          "type": "message",
+          "sender": "chris",
+          "text": "This person just showed up out of nowhere.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e347",
+          "type": "message",
+          "sender": "chris",
+          "text": "Maybe we should start with that.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e348",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Yeah seriously.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e349",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Who even are you?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e350",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e351",
+          "type": "message",
+          "sender": "amelia",
+          "text": "You still haven't answered that.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e352",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e353",
+          "type": "message",
+          "sender": "michael",
+          "text": "That's a fair question.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e354",
+          "type": "message",
+          "sender": "michael",
+          "text": "You joined this group.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e355",
+          "type": "message",
+          "sender": "michael",
+          "text": "You said you're looking for Rebecca.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e356",
+          "type": "message",
+          "sender": "michael",
+          "text": "So let's hear it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e357",
+          "type": "message",
+          "sender": "michael",
+          "text": "Why do you think something happened to her?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e358",
+          "type": "choice",
+          "choiceId": "choice_15",
+          "options": [
+            "Because I do… and it doesn't matter why.",
+            "You don't even know where she went. Or when."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e359",
+          "type": "message",
+          "sender": "player",
+          "text": "Because I do… and it doesn't matter why.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e360",
+          "type": "message",
+          "sender": "chris",
+          "text": "That's not an answer.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e361",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Yeah, seriously.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e362",
+          "type": "message",
+          "sender": "amelia",
+          "text": "If you're going to accuse us of something, say it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e363",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e364",
+          "type": "message",
+          "sender": "michael",
+          "text": "They're right.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e365",
+          "type": "message",
+          "sender": "michael",
+          "text": "You joined a private group.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e366",
+          "type": "message",
+          "sender": "michael",
+          "text": "You questioned what happened that night.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e367",
+          "type": "message",
+          "sender": "michael",
+          "text": "So either you know something…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e368",
+          "type": "message",
+          "sender": "michael",
+          "text": "Or you think you do.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e369",
+          "type": "message",
+          "sender": "player",
+          "text": "You don't even know where she went.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e370",
+          "type": "message",
+          "sender": "player",
+          "text": "Or when.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e371",
+          "type": "message",
+          "sender": "chris",
+          "text": "What are you talking about?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e372",
+          "type": "message",
+          "sender": "abigail",
+          "text": "We told you already.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e373",
+          "type": "message",
+          "sender": "amelia",
+          "text": "She left.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e374",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e375",
+          "type": "message",
+          "sender": "chris",
+          "text": "Around midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e376",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e377",
+          "type": "message",
+          "sender": "michael",
+          "text": "Around midnight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e378",
+          "type": "message",
+          "sender": "michael",
+          "text": "Interesting.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e379",
+          "type": "message",
+          "sender": "michael",
+          "text": "That time seems to be doing a lot of work tonight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e380",
+          "type": "message",
+          "sender": "chris",
+          "text": "What is that supposed to mean?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e381",
+          "type": "message",
+          "sender": "amelia",
+          "text": "We already told you what happene–",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e382",
+          "type": "message",
+          "sender": "michael",
+          "text": "Really…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e383",
+          "type": "message",
+          "sender": "michael",
+          "text": "Did anyone actually see her leave?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e384",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e385",
+          "type": "message",
+          "sender": "amelia",
+          "text": "That is ridiculous, Michael.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e386",
+          "type": "typing",
+          "sender": "abigail",
+          "duration": 1500
+        },
+        {
+          "id": "e387",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Are you with us or with this stranger?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e388",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e389",
+          "type": "message",
+          "sender": "michael",
+          "text": "I'm with the truth.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e390",
+          "type": "message",
+          "sender": "michael",
+          "text": "And right now…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e391",
+          "type": "message",
+          "sender": "michael",
+          "text": "Our timeline has holes in it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e392",
+          "type": "choice",
+          "choiceId": "choice_16",
+          "options": [
+            "Enough… arguing won't bring her back.",
+            "Everyone calm down for a second and think."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e393",
+          "type": "message",
+          "sender": "player",
+          "text": "Enough… arguing won't bring her back.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e394",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Exactly. Finally someone here with common sense.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e395",
+          "type": "message",
+          "sender": "chris",
+          "text": "Seriously.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e396",
+          "type": "message",
+          "sender": "chris",
+          "text": "This is getting ridiculous.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e397",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e398",
+          "type": "message",
+          "sender": "michael",
+          "text": "Maybe.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e399",
+          "type": "message",
+          "sender": "michael",
+          "text": "But finding out what happened to her might.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e400",
+          "type": "message",
+          "sender": "player",
+          "text": "Everyone calm down for a second and think.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e401",
+          "type": "message",
+          "sender": "chris",
+          "text": "We ARE thinking.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e402",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e403",
+          "type": "message",
+          "sender": "abigail",
+          "text": "We already told the police everything.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e404",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e405",
+          "type": "message",
+          "sender": "michael",
+          "text": "Actually…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e406",
+          "type": "message",
+          "sender": "michael",
+          "text": "That might be the first sensible suggestion tonight.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e407",
+          "type": "message",
+          "sender": "michael",
+          "text": "Let's think about this logically.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e408",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e409",
+          "type": "message",
+          "sender": "michael",
+          "text": "Let me ask something simple.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e410",
+          "type": "message",
+          "sender": "michael",
+          "text": "When was the last time anyone actually saw Rebecca inside the factory?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e411",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e412",
+          "type": "message",
+          "sender": "chris",
+          "text": "Around 1–",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e413",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Chris…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e414",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Stop.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e415",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e416",
+          "type": "message",
+          "sender": "michael",
+          "text": "Around one what?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e417",
+          "type": "typing",
+          "sender": "abigail",
+          "duration": 1500
+        },
+        {
+          "id": "e418",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Wait.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e419",
+          "type": "message",
+          "sender": "abigail",
+          "text": "How do you suddenly know the exact time, Chris?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e420",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e421",
+          "type": "message",
+          "sender": "chris",
+          "text": "I don't.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e422",
+          "type": "message",
+          "sender": "chris",
+          "text": "I'm just guessing.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e423",
+          "type": "message",
+          "sender": "chris",
+          "text": "We were all there.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e424",
+          "type": "typing",
+          "sender": "amelia",
+          "duration": 1500
+        },
+        {
+          "id": "e425",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e426",
+          "type": "message",
+          "sender": "amelia",
+          "text": "No one was checking the time.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e427",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e428",
+          "type": "message",
+          "sender": "michael",
+          "text": "Maybe not.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e429",
+          "type": "message",
+          "sender": "michael",
+          "text": "But someone remembered it well enough to start saying it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e430",
+          "type": "typing",
+          "sender": "abigail",
+          "duration": 1500
+        },
+        {
+          "id": "e431",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Okay this is getting weird.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e432",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Why are we even explaining ourselves to this person?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e433",
+          "type": "typing",
+          "sender": "amelia",
+          "duration": 1500
+        },
+        {
+          "id": "e434",
+          "type": "message",
+          "sender": "amelia",
+          "text": "She's right.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e435",
+          "type": "message",
+          "sender": "amelia",
+          "text": "We don't even know who this person is.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e436",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e437",
+          "type": "message",
+          "sender": "chris",
+          "text": "This is pointless.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e438",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e439",
+          "type": "message",
+          "sender": "michael",
+          "text": "Perhaps.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e440",
+          "type": "message",
+          "sender": "michael",
+          "text": "But they asked a fair question.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e441",
+          "type": "choice",
+          "choiceId": "choice_17",
+          "options": [
+            "Rebecca deserves better than that.",
+            "If you don't care about her, just say it."
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e442",
+          "type": "message",
+          "sender": "player",
+          "text": "Rebecca deserves better than that.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e443",
+          "type": "typing",
+          "sender": "amelia",
+          "duration": 1500
+        },
+        {
+          "id": "e444",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Don't lecture us.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e445",
+          "type": "message",
+          "sender": "amelia",
+          "text": "You have no idea what you're talking about.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e446",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e447",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e448",
+          "type": "message",
+          "sender": "chris",
+          "text": "You weren't even there.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e449",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e450",
+          "type": "message",
+          "sender": "michael",
+          "text": "Maybe not.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e451",
+          "type": "message",
+          "sender": "michael",
+          "text": "But that doesn't mean [PlayerName] is wrong.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e452",
+          "type": "message",
+          "sender": "player",
+          "text": "If you don't care about her, just say it.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e453",
+          "type": "message",
+          "sender": "chris",
+          "text": "What?!",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e454",
+          "type": "message",
+          "sender": "abigail",
+          "text": "Excuse me?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e455",
+          "type": "message",
+          "sender": "amelia",
+          "text": "You don't get to talk to us like that.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e456",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e457",
+          "type": "message",
+          "sender": "michael",
+          "text": "Easy.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e458",
+          "type": "message",
+          "sender": "michael",
+          "text": "You're frustrated, [PlayerName].",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e459",
+          "type": "message",
+          "sender": "michael",
+          "text": "And honestly… I understand why.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e460",
+          "type": "typing",
+          "sender": "abigail",
+          "duration": 1500
+        },
+        {
+          "id": "e461",
+          "type": "message",
+          "sender": "abigail",
+          "text": "This is getting weird.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e462",
+          "type": "message",
+          "sender": "abigail",
+          "text": "I don't see why we're still talking about this.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e463",
+          "type": "typing",
+          "sender": "chris",
+          "duration": 1500
+        },
+        {
+          "id": "e464",
+          "type": "message",
+          "sender": "chris",
+          "text": "Yeah.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e465",
+          "type": "message",
+          "sender": "chris",
+          "text": "We should just leave this to the police.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e466",
+          "type": "typing",
+          "sender": "amelia",
+          "duration": 1500
+        },
+        {
+          "id": "e467",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Exactly.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e468",
+          "type": "message",
+          "sender": "amelia",
+          "text": "I'm not doing this all night.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e469",
+          "type": "typing",
+          "sender": "michael",
+          "duration": 1500
+        },
+        {
+          "id": "e470",
+          "type": "message",
+          "sender": "michael",
+          "text": "Fair enough.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e471",
+          "type": "message",
+          "sender": "michael",
+          "text": "Still…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e472",
+          "type": "message",
+          "sender": "michael",
+          "text": "Something about last night feels unfinished.",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_6",
+      "events": [
+        {
+          "id": "e473",
+          "type": "system",
+          "text": "Intercepted Conversation - Amelia & Michael",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e474",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Did you tell them?",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e475",
+          "type": "message",
+          "sender": "michael",
+          "text": "No.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e476",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Good.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e477",
+          "type": "message",
+          "sender": "amelia",
+          "text": "Because if that gets out…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e478",
+          "type": "message",
+          "sender": "michael",
+          "text": "It won't.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e479",
+          "type": "message",
+          "sender": "michael",
+          "text": "Relax.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e480",
+          "type": "system",
+          "text": "Connection lost.",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "scene_7",
+      "events": [
+        {
+          "id": "e481",
+          "type": "system",
+          "text": "Incoming Call",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e482",
+          "type": "system",
+          "text": "Unknown Number",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e483",
+          "type": "system",
+          "text": "Ringing…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e484",
+          "type": "choice",
+          "choiceId": "choice_18",
+          "options": [
+            "Accept",
+            "Decline"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e485",
+          "type": "system",
+          "text": "Call Declined.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e486",
+          "type": "system",
+          "text": "Silence.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e487",
+          "type": "system",
+          "text": "2 seconds pass.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e488",
+          "type": "system",
+          "text": "Incoming Call",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e489",
+          "type": "system",
+          "text": "Unknown Number",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e490",
+          "type": "system",
+          "text": "Ringing…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e491",
+          "type": "choice",
+          "choiceId": "choice_19",
+          "options": [
+            "Accept",
+            "Decline"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e492",
+          "type": "system",
+          "text": "Call Declined.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e493",
+          "type": "system",
+          "text": "Silence.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e494",
+          "type": "system",
+          "text": "3 seconds pass.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e495",
+          "type": "system",
+          "text": "Incoming Call",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e496",
+          "type": "system",
+          "text": "Unknown Number",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e497",
+          "type": "system",
+          "text": "Ringing…",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e498",
+          "type": "choice",
+          "choiceId": "choice_20",
+          "options": [
+            "Accept"
+          ],
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e499",
+          "type": "system",
+          "text": "Call Connected",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e500",
+          "type": "audio",
+          "file": "threatening_call_01.mp3",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e501",
+          "type": "system",
+          "text": "Silence.",
+          "meta": {
+            "delayAfter": 800
+          }
+        },
+        {
+          "id": "e502",
+          "type": "system",
+          "text": "End of Episode 1",
+          "meta": {
+            "delayAfter": 800
+          }
+        }
+      ]
+    }
+  ]
+}
