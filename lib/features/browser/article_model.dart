@@ -17,12 +17,12 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
-      id: json["id"],
-      headline: json["headline"],
-      subheadline: json["subheadline"],
-      photo: json["photo"],
-      caption: json["caption"],
-      body: List<String>.from(json["body"]),
+      id: json["id"] ?? '0',
+      headline: json["headline"] ?? 'No Headline',
+      subheadline: json["subheadline"] ?? '',
+      photo: json["photo"] ?? '',
+      caption: json["caption"] ?? '',
+      body: json["body"] != null ? List<String>.from(json["body"]) : [],
     );
   }
 }

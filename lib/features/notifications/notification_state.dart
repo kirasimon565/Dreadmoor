@@ -1,7 +1,34 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'notification_controller.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'app_notification.dart';
 
-final notificationProvider =
-    StateNotifierProvider<NotificationController, NotificationCenterState>(
-      (ref) => NotificationController(),
-    );
+final activeNotificationsProvider =
+    StreamProvider<List<AppNotification>>((ref) {
+  final db = ref.read(databaseProvider);
+  return (db.select(db.notifications)..where((n) => n.isRead.equals(false)))
+      .watch()
+      .map((rows) => rows.map((row) {
+            final typeStr = row.type;
+            NotificationType type = NotificationType.system;
+            if (typeStr == 'message') type = NotificationType.message;
+            if (typeStr == 'article') type = NotificationType.article;
+
+            Map<String, dynamic>? payload;
+            if (row.payload != null) {
+              try {
+                payload = jsonDecode(row.payload!);
+              } catch (_) {}
+            }
+
+            return AppNotification(
+              id: row.id,
+              type: type,
+              title: row.title,
+              message: row.message,
+              createdAtMinutes: row.createdAtMinutes,
+              payload: payload,
+            );
+          }).toList());
+});

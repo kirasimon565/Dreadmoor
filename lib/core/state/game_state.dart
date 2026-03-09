@@ -69,7 +69,12 @@ final threadCooldownProvider = StateProvider.family<DateTime?, String>(
 /// ---------------------------
 
 /// Global story flags (mirrors DB story_state)
-final gameFlagsProvider = StateProvider<Map<String, bool>>((ref) => {});
+final gameFlagsProvider = StreamProvider<Map<String, bool>>((ref) {
+  final db = ref.read(databaseProvider);
+  return db.select(db.storyState).watch().map((rows) {
+    return {for (var row in rows) row.key: row.value};
+  });
+});
 
 /// ---------------------------
 /// SCHEDULER STATE

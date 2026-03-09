@@ -22,66 +22,73 @@ class BrowserNavigator extends StatelessWidget {
             builder: (context) => const BrowserHomeScreen(),
           );
         } else if (settings.name == BrowserRoutes.article) {
-          final article = settings.arguments as Article;
+          Article article;
+          if (settings.arguments is Map) {
+            article =
+                Article.fromJson(settings.arguments as Map<String, dynamic>);
+          } else {
+            article = settings.arguments as Article;
+          }
+
           return MaterialPageRoute(
             builder: (context) => Scaffold(
-              body: Column(
-                children: [
-                   Container(
-                    height: 50,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF111111),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Color(0x14FFFFFF),
-                          width: 1.0,
+                body: Column(children: [
+              Container(
+                height: 50,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF111111),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Color(0x14FFFFFF),
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(Icons.arrow_back_ios,
+                          color: Color(0x73FFFFFF), size: 18),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0x0AFFFFFF),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0x14FFFFFF)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.lock,
+                                size: 12, color: Color(0x73FFFFFF)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'dreadmoor-daily.local',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0x73FFFFFF),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: const Icon(Icons.arrow_back_ios, color: Color(0x73FFFFFF), size: 18),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Container(
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: const Color(0x0AFFFFFF),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0x14FFFFFF)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.lock, size: 12, color: Color(0x73FFFFFF)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'dreadmoor-daily.local',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0x73FFFFFF),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.refresh, color: Color(0x73FFFFFF), size: 20),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ArticleViewerScreen(article: article),
-                  )
-                ]
+                    const SizedBox(width: 16),
+                    const Icon(Icons.refresh,
+                        color: Color(0x73FFFFFF), size: 20),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ArticleViewerScreen(article: article),
               )
-            ),
+            ])),
           );
         }
         return null;

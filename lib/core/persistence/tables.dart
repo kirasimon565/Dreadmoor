@@ -147,6 +147,29 @@ class Messages extends Table {
 }
 
 // --------------------------------------------------
+// NOTIFICATIONS
+// --------------------------------------------------
+
+class Notifications extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get type => text()(); // e.g., 'message', 'article', 'system'
+
+  TextColumn get title => text()();
+
+  TextColumn get message => text()();
+
+  IntColumn get createdAtMinutes => integer()();
+
+  TextColumn get payload => text().nullable()(); // JSON string
+
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// --------------------------------------------------
 // STORY FLAGS
 // --------------------------------------------------
 

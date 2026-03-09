@@ -1,29 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' hide Column;
 
 import 'package:dreadmoor/features/notifications/notification_state.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
 class NotificationBanner extends ConsumerWidget {
   const NotificationBanner({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifState = ref.watch(notificationProvider);
+    final notifsAsync = ref.watch(activeNotificationsProvider);
 
-    if (notifState.activeBanners.isEmpty) {
+    if (notifsAsync.isLoading ||
+        notifsAsync.hasError ||
+        notifsAsync.value == null ||
+        notifsAsync.value!.isEmpty) {
       return const SizedBox();
     }
 
-    final notification = notifState.activeBanners.last;
+    final notification = notifsAsync.value!.last;
 
     return Positioned(
       top: MediaQuery.of(context).padding.top + 10,
       left: 10,
       right: 10,
       child: GestureDetector(
-        onTap: () {
-          ref.read(notificationProvider.notifier).dismissBanner(notification.id);
+        onTap: () async {
+          // Mark as read in DB
+          final db = ref.read(databaseProvider);
+          await (db.update(db.notifications)
+                ..where((n) => n.id.equals(notification.id)))
+              .write(const NotificationsCompanion(isRead: Value(true)));
 
           final payload = notification.payload;
 
@@ -31,13 +41,24 @@ class NotificationBanner extends ConsumerWidget {
             final route = payload["route"];
             if (route != null) {
               if (route == '/browser') {
-                  ref.read(activeAppProvider.notifier).state = PhoneApp.browser;
+                // Unlock the browser by setting the article_read flag
+                await db.into(db.storyState).insert(
+                      const StoryStateCompanion(
+                        key: Value('article_read'),
+                        value: Value(true),
+                      ),
+                      mode: InsertMode.insertOrReplace,
+                    );
+                ref.read(activeAppProvider.notifier).state = PhoneApp.browser;
+
+                // The Browser HomeScreen will automatically display the article
+                // based on the story flag we just set. No need for fragile pushNamed routing.
               } else if (route == '/chat') {
-                  ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
-                  // The messenger navigator handles pushing the chat screen internally.
-                  // Usually we'd use a deep link mechanism here, but changing the tab gets them to the app.
+                ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
+                // The messenger navigator handles pushing the chat screen internally.
+                // Usually we'd use a deep link mechanism here, but changing the tab gets them to the app.
               } else {
-                  Navigator.of(context).pushNamed(route, arguments: payload);
+                // Fallback for other deep links if implemented later
               }
             }
           }
@@ -48,7 +69,8 @@ class NotificationBanner extends ConsumerWidget {
             color: const Color(0xFF242830), // Surface
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: const Color(0xFF00FFD1).withOpacity(0.3), // Cyan tint to make it pop slightly
+              color: const Color(0xFF00FFD1)
+                  .withOpacity(0.3), // Cyan tint to make it pop slightly
               width: 1,
             ),
             boxShadow: [
@@ -68,7 +90,8 @@ class NotificationBanner extends ConsumerWidget {
                   color: const Color(0xFF1C1F26),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.notifications, color: Color(0xFF00FFD1)),
+                child:
+                    const Icon(Icons.notifications, color: Color(0xFF00FFD1)),
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -6,14 +6,16 @@ import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/os/components/os_header.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
+import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:drift/drift.dart' hide Column;
 
 class NotificationCenterScreen extends ConsumerWidget {
   const NotificationCenterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(notificationProvider);
-    final history = state.history;
+    final db = ref.read(databaseProvider);
+    final historyAsync = ref.watch(activeNotificationsProvider); // We could create an allNotificationsProvider, but active is fine for now
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
@@ -28,30 +30,34 @@ class NotificationCenterScreen extends ConsumerWidget {
                 child: const Icon(Icons.arrow_back_ios, color: DreadmoorColors.textSecondary, size: 20),
               ),
               trailing: GestureDetector(
-                onTap: () => ref.read(notificationProvider.notifier).clearHistory(),
+                onTap: () async {
+                   await (db.update(db.notifications)).write(const NotificationsCompanion(isRead: Value(true)));
+                },
                 child: const Icon(Icons.delete_outline, color: DreadmoorColors.textSecondary, size: 20),
               ),
             ),
             Expanded(
-              child: history.isEmpty
-                  ? Center(
-                      child: Text(
-                        "No recent notifications",
-                        style: DreadmoorTheme.bodyStyle.copyWith(
-                          color: DreadmoorColors.textMeta,
-                          fontSize: 14,
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: history.length,
-                      separatorBuilder: (context, index) => Divider(
-                        color: Colors.white.withOpacity(0.05),
-                        height: 24,
-                      ),
-                      itemBuilder: (context, index) {
-                        final notif = history[index];
+              child: historyAsync.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : historyAsync.hasError || historyAsync.value == null || historyAsync.value!.isEmpty
+                      ? Center(
+                          child: Text(
+                            "No recent notifications",
+                            style: DreadmoorTheme.bodyStyle.copyWith(
+                              color: DreadmoorColors.textMeta,
+                              fontSize: 14,
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: historyAsync.value!.length,
+                          separatorBuilder: (context, index) => Divider(
+                            color: Colors.white.withOpacity(0.05),
+                            height: 24,
+                          ),
+                          itemBuilder: (context, index) {
+                            final notif = historyAsync.value![index];
                         final timeStr = formatGameTime(notif.createdAtMinutes);
 
                         return GestureDetector(

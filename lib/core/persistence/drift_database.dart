@@ -9,7 +9,7 @@ import 'tables.dart';
 
 part 'drift_database.g.dart';
 
-@DriftDatabase(tables: [Players, Characters, Threads, Messages, StoryState, Episodes])
+@DriftDatabase(tables: [Players, Characters, Threads, Messages, Notifications, StoryState, Episodes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   // ---------------------------
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   // ---------------------------
   // MIGRATIONS
@@ -41,12 +41,8 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      if (from < 2) {
-        // future migration
-      }
-
-      if (from < 3) {
-        // reserved for message/event upgrades
+      if (from < 6) {
+        await m.createTable(notifications);
       }
     },
   );

@@ -162,7 +162,8 @@ class GlobalScheduler {
   Future<void> _executeEvent(EventScript event) async {
     final db = ref.read(databaseProvider);
     final totalMinutes = ref.read(gameClockProvider);
-    final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
+    final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)),
+        (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
 
     /// ----------------------
     /// TYPING EVENT
@@ -170,7 +171,8 @@ class GlobalScheduler {
 
     if (event.type == 'typing') {
       if (event.threadId != null) {
-        await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
+        await (db.update(db.threads)
+              ..where((t) => t.id.equals(event.threadId!)))
             .write(const ThreadsCompanion(isTyping: Value(false)));
       }
 
@@ -188,9 +190,7 @@ class GlobalScheduler {
       final sender = event.sender ?? 'unknown';
       await _ensureThreadExists(threadId, sender);
 
-      final id = await db
-          .into(db.messages)
-          .insert(
+      final id = await db.into(db.messages).insert(
             MessagesCompanion.insert(
               threadId: threadId,
               senderId: sender,
@@ -205,20 +205,28 @@ class GlobalScheduler {
 
       await _incrementUnread(db, threadId);
 
-      /// Notification trigger hook
+      /// Notification trigger hook -> writes to DB
       final activeThread = ref.read(activeThreadIdProvider);
 
       if (activeThread != threadId) {
-        ref.read(notificationProvider.notifier).push(
-          AppNotification(
-            id: 'msg_${event.id}',
-            type: NotificationType.message,
-            title: sender,
-            message: event.text ?? 'Sent a message',
-            createdAtMinutes: totalMinutes,
-            payload: {'route': '/chat', 'threadId': threadId},
-          ),
-        );
+        // Look up the sender name from DB to make notification friendlier
+        final charRow = await (db.select(db.characters)
+              ..where((c) => c.id.equals(sender)))
+            .getSingleOrNull();
+        final displayTitle = charRow?.name ?? sender.toUpperCase();
+
+        await db.into(db.notifications).insert(
+              NotificationsCompanion.insert(
+                id: 'msg_${event.id}',
+                type: 'message',
+                title: displayTitle,
+                message: event.text ?? 'Sent a message',
+                createdAtMinutes: totalMinutes,
+                payload: const Value(
+                    '{"route": "/chat", "threadId": "${threadId}"}'),
+              ),
+              mode: InsertMode.insertOrReplace,
+            );
       }
 
       _playSound('sfx/message_receive.mp3');
@@ -248,9 +256,7 @@ class GlobalScheduler {
       if (event.text != null && event.text!.isNotEmpty) {
         await _ensureThreadExists(threadId, 'system');
 
-        await db
-            .into(db.messages)
-            .insert(
+        await db.into(db.messages).insert(
               MessagesCompanion.insert(
                 threadId: threadId,
                 senderId: 'system',
@@ -272,16 +278,30 @@ class GlobalScheduler {
     /// ----------------------
 
     if (event.type == 'news') {
-      ref.read(notificationProvider.notifier).push(
-        AppNotification(
-          id: 'news_${event.id}',
-          type: NotificationType.article,
-          title: event.headline ?? 'New Article',
-          message: event.subheadline ?? 'Tap to read',
-          createdAtMinutes: totalMinutes,
-          payload: {'route': '/browser', 'url': 'news'},
-        ),
-      );
+      final payloadMap = {
+        'route': '/browser',
+        'url': 'news',
+        'article': {
+          'id': event.id,
+          'headline': event.headline,
+          'subheadline': event.subheadline,
+          'photo': event.photo,
+          'caption': event.caption,
+          'body': event.body ?? [],
+        },
+      };
+
+      await db.into(db.notifications).insert(
+            NotificationsCompanion.insert(
+              id: 'news_${event.id}',
+              type: 'article',
+              title: event.headline ?? 'New Article',
+              message: event.subheadline ?? 'Tap to read',
+              createdAtMinutes: totalMinutes,
+              payload: Value(jsonEncode(payloadMap)),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
 
       _playSound('sfx/notification.mp3');
 
@@ -297,19 +317,21 @@ class GlobalScheduler {
     if (event.type == 'video' || event.type == 'audio') {
       final threadId = event.threadId ?? 'system';
       final sender = event.sender ?? 'unknown';
-      final isCall = event.type == 'audio' && event.file != null && event.file!.contains('call');
+      final isCall = event.type == 'audio' &&
+          event.file != null &&
+          event.file!.contains('call');
 
       await _ensureThreadExists(threadId, sender);
 
       String mediaPath = '';
       if (event.file != null) {
-        if (event.type == 'video') mediaPath = 'assets/media/videos/${event.file}';
-        else if (event.type == 'audio') mediaPath = 'assets/media/audio/${event.file}';
+        if (event.type == 'video')
+          mediaPath = 'assets/media/videos/${event.file}';
+        else if (event.type == 'audio')
+          mediaPath = 'assets/media/audio/${event.file}';
       }
 
-      final id = await db
-          .into(db.messages)
-          .insert(
+      final id = await db.into(db.messages).insert(
             MessagesCompanion.insert(
               threadId: threadId,
               senderId: sender,
@@ -345,13 +367,12 @@ class GlobalScheduler {
       final threadId = event.threadId ?? 'system';
       await _ensureThreadExists(threadId, 'system');
 
-      await db
-          .into(db.messages)
-          .insert(
+      await db.into(db.messages).insert(
             MessagesCompanion.insert(
               threadId: threadId,
               senderId: 'system',
-              content: Value(event.text ?? 'INTERCEPT CONNECTION ESTABLISHED...'),
+              content:
+                  Value(event.text ?? 'INTERCEPT CONNECTION ESTABLISHED...'),
               type: const Value('system'),
               sequence: _eventIndex,
               timestamp: Value(gameTime),
@@ -372,22 +393,20 @@ class GlobalScheduler {
     /// ----------------------
 
     if (event.type == 'call' || event.type == 'phone_call') {
-       // example syntax: text="Anonymous", sender="12345"
-       ref.read(phoneProvider.notifier).receiveIncomingCall(
-         event.text ?? "Unknown",
-         event.sender ?? "000000"
-       );
+      // example syntax: text="Anonymous", sender="12345"
+      ref.read(phoneProvider.notifier).receiveIncomingCall(
+          event.text ?? "Unknown", event.sender ?? "000000");
 
-       // Pause scheduler while call is active
-       ref.read(isSchedulerPausedProvider.notifier).state = true;
+      // Pause scheduler while call is active
+      ref.read(isSchedulerPausedProvider.notifier).state = true;
 
-       // Wait for call to finish before advancing
-       // In a full implementation, the Phone app ending the call would unpause this.
+      // Wait for call to finish before advancing
+      // In a full implementation, the Phone app ending the call would unpause this.
 
-       _eventIndex++;
-       // Note: the next tick will be blocked until `resume()` is called.
-       _scheduleNextTick();
-       return;
+      _eventIndex++;
+      // Note: the next tick will be blocked until `resume()` is called.
+      _scheduleNextTick();
+      return;
     }
 
     /// ----------------------
@@ -432,13 +451,12 @@ class GlobalScheduler {
 
     final existing = await (db.select(
       db.threads,
-    )..where((t) => t.id.equals(threadId))).getSingleOrNull();
+    )..where((t) => t.id.equals(threadId)))
+        .getSingleOrNull();
 
     if (existing != null) return;
 
-    await db
-        .into(db.threads)
-        .insert(
+    await db.into(db.threads).insert(
           ThreadsCompanion.insert(
             id: threadId,
             title: threadId,
@@ -458,7 +476,8 @@ class GlobalScheduler {
 
     final thread = await (db.select(
       db.threads,
-    )..where((t) => t.id.equals(threadId))).getSingleOrNull();
+    )..where((t) => t.id.equals(threadId)))
+        .getSingleOrNull();
 
     if (thread == null) return;
 
@@ -467,9 +486,40 @@ class GlobalScheduler {
     );
   }
 
-  void submitChoice(String jumpto) {
+  Future<void> submitChoice(String jumpto, String choiceText) async {
     if (_episode == null) return;
 
+    // Insert player message into the DB
+    final db = ref.read(databaseProvider);
+    final threadId = ref.read(activeThreadIdProvider) ?? 'system';
+
+    // Advance game clock
+    ref.read(gameClockProvider.notifier).advanceTime(1);
+    final totalMinutes = ref.read(gameClockProvider);
+    final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
+
+    await _ensureThreadExists(threadId, 'player');
+
+    final id = await db
+        .into(db.messages)
+        .insert(
+          MessagesCompanion.insert(
+            threadId: threadId,
+            senderId: 'player',
+            content: Value(choiceText),
+            sequence: _eventIndex,
+            timestamp: Value(gameTime),
+            isPlayerMessage: const Value(true),
+          ),
+        );
+
+    await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
+        .write(ThreadsCompanion(lastMessageId: Value(id)));
+
+    _playSound('sfx/message_receive.mp3');
+
+    // Find jumpto target
+    bool found = false;
     for (int s = 0; s < _episode!.scenes.length; s++) {
       final scene = _episode!.scenes[s];
 
@@ -477,9 +527,16 @@ class GlobalScheduler {
         if (scene.events[e].id == jumpto) {
           _sceneIndex = s;
           _eventIndex = e;
+          found = true;
           break;
         }
       }
+      if (found) break;
+    }
+
+    // If target not found or empty, just advance to next event
+    if (!found) {
+        _eventIndex++;
     }
 
     ref.read(waitingForChoiceProvider.notifier).state = false;
