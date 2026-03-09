@@ -65,6 +65,15 @@ class EventScript {
 
   final EventMeta? meta;
 
+  // Media / News Fields
+  final String? headline;
+  final String? subheadline;
+  final List<String>? body;
+  final String? photo;
+  final String? caption;
+  final String? file;
+  final String? action;
+
   EventScript({
     required this.id,
     required this.type,
@@ -75,6 +84,13 @@ class EventScript {
     this.options,
     this.duration,
     this.meta,
+    this.headline,
+    this.subheadline,
+    this.body,
+    this.photo,
+    this.caption,
+    this.file,
+    this.action,
   });
 
   factory EventScript.fromJson(Map<String, dynamic> json) {
@@ -88,9 +104,22 @@ class EventScript {
       meta: json['meta'] != null ? EventMeta.fromJson(json['meta']) : null,
       options: json['options'] != null
           ? (json['options'] as List)
-                .map((e) => ChoiceOption.fromJson(e))
+                .map((e) {
+                  if (e is String) {
+                    // In some episodes, choice options might be simple strings instead of objects
+                    return ChoiceOption(text: e, jumpto: '');
+                  }
+                  return ChoiceOption.fromJson(e);
+                })
                 .toList()
           : null,
+      headline: json['headline'],
+      subheadline: json['subheadline'],
+      body: json['body'] != null ? List<String>.from(json['body']) : null,
+      photo: json['photo'],
+      caption: json['caption'],
+      file: json['file'],
+      action: json['action'],
     );
   }
 

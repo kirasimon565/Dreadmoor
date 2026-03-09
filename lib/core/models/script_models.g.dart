@@ -53,6 +53,13 @@ EventScript _$EventScriptFromJson(Map<String, dynamic> json) => EventScript(
       meta: json['meta'] == null
           ? null
           : EventMeta.fromJson(json['meta'] as Map<String, dynamic>),
+      headline: json['headline'] as String?,
+      subheadline: json['subheadline'] as String?,
+      body: (json['body'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      photo: json['photo'] as String?,
+      caption: json['caption'] as String?,
+      file: json['file'] as String?,
+      action: json['action'] as String?,
     );
 
 Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
@@ -66,6 +73,13 @@ Map<String, dynamic> _$EventScriptToJson(EventScript instance) =>
       'options': instance.options,
       'duration': instance.duration,
       'meta': instance.meta,
+      'headline': instance.headline,
+      'subheadline': instance.subheadline,
+      'body': instance.body,
+      'photo': instance.photo,
+      'caption': instance.caption,
+      'file': instance.file,
+      'action': instance.action,
     };
 
 EventMeta _$EventMetaFromJson(Map<String, dynamic> json) => EventMeta(

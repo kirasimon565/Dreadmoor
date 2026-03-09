@@ -9,6 +9,7 @@ import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/features/phone/phone_state.dart';
 import 'package:dreadmoor/features/notifications/app_notification.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../models/script_models.dart';
 import '../state/game_state.dart';
 
@@ -16,6 +17,10 @@ class GlobalScheduler {
   final Ref ref;
 
   Timer? _timer;
+
+  // Keep track of active audio players so we can clean them up,
+  // but allow multiple sounds to overlap.
+  final List<AudioPlayer> _audioPlayers = [];
 
   EpisodeScript? _episode;
 
@@ -120,9 +125,12 @@ class GlobalScheduler {
     if (event.type == 'typing') {
       final db = ref.read(databaseProvider);
 
-      db.update(db.threads)
-        ..where((t) => t.id.equals(event.threadId!))
-        ..write(const ThreadsCompanion(isTyping: Value(true)));
+      if (event.threadId != null) {
+        db.update(db.threads)
+          ..where((t) => t.id.equals(event.threadId!))
+          ..write(const ThreadsCompanion(isTyping: Value(true)));
+      }
+      _playSound('sfx/typing.mp3');
     }
 
     _timer = Timer(Duration(milliseconds: delay), () async {
@@ -130,16 +138,36 @@ class GlobalScheduler {
     });
   }
 
+  Future<void> _playSound(String path) async {
+    try {
+      final player = AudioPlayer();
+      _audioPlayers.add(player);
+
+      player.onPlayerComplete.listen((_) {
+        _audioPlayers.remove(player);
+        player.dispose();
+      });
+
+      await player.play(AssetSource('media/$path'));
+    } catch (e) {
+      // Ignore if audio fails to play
+    }
+  }
+
   Future<void> _executeEvent(EventScript event) async {
     final db = ref.read(databaseProvider);
+    final totalMinutes = ref.read(gameClockProvider);
+    final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
 
     /// ----------------------
     /// TYPING EVENT
     /// ----------------------
 
     if (event.type == 'typing') {
-      await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
-          .write(const ThreadsCompanion(isTyping: Value(false)));
+      if (event.threadId != null) {
+        await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
+            .write(const ThreadsCompanion(isTyping: Value(false)));
+      }
 
       _eventIndex++;
       _scheduleNextTick();
@@ -151,45 +179,44 @@ class GlobalScheduler {
     /// ----------------------
 
     if (event.type == 'message') {
-      await _ensureThreadExists(event.threadId!, event.sender!);
-
-      // Construct a DateTime out of the game clock total minutes
-      // This bridges the story system to the old Drift schema seamlessly.
-      final totalMinutes = ref.read(gameClockProvider);
-      final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
+      final threadId = event.threadId ?? 'system';
+      final sender = event.sender ?? 'unknown';
+      await _ensureThreadExists(threadId, sender);
 
       final id = await db
           .into(db.messages)
           .insert(
             MessagesCompanion.insert(
-              threadId: event.threadId!,
-              senderId: event.sender!,
-              content: Value(event.text!),
+              threadId: threadId,
+              senderId: sender,
+              content: Value(event.text ?? ''),
               sequence: _eventIndex,
               timestamp: Value(gameTime),
             ),
           );
 
-      await (db.update(db.threads)..where((t) => t.id.equals(event.threadId!)))
+      await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
           .write(ThreadsCompanion(lastMessageId: Value(id)));
 
-      await _incrementUnread(db, event.threadId!);
+      await _incrementUnread(db, threadId);
 
       /// Notification trigger hook
       final activeThread = ref.read(activeThreadIdProvider);
 
-      if (activeThread != event.threadId) {
+      if (activeThread != threadId) {
         ref.read(notificationProvider.notifier).push(
           AppNotification(
             id: 'msg_${event.id}',
             type: NotificationType.message,
-            title: event.sender!,
+            title: sender,
             message: event.text ?? 'Sent a message',
             createdAtMinutes: totalMinutes,
-            payload: {'route': '/chat', 'threadId': event.threadId},
+            payload: {'route': '/chat', 'threadId': threadId},
           ),
         );
       }
+
+      _playSound('sfx/message_receive.mp3');
 
       // Advance game clock
       ref.read(gameClockProvider.notifier).advanceTime(1);
@@ -204,23 +231,31 @@ class GlobalScheduler {
     /// ----------------------
 
     if (event.type == 'system') {
-      await _ensureThreadExists(event.threadId!, 'system');
+      if (event.action == 'open_puzzle') {
+        pause();
+        ref.read(waitingForPuzzleProvider.notifier).state = true;
+        // Don't advance eventIndex until puzzle is complete
+        return;
+      }
 
-      final totalMinutes = ref.read(gameClockProvider);
-      final gameTime = DateTime(2007, 3, 8 + (totalMinutes ~/ (24 * 60)), (totalMinutes % (24 * 60)) ~/ 60, totalMinutes % 60);
+      final threadId = event.threadId ?? 'system';
 
-      await db
-          .into(db.messages)
-          .insert(
-            MessagesCompanion.insert(
-              threadId: event.threadId!,
-              senderId: 'system',
-              content: Value(event.text ?? ''),
-              type: const Value('system'),
-              sequence: _eventIndex,
-              timestamp: Value(gameTime),
-            ),
-          );
+      if (event.text != null && event.text!.isNotEmpty) {
+        await _ensureThreadExists(threadId, 'system');
+
+        await db
+            .into(db.messages)
+            .insert(
+              MessagesCompanion.insert(
+                threadId: threadId,
+                senderId: 'system',
+                content: Value(event.text!),
+                type: const Value('system'),
+                sequence: _eventIndex,
+                timestamp: Value(gameTime),
+              ),
+            );
+      }
 
       _eventIndex++;
       _scheduleNextTick();
@@ -228,10 +263,110 @@ class GlobalScheduler {
     }
 
     /// ----------------------
+    /// NEWS EVENT
+    /// ----------------------
+
+    if (event.type == 'news') {
+      ref.read(notificationProvider.notifier).push(
+        AppNotification(
+          id: 'news_${event.id}',
+          type: NotificationType.article,
+          title: event.headline ?? 'New Article',
+          message: event.subheadline ?? 'Tap to read',
+          createdAtMinutes: totalMinutes,
+          payload: {'route': '/browser', 'url': 'news'},
+        ),
+      );
+
+      _playSound('sfx/notification.mp3');
+
+      _eventIndex++;
+      _scheduleNextTick();
+      return;
+    }
+
+    /// ----------------------
+    /// MEDIA EVENTS
+    /// ----------------------
+
+    if (event.type == 'video' || event.type == 'audio') {
+      final threadId = event.threadId ?? 'system';
+      final sender = event.sender ?? 'unknown';
+      final isCall = event.type == 'audio' && event.file != null && event.file!.contains('call');
+
+      await _ensureThreadExists(threadId, sender);
+
+      String mediaPath = '';
+      if (event.file != null) {
+        if (event.type == 'video') mediaPath = 'assets/media/videos/${event.file}';
+        else if (event.type == 'audio') mediaPath = 'assets/media/audio/${event.file}';
+      }
+
+      final id = await db
+          .into(db.messages)
+          .insert(
+            MessagesCompanion.insert(
+              threadId: threadId,
+              senderId: sender,
+              content: Value(mediaPath),
+              type: Value(event.type),
+              sequence: _eventIndex,
+              timestamp: Value(gameTime),
+            ),
+          );
+
+      await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
+          .write(ThreadsCompanion(lastMessageId: Value(id)));
+
+      await _incrementUnread(db, threadId);
+
+      _playSound('sfx/message_receive.mp3');
+
+      _eventIndex++;
+      _scheduleNextTick();
+      return;
+    }
+
+    /// ----------------------
+    /// INTERCEPT EVENT
+    /// ----------------------
+
+    if (event.type == 'intercept') {
+      // Intercept logic: trigger the intercept UI flow
+      pause();
+
+      // In a full implementation, we would route to an intercept screen.
+      // For now, we simulate the intercept and emit a system notification/state.
+      final threadId = event.threadId ?? 'system';
+      await _ensureThreadExists(threadId, 'system');
+
+      await db
+          .into(db.messages)
+          .insert(
+            MessagesCompanion.insert(
+              threadId: threadId,
+              senderId: 'system',
+              content: Value(event.text ?? 'INTERCEPT CONNECTION ESTABLISHED...'),
+              type: const Value('system'),
+              sequence: _eventIndex,
+              timestamp: Value(gameTime),
+            ),
+          );
+
+      // We wait for the intercept UI to finish, then we resume.
+      // We'll auto-resume after a delay for now to prevent hard-locking the scheduler in this stub.
+      Timer(const Duration(seconds: 3), () {
+        _eventIndex++;
+        resume();
+      });
+      return;
+    }
+
+    /// ----------------------
     /// CALL EVENT
     /// ----------------------
 
-    if (event.type == 'call') {
+    if (event.type == 'call' || event.type == 'phone_call') {
        // example syntax: text="Anonymous", sender="12345"
        ref.read(phoneProvider.notifier).receiveIncomingCall(
          event.text ?? "Unknown",
@@ -265,6 +400,16 @@ class GlobalScheduler {
 
     if (event.type == 'choice') {
       ref.read(waitingForChoiceProvider.notifier).state = true;
+      return;
+    }
+
+    /// ----------------------
+    /// DELAY EVENT
+    /// ----------------------
+
+    if (event.type == 'delay') {
+      _eventIndex++;
+      _scheduleNextTick();
       return;
     }
 
@@ -373,5 +518,9 @@ class GlobalScheduler {
 
   void dispose() {
     _timer?.cancel();
+    for (final player in _audioPlayers) {
+      player.dispose();
+    }
+    _audioPlayers.clear();
   }
 }
