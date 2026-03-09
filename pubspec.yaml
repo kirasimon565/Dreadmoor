@@ -80,6 +80,11 @@ flutter:
     - assets/icon/
     - assets/music/
 
+    # Media
+    - assets/media/videos/
+    - assets/media/audio/
+    - assets/media/sfx/
+
     # Episodes (auto-load all episode json files)
     - content/episodes/
 
