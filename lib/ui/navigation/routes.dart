@@ -3,6 +3,8 @@ abstract final class Routes {
   static const studio = '/';
   static const setup = '/setup';
   static const welcome = '/welcome';
+  static const introTrailer = '/intro_trailer';
+  static const titleCinematic = '/title_cinematic';
 
   // Phone OS container
   static const os = '/os';

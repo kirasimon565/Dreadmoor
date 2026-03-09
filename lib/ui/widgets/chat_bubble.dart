@@ -46,7 +46,7 @@ class ChatBubble extends StatelessWidget {
           margin: EdgeInsets.only(
             top: 4,
             bottom: 4,
-            left: isMe ? 48 : 0, // removed side margin to let it hug the edge slightly more naturally
+            left: isMe ? 48 : 0,
             right: isMe ? 0 : 48,
           ),
           child: ClipRRect(

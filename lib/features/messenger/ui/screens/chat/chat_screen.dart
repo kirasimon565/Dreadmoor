@@ -107,36 +107,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 stream: _threadStream,
                 builder: (context, snapshot) {
                   final thread = snapshot.data;
-                  return OSHeader(
-                    title: thread?.title ?? 'UNKNOWN',
-                    subtitle: thread?.isTyping == true ? 'typing...' : 'online',
-                    onTitleTap: () {
-                      Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
-                    },
-                    leading: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        Navigator.of(context).pop();
-                      },
-                      child: const Icon(Icons.arrow_back_ios, color: DreadmoorColors.textSecondary, size: 20),
-                    ),
-                    trailing: GestureDetector(
-                      onTap: () {
-                         // Opens Character Profile
-                         Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
-                      },
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: DreadmoorColors.surfaceGlass,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: DreadmoorColors.borderGlass),
+                  return StreamBuilder<Character?>(
+                    stream: (ref.read(databaseProvider).select(ref.read(databaseProvider).characters)
+                      ..where((c) => c.id.equals(thread?.id ?? '')))
+                    .watchSingleOrNull(),
+                    builder: (context, charSnapshot) {
+                      final character = charSnapshot.data;
+
+                      return OSHeader(
+                        title: thread?.title ?? 'UNKNOWN',
+                        subtitle: thread?.isTyping == true ? 'typing...' : 'online',
+                        onTitleTap: () {
+                          Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
+                        },
+                        leading: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            Navigator.of(context).pop();
+                          },
+                          child: const Icon(Icons.arrow_back_ios, color: DreadmoorColors.textSecondary, size: 20),
                         ),
-                        child: const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16),
-                      ),
-                    ),
+                        trailing: GestureDetector(
+                          onTap: () {
+                             // Opens Character Profile
+                             Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
+                          },
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: DreadmoorColors.surfaceGlass,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: DreadmoorColors.borderGlass),
+                            ),
+                            clipBehavior: Clip.hardEdge,
+                            child: character?.avatarPath != null
+                                ? Image.asset(character!.avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16))
+                                : const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16),
+                          ),
+                        ),
+                      );
+                    }
                   );
                 },
               ),
@@ -200,13 +212,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                         return Padding(
                           padding: EdgeInsets.only(top: isFirstInGroup ? 12.0 : 4.0),
-                          child: ChatBubble(
-                            text: msg.content ?? "",
-                            isMe: msg.isPlayerMessage,
-                            senderId: msg.senderId,
-                            // Only pass timestamp if it's the last message in that minute group
-                            timestamp: isLastInMinuteGroup ? msg.timestamp : null,
-                            isSecret: msg.isSecret,
+                          child: StreamBuilder<Character?>(
+                            stream: (ref.read(databaseProvider).select(ref.read(databaseProvider).characters)
+                                ..where((c) => c.id.equals(msg.senderId)))
+                                .watchSingleOrNull(),
+                            builder: (context, charSnap) {
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisAlignment: msg.isPlayerMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                children: [
+                                  if (!msg.isPlayerMessage && isLastInMinuteGroup)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: DreadmoorColors.borderSubtle),
+                                        ),
+                                        clipBehavior: Clip.hardEdge,
+                                        child: charSnap.data?.avatarPath != null
+                                            ? Image.asset(charSnap.data!.avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary))
+                                            : const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary),
+                                      ),
+                                    )
+                                  else if (!msg.isPlayerMessage)
+                                    const SizedBox(width: 32),
+
+                                  Flexible(
+                                    child: ChatBubble(
+                                      text: msg.content ?? "",
+                                      isMe: msg.isPlayerMessage,
+                                      senderId: msg.senderId,
+                                      // Only pass timestamp if it's the last message in that minute group
+                                      timestamp: isLastInMinuteGroup ? msg.timestamp : null,
+                                      isSecret: msg.isSecret,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
                           ),
                         );
                       },
