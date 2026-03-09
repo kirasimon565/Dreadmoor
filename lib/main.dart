@@ -96,8 +96,6 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
 
-    final notifications = ref.watch(notificationProvider);
-
     return MaterialApp.router(
       title: 'Dreadmoor',
       theme: DreadmoorTheme.darkTheme,
@@ -131,9 +129,6 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
                     ),
                   ),
                 ),
-
-                /// Notification banners
-                if (notifications.activeBanners.isNotEmpty) const NotificationBanner(),
               ],
             ),
           ),

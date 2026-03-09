@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
@@ -222,7 +223,7 @@ class GlobalScheduler {
                 title: displayTitle,
                 message: event.text ?? 'Sent a message',
                 createdAtMinutes: totalMinutes,
-                payload: const Value(
+                payload: Value(
                     '{"route": "/chat", "threadId": "${threadId}"}'),
               ),
               mode: InsertMode.insertOrReplace,

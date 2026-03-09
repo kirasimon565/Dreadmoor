@@ -33,7 +33,7 @@ class NotificationBanner extends ConsumerWidget {
           final db = ref.read(databaseProvider);
           await (db.update(db.notifications)
                 ..where((n) => n.id.equals(notification.id)))
-              .write(const NotificationsCompanion(isRead: Value(true)));
+              .write(const NotificationsCompanion(isRead: const Value(true)));
 
           final payload = notification.payload;
 
