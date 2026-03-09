@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
@@ -23,6 +24,8 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
   bool _isDialPadOpen = false;
 
   void _press(String value) {
+    SystemSound.play(SystemSoundType.click);
+    HapticFeedback.selectionClick();
     setState(() {
       _number += value;
     });
@@ -30,6 +33,8 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
 
   void _delete() {
     if (_number.isEmpty) return;
+    SystemSound.play(SystemSoundType.click);
+    HapticFeedback.selectionClick();
     setState(() {
       _number = _number.substring(0, _number.length - 1);
     });
