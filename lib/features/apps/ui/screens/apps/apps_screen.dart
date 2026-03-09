@@ -18,8 +18,8 @@ class AppsScreen extends ConsumerWidget {
     final dateString = formatGameDateFull(totalMinutes);
 
     // Browser unlocking logic tied directly to the story's "article_read" flag
-    final flags = ref.watch(gameFlagsProvider);
-    final browserUnlocked = flags['article_read'] == true;
+    final flagsAsync = ref.watch(gameFlagsProvider);
+    final browserUnlocked = flagsAsync.value?['article_read'] == true;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,

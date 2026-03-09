@@ -183,9 +183,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             builder: (context, snap) {
                               final typing = snap.data?.isTyping ?? false;
                               if (typing) {
-                                return const Padding(
-                                  padding: EdgeInsets.only(left: 8, bottom: 16, top: 4),
-                                  child: GunTypingIndicator(),
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 40, bottom: 16, top: 4), // Align with character bubbles
+                                  child: const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: GunTypingIndicator()
+                                  ),
                                 );
                               }
                               return const SizedBox(height: 100);
@@ -247,6 +250,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   text: msg.content ?? "",
                                   isMe: msg.isPlayerMessage,
                                   senderId: msg.senderId,
+                                  senderName: character?.name,
                                   // Only pass timestamp if it's the last message in that minute group
                                   timestamp: isLastInMinuteGroup ? msg.timestamp : null,
                                   isSecret: msg.isSecret,

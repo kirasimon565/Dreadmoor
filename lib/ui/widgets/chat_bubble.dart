@@ -10,6 +10,7 @@ class ChatBubble extends StatelessWidget {
     required this.text,
     required this.isMe,
     this.senderId,
+    this.senderName,
     this.timestamp,
     this.isSecret = false,
   });
@@ -17,6 +18,7 @@ class ChatBubble extends StatelessWidget {
   final String text;
   final bool isMe;
   final String? senderId;
+  final String? senderName;
   final DateTime? timestamp;
   final bool isSecret;
 
@@ -106,6 +108,18 @@ class ChatBubble extends StatelessWidget {
                     crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Player name is NOT shown.
+                      if (!isMe && senderId != null && senderId != 'system' && senderId != 'player') ...[
+                        Text(
+                          (senderName ?? senderId!).toUpperCase(),
+                          style: DreadmoorTheme.headingStyle.copyWith(
+                            fontSize: 10,
+                            color: DreadmoorColors.accentCyan.withOpacity(0.8),
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
                       SelectableText(
                         text,
                         style: DreadmoorTheme.bodyStyle.copyWith(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/features/browser/article_model.dart';
+import 'dart:convert';
 import 'package:dreadmoor/core/state/game_state.dart';
 
 class BrowserHomeScreen extends ConsumerWidget {
@@ -12,8 +13,16 @@ class BrowserHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Reveal the article content only once the story triggers the specific flag.
-    final flags = ref.watch(gameFlagsProvider);
-    final hasArticle = flags['article_read'] == true;
+    final flagsAsync = ref.watch(gameFlagsProvider);
+    final hasArticle = flagsAsync.value?['article_read'] == true;
+
+    // Instead of hardcoding, we can listen to the latest article notification
+    final db = ref.watch(databaseProvider);
+    final notificationsStream = (db.select(db.notifications)
+      ..where((n) => n.type.equals('article'))
+      ..orderBy([(n) => OrderingTerm(expression: n.createdAtMinutes, mode: OrderingMode.desc)])
+      ..limit(1)
+    ).watchSingleOrNull();
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background,
@@ -22,7 +31,32 @@ class BrowserHomeScreen extends ConsumerWidget {
           _buildTopBar(),
           Expanded(
             child: hasArticle
-                ? _buildContent(context)
+                ? StreamBuilder(
+                    stream: notificationsStream,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return _buildEmptyState();
+                      }
+
+                      final notif = snapshot.data!;
+                      Article? article;
+
+                      if (notif.payload != null) {
+                        try {
+                           final payload = jsonDecode(notif.payload!);
+                           if (payload['article'] != null) {
+                              article = Article.fromJson(payload['article']);
+                           }
+                        } catch (_) {}
+                      }
+
+                      if (article == null) {
+                        return _buildEmptyState();
+                      }
+
+                      return _buildContent(context, article);
+                    }
+                  )
                 : _buildEmptyState(),
           ),
         ],
@@ -57,20 +91,7 @@ class BrowserHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
-    final storyArticle = Article(
-      id: '1',
-      headline: 'Woman Missing After Factory Party',
-      subheadline: 'Police begin investigation after strange events at an abandoned factory.',
-      photo: 'assets/branding/dreadmoor_daily_logo.png', // Placeholder
-      caption: 'The abandoned factory on the outskirts of town.',
-      body: [
-        'Late last night, authorities received multiple reports of a disturbance at the old textile factory. What started as an unauthorized gathering quickly escalated into a chaotic scene.',
-        'Eyewitnesses claim to have seen flashing lights and heard unidentifiable noises originating from the main production floor before the power was abruptly cut.',
-        'The investigation is ongoing. If you have any information, please contact the local authorities immediately.'
-      ],
-    );
-
+  Widget _buildContent(BuildContext context, Article article) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       children: [
@@ -78,7 +99,7 @@ class BrowserHomeScreen extends ConsumerWidget {
         const SizedBox(height: 24),
         const Divider(color: DreadmoorColors.divider, height: 1),
         const SizedBox(height: 24),
-        _buildArticleCard(context, storyArticle),
+        _buildArticleCard(context, article),
       ],
     );
   }
