@@ -126,13 +126,31 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     }
   }
 
-  void _onMainAction(bool hasActiveGame) {
+  Future<void> _onMainAction(bool hasActiveGame) async {
     HapticFeedback.selectionClick();
     if (hasActiveGame) {
       _continueGame();
     } else {
-      // âœ… START GAME â€” player exists (setup done) but no threads yet
-      _stopMusicAndNavigate(() => context.go(Routes.messenger));
+      // START GAME — check if intro cinematic has been seen
+      final db = ref.read(databaseProvider);
+      final flag = await (db.select(db.storyState)
+            ..where((t) => t.key.equals('intro_cinematic_seen')))
+          .getSingleOrNull();
+
+      if (flag != null && flag.value) {
+        // Already seen, skip straight to OS
+        _stopMusicAndNavigate(() => context.go(Routes.messenger));
+      } else {
+        // First launch: flag not set or false, show intro
+        await db.into(db.storyState).insert(
+          StoryStateCompanion.insert(
+            key: 'intro_cinematic_seen',
+            value: const Value(true),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+        _stopMusicAndNavigate(() => context.go(Routes.introTrailer));
+      }
     }
   }
 

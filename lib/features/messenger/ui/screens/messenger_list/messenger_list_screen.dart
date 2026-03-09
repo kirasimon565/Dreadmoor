@@ -20,6 +20,23 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
+  final Map<String, String?> _avatarCache = {};
+
+  Future<void> _preloadAvatars(AppDatabase db, List<Thread> threads) async {
+    final threadIds = threads.map((t) => t.id).toList();
+    if (threadIds.isEmpty) return;
+
+    final chars = await (db.select(db.characters)
+          ..where((c) => c.id.isIn(threadIds)))
+        .get();
+
+    setState(() {
+      for (var char in chars) {
+        _avatarCache[char.id] = char.avatarPath;
+      }
+    });
+  }
+
   void _showAddContactDialog(BuildContext context) {
     String phoneNumber = "";
     showDialog(
@@ -161,6 +178,12 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
                     final rows = snapshot.data!;
 
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        _preloadAvatars(db, rows.map((r) => r.readTable(db.threads)).toList());
+                      }
+                    });
+
                     if (rows.isEmpty) {
                       return Center(
                         child: Text(
@@ -197,6 +220,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                             thread: thread,
                             message: message,
                             time: time,
+                            avatarPath: _avatarCache[thread.id],
                           ),
                         );
                       },
@@ -216,11 +240,13 @@ class _ThreadTile extends StatelessWidget {
   final Thread thread;
   final Message? message;
   final String time;
+  final String? avatarPath;
 
   const _ThreadTile({
     required this.thread,
     required this.message,
     required this.time,
+    this.avatarPath,
   });
 
   @override
@@ -257,9 +283,12 @@ class _ThreadTile extends StatelessWidget {
                   width: hasUnread ? 1.5 : 1.0,
               ),
             ),
+            clipBehavior: Clip.hardEdge,
             child: thread.isSecret
               ? Icon(Icons.security, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed)
-              : Icon(Icons.person, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary),
+              : avatarPath != null
+                  ? Image.asset(avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.person, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary))
+                  : Icon(Icons.person, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary),
           ),
           const SizedBox(width: 16),
           // Content

@@ -69,6 +69,10 @@ class GlobalScheduler {
     final loader = ref.read(scriptLoaderProvider);
     final episode = await loader.loadEpisode(episodeId);
 
+    // Seed characters when starting an episode so avatars are available
+    final db = ref.read(databaseProvider);
+    await seedCharacters(db);
+
     _episode = episode;
 
     _sceneIndex = 0;

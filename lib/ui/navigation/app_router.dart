@@ -17,6 +17,8 @@ import '../screens/episode_select/episode_select_screen.dart';
 import '../screens/credits/credits_screen.dart';
 import '../screens/debug/debug_screen.dart';
 import '../screens/recap/recap_screen.dart';
+import '../screens/intro/intro_trailer_screen.dart';
+import '../screens/intro/title_cinematic_screen.dart';
 
 import 'routes.dart';
 
@@ -62,6 +64,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final onSetup = loc == Routes.setup;
       final onWelcome = loc == Routes.welcome;
       final onLegal = loc == Routes.legal;
+      final onIntroTrailer = loc == Routes.introTrailer;
+      final onTitleCinematic = loc == Routes.titleCinematic;
       final onOS = loc == Routes.os;
 
       /// Allow these routes freely
@@ -77,13 +81,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return Routes.welcome;
       }
 
-      /// From welcome → OS
-      if (hasCompletedSetup && onWelcome) {
+      /// From welcome → OS (allow intro/title sequence as part of transition)
+      if (hasCompletedSetup && (onWelcome || onIntroTrailer || onTitleCinematic)) {
         return null;
       }
 
       /// If player already setup but tries to access other early routes
-      if (hasCompletedSetup && !onOS && !onWelcome) {
+      if (hasCompletedSetup && !onOS && !onWelcome && !onIntroTrailer && !onTitleCinematic) {
         return Routes.os;
       }
 
@@ -111,6 +115,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: Routes.welcome,
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const WelcomeScreen()),
+      ),
+
+      /// Intro Trailer
+      GoRoute(
+        path: Routes.introTrailer,
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const IntroTrailerScreen()),
+      ),
+
+      /// Title Cinematic
+      GoRoute(
+        path: Routes.titleCinematic,
+        pageBuilder: (context, state) =>
+            DreadmoorPage(key: state.pageKey, child: const TitleCinematicScreen()),
       ),
 
       /// MAIN PHONE OS
