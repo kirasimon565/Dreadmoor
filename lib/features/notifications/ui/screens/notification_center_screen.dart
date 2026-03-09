@@ -7,6 +7,7 @@ import 'package:dreadmoor/ui/os/components/os_header.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:drift/drift.dart' hide Column;
 
 class NotificationCenterScreen extends ConsumerWidget {
@@ -31,7 +32,7 @@ class NotificationCenterScreen extends ConsumerWidget {
               ),
               trailing: GestureDetector(
                 onTap: () async {
-                   await (db.update(db.notifications)).write(const NotificationsCompanion(isRead: Value(true)));
+                   await (db.update(db.notifications)).write(const NotificationsCompanion(isRead: const Value(true)));
                 },
                 child: const Icon(Icons.delete_outline, color: DreadmoorColors.textSecondary, size: 20),
               ),
