@@ -3,10 +3,10 @@ name: Build Android
 on:
   push:
     branches:
-      - Production_Dreadmoor
+      - 'Production_Dreadmoor'
   pull_request:
     branches:
-      - Production_Dreadmoor
+      - 'Production_Dreadmoor'
   workflow_dispatch:
 
 jobs:
@@ -14,34 +14,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Setup Java (required for Android builds)
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: zulu
-          java-version: "17"
+          distribution: 'zulu'
+          java-version: '17'
 
-      # Setup Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: 'stable'
           cache: true
 
-      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # Recreate keystore from GitHub secret
-      - name: Decode Keystore
+      - name: Generate Launcher Icons (Android only)
+        # Patch the config to android-only BEFORE running, so iOS absence doesn't matter
+        run: |
+          dart run flutter_launcher_icons -f <(python3 -c "
+          import yaml, sys
+          with open('pubspec.yaml') as f:
+              data = yaml.safe_load(f)
+          cfg = data.get('flutter_launcher_icons', {})
+          cfg['ios'] = False
+          print(yaml.dump({'flutter_launcher_icons': cfg}))
+          ")
+        continue-on-error: true
+
+      - name: Force Delete iOS Folder
+        run: rm -rf ios
+
+      - name: Generate Drift Code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # ---------- ANDROID SIGNING SETUP ----------
+
+      - name: Decode Android Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/blackmoon_studio_release.keystore
 
-      # Generate key.properties file
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
@@ -49,30 +64,18 @@ jobs:
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=blackmoon_studio_release.keystore" >> android/key.properties
 
-      # Generate launcher icons (Android only)
-      - name: Generate Launcher Icons
-        run: dart run flutter_launcher_icons
-        continue-on-error: true
+      # ---------- BUILD ----------
 
-      # Remove iOS folder (optional)
-      - name: Force Delete iOS Folder
-        run: rm -rf ios
-
-      # Generate Drift database code
-      - name: Generate Drift Code
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      # Build signed APK
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      # Upload build artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Dreadmoor-Game-Build
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      # Cleanup keystore after build
+      # ---------- CLEANUP ----------
+
       - name: Cleanup Keystore
         run: rm android/app/blackmoon_studio_release.keystore
