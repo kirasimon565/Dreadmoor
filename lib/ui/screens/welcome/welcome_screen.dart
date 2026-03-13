@@ -89,7 +89,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         ),
       );
 
-      await _musicPlayer.play(AssetSource('music/welcome_theme.ogg'));
+      await _musicPlayer.play(AssetSource('music/welcome_theme.mp3'));
       if (mounted) setState(() => _musicReady = true);
     } catch (e) {
       debugPrint('ðŸŽµ Welcome music unavailable: $e');
