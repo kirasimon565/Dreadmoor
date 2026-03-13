@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
-import 'package:dreadmoor/core/time/game_clock.dart';
 
 class ActiveCallScreen extends ConsumerStatefulWidget {
   final String callerName;
   final String callerNumber;
-  final Function(int) onEnd; // Pass the final duration in seconds
+  final Function(int) onEnd;
 
   const ActiveCallScreen({
     super.key,
@@ -54,94 +54,135 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 64),
-            Container(
-              width: 120,
-              height: 120,
+      body: Stack(
+        children: [
+          // 1. CINEMATIC BACKGROUND (Matches your Profile/Call redesign)
+          Positioned.fill(
+            child: Image.asset(
+              'assets/backgrounds/tower_moon.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Dark overlay for text contrast
+          Positioned.fill(
+            child: Container(
               decoration: BoxDecoration(
-                color: DreadmoorColors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
-                  width: 1,
-                ),
-              ),
-              child: const Icon(Icons.person, size: 50, color: Colors.white70),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              widget.callerName,
-              style: DreadmoorTheme.headingStyle.copyWith(
-                fontSize: 24,
-                color: Colors.white,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _formattedTime,
-              style: DreadmoorTheme.bodyStyle.copyWith(
-                fontSize: 16,
-                color: DreadmoorColors.textSecondary,
-                letterSpacing: 2.0,
-              ),
-            ),
-            const Spacer(),
-            // Controls
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildControlButton(
-                  icon: _isMuted ? Icons.mic_off : Icons.mic,
-                  label: "Mute",
-                  isActive: _isMuted,
-                  onTap: () {
-                    setState(() {
-                      _isMuted = !_isMuted;
-                    });
-                  },
-                ),
-                _buildControlButton(
-                  icon: _isSpeaker ? Icons.volume_up : Icons.volume_down,
-                  label: "Speaker",
-                  isActive: _isSpeaker,
-                  onTap: () {
-                    setState(() {
-                      _isSpeaker = !_isSpeaker;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 64),
-            // End Call
-            GestureDetector(
-              onTap: () => widget.onEnd(_seconds),
-              child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: DreadmoorColors.accentRed,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: DreadmoorColors.accentRed.withOpacity(0.4),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.4),
+                    Colors.black.withOpacity(0.8),
                   ],
                 ),
-                child: const Icon(Icons.call_end, color: Colors.white, size: 32),
               ),
             ),
-            const SizedBox(height: 48),
-          ],
-        ),
+          ),
+
+          SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 60),
+                
+                // 2. CALLER IDENTITY (Large Portrait Circle)
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.white24,
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.black54,
+                    // Use a generic mask or resolve character avatar
+                    backgroundImage: const AssetImage('assets/avatars/unknown_mask.png'),
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
+                
+                Text(
+                  widget.callerName.toUpperCase(),
+                  style: GoogleFonts.spectral(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
+                ),
+                
+                const SizedBox(height: 8),
+                
+                Text(
+                  _formattedTime,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 18,
+                    color: DreadmoorColors.investigatorCyan,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 3,
+                  ),
+                ),
+
+                const Spacer(),
+
+                // 3. MID-CALL CONTROLS
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildControlButton(
+                        icon: _isMuted ? Icons.mic_off : Icons.mic_none,
+                        label: "MUTE",
+                        isActive: _isMuted,
+                        onTap: () => setState(() => _isMuted = !_isMuted),
+                      ),
+                      _buildControlButton(
+                        icon: _isSpeaker ? Icons.volume_up : Icons.volume_down,
+                        label: "SPEAKER",
+                        isActive: _isSpeaker,
+                        onTap: () => setState(() => _isSpeaker = !_isSpeaker),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 60),
+
+                // 4. END CALL ACTION (The Big Red Button)
+                GestureDetector(
+                  onTap: () => widget.onEnd(_seconds),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      color: DreadmoorColors.evidenceRed,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.call_end, color: Colors.white, size: 36),
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                Text(
+                  "END CALL",
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white54,
+                    letterSpacing: 2,
+                  ),
+                ),
+                
+                const SizedBox(height: 48),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -152,37 +193,36 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
     required bool isActive,
     required VoidCallback onTap,
   }) {
-    final color = isActive ? Colors.white : Colors.white54;
-    final bgColor = isActive ? Colors.white.withOpacity(0.2) : DreadmoorColors.surfaceAlt;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: bgColor,
+              color: isActive ? Colors.white : Colors.white10,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: isActive ? Colors.white : Colors.white.withOpacity(0.1),
-                width: 1,
-              ),
+              border: Border.all(color: Colors.white24),
             ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: DreadmoorTheme.bodyStyle.copyWith(
-              fontSize: 12,
-              color: color,
-              letterSpacing: 1.0,
+            child: Icon(
+              icon,
+              color: isActive ? Colors.black : Colors.white,
+              size: 28,
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          label,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 10,
+            color: Colors.white70,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
     );
   }
 }
