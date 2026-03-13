@@ -1,12 +1,12 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/player_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
+import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 
 class ChoiceOverlay extends ConsumerStatefulWidget {
   const ChoiceOverlay({super.key});
@@ -19,176 +19,162 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay> {
   int? _selectedIndex;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Reset selection if the choice changes or disappears
-    _selectedIndex = null;
-  }
-
-  @override
   Widget build(BuildContext context) {
     final waiting = ref.watch(waitingForChoiceProvider);
-    if (!waiting) return const SizedBox.shrink();
-
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    
+    // Get choices from the scheduler
     final scheduler = ref.read(globalSchedulerProvider);
-    final choices = scheduler.getCurrentChoices();
-    if (choices == null || choices.isEmpty) return const SizedBox.shrink();
+    final activeNodeId = ref.watch(activeNodeIdProvider);
+    
+    // We also need the player's avatar for that floating effect
+    final player = ref.watch(playerStateProvider);
 
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    // ---------------------------------------------------------
+    // RENDER LOGIC 1: Standard "Send Message" Bar (Your 2nd Image)
+    // ---------------------------------------------------------
+    if (!waiting) {
+      return _buildInputBar(context, player, isDark);
+    }
 
+    // ---------------------------------------------------------
+    // RENDER LOGIC 2: Choice Selection (Your 1st Image)
+    // ---------------------------------------------------------
     return Align(
       alignment: Alignment.bottomCenter,
-      child: SafeArea(
-        top: false,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, child) {
-            final dy = reduceMotion ? 0.0 : (1 - value) * 24;
-            return Transform.translate(
-              offset: Offset(0, dy),
-              child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
-            );
-          },
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                decoration: BoxDecoration(
-                  color: DreadmoorColors.surfaceAlt.withOpacity(0.9),
-                  border: Border(
-                    top: BorderSide(
-                      color: DreadmoorColors.borderSubtle.withOpacity(0.5),
-                      width: 0.5,
-                    ),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
-                    )
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Player Avatar top right
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: DreadmoorColors.surfaceGlass,
-                            border: Border.all(color: DreadmoorColors.borderGlass),
-                          ),
-                          child: const Icon(Icons.person,
-                              color: DreadmoorColors.textSecondary, size: 16),
-                        ),
-                      ],
-                    ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 40, 16, 20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // FLOATING PLAYER AVATAR (Right side, overlapping)
+            Positioned(
+              top: -85,
+              right: 0,
+              child: _buildFloatingAvatar(player),
+            ),
 
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        // Choices List
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: List.generate(choices.length, (index) {
-                              final choice = choices[index];
-                              final isSelected = _selectedIndex == index;
-                              return GestureDetector(
-                                onTap: () {
-                                  HapticFeedback.selectionClick();
-                                  setState(() {
-                                    _selectedIndex = index;
-                                  });
-                                },
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? DreadmoorColors.accentCyan
-                                            .withOpacity(0.15)
-                                        : DreadmoorColors.surface,
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? DreadmoorColors.accentCyan
-                                              .withOpacity(0.6)
-                                          : DreadmoorColors.borderSubtle,
-                                      width: isSelected ? 1.0 : 0.5,
+            // CHOICE LIST
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FutureBuilder(
+                  future: ref.read(databaseProvider).getNextNode(activeNodeId ?? ''),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox();
+                    final node = snapshot.data!;
+                    final choices = (DreadmoorNode.fromDb(node)).choices;
+
+                    return Column(
+                      children: choices.map((choice) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: [
+                              // The Sharp Choice Button
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    scheduler.submitChoice(choice.target, choice.text);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.black, width: 1.5),
+                                      color: Colors.white,
                                     ),
-                                    borderRadius: BorderRadius.circular(
-                                        16), // Chat bubble style
-                                  ),
-                                  child: Text(
-                                    choice.text,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: isSelected
-                                          ? DreadmoorColors.accentCyan
-                                          : Colors.white.withOpacity(0.8),
-                                      height: 1.3,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      choice.text.toUpperCase(),
+                                      style: GoogleFonts.spectral(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              );
-                            }),
+                              ),
+                              const SizedBox(width: 15),
+                              // The Black Quill Icon
+                              Image.asset(
+                                'assets/ui/quill_black.png', 
+                                width: 45, 
+                                height: 45
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 12),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                        // Send Button
-                        GestureDetector(
-                          onTap: () {
-                            if (_selectedIndex != null) {
-                              HapticFeedback.heavyImpact();
-                              final selectedChoice = choices[_selectedIndex!];
-                              setState(() {
-                                _selectedIndex = null; // Reset for next time
-                              });
-                              scheduler.submitChoice(
-                                  selectedChoice.jumpto, selectedChoice.text);
-                            }
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _selectedIndex != null
-                                  ? DreadmoorColors.accentCyan
-                                  : DreadmoorColors.surfaceGlass,
-                            ),
-                            child: Icon(
-                              Icons.send_rounded,
-                              color: _selectedIndex != null
-                                  ? DreadmoorColors.background
-                                  : DreadmoorColors.textDisabled,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+  // --- SUB-WIDGET: FLOATING AVATAR ---
+  Widget _buildFloatingAvatar(dynamic player) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+      child: CircleAvatar(
+        radius: 65,
+        backgroundImage: player?.profilePath != null 
+            ? AssetImage(player!.profilePath!) 
+            : const AssetImage('assets/characters/player_default.png'),
+      ),
+    );
+  }
+
+  // --- SUB-WIDGET: DEFAULT INPUT BAR (RED FEATHER) ---
+  Widget _buildInputBar(BuildContext context, dynamic player, bool isDark) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        height: 80,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          border: Border(top: BorderSide(color: DreadmoorColors.divider(isDark ? Brightness.dark : Brightness.light))),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.centerLeft,
+          children: [
+            Text(
+              "Send message...",
+              style: GoogleFonts.spectral(fontSize: 22, color: Colors.black45),
+            ),
+            
+            // RED QUILL SEND BUTTON
+            Positioned(
+              right: -5,
+              top: -30,
+              child: GestureDetector(
+                onTap: () => HapticFeedback.mediumImpact(),
+                child: Image.asset(
+                  'assets/ui/quill_red.png', 
+                  width: 85, 
+                  height: 85
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
