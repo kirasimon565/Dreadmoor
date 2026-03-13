@@ -1,118 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/os/components/os_header.dart';
 import 'package:dreadmoor/ui/screens/profiles/player_profile_screen.dart';
-import 'package:dreadmoor/ui/screens/save_load/save_load_screen.dart' as dreadmoor_save;
 
-class SettingsScreen extends StatefulWidget {
+// Assuming you have a provider to manage theme mode
+final themeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _messageAlerts = true;
-  bool _hideContent = false;
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final themeMode = ref.watch(themeProvider);
+
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             OSHeader(
               title: "SETTINGS",
-              subtitle: "MESSENGER CONFIGURATION",
-              leading: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(Icons.arrow_back_ios, color: DreadmoorColors.textSecondary, size: 20),
+              subtitle: "SYSTEM CONFIGURATION",
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                 children: [
-                  _buildSectionTitle("ACCOUNT"),
+                  _buildSectionTitle(context, "INTERFACE"),
+                  
+                  // NEW: THEME TOGGLE (Archive vs Slate)
                   _buildSettingRow(
-                    icon: Icons.person,
-                    title: "Profile Settings",
-                    subtitle: "Manage avatar and bio",
+                    context,
+                    icon: isDark ? Icons.dark_mode : Icons.newspaper,
+                    title: isDark ? "Tactical Slate" : "The Archive",
+                    subtitle: "Toggle between OS modes",
+                    trailing: Switch(
+                      value: isDark,
+                      activeColor: DreadmoorColors.investigatorCyan,
+                      onChanged: (val) {
+                        ref.read(themeProvider.notifier).state = 
+                            val ? ThemeMode.dark : ThemeMode.light;
+                      },
+                    ),
+                    onTap: () {},
+                  ),
+
+                  const SizedBox(height: 32),
+                  _buildSectionTitle(context, "ACCOUNT"),
+                  _buildSettingRow(
+                    context,
+                    icon: Icons.account_circle_outlined,
+                    title: "Investigator Profile",
+                    subtitle: "Manage ID and credentials",
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerProfileScreen()));
                     },
                   ),
+
+                  const SizedBox(height: 32),
+                  _buildSectionTitle(context, "NOTIFICATIONS"),
                   _buildSettingRow(
-                    icon: Icons.security,
-                    title: "Privacy",
-                    subtitle: "Encryption and connection status",
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Privacy settings opened.')));
-                    },
+                    context,
+                    icon: Icons.notifications_none_outlined,
+                    title: "Signal Alerts",
+                    subtitle: "Connection ping and vibration",
+                    trailing: Switch(
+                      value: _messageAlerts,
+                      activeColor: isDark ? DreadmoorColors.investigatorCyan : DreadmoorColors.evidenceRed,
+                      onChanged: (val) => setState(() => _messageAlerts = val),
+                    ),
+                    onTap: () {},
                   ),
 
                   const SizedBox(height: 32),
-
-                  _buildSectionTitle("NOTIFICATIONS"),
+                  _buildSectionTitle(context, "DATA MANAGEMENT"),
                   _buildSettingRow(
-                    icon: Icons.notifications,
-                    title: "Message Alerts",
-                    subtitle: "Sound, vibration, priority",
-                    hasSwitch: true,
-                    switchValue: _messageAlerts,
+                    context,
+                    icon: Icons.Sd_storage_outlined,
+                    title: "Save State",
+                    subtitle: "Commit current progress to disk",
                     onTap: () {
-                      setState(() {
-                        _messageAlerts = !_messageAlerts;
-                      });
-                    },
-                  ),
-                  _buildSettingRow(
-                    icon: Icons.visibility_off,
-                    title: "Hide Content",
-                    subtitle: "Hide message content on lock screen",
-                    hasSwitch: true,
-                    switchValue: _hideContent,
-                    onTap: () {
-                      setState(() {
-                        _hideContent = !_hideContent;
-                      });
+                      // Launch Save/Load UI
                     },
                   ),
 
-                  const SizedBox(height: 32),
-
-                  _buildSectionTitle("SYSTEM"),
-                  _buildSettingRow(
-                    icon: Icons.save,
-                    title: "Save / Load",
-                    subtitle: "Manage game progress",
-                    onTap: () {
-                      // We must use rootNavigator to find GoRouter, but go_router uses `context.push()`
-                      // Settings is nested deeply in normal nav. Let's just launch a MaterialPageRoute to the UI screen directly.
-                      // Wait, we can just import the screen.
-                      // Since this is inside an embedded Navigator (MessengerNavigator), we can push standard routes
-                      // or push a MaterialPageRoute directly to SaveLoadScreen.
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(builder: (_) => const dreadmoor_save.SaveLoadScreen())
-                      );
-                    }
-                  ),
-
-                  const SizedBox(height: 48),
-
+                  const SizedBox(height: 60),
                   Center(
                     child: Text(
-                      "MESSENGER OS v1.2.4",
-                      style: DreadmoorTheme.bodyStyle.copyWith(
-                        color: DreadmoorColors.textMeta,
+                      "DREADMOOR OS // BUILD 2026.4.12",
+                      style: GoogleFonts.spaceGrotesk(
                         fontSize: 10,
+                        fontWeight: FontWeight.bold,
                         letterSpacing: 2.0,
+                        color: DreadmoorColors.text(brightness).withOpacity(0.4),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -122,90 +122,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final brightness = Theme.of(context).brightness;
     return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 16),
-      child: Text(
-        title,
-        style: DreadmoorTheme.headingStyle.copyWith(
-          color: DreadmoorColors.textSecondary,
-          fontSize: 12,
-          letterSpacing: 2.0,
-        ),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: DreadmoorTheme.headingStyle(brightness).copyWith(
+              fontSize: 11,
+              color: DreadmoorColors.text(brightness).withOpacity(0.5),
+            ),
+          ),
+          Divider(color: DreadmoorColors.divider(brightness), thickness: 0.5),
+        ],
       ),
     );
   }
 
-  Widget _buildSettingRow({
+  Widget _buildSettingRow(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
-    bool hasSwitch = false,
-    bool switchValue = false,
+    Widget? trailing,
     required VoidCallback onTap,
   }) {
+    final brightness = Theme.of(context).brightness;
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: DreadmoorColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: DreadmoorColors.borderSubtle),
+        color: Theme.of(context).cardColor,
+        border: Border.all(color: DreadmoorColors.divider(brightness), width: 0.5),
+        borderRadius: BorderRadius.circular(4), // Sharp corners like Case File
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: DreadmoorColors.surface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: DreadmoorColors.accentCyan, size: 20),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: DreadmoorTheme.bodyStyle.copyWith(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: DreadmoorTheme.bodyStyle.copyWith(
-                          color: DreadmoorColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (hasSwitch)
-                  Switch(
-                    value: switchValue,
-                    onChanged: (val) => onTap(),
-                    activeColor: DreadmoorColors.accentCyan,
-                    activeTrackColor: DreadmoorColors.accentCyan.withOpacity(0.3),
-                    inactiveThumbColor: DreadmoorColors.textSecondary,
-                    inactiveTrackColor: DreadmoorColors.surface,
-                  )
-                else
-                  const Icon(Icons.chevron_right, color: DreadmoorColors.textMeta, size: 20),
-              ],
-            ),
-          ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(icon, color: DreadmoorColors.text(brightness), size: 22),
+        title: Text(
+          title.toUpperCase(),
+          style: DreadmoorTheme.headingStyle(brightness).copyWith(fontSize: 13),
         ),
+        subtitle: Text(
+          subtitle,
+          style: DreadmoorTheme.bodyStyle(brightness).copyWith(fontSize: 11),
+        ),
+        trailing: trailing ?? Icon(Icons.chevron_right, color: DreadmoorColors.text(brightness).withOpacity(0.3)),
       ),
     );
   }
