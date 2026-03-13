@@ -11,7 +11,7 @@ part 'drift_database.g.dart';
 @DriftDatabase(tables: [
   Players, 
   Characters, 
-  CharacterGallery, // Added table
+  CharacterPhotos, // Added for gallery support
   Threads, 
   Messages, 
   Notifications, 
@@ -30,7 +30,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8; // Incremented for Gallery table
+  int get schemaVersion => 8; // Incremented for CharacterPhotos table
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (m, from, to) async {
       if (from < 8) {
-        await m.createTable(characterGallery);
+        await m.createTable(characterPhotos);
       }
     },
   );
@@ -48,17 +48,14 @@ class AppDatabase extends _$AppDatabase {
     await instance.customSelect('SELECT 1').get();
   }
 
-  // --- GALLERY ACCESSOR ---
-  
-  /// Fetches all gallery photos for a specific character ordered by priority
-  Stream<List<CharacterGalleryData>> watchCharacterGallery(String characterId) {
-    return (select(characterGallery)
-      ..where((t) => t.characterId.equals(characterId))
-      ..orderBy([(t) => OrderingTerm.asc(t.priority)]))
-      .watch();
-  }
+  // ---------------------------
+  // NARRATIVE & GALLERY DAOs
+  // ---------------------------
 
-  // --- STORY LOGIC ---
+  /// Fetch all photos for a specific character gallery
+  Future<List<CharacterPhoto>> getCharacterGallery(String charId) {
+    return (select(characterPhotos)..where((t) => t.characterId.equals(charId))).get();
+  }
 
   Future<StoryNode?> getNextNode(String? nodeId) async {
     if (nodeId == null) return null;
@@ -72,6 +69,22 @@ class AppDatabase extends _$AppDatabase {
         .watch();
   }
 
+  Future<void> updateStoryFlag(String key, {bool? bVal, int? iVal, String? sVal}) async {
+    await into(storyState).insertOnConflictUpdate(
+      StoryStateCompanion(
+        key: Value(key),
+        value: Value(bVal ?? false),
+        intValue: Value(iVal ?? 0),
+        stringValue: Value(sVal),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  // ---------------------------
+  // RESET LOGIC
+  // ---------------------------
+
   Future<void> resetAllProgress() async {
     await batch((b) {
       b.deleteAll(players);
@@ -80,7 +93,7 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(storyState);
       b.deleteAll(episodes);
       b.deleteAll(storyNodes);
-      b.deleteAll(characterGallery);
+      b.deleteAll(characterPhotos);
     });
   }
 }
