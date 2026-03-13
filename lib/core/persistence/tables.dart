@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
 // --------------------------------------------------
-// PLAYERS
+// PLAYER: The global user state
 // --------------------------------------------------
 class Players extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -13,13 +13,13 @@ class Players extends Table {
 }
 
 // --------------------------------------------------
-// CHARACTERS
+// CHARACTERS: NPC Registry
 // --------------------------------------------------
 class Characters extends Table {
   TextColumn get id => text()(); 
   TextColumn get name => text()();
   TextColumn get phoneNumber => text()();
-  TextColumn get avatarPath => text().nullable()(); // Main Profile Picture
+  TextColumn get avatarPath => text().nullable()(); // Main profile pic
   TextColumn get bio => text().nullable()();
   TextColumn get knownInfo => text().nullable()();
   TextColumn get investigationNotes => text().nullable()();
@@ -30,26 +30,27 @@ class Characters extends Table {
 }
 
 // --------------------------------------------------
-// CHARACTER_GALLERY (New: Photo Gallery Support)
+// CHARACTER_PHOTOS: The Gallery System
 // --------------------------------------------------
-class CharacterGallery extends Table {
+class CharacterPhotos extends Table {
   IntColumn get id => integer().autoIncrement()();
   
-  /// Links this photo to a specific character
-  TextColumn get characterId => text().references(Characters, #id, onDelete: KeyAction.cascade)();
+  /// Link to the character who owns this photo
+  TextColumn get characterId => 
+      text().references(Characters, #id, onDelete: KeyAction.cascade)();
   
-  /// Path to the image asset
-  TextColumn get imagePath => text()();
+  /// The path to the image in assets or local storage
+  TextColumn get photoPath => text()();
   
-  /// Optional caption for the specific photo
+  /// Optional caption for the photo
   TextColumn get caption => text().nullable()();
-
-  /// Order in which the photo appears in the gallery
-  IntColumn get priority => integer().withDefault(const Constant(0))();
+  
+  /// Date added/found
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 // --------------------------------------------------
-// STORY_NODES
+// STORY_NODES: The "Brain" (Imported from Obsidian)
 // --------------------------------------------------
 class StoryNodes extends Table {
   TextColumn get id => text()(); 
@@ -64,7 +65,7 @@ class StoryNodes extends Table {
 }
 
 // --------------------------------------------------
-// THREADS
+// THREADS: Active conversations
 // --------------------------------------------------
 class Threads extends Table {
   TextColumn get id => text()();
@@ -81,7 +82,7 @@ class Threads extends Table {
 }
 
 // --------------------------------------------------
-// MESSAGES
+// MESSAGES: The history
 // --------------------------------------------------
 class Messages extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -97,10 +98,32 @@ class Messages extends Table {
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
   TextColumn get meta => text().nullable()();
+
+  @override
+  List<Index> get indexes => [
+    Index('messages_thread_idx', 'CREATE INDEX messages_thread_idx ON messages (thread_id)'),
+    Index('messages_sequence_idx', 'CREATE INDEX messages_sequence_idx ON messages (sequence)'),
+  ];
 }
 
 // --------------------------------------------------
-// STORY_STATE
+// NOTIFICATIONS: Alerts
+// --------------------------------------------------
+class Notifications extends Table {
+  TextColumn get id => text()();
+  TextColumn get type => text()(); 
+  TextColumn get title => text()();
+  TextColumn get message => text()();
+  IntColumn get createdAtMinutes => integer()();
+  TextColumn get payload => text().nullable()(); 
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// --------------------------------------------------
+// STORY_STATE: Flags
 // --------------------------------------------------
 class StoryState extends Table {
   TextColumn get key => text()();
@@ -114,25 +137,14 @@ class StoryState extends Table {
 }
 
 // --------------------------------------------------
-// NOTIFICATIONS & EPISODES
+// EPISODES: Progress
 // --------------------------------------------------
-class Notifications extends Table {
-  TextColumn get id => text()();
-  TextColumn get type => text()(); 
-  TextColumn get title => text()();
-  TextColumn get message => text()();
-  IntColumn get createdAtMinutes => integer()();
-  TextColumn get payload => text().nullable()(); 
-  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
 class Episodes extends Table {
   TextColumn get id => text()();
   BoolColumn get isUnlocked => boolean().withDefault(const Constant(false))();
   IntColumn get progress => integer().withDefault(const Constant(0))();
   IntColumn get version => integer().withDefault(const Constant(1))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
