@@ -1,168 +1,106 @@
 import 'package:drift/drift.dart';
 
 // --------------------------------------------------
-// PLAYER
+// PLAYER: The global user state
 // --------------------------------------------------
-
 class Players extends Table {
   IntColumn get id => integer().autoIncrement()();
-
   TextColumn get name => text()();
-
   TextColumn get gender => text()();
-
   TextColumn get profilePath => text().nullable()();
-
   TextColumn get phoneNumber => text().withDefault(const Constant('+1 (555) 000-0000'))();
-
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 // --------------------------------------------------
-// CHARACTERS
+// CHARACTERS: NPC Registry
 // --------------------------------------------------
-
 class Characters extends Table {
-  TextColumn get id => text()();
-
+  TextColumn get id => text()(); // e.g., 'unknown', 'amelia'
   TextColumn get name => text()();
-
   TextColumn get phoneNumber => text()();
-
   TextColumn get avatarPath => text().nullable()();
-
   TextColumn get bio => text().nullable()();
-
   TextColumn get knownInfo => text().nullable()();
-
   TextColumn get investigationNotes => text().nullable()();
+  TextColumn get colorHex => text().withDefault(const Constant('#746fbc'))();
 
   @override
   Set<Column> get primaryKey => {id};
 }
 
 // --------------------------------------------------
-// THREADS (CHAT LIST)
+// STORY_NODES: The "Brain" (Imported from Obsidian)
 // --------------------------------------------------
+class StoryNodes extends Table {
+  TextColumn get id => text()(); // The [[ID]]
+  TextColumn get type => text()(); // Chat_Event, Player_Choice, Video_Message, News_Module, Phone_Call
+  TextColumn get senderId => text().nullable().references(Characters, #id)();
+  TextColumn get content => text().nullable()();
+  TextColumn get nextNodeId => text().nullable()();
+  
+  /// Stores JSON metadata: { "action": "Typing", "duration": 2000, "asset": "path/to/video.mp4" }
+  TextColumn get metadata => text().nullable()();
 
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// --------------------------------------------------
+// THREADS: Active conversations in Messenger
+// --------------------------------------------------
 class Threads extends Table {
   TextColumn get id => text()();
-
   TextColumn get title => text()();
-
-  /// last visible message
   IntColumn get lastMessageId => integer().nullable()();
-
   BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
-
   BoolColumn get isTyping => boolean().withDefault(const Constant(false))();
-
-  /// secret chat / intercept
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
-
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
-
-  /// JSON participant list
-  TextColumn get participants => text()();
+  TextColumn get participants => text()(); // JSON List of character IDs
 
   @override
   Set<Column> get primaryKey => {id};
-
-  @override
-  List<Index> get indexes => [
-    Index(
-      'threads_last_message_idx',
-      'CREATE INDEX threads_last_message_idx ON threads (last_message_id)',
-    ),
-    Index(
-      'threads_locked_idx',
-      'CREATE INDEX threads_locked_idx ON threads (is_locked)',
-    ),
-  ];
 }
 
 // --------------------------------------------------
-// MESSAGES
+// MESSAGES: The immutable history
 // --------------------------------------------------
-
 class Messages extends Table {
   IntColumn get id => integer().autoIncrement()();
-
-  /// eventId from episode JSON (e001, e002, etc.)
-  TextColumn get eventId => text().nullable()();
-
-  /// chat thread
-  TextColumn get threadId =>
-      text().references(Threads, #id, onDelete: KeyAction.cascade)();
-
-  /// sender character id
+  TextColumn get nodeId => text().references(StoryNodes, #id).nullable()();
+  TextColumn get threadId => text().references(Threads, #id, onDelete: KeyAction.cascade)();
   TextColumn get senderId => text()();
-
-  /// message text
   TextColumn get content => text().nullable()();
-
-  /// message type
-  /// text / image / video / audio / system / typing / choice
+  
+  /// text, video, image, call_log, system_label
   TextColumn get type => text().withDefault(const Constant('text'))();
-
-  /// attachment
+  
   TextColumn get mediaPath => text().nullable()();
-
-  /// ordering for playback
   IntColumn get sequence => integer()();
-
-  /// event timestamp
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
-
-  BoolColumn get isPlayerMessage =>
-      boolean().withDefault(const Constant(false))();
-
+  BoolColumn get isPlayerMessage => boolean().withDefault(const Constant(false))();
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
-
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
-
-  /// JSON metadata
-  /// contains:
-  /// choiceId
-  /// delayAfter
-  /// typing.duration
-  /// etc
   TextColumn get meta => text().nullable()();
 
   @override
   List<Index> get indexes => [
-    Index(
-      'messages_thread_idx',
-      'CREATE INDEX messages_thread_idx ON messages (thread_id)',
-    ),
-    Index(
-      'messages_sequence_idx',
-      'CREATE INDEX messages_sequence_idx ON messages (sequence)',
-    ),
-    Index(
-      'messages_event_idx',
-      'CREATE INDEX messages_event_idx ON messages (event_id)',
-    ),
+    Index('messages_thread_idx', 'CREATE INDEX messages_thread_idx ON messages (thread_id)'),
+    Index('messages_sequence_idx', 'CREATE INDEX messages_sequence_idx ON messages (sequence)'),
   ];
 }
 
 // --------------------------------------------------
-// NOTIFICATIONS
+// NOTIFICATIONS: OS-level alerts
 // --------------------------------------------------
-
 class Notifications extends Table {
   TextColumn get id => text()();
-
-  TextColumn get type => text()(); // e.g., 'message', 'article', 'system'
-
+  TextColumn get type => text()(); 
   TextColumn get title => text()();
-
   TextColumn get message => text()();
-
   IntColumn get createdAtMinutes => integer()();
-
-  TextColumn get payload => text().nullable()(); // JSON string
-
+  TextColumn get payload => text().nullable()(); 
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
 
   @override
@@ -170,16 +108,13 @@ class Notifications extends Table {
 }
 
 // --------------------------------------------------
-// STORY FLAGS
+// STORY_STATE: Global Flags and Call Counters
 // --------------------------------------------------
-
 class StoryState extends Table {
   TextColumn get key => text()();
-
   BoolColumn get value => boolean().withDefault(const Constant(false))();
-
+  IntColumn get intValue => integer().withDefault(const Constant(0))();
   TextColumn get stringValue => text().nullable()();
-
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -187,18 +122,12 @@ class StoryState extends Table {
 }
 
 // --------------------------------------------------
-// EPISODES
+// EPISODES: Unlock progress
 // --------------------------------------------------
-
 class Episodes extends Table {
   TextColumn get id => text()();
-
   BoolColumn get isUnlocked => boolean().withDefault(const Constant(false))();
-
-  /// playback progress (event index)
   IntColumn get progress => integer().withDefault(const Constant(0))();
-
-  /// episode version (for future updates)
   IntColumn get version => integer().withDefault(const Constant(1))();
 
   @override
