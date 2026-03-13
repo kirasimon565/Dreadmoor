@@ -10,8 +10,8 @@ plugins {
 
 val keystoreProperties = Properties()
 
-// Correct location of key.properties
-val keystorePropertiesFile = rootProject.file("android/key.properties")
+// key.properties is inside the android folder
+val keystorePropertiesFile = rootProject.file("key.properties")
 
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
@@ -41,13 +41,14 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
 
-            // Correct location of the keystore file
-            storeFile = rootProject.file("android/app/${keystoreProperties["storeFile"]}")
+            keyAlias = keystoreProperties["keyAlias"]?.toString()
+            keyPassword = keystoreProperties["keyPassword"]?.toString()
 
-            storePassword = keystoreProperties["storePassword"] as String
+            // keystore is placed in android/app/
+            storeFile = file("app/${keystoreProperties["storeFile"]}")
+
+            storePassword = keystoreProperties["storePassword"]?.toString()
         }
     }
 
