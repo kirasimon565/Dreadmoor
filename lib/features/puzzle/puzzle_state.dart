@@ -40,8 +40,7 @@ class PuzzleState {
       moves: moves ?? this.moves,
       history: history ?? this.history,
       isSolved: isSolved ?? this.isSolved,
-      previewPivotIndex:
-          clearPreview ? null : (previewPivotIndex ?? this.previewPivotIndex),
+      previewPivotIndex: clearPreview ? null : (previewPivotIndex ?? this.previewPivotIndex),
     );
   }
 }
@@ -49,25 +48,19 @@ class PuzzleState {
 class PuzzleNotifier extends StateNotifier<PuzzleState> {
   PuzzleNotifier() : super(_generateInitialState(3, level: 1));
 
-  /// Generates a new puzzle board
   static PuzzleState _generateInitialState(int size, {int level = 1}) {
     final target = List.generate(size * size, (index) => index);
-
     List<int> current = List.of(target);
     final rng = Random();
-
-    // scramble board with valid moves
-    final scrambleMoves = 20 + rng.nextInt(10);
+    final scrambleMoves = 15 + rng.nextInt(10);
 
     for (int i = 0; i < scrambleMoves; i++) {
       final r = rng.nextInt(size - 1);
       final c = rng.nextInt(size - 1);
       final pivot = r * size + c;
-
       current = _rotateCCW(current, pivot, size);
     }
 
-    // ensure puzzle isn't accidentally solved
     if (_isSameBoard(current, target)) {
       current = _rotateCCW(current, 0, size);
     }
@@ -80,104 +73,47 @@ class PuzzleNotifier extends StateNotifier<PuzzleState> {
     );
   }
 
-  /// Load a puzzle level
   void loadLevel(int level) {
-    int size = 3;
-
-    if (level >= 6 && level <= 15) {
-      size = 4;
-    } else if (level > 15) {
-      size = 5;
-    }
-
+    int size = (level >= 6) ? 4 : 3;
     state = _generateInitialState(size, level: level);
   }
 
-  /// Restart current level
-  void reset() {
-    state = _generateInitialState(
-      state.gridSize,
-      level: state.level,
-    );
-  }
+  void reset() => state = _generateInitialState(state.gridSize, level: state.level);
 
-  /// Rotate a 2x2 block counter-clockwise
   static List<int> _rotateCCW(List<int> board, int pivot, int size) {
     final newBoard = List<int>.from(board);
-
-    final tl = pivot;
-    final tr = pivot + 1;
-    final bl = pivot + size;
-    final br = pivot + size + 1;
-
+    final tl = pivot, tr = pivot + 1, bl = pivot + size, br = pivot + size + 1;
     final temp = newBoard[tl];
-
     newBoard[tl] = newBoard[tr];
     newBoard[tr] = newBoard[br];
     newBoard[br] = newBoard[bl];
     newBoard[bl] = temp;
-
     return newBoard;
   }
 
-  /// Rotate block from UI interaction
   void rotateBlock(int pivotIndex) {
     if (state.isSolved) return;
-
-    final newBoard =
-        _rotateCCW(state.currentBoard, pivotIndex, state.gridSize);
-
-    final solved = _checkSolved(newBoard, state.targetBoard);
-
+    final newBoard = _rotateCCW(state.currentBoard, pivotIndex, state.gridSize);
     state = state.copyWith(
       currentBoard: newBoard,
       history: [...state.history, state.currentBoard],
       moves: state.moves + 1,
-      isSolved: solved,
+      isSolved: _isSameBoard(newBoard, state.targetBoard),
       clearPreview: true,
     );
   }
 
-  /// Undo last move
   void undo() {
     if (state.history.isEmpty || state.isSolved) return;
-
     final previousBoard = state.history.last;
     final newHistory = List<List<int>>.from(state.history)..removeLast();
-
-    state = state.copyWith(
-      currentBoard: previousBoard,
-      history: newHistory,
-    );
-  }
-
-  /// Show preview highlight
-  void setPreview(int? pivotIndex) {
-    if (state.isSolved) return;
-
-    state = state.copyWith(
-      previewPivotIndex: pivotIndex,
-      clearPreview: pivotIndex == null,
-    );
-  }
-
-  /// Check if board matches target
-  bool _checkSolved(List<int> current, List<int> target) {
-    for (int i = 0; i < current.length; i++) {
-      if (current[i] != target[i]) return false;
-    }
-    return true;
+    state = state.copyWith(currentBoard: previousBoard, history: newHistory);
   }
 
   static bool _isSameBoard(List<int> a, List<int> b) {
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
+    for (int i = 0; i < a.length; i++) if (a[i] != b[i]) return false;
     return true;
   }
 }
 
-final puzzleProvider =
-    StateNotifierProvider<PuzzleNotifier, PuzzleState>((ref) {
-  return PuzzleNotifier();
-});
+final puzzleProvider = StateNotifierProvider<PuzzleNotifier, PuzzleState>((ref) => PuzzleNotifier());
