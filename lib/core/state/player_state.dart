@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:drift/drift.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'game_state.dart';
 
-/// Live player stream (updates if DB changes)
+/// Live player stream: Rebuilds UI automatically if the player updates their name/profile
 final playerStreamProvider = StreamProvider<Player?>((ref) {
   final db = ref.watch(databaseProvider);
   return db.select(db.players).watchSingleOrNull();
 });
 
-/// Used on startup to check if a player exists
+/// Used by the Splash/Login screen to determine if we need to show the "Create Character" sequence
 final playerExistsProvider = FutureProvider<bool>((ref) async {
   final db = ref.watch(databaseProvider);
   final player = await (db.select(db.players)..limit(1)).getSingleOrNull();
@@ -27,24 +27,26 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
     try {
       final db = ref.read(databaseProvider);
 
-      final existing = await (db.select(
-        db.players,
-      )..limit(1)).getSingleOrNull();
-
+      // Prevent duplicate player creation
+      final existing = await (db.select(db.players)..limit(1)).getSingleOrNull();
       if (existing != null) {
+        ref.read(playerStateProvider.notifier).state = existing;
         state = const AsyncValue.data(null);
         return;
       }
 
-      final id = await db
-          .into(db.players)
-          .insert(PlayersCompanion.insert(name: name, gender: gender));
+      // Insert new player into Drift
+      final id = await db.into(db.players).insert(
+        PlayersCompanion.insert(
+          name: name, 
+          gender: gender,
+          createdAt: Value(DateTime.now()),
+        ),
+      );
 
-      final created = await (db.select(
-        db.players,
-      )..where((p) => p.id.equals(id))).getSingle();
+      final created = await (db.select(db.players)..where((p) => p.id.equals(id))).getSingle();
 
-      /// Update in-memory state instantly
+      // Sync with in-memory state for immediate use in GlobalScheduler
       ref.read(playerStateProvider.notifier).state = created;
 
       state = const AsyncValue.data(null);
@@ -54,7 +56,6 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final playerControllerProvider =
-    StateNotifierProvider<PlayerController, AsyncValue<void>>((ref) {
-      return PlayerController(ref);
-    });
+final playerControllerProvider = StateNotifierProvider<PlayerController, AsyncValue<void>>((ref) {
+  return PlayerController(ref);
+});
