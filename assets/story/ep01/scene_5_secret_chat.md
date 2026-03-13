@@ -4,7 +4,7 @@ Chat: Secret_Intercept_Amelia_Michael
 Theme: Secret_Hacked
 Sender: amelia
 Action: Notification
-Text: [VPN: ACTIVE | ENCRYPTION: 256-BIT | MODE: STEALTH]
+Text: [VPN: ACTIVE | ENCRYPTION: 256-BIT | IDENTITY: HIDDEN]
 Next: [[S5_Amelia_Panic]]
 
 ---
