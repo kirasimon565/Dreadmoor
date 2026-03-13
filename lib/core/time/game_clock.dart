@@ -4,11 +4,12 @@ import 'package:drift/drift.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 
-/// The game clock states. Starts at 23:42 Sunday, March 8
-/// Stored internally as minutes since 00:00 Sunday, March 8
-/// (23 * 60) + 42 = 1422
-final _initialGameTimeMinutes = 1422;
-const _gameClockKey = 'game_clock_minutes';
+/// Dreadmoor Episode 1 Timeline:
+/// Sunday, March 8th.
+/// Start: 23:42 (11:42 PM)
+/// (23 * 60) + 42 = 1422 minutes from start of Sunday.
+const int _initialGameTimeMinutes = 1422;
+const String _gameClockKey = 'game_clock_minutes';
 
 class GameClockNotifier extends StateNotifier<int> {
   final Ref _ref;
@@ -17,60 +18,69 @@ class GameClockNotifier extends StateNotifier<int> {
     _loadFromDb();
   }
 
+  /// Syncs the clock with the Drift database on boot
   Future<void> _loadFromDb() async {
     final db = _ref.read(databaseProvider);
-    final row = await (db.select(db.storyState)..where((t) => t.key.equals(_gameClockKey))).getSingleOrNull();
+    
+    // Using the refactored intValue column for better performance
+    final row = await (db.select(db.storyState)
+          ..where((t) => t.key.equals(_gameClockKey)))
+        .getSingleOrNull();
 
-    if (row != null && row.stringValue != null) {
-      final savedTime = int.tryParse(row.stringValue!);
-      if (savedTime != null) {
-        state = savedTime;
-      }
+    if (row != null) {
+      state = row.intValue;
     } else {
-      // First boot: create the row automatically with the default value
+      // First boot: Initialize with the disappearance night start time
       await _saveToDb(_initialGameTimeMinutes);
     }
   }
 
+  /// Persists time to the StoryState table
   Future<void> _saveToDb(int time) async {
     final db = _ref.read(databaseProvider);
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
         key: const Value(_gameClockKey),
-        value: const Value(true),
-        stringValue: Value(time.toString()),
+        value: const Value(true), // active flag
+        intValue: Value(time),    // actual time data
         updatedAt: Value(DateTime.now()),
       ),
     );
   }
 
-  /// Advances the game clock by [minutes]
-  /// IMPORTANT: This should ONLY be called by story events or the scheduler.
+  /// Advances the clock.
+  /// The GlobalScheduler calls this for every message sent.
   void advanceTime(int minutes) {
     if (minutes <= 0) return;
     state = state + minutes;
     _saveToDb(state);
   }
 
-  /// Sets the game clock to a specific time (minutes from Sunday 00:00)
+  /// Jump to a specific time (useful for time-skipping scenes)
   void setTime(int totalMinutes) {
     state = totalMinutes;
     _saveToDb(state);
   }
 }
 
-/// The global provider for the game clock.
+// --------------------------------------------------
+// PROVIDERS
+// --------------------------------------------------
+
 final gameClockProvider = StateNotifierProvider<GameClockNotifier, int>((ref) {
   return GameClockNotifier(ref);
 });
 
-/// A helper provider to format the current game time as a string.
 final gameClockStringProvider = Provider<String>((ref) {
   final totalMinutes = ref.watch(gameClockProvider);
   return formatGameTime(totalMinutes);
 });
 
-/// Helper to format minutes into HH:MM
+// --------------------------------------------------
+// FORMATTING HELPERS (FIXES MIDNIGHT LOGIC)
+// --------------------------------------------------
+
+/// Returns HH:MM format
 String formatGameTime(int totalMinutes) {
   final dayMinutes = totalMinutes % (24 * 60);
   final hours = dayMinutes ~/ 60;
@@ -81,20 +91,22 @@ String formatGameTime(int totalMinutes) {
   return '$hStr:$mStr';
 }
 
-/// Helper to get the day of the week
+/// Returns the day. Since Episode 1 starts at 23:42 Sunday,
+/// the clock will roll over to Monday fairly quickly.
 String getGameDay(int totalMinutes) {
   final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   final dayIndex = (totalMinutes ~/ (24 * 60)) % 7;
   return days[dayIndex];
 }
 
-/// Helper to format full date string
+/// Formats the date seen in the Messenger top bar or OS header
 String formatGameDateFull(int totalMinutes) {
   final timeStr = formatGameTime(totalMinutes);
   final dayStr = getGameDay(totalMinutes);
-  // We hardcode March 8 as the start day (Sunday).
-  // We can calculate the exact date if needed, but for Episode 1 this is sufficient.
+  
+  // Start date is March 8 (Sunday)
   final dayOffset = (totalMinutes ~/ (24 * 60));
   final dateNum = 8 + dayOffset;
+  
   return '$timeStr $dayStr, March $dateNum';
 }
