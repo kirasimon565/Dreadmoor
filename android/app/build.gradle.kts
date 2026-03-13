@@ -46,7 +46,7 @@ android {
             keyPassword = keystoreProperties["keyPassword"]?.toString()
 
             // keystore is placed in android/app/
-            storeFile = file("app/${keystoreProperties["storeFile"]}")
+            storeFile = file(keystoreProperties["storeFile"].toString())
 
             storePassword = keystoreProperties["storePassword"]?.toString()
         }
