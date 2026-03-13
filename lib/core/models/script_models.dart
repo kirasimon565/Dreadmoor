@@ -1,157 +1,93 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'script_models.g.dart';
+import 'dart:convert';
 
 /// ------------------------------------------------------------
-/// EPISODE
+/// DREADMOOR NODE MODEL
+/// This replaces the old Episode/Scene script models.
+/// It represents a single logic block from your Obsidian files.
 /// ------------------------------------------------------------
 
-@JsonSerializable()
-class EpisodeScript {
-  final String episodeId;
-  final String title;
-  final int version;
-  final String format;
-  final List<SceneScript> scenes;
+class DreadmoorNode {
+  final String id;          // e.g., [[SCENE_1_START]]
+  final String type;        // Chat_Event, Player_Choice, Video_Message, etc.
+  final String? senderId;   // unknown, amelia, michael, etc.
+  final String? content;    // The actual text/message body
+  final String? nextNodeId; // The ID linked via Next: [[ID]]
+  
+  /// Metadata holds temporary instructions like Action: Typing, 
+  /// Duration: 2000, or File_Asset paths.
+  final Map<String, dynamic> metadata;
 
-  EpisodeScript({
-    required this.episodeId,
-    required this.title,
-    required this.version,
-    required this.format,
-    required this.scenes,
-  });
-
-  factory EpisodeScript.fromJson(Map<String, dynamic> json) =>
-      _$EpisodeScriptFromJson(json);
-
-  Map<String, dynamic> toJson() => _$EpisodeScriptToJson(this);
-}
-
-/// ------------------------------------------------------------
-/// SCENE
-/// ------------------------------------------------------------
-
-@JsonSerializable()
-class SceneScript {
-  final String sceneId;
-  final List<EventScript> events;
-
-  SceneScript({required this.sceneId, required this.events});
-
-  factory SceneScript.fromJson(Map<String, dynamic> json) =>
-      _$SceneScriptFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SceneScriptToJson(this);
-}
-
-/// ------------------------------------------------------------
-/// EVENT
-/// ------------------------------------------------------------
-
-@JsonSerializable()
-class EventScript {
-  final String id;
-  final String type;
-
-  final String? threadId;
-  final String? sender;
-  final String? text;
-
-  final String? choiceId;
-  final List<ChoiceOption>? options;
-
-  final int? duration;
-
-  final EventMeta? meta;
-
-  // Media / News Fields
-  final String? headline;
-  final String? subheadline;
-  final List<String>? body;
-  final String? photo;
-  final String? caption;
-  final String? file;
-  final String? action;
-
-  EventScript({
+  DreadmoorNode({
     required this.id,
     required this.type,
-    this.threadId,
-    this.sender,
-    this.text,
-    this.choiceId,
-    this.options,
-    this.duration,
-    this.meta,
-    this.headline,
-    this.subheadline,
-    this.body,
-    this.photo,
-    this.caption,
-    this.file,
-    this.action,
+    this.senderId,
+    this.content,
+    this.nextNodeId,
+    this.metadata = const {},
   });
 
-  factory EventScript.fromJson(Map<String, dynamic> json) {
-    return EventScript(
-      id: json['id'],
-      type: json['type'],
-      threadId: json['threadId'],
-      sender: json['sender'],
-      text: json['text'],
-      duration: json['duration'],
-      meta: json['meta'] != null ? EventMeta.fromJson(json['meta']) : null,
-      options: json['options'] != null
-          ? (json['options'] as List)
-                .map((e) {
-                  if (e is String) {
-                    // In some episodes, choice options might be simple strings instead of objects
-                    return ChoiceOption(text: e, jumpto: '');
-                  }
-                  return ChoiceOption.fromJson(e);
-                })
-                .toList()
-          : null,
-      headline: json['headline'],
-      subheadline: json['subheadline'],
-      body: json['body'] != null ? List<String>.from(json['body']) : null,
-      photo: json['photo'],
-      caption: json['caption'],
-      file: json['file'],
-      action: json['action'],
+  /// Converts a Drift database row (StoryNode) into this working model
+  factory DreadmoorNode.fromDb(dynamic row) {
+    return DreadmoorNode(
+      id: row.id,
+      type: row.type,
+      senderId: row.senderId,
+      content: row.content,
+      nextNodeId: row.nextNodeId,
+      metadata: row.metadata != null 
+          ? jsonDecode(row.metadata!) 
+          : {},
     );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$EventScriptToJson(this);
-    if (meta != null) data['meta'] = meta!.toJson();
-    if (options != null) data['options'] = options!.map((e) => e.toJson()).toList();
-    return data;
+  /// Helper to get choices if this is a Player_Choice node
+  List<DreadmoorChoice> get choices {
+    if (type != 'Player_Choice' || !metadata.containsKey('options')) {
+      return [];
+    }
+    final List<dynamic> options = metadata['options'];
+    return options.map((o) => DreadmoorChoice.fromMap(o)).toList();
   }
 }
 
-@JsonSerializable()
-class EventMeta {
-  final int? delayAfter;
+/// ------------------------------------------------------------
+/// DREADMOOR CHOICE MODEL
+/// Represents a single branching button for the player.
+/// ------------------------------------------------------------
 
-  EventMeta({this.delayAfter});
+class DreadmoorChoice {
+  final String text;    // What the button says
+  final String target;  // Where it goes (Next Node ID)
 
-  factory EventMeta.fromJson(Map<String, dynamic> json) =>
-      _$EventMetaFromJson(json);
+  DreadmoorChoice({
+    required this.text,
+    required this.target,
+  });
 
-  Map<String, dynamic> toJson() => _$EventMetaToJson(this);
+  factory DreadmoorChoice.fromMap(Map<String, dynamic> map) {
+    return DreadmoorChoice(
+      text: map['text'] ?? '',
+      target: map['target'] ?? '',
+    );
+  }
 }
 
-@JsonSerializable()
-class ChoiceOption {
-  final String text;
-  final String jumpto;
+/// ------------------------------------------------------------
+/// PARSER CONSTANTS
+/// Use these strings in your code to avoid typos.
+/// ------------------------------------------------------------
 
-  ChoiceOption({required this.text, required this.jumpto});
+class DreadmoorNodeTypes {
+  static const String chatEvent = 'Chat_Event';
+  static const String playerChoice = 'Player_Choice';
+  static const String videoMessage = 'Video_Message';
+  static const String newsModule = 'News_Module';
+  static const String phoneCall = 'Phone_Call_Event';
+  static const String systemNotification = 'System_Notification';
+}
 
-  factory ChoiceOption.fromJson(Map<String, dynamic> json) =>
-      _$ChoiceOptionFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ChoiceOptionToJson(this);
+class DreadmoorActions {
+  static const String typing = 'Typing';
+  static const String pause = 'Pause';
+  static const String notification = 'Notification';
 }
