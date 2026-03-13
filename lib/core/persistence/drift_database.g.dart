@@ -1346,8 +1346,6 @@ class StoryNode extends DataClass implements Insertable<StoryNode> {
   final String? senderId;
   final String? content;
   final String? nextNodeId;
-
-  /// Stores JSON metadata: { "action": "Typing", "duration": 2000, "asset": "path/to/video.mp4" }
   final String? metadata;
   const StoryNode(
       {required this.id,
@@ -1822,8 +1820,6 @@ class Message extends DataClass implements Insertable<Message> {
   final String threadId;
   final String senderId;
   final String? content;
-
-  /// text, video, image, call_log, system_label
   final String type;
   final String? mediaPath;
   final int sequence;
