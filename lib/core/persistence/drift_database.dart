@@ -11,6 +11,7 @@ part 'drift_database.g.dart';
 @DriftDatabase(tables: [
   Players, 
   Characters, 
+  CharacterGallery, // Added table
   Threads, 
   Messages, 
   Notifications, 
@@ -29,7 +30,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8; // Incremented for Gallery table
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -37,14 +38,8 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      if (from < 7) {
-        // Drop and recreate to ensure Node-Based architecture is clean
-        await m.createTable(storyNodes);
-        try {
-          await m.addColumn(storyState, storyState.intValue);
-        } catch (e) {
-          // Column might already exist in some dev versions
-        }
+      if (from < 8) {
+        await m.createTable(characterGallery);
       }
     },
   );
@@ -53,9 +48,17 @@ class AppDatabase extends _$AppDatabase {
     await instance.customSelect('SELECT 1').get();
   }
 
-  // ---------------------------
-  // NARRATIVE DAOs (Data Access)
-  // ---------------------------
+  // --- GALLERY ACCESSOR ---
+  
+  /// Fetches all gallery photos for a specific character ordered by priority
+  Stream<List<CharacterGalleryData>> watchCharacterGallery(String characterId) {
+    return (select(characterGallery)
+      ..where((t) => t.characterId.equals(characterId))
+      ..orderBy([(t) => OrderingTerm.asc(t.priority)]))
+      .watch();
+  }
+
+  // --- STORY LOGIC ---
 
   Future<StoryNode?> getNextNode(String? nodeId) async {
     if (nodeId == null) return null;
@@ -69,22 +72,6 @@ class AppDatabase extends _$AppDatabase {
         .watch();
   }
 
-  Future<void> updateStoryFlag(String key, {bool? bVal, int? iVal, String? sVal}) async {
-    await into(storyState).insertOnConflictUpdate(
-      StoryStateCompanion(
-        key: Value(key),
-        value: Value(bVal ?? false),
-        intValue: Value(iVal ?? 0),
-        stringValue: Value(sVal),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
-  }
-
-  // ---------------------------
-  // RESET LOGIC
-  // ---------------------------
-
   Future<void> resetAllProgress() async {
     await batch((b) {
       b.deleteAll(players);
@@ -93,6 +80,7 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(storyState);
       b.deleteAll(episodes);
       b.deleteAll(storyNodes);
+      b.deleteAll(characterGallery);
     });
   }
 }
@@ -100,7 +88,7 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'dreadmoor_v7.sqlite'));
+    final file = File(p.join(dbFolder.path, 'dreadmoor_v8.sqlite'));
     return NativeDatabase(file, logStatements: false);
   });
 }
