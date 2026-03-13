@@ -113,7 +113,6 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
         // Handle decoding error
       }
     } else {
-      // First boot: insert default empty list to prevent missing rows
       await _saveHistory([]);
     }
   }
@@ -130,6 +129,28 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
         updatedAt: Value(DateTime.now()),
       ),
     );
+  }
+
+  // Updated resolveName to look up from the Characters table first
+  Future<String> getCallerName(String number) async {
+    final db = _ref.read(databaseProvider);
+    final character = await (db.select(db.characters)
+          ..where((c) => c.phoneNumber.equals(number)))
+        .getSingleOrNull();
+    
+    if (character != null) return character.name;
+    
+    // Fallback to hardcoded known numbers
+    switch (number) {
+      case "911":
+        return "Emergency";
+      case "558169":
+        return "Ash";
+      case "7319":
+        return "Rebecca Voicemail";
+      default:
+        return number;
+    }
   }
 
   void startCall(String name, String number, int time) {
@@ -203,7 +224,6 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
   void endActiveCall(int durationSeconds) {
     if (state.callState != CallState.active) return;
 
-    // Update the duration of the last call entry (the active one)
     if (state.history.isNotEmpty) {
       final activeEntry = state.history.first;
       final updatedEntry = CallEntry(
@@ -232,6 +252,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
     }
   }
 
+  // Deprecated synchronous helper; UI should use getCallerName(number)
   String resolveName(String number) {
     switch (number) {
       case "911":
