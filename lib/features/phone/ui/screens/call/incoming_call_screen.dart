@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
-import 'package:dreadmoor/core/time/game_clock.dart';
 
 class IncomingCallScreen extends ConsumerWidget {
   final String callerName;
@@ -21,81 +21,121 @@ class IncomingCallScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
-      backgroundColor: DreadmoorColors.scrimDark.withOpacity(0.9), // Dim the rest of OS
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 140,
-              height: 140,
+      body: Stack(
+        children: [
+          // 1. THE CINEMATIC BACKGROUND (Tower/Moon Hero)
+          Positioned.fill(
+            child: Image.asset(
+              'assets/backgrounds/tower_moon.jpg', 
+              fit: BoxFit.cover,
+            ),
+          ),
+          
+          // Darken overlay for maximum readability
+          Positioned.fill(
+            child: Container(
               decoration: BoxDecoration(
-                color: DreadmoorColors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: DreadmoorColors.accentCyan.withOpacity(0.3),
-                  width: 2,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.7),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: DreadmoorColors.accentCyan.withOpacity(0.2),
-                    blurRadius: 30,
-                    spreadRadius: 10,
+              ),
+            ),
+          ),
+
+          // 2. CALLER IDENTITY LAYER
+          SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // CIRCULAR PORTRAIT (Matches Profile UI)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      radius: 70,
+                      backgroundColor: Colors.black54,
+                      // Fallback to the masked "Unknown" avatar from your photos
+                      backgroundImage: const AssetImage('assets/avatars/unknown_mask.png'),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // CALLER NAME (Spectral Serif)
+                  Text(
+                    callerName.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.spectral(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // CALLER NUMBER (Technical Sans)
+                  Text(
+                    callerNumber,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // STATUS (Investigator Cyan / Pulse)
+                  Text(
+                    "INCOMING CALL",
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 14,
+                      color: DreadmoorColors.investigatorCyan,
+                      letterSpacing: 4.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 80),
+                  
+                  // 3. ACTION CONTROLS
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildCallButton(
+                        icon: Icons.call_end,
+                        color: DreadmoorColors.evidenceRed,
+                        label: "DECLINE",
+                        onTap: onDecline,
+                      ),
+                      const SizedBox(width: 64),
+                      _buildCallButton(
+                        icon: Icons.call,
+                        color: DreadmoorColors.investigatorCyan,
+                        label: "ACCEPT",
+                        onTap: onAccept,
+                      ),
+                    ],
                   ),
                 ],
               ),
-              child: const Icon(Icons.person, size: 60, color: Colors.white70),
             ),
-            const SizedBox(height: 32),
-            Text(
-              callerName,
-              style: DreadmoorTheme.headingStyle.copyWith(
-                fontSize: 28,
-                color: Colors.white,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              callerNumber,
-              style: DreadmoorTheme.bodyStyle.copyWith(
-                fontSize: 16,
-                color: DreadmoorColors.textSecondary,
-                letterSpacing: 2.0,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "INCOMING CALL",
-              style: DreadmoorTheme.bodyStyle.copyWith(
-                fontSize: 14,
-                color: DreadmoorColors.accentCyan,
-                letterSpacing: 4.0,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 64),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildCallButton(
-                  icon: Icons.call_end,
-                  color: DreadmoorColors.accentRed,
-                  label: "Decline",
-                  onTap: onDecline,
-                ),
-                const SizedBox(width: 64),
-                _buildCallButton(
-                  icon: Icons.call,
-                  color: DreadmoorColors.accentCyan,
-                  label: "Accept",
-                  onTap: onAccept,
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -114,21 +154,27 @@ class IncomingCallScreen extends ConsumerWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color,
               shape: BoxShape.circle,
-              border: Border.all(color: color, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Icon(icon, color: color, size: 32),
+            child: Icon(icon, color: Colors.white, size: 32),
           ),
         ),
         const SizedBox(height: 12),
         Text(
-          label.toUpperCase(),
-          style: DreadmoorTheme.bodyStyle.copyWith(
-            fontSize: 12,
-            color: color,
+          label,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 11,
+            color: Colors.white70,
             letterSpacing: 1.5,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
