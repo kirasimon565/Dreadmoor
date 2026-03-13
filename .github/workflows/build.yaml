@@ -36,7 +36,6 @@ jobs:
         run: flutter pub get
 
       - name: Generate Launcher Icons (Android only)
-        # Patch the config to android-only BEFORE running, so iOS absence doesn't matter
         run: |
           dart run flutter_launcher_icons -f <(python3 -c "
           import yaml, sys
@@ -72,11 +71,22 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
 
+      - name: Build AAB
+        run: flutter build appbundle --release --no-tree-shake-icons
+
+      # ---------- UPLOAD ARTIFACTS ----------
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Dreadmoor-Game-Build
+          name: Dreadmoor-APK
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dreadmoor-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
 
       # ---------- CLEANUP ----------
 
