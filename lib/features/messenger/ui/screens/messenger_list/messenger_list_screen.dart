@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -20,84 +19,64 @@ class MessengerListScreen extends ConsumerStatefulWidget {
 
 class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
+  // --- ADD CONTACT DIALOG (Updated with Redesign Colors) ---
   void _showAddContactDialog(BuildContext context) {
     String phoneNumber = "";
+    final brightness = Theme.of(context).brightness;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DreadmoorColors.surfaceAlt,
+        backgroundColor: DreadmoorColors.surface(brightness),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // Sharper
         title: Text(
-          "Add Contact",
-          style: DreadmoorTheme.headingStyle.copyWith(color: Colors.white, fontSize: 18),
+          "NEW CONNECTION",
+          style: DreadmoorTheme.headingStyle(brightness).copyWith(fontSize: 18),
         ),
         content: TextField(
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: DreadmoorColors.text(brightness)),
           keyboardType: TextInputType.phone,
           decoration: InputDecoration(
-            hintText: "Enter phone number",
-            hintStyle: const TextStyle(color: Colors.white54),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: DreadmoorColors.accentCyan),
-            ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
+            hintText: "Enter frequency/number",
+            hintStyle: TextStyle(color: DreadmoorColors.text(brightness).withOpacity(0.4)),
           ),
           onChanged: (value) => phoneNumber = value,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+            child: Text("CANCEL", style: TextStyle(color: DreadmoorColors.text(brightness).withOpacity(0.5))),
           ),
           TextButton(
             onPressed: () async {
               if (phoneNumber.isNotEmpty) {
                 final db = ref.read(databaseProvider);
-
-                // Validate if number exists in Characters table
                 final character = await (db.select(db.characters)..where((c) => c.phoneNumber.equals(phoneNumber))).getSingleOrNull();
 
                 if (!context.mounted) return;
-
                 if (character == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Number not recognized.', style: DreadmoorTheme.bodyStyle.copyWith(color: Colors.white)),
-                      backgroundColor: DreadmoorColors.accentRed.withOpacity(0.8),
-                    )
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Frequency not found.')));
                   return;
                 }
 
-                // Valid character found, check if thread exists
-                final threadId = character.id; // Usually threadId matches characterId or a specific format
-
+                final threadId = character.id;
                 final existingThread = await (db.select(db.threads)..where((t) => t.id.equals(threadId))).getSingleOrNull();
 
                 if (existingThread == null) {
-                  await db.into(db.threads).insert(
-                    ThreadsCompanion.insert(
-                      id: threadId,
-                      title: character.name,
-                      participants: character.id,
-                      unreadCount: const Value(0),
-                      isTyping: const Value(false),
-                      isLocked: const Value(false),
-                      isSecret: const Value(false),
-                    ),
-                  );
+                  await db.into(db.threads).insert(ThreadsCompanion.insert(
+                    id: threadId,
+                    title: character.name,
+                    participants: character.id,
+                  ));
                 }
 
                 if (context.mounted) {
-                  Navigator.pop(context); // Close the dialog
-                  // Automatically open the chat thread for the added contact
-                  ref.read(activeThreadIdProvider.notifier).state = threadId;
+                  Navigator.pop(context);
                   Navigator.of(context).pushNamed(MessengerRoutes.chat, arguments: threadId);
                 }
               }
             },
-            child: const Text("Add", style: TextStyle(color: DreadmoorColors.accentCyan)),
+            child: Text("ESTABLISH", style: TextStyle(color: DreadmoorColors.investigatorCyan)),
           ),
         ],
       ),
@@ -107,6 +86,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
   @override
   Widget build(BuildContext context) {
     final db = ref.watch(databaseProvider);
+    final brightness = Theme.of(context).brightness;
 
     final threadsStream = (db.select(db.threads)..orderBy([
       (t) => OrderingTerm(expression: t.lastMessageId, mode: OrderingMode.desc)
@@ -116,97 +96,51 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
     ]).watch();
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
           OSHeader(
-            title: "MESSENGER",
-            subtitle: "SECURE CONNECTION",
-            leading: GestureDetector(
-                onTap: () {
-                    Navigator.of(context).pushNamed(MessengerRoutes.settings);
-                },
-                child: const Icon(Icons.settings, color: DreadmoorColors.textSecondary, size: 20)
+            title: "INBOX",
+            subtitle: "SECURE ARCHIVE",
+            leading: IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => Navigator.of(context).pushNamed(MessengerRoutes.settings),
             ),
-            trailing: GestureDetector(
-                onTap: () {
-                    _showAddContactDialog(context);
-                },
-                child: const Icon(Icons.person_add_alt_1, color: DreadmoorColors.textSecondary, size: 20)
+            trailing: IconButton(
+              icon: const Icon(Icons.person_add_outlined),
+              onPressed: () => _showAddContactDialog(context),
             ),
           ),
           Expanded(
-            child: Stack(
-              children: [
-                // Subtle background gradient for depth
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          DreadmoorColors.surfaceAlt.withOpacity(0.3),
-                          DreadmoorColors.background,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                StreamBuilder(
-                  stream: threadsStream,
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator(color: DreadmoorColors.accentCyan));
-                    }
+            child: StreamBuilder(
+              stream: threadsStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                final rows = snapshot.data!;
 
-                    final rows = snapshot.data!;
+                if (rows.isEmpty) {
+                  return Center(
+                    child: Text("No connections found.", style: DreadmoorTheme.bodyStyle(brightness)),
+                  );
+                }
 
-                    if (rows.isEmpty) {
-                      return Center(
-                        child: Text(
-                          "No secure connections established.",
-                          style: DreadmoorTheme.bodyStyle.copyWith(color: DreadmoorColors.textSecondary),
-                        ),
-                      );
-                    }
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: rows.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final thread = rows[index].readTable(db.threads);
+                    final message = rows[index].readTableOrNull(db.messages);
+                    final character = rows[index].readTableOrNull(db.characters);
 
-                    return ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      itemCount: rows.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12), // Using spacing instead of dividers for a cleaner look
-                      itemBuilder: (context, index) {
-                        final thread = rows[index].readTable(db.threads);
-                        final message = rows[index].readTableOrNull(db.messages);
-                        final character = rows[index].readTableOrNull(db.characters);
-
-                        String time = '';
-                        if (message?.timestamp != null) {
-                          time = '${message!.timestamp!.hour.toString().padLeft(2, '0')}:${message!.timestamp!.minute.toString().padLeft(2, '0')}';
-                        }
-
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            ref.read(activeThreadIdProvider.notifier).state = thread.id;
-                            if (thread.isSecret) {
-                                Navigator.of(context).pushNamed(MessengerRoutes.secret, arguments: thread.id);
-                            } else {
-                                Navigator.of(context).pushNamed(MessengerRoutes.chat, arguments: thread.id);
-                            }
-                          },
-                          child: _ThreadTile(
-                            thread: thread,
-                            message: message,
-                            time: time,
-                            avatarPath: character?.avatarPath,
-                          ),
-                        );
-                      },
+                    return _ThreadTile(
+                      thread: thread,
+                      message: message,
+                      character: character,
                     );
                   },
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],
@@ -215,126 +149,86 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
   }
 }
 
-class _ThreadTile extends StatelessWidget {
+class _ThreadTile extends ConsumerWidget {
   final Thread thread;
   final Message? message;
-  final String time;
-  final String? avatarPath;
+  final Character? character;
 
-  const _ThreadTile({
-    required this.thread,
-    required this.message,
-    required this.time,
-    this.avatarPath,
-  });
+  const _ThreadTile({required this.thread, this.message, this.character});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final brightness = Theme.of(context).brightness;
     final hasUnread = thread.unreadCount > 0;
+    final accent = brightness == Brightness.light ? DreadmoorColors.evidenceRed : DreadmoorColors.investigatorCyan;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: DreadmoorColors.surface.withOpacity(hasUnread ? 0.9 : 0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: hasUnread ? DreadmoorColors.accentCyan.withOpacity(0.3) : DreadmoorColors.borderSubtle,
-          width: hasUnread ? 1.0 : 0.5,
+    return GestureDetector(
+      onTap: () {
+        ref.read(activeThreadIdProvider.notifier).state = thread.id;
+        Navigator.of(context).pushNamed(
+          thread.isSecret ? MessengerRoutes.secret : MessengerRoutes.chat, 
+          arguments: thread.id
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(4), // Sharp corners like Case File
+          border: Border.all(
+            color: hasUnread ? accent : DreadmoorColors.divider(brightness),
+            width: hasUnread ? 1.5 : 0.5,
+          ),
         ),
-        boxShadow: hasUnread ? [
-          BoxShadow(
-            color: DreadmoorColors.glowCyan.withOpacity(0.1),
-            blurRadius: 8,
-          )
-        ] : null,
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: DreadmoorColors.surfaceGlass,
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: hasUnread ? DreadmoorColors.accentCyan.withOpacity(0.5) : DreadmoorColors.borderGlass,
-                  width: hasUnread ? 1.5 : 1.0,
+        child: Row(
+          children: [
+            // Avatar with Sharp Border
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                border: Border.all(color: hasUnread ? accent : Colors.black12),
               ),
+              child: thread.isSecret 
+                ? Icon(Icons.security, color: DreadmoorColors.evidenceRed)
+                : (character?.avatarPath != null 
+                    ? Image.asset(character!.avatarPath!, fit: BoxFit.cover)
+                    : const Icon(Icons.person)),
             ),
-            clipBehavior: Clip.hardEdge,
-            child: thread.isSecret
-              ? Icon(Icons.security, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.accentRed)
-              : avatarPath != null
-                  ? Image.asset(avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.person, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary))
-                  : Icon(Icons.person, color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary),
-          ),
-          const SizedBox(width: 16),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  thread.title,
-                  style: DreadmoorTheme.headingStyle.copyWith(
-                    color: DreadmoorColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  message?.content ?? "",
-                  style: DreadmoorTheme.bodyStyle.copyWith(
-                    color: hasUnread ? DreadmoorColors.textPrimary : DreadmoorColors.textSecondary,
-                    fontSize: 14,
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Meta
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                time,
-                style: DreadmoorTheme.bodyStyle.copyWith(
-                  color: hasUnread ? DreadmoorColors.accentCyan : DreadmoorColors.textMeta,
-                  fontSize: 11,
-                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              if (hasUnread) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: DreadmoorColors.accentCyan.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: DreadmoorColors.accentCyan.withOpacity(0.5)),
-                  ),
-                  child: Text(
-                    thread.unreadCount.toString(),
-                    style: DreadmoorTheme.bodyStyle.copyWith(
-                      color: DreadmoorColors.accentCyan,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+            const SizedBox(width: 16),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    thread.title.toUpperCase(),
+                    style: DreadmoorTheme.headingStyle(brightness).copyWith(
+                      fontSize: 14,
+                      fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
-                ),
-              ],
-            ],
-          ),
-        ],
+                  const SizedBox(height: 4),
+                  Text(
+                    message?.content ?? "No messages yet.",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: DreadmoorTheme.bodyStyle(brightness).copyWith(
+                      fontSize: 13,
+                      color: DreadmoorColors.text(brightness).withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (hasUnread)
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
+              ),
+          ],
+        ),
       ),
     );
   }
