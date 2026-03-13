@@ -3,186 +3,124 @@ import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
 class DreadmoorTheme {
-  static TextStyle get headingStyle => GoogleFonts.michroma(
-    color: DreadmoorColors.textPrimary,
-  );
+  // --- STATIC STYLES FOR UI HELPERS ---
 
-  static TextStyle get bodyStyle => GoogleFonts.inter(
-    color: DreadmoorColors.textPrimary,
-  );
+  static TextStyle headingStyle(Brightness b) => GoogleFonts.spectral(
+        color: DreadmoorColors.text(b),
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.5,
+      );
+
+  static TextStyle bodyStyle(Brightness b) => GoogleFonts.spaceGrotesk(
+        color: DreadmoorColors.text(b),
+      );
+
+  // --- LIGHT THEME: THE ARCHIVE (Yellow Newspaper) ---
+
+  static ThemeData get lightTheme {
+    return _buildTheme(Brightness.light);
+  }
+
+  // --- DARK THEME: THE SLATE (Blue-Gray Tactical) ---
 
   static ThemeData get darkTheme {
-    const baseText = TextTheme(
-      bodyMedium: TextStyle(color: DreadmoorColors.textPrimary),
-      bodySmall: TextStyle(color: DreadmoorColors.textSecondary),
-      titleMedium: TextStyle(color: DreadmoorColors.textPrimary),
-      labelMedium: TextStyle(color: DreadmoorColors.textMeta),
-    );
+    return _buildTheme(Brightness.dark);
+  }
+
+  static ThemeData _buildTheme(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final bgColor = DreadmoorColors.background(brightness);
+    final cardColor = DreadmoorColors.surface(brightness);
+    final textColor = DreadmoorColors.text(brightness);
+    final accent = isDark ? DreadmoorColors.investigatorCyan : DreadmoorColors.evidenceRed;
 
     return ThemeData(
       useMaterial3: true,
+      brightness: brightness,
+      scaffoldBackgroundColor: bgColor,
+      cardColor: cardColor,
 
-      brightness: Brightness.dark,
-
-      scaffoldBackgroundColor: DreadmoorColors.background,
-
-      colorScheme: const ColorScheme.dark(
-        primary: DreadmoorColors.accentCyan,
-        error: DreadmoorColors.accentRed,
-        surface: DreadmoorColors.surface,
-        onPrimary: Colors.black,
-        onSurface: Colors.white,
+      // TYPOGRAPHY
+      textTheme: TextTheme(
+        headlineLarge: GoogleFonts.spectral(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+        bodyLarge: GoogleFonts.spaceGrotesk(color: textColor, fontSize: 16),
+        bodyMedium: GoogleFonts.spaceGrotesk(color: textColor, fontSize: 14),
+        labelLarge: GoogleFonts.spaceGrotesk(
+          fontWeight: FontWeight.bold,
+          color: textColor,
+          letterSpacing: 1.2,
+        ),
       ),
 
-      textTheme: baseText,
+      // APP BAR (Matches your OS Header needs)
+      appBarTheme: AppBarTheme(
+        backgroundColor: bgColor,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: GoogleFonts.spectral(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+        iconTheme: IconThemeData(color: textColor),
+      ),
 
-      /// Remove Android ripple animations
+      // CARDS (Floating Card Design from your screenshot)
+      cardTheme: CardTheme(
+        color: cardColor,
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: DreadmoorColors.divider(brightness), width: 0.5),
+        ),
+      ),
+
+      // TABS (Used in Profiles)
+      tabBarTheme: TabBarTheme(
+        labelColor: accent,
+        unselectedLabelColor: textColor.withOpacity(0.5),
+        indicatorColor: accent,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelStyle: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, fontSize: 12),
+      ),
+
+      // INPUTS (Search/Data entry)
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: cardColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: DreadmoorColors.divider(brightness)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: accent, width: 2),
+        ),
+      ),
+
+      // REMOVE RIPPLES FOR IMMERSION
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
 
+      // NO ANIMATIONS BETWEEN APPS (Feels like an OS)
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: NoTransitionsBuilder(),
           TargetPlatform.iOS: NoTransitionsBuilder(),
-          TargetPlatform.linux: NoTransitionsBuilder(),
-          TargetPlatform.macOS: NoTransitionsBuilder(),
-          TargetPlatform.windows: NoTransitionsBuilder(),
         },
-      ),
-
-      /// Cursor & selection
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: DreadmoorColors.accentCyan,
-        selectionColor: Color(0x3300FFD1),
-        selectionHandleColor: DreadmoorColors.accentCyan,
-      ),
-
-      /// Icons
-      iconTheme: const IconThemeData(color: Colors.white70, size: 22),
-
-      /// AppBar
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-      ),
-
-      /// Cards
-      cardTheme: CardThemeData(
-        color: DreadmoorColors.surface.withOpacity(0.85),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: DreadmoorColors.borderSubtle.withOpacity(0.6),
-            width: 0.6,
-          ),
-        ),
-      ),
-
-      /// Buttons
-      filledButtonTheme: FilledButtonThemeData(
-        style: ButtonStyle(
-          backgroundColor: MaterialStatePropertyAll(
-            DreadmoorColors.accentCyan.withOpacity(0.15),
-          ),
-          foregroundColor: const MaterialStatePropertyAll(Colors.white),
-          overlayColor: const MaterialStatePropertyAll(Colors.transparent),
-          shape: MaterialStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-      ),
-
-      /// Bottom navigation
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: DreadmoorColors.surface.withOpacity(0.9),
-        indicatorColor: DreadmoorColors.accentCyan.withOpacity(0.2),
-        labelTextStyle: const MaterialStatePropertyAll(
-          TextStyle(fontSize: 11, color: Colors.white70),
-        ),
-      ),
-
-      /// Dividers
-      dividerTheme: DividerThemeData(
-        color: Colors.white.withOpacity(0.08),
-        thickness: 0.6,
-        space: 24,
-      ),
-
-      /// Dialogs
-      dialogTheme: const DialogThemeData(
-        backgroundColor: DreadmoorColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-
-      /// Bottom sheets
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: DreadmoorColors.surface,
-        modalBackgroundColor: DreadmoorColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-
-      /// Snackbars
-      snackBarTheme: SnackBarThemeData(
-        backgroundColor: DreadmoorColors.surface.withOpacity(0.95),
-        contentTextStyle: const TextStyle(color: DreadmoorColors.textPrimary),
-        behavior: SnackBarBehavior.floating,
-      ),
-
-      /// Tooltips
-      tooltipTheme: TooltipThemeData(
-        decoration: BoxDecoration(
-          color: DreadmoorColors.surface.withOpacity(0.95),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        textStyle: const TextStyle(
-          color: DreadmoorColors.textPrimary,
-          fontSize: 12,
-        ),
-      ),
-
-      /// Inputs
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: DreadmoorColors.surface.withOpacity(0.6),
-
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.12),
-            width: 0.6,
-          ),
-        ),
-
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.12),
-            width: 0.6,
-          ),
-        ),
-
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: DreadmoorColors.accentCyan,
-            width: 1,
-          ),
-        ),
-
-        hintStyle: const TextStyle(color: DreadmoorColors.textMeta),
       ),
     );
   }
 }
 
+// --- TRANSITION KILLER ---
 class NoTransitionsBuilder extends PageTransitionsBuilder {
   const NoTransitionsBuilder();
-
   @override
   Widget buildTransitions<T>(
     PageRoute<T> route,
@@ -190,7 +128,6 @@ class NoTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     Widget child,
-  ) {
-    return child;
-  }
+  ) =>
+      child;
 }
