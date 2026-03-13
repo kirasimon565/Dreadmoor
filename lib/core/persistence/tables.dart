@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
 // --------------------------------------------------
-// PLAYER: The global user state
+// PLAYERS
 // --------------------------------------------------
 class Players extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -13,13 +13,13 @@ class Players extends Table {
 }
 
 // --------------------------------------------------
-// CHARACTERS: NPC Registry
+// CHARACTERS
 // --------------------------------------------------
 class Characters extends Table {
-  TextColumn get id => text()(); // e.g., 'unknown', 'amelia'
+  TextColumn get id => text()(); 
   TextColumn get name => text()();
   TextColumn get phoneNumber => text()();
-  TextColumn get avatarPath => text().nullable()();
+  TextColumn get avatarPath => text().nullable()(); // Main Profile Picture
   TextColumn get bio => text().nullable()();
   TextColumn get knownInfo => text().nullable()();
   TextColumn get investigationNotes => text().nullable()();
@@ -30,16 +30,33 @@ class Characters extends Table {
 }
 
 // --------------------------------------------------
-// STORY_NODES: The "Brain" (Imported from Obsidian)
+// CHARACTER_GALLERY (New: Photo Gallery Support)
+// --------------------------------------------------
+class CharacterGallery extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  
+  /// Links this photo to a specific character
+  TextColumn get characterId => text().references(Characters, #id, onDelete: KeyAction.cascade)();
+  
+  /// Path to the image asset
+  TextColumn get imagePath => text()();
+  
+  /// Optional caption for the specific photo
+  TextColumn get caption => text().nullable()();
+
+  /// Order in which the photo appears in the gallery
+  IntColumn get priority => integer().withDefault(const Constant(0))();
+}
+
+// --------------------------------------------------
+// STORY_NODES
 // --------------------------------------------------
 class StoryNodes extends Table {
-  TextColumn get id => text()(); // The [[ID]]
-  TextColumn get type => text()(); // Chat_Event, Player_Choice, Video_Message, News_Module, Phone_Call
+  TextColumn get id => text()(); 
+  TextColumn get type => text()(); 
   TextColumn get senderId => text().nullable().references(Characters, #id)();
   TextColumn get content => text().nullable()();
   TextColumn get nextNodeId => text().nullable()();
-  
-  /// Stores JSON metadata: { "action": "Typing", "duration": 2000, "asset": "path/to/video.mp4" }
   TextColumn get metadata => text().nullable()();
 
   @override
@@ -47,7 +64,7 @@ class StoryNodes extends Table {
 }
 
 // --------------------------------------------------
-// THREADS: Active conversations in Messenger
+// THREADS
 // --------------------------------------------------
 class Threads extends Table {
   TextColumn get id => text()();
@@ -57,14 +74,14 @@ class Threads extends Table {
   BoolColumn get isTyping => boolean().withDefault(const Constant(false))();
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
-  TextColumn get participants => text()(); // JSON List of character IDs
+  TextColumn get participants => text()(); 
 
   @override
   Set<Column> get primaryKey => {id};
 }
 
 // --------------------------------------------------
-// MESSAGES: The immutable history
+// MESSAGES
 // --------------------------------------------------
 class Messages extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -72,10 +89,7 @@ class Messages extends Table {
   TextColumn get threadId => text().references(Threads, #id, onDelete: KeyAction.cascade)();
   TextColumn get senderId => text()();
   TextColumn get content => text().nullable()();
-  
-  /// text, video, image, call_log, system_label
   TextColumn get type => text().withDefault(const Constant('text'))();
-  
   TextColumn get mediaPath => text().nullable()();
   IntColumn get sequence => integer()();
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
@@ -83,32 +97,10 @@ class Messages extends Table {
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
   TextColumn get meta => text().nullable()();
-
-  @override
-  List<Index> get indexes => [
-    Index('messages_thread_idx', 'CREATE INDEX messages_thread_idx ON messages (thread_id)'),
-    Index('messages_sequence_idx', 'CREATE INDEX messages_sequence_idx ON messages (sequence)'),
-  ];
 }
 
 // --------------------------------------------------
-// NOTIFICATIONS: OS-level alerts
-// --------------------------------------------------
-class Notifications extends Table {
-  TextColumn get id => text()();
-  TextColumn get type => text()(); 
-  TextColumn get title => text()();
-  TextColumn get message => text()();
-  IntColumn get createdAtMinutes => integer()();
-  TextColumn get payload => text().nullable()(); 
-  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-// --------------------------------------------------
-// STORY_STATE: Global Flags and Call Counters
+// STORY_STATE
 // --------------------------------------------------
 class StoryState extends Table {
   TextColumn get key => text()();
@@ -122,14 +114,25 @@ class StoryState extends Table {
 }
 
 // --------------------------------------------------
-// EPISODES: Unlock progress
+// NOTIFICATIONS & EPISODES
 // --------------------------------------------------
+class Notifications extends Table {
+  TextColumn get id => text()();
+  TextColumn get type => text()(); 
+  TextColumn get title => text()();
+  TextColumn get message => text()();
+  IntColumn get createdAtMinutes => integer()();
+  TextColumn get payload => text().nullable()(); 
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class Episodes extends Table {
   TextColumn get id => text()();
   BoolColumn get isUnlocked => boolean().withDefault(const Constant(false))();
   IntColumn get progress => integer().withDefault(const Constant(0))();
   IntColumn get version => integer().withDefault(const Constant(1))();
-
   @override
   Set<Column> get primaryKey => {id};
 }
