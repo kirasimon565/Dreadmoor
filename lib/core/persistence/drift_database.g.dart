@@ -387,9 +387,25 @@ class $CharactersTable extends Characters
   late final GeneratedColumn<String> investigationNotes =
       GeneratedColumn<String>('investigation_notes', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _colorHexMeta =
+      const VerificationMeta('colorHex');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, name, phoneNumber, avatarPath, bio, knownInfo, investigationNotes];
+  late final GeneratedColumn<String> colorHex = GeneratedColumn<String>(
+      'color_hex', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('#746fbc'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        phoneNumber,
+        avatarPath,
+        bio,
+        knownInfo,
+        investigationNotes,
+        colorHex
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -439,6 +455,10 @@ class $CharactersTable extends Characters
           investigationNotes.isAcceptableOrUnknown(
               data['investigation_notes']!, _investigationNotesMeta));
     }
+    if (data.containsKey('color_hex')) {
+      context.handle(_colorHexMeta,
+          colorHex.isAcceptableOrUnknown(data['color_hex']!, _colorHexMeta));
+    }
     return context;
   }
 
@@ -462,6 +482,8 @@ class $CharactersTable extends Characters
           .read(DriftSqlType.string, data['${effectivePrefix}known_info']),
       investigationNotes: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}investigation_notes']),
+      colorHex: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color_hex'])!,
     );
   }
 
@@ -479,6 +501,7 @@ class Character extends DataClass implements Insertable<Character> {
   final String? bio;
   final String? knownInfo;
   final String? investigationNotes;
+  final String colorHex;
   const Character(
       {required this.id,
       required this.name,
@@ -486,7 +509,8 @@ class Character extends DataClass implements Insertable<Character> {
       this.avatarPath,
       this.bio,
       this.knownInfo,
-      this.investigationNotes});
+      this.investigationNotes,
+      required this.colorHex});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -505,6 +529,7 @@ class Character extends DataClass implements Insertable<Character> {
     if (!nullToAbsent || investigationNotes != null) {
       map['investigation_notes'] = Variable<String>(investigationNotes);
     }
+    map['color_hex'] = Variable<String>(colorHex);
     return map;
   }
 
@@ -523,6 +548,7 @@ class Character extends DataClass implements Insertable<Character> {
       investigationNotes: investigationNotes == null && nullToAbsent
           ? const Value.absent()
           : Value(investigationNotes),
+      colorHex: Value(colorHex),
     );
   }
 
@@ -538,6 +564,7 @@ class Character extends DataClass implements Insertable<Character> {
       knownInfo: serializer.fromJson<String?>(json['knownInfo']),
       investigationNotes:
           serializer.fromJson<String?>(json['investigationNotes']),
+      colorHex: serializer.fromJson<String>(json['colorHex']),
     );
   }
   @override
@@ -551,6 +578,7 @@ class Character extends DataClass implements Insertable<Character> {
       'bio': serializer.toJson<String?>(bio),
       'knownInfo': serializer.toJson<String?>(knownInfo),
       'investigationNotes': serializer.toJson<String?>(investigationNotes),
+      'colorHex': serializer.toJson<String>(colorHex),
     };
   }
 
@@ -561,7 +589,8 @@ class Character extends DataClass implements Insertable<Character> {
           Value<String?> avatarPath = const Value.absent(),
           Value<String?> bio = const Value.absent(),
           Value<String?> knownInfo = const Value.absent(),
-          Value<String?> investigationNotes = const Value.absent()}) =>
+          Value<String?> investigationNotes = const Value.absent(),
+          String? colorHex}) =>
       Character(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -572,6 +601,7 @@ class Character extends DataClass implements Insertable<Character> {
         investigationNotes: investigationNotes.present
             ? investigationNotes.value
             : this.investigationNotes,
+        colorHex: colorHex ?? this.colorHex,
       );
   Character copyWithCompanion(CharactersCompanion data) {
     return Character(
@@ -586,6 +616,7 @@ class Character extends DataClass implements Insertable<Character> {
       investigationNotes: data.investigationNotes.present
           ? data.investigationNotes.value
           : this.investigationNotes,
+      colorHex: data.colorHex.present ? data.colorHex.value : this.colorHex,
     );
   }
 
@@ -598,14 +629,15 @@ class Character extends DataClass implements Insertable<Character> {
           ..write('avatarPath: $avatarPath, ')
           ..write('bio: $bio, ')
           ..write('knownInfo: $knownInfo, ')
-          ..write('investigationNotes: $investigationNotes')
+          ..write('investigationNotes: $investigationNotes, ')
+          ..write('colorHex: $colorHex')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, name, phoneNumber, avatarPath, bio, knownInfo, investigationNotes);
+  int get hashCode => Object.hash(id, name, phoneNumber, avatarPath, bio,
+      knownInfo, investigationNotes, colorHex);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -616,7 +648,8 @@ class Character extends DataClass implements Insertable<Character> {
           other.avatarPath == this.avatarPath &&
           other.bio == this.bio &&
           other.knownInfo == this.knownInfo &&
-          other.investigationNotes == this.investigationNotes);
+          other.investigationNotes == this.investigationNotes &&
+          other.colorHex == this.colorHex);
 }
 
 class CharactersCompanion extends UpdateCompanion<Character> {
@@ -627,6 +660,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
   final Value<String?> bio;
   final Value<String?> knownInfo;
   final Value<String?> investigationNotes;
+  final Value<String> colorHex;
   final Value<int> rowid;
   const CharactersCompanion({
     this.id = const Value.absent(),
@@ -636,6 +670,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
     this.bio = const Value.absent(),
     this.knownInfo = const Value.absent(),
     this.investigationNotes = const Value.absent(),
+    this.colorHex = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CharactersCompanion.insert({
@@ -646,6 +681,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
     this.bio = const Value.absent(),
     this.knownInfo = const Value.absent(),
     this.investigationNotes = const Value.absent(),
+    this.colorHex = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name),
@@ -658,6 +694,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
     Expression<String>? bio,
     Expression<String>? knownInfo,
     Expression<String>? investigationNotes,
+    Expression<String>? colorHex,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -668,6 +705,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
       if (bio != null) 'bio': bio,
       if (knownInfo != null) 'known_info': knownInfo,
       if (investigationNotes != null) 'investigation_notes': investigationNotes,
+      if (colorHex != null) 'color_hex': colorHex,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -680,6 +718,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
       Value<String?>? bio,
       Value<String?>? knownInfo,
       Value<String?>? investigationNotes,
+      Value<String>? colorHex,
       Value<int>? rowid}) {
     return CharactersCompanion(
       id: id ?? this.id,
@@ -689,6 +728,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
       bio: bio ?? this.bio,
       knownInfo: knownInfo ?? this.knownInfo,
       investigationNotes: investigationNotes ?? this.investigationNotes,
+      colorHex: colorHex ?? this.colorHex,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -717,6 +757,9 @@ class CharactersCompanion extends UpdateCompanion<Character> {
     if (investigationNotes.present) {
       map['investigation_notes'] = Variable<String>(investigationNotes.value);
     }
+    if (colorHex.present) {
+      map['color_hex'] = Variable<String>(colorHex.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -733,6 +776,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
           ..write('bio: $bio, ')
           ..write('knownInfo: $knownInfo, ')
           ..write('investigationNotes: $investigationNotes, ')
+          ..write('colorHex: $colorHex, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -905,17 +949,11 @@ class $ThreadsTable extends Threads with TableInfo<$ThreadsTable, Thread> {
 class Thread extends DataClass implements Insertable<Thread> {
   final String id;
   final String title;
-
-  /// last visible message
   final int? lastMessageId;
   final bool isLocked;
   final bool isTyping;
-
-  /// secret chat / intercept
   final bool isSecret;
   final int unreadCount;
-
-  /// JSON participant list
   final String participants;
   const Thread(
       {required this.id,
@@ -1187,6 +1225,364 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
   }
 }
 
+class $StoryNodesTable extends StoryNodes
+    with TableInfo<$StoryNodesTable, StoryNode> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoryNodesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _senderIdMeta =
+      const VerificationMeta('senderId');
+  @override
+  late final GeneratedColumn<String> senderId = GeneratedColumn<String>(
+      'sender_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES characters (id)'));
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+      'content', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nextNodeIdMeta =
+      const VerificationMeta('nextNodeId');
+  @override
+  late final GeneratedColumn<String> nextNodeId = GeneratedColumn<String>(
+      'next_node_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _metadataMeta =
+      const VerificationMeta('metadata');
+  @override
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+      'metadata', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, type, senderId, content, nextNodeId, metadata];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'story_nodes';
+  @override
+  VerificationContext validateIntegrity(Insertable<StoryNode> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('sender_id')) {
+      context.handle(_senderIdMeta,
+          senderId.isAcceptableOrUnknown(data['sender_id']!, _senderIdMeta));
+    }
+    if (data.containsKey('content')) {
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
+    }
+    if (data.containsKey('next_node_id')) {
+      context.handle(
+          _nextNodeIdMeta,
+          nextNodeId.isAcceptableOrUnknown(
+              data['next_node_id']!, _nextNodeIdMeta));
+    }
+    if (data.containsKey('metadata')) {
+      context.handle(_metadataMeta,
+          metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoryNode map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoryNode(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      senderId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sender_id']),
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content']),
+      nextNodeId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}next_node_id']),
+      metadata: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}metadata']),
+    );
+  }
+
+  @override
+  $StoryNodesTable createAlias(String alias) {
+    return $StoryNodesTable(attachedDatabase, alias);
+  }
+}
+
+class StoryNode extends DataClass implements Insertable<StoryNode> {
+  final String id;
+  final String type;
+  final String? senderId;
+  final String? content;
+  final String? nextNodeId;
+
+  /// Stores JSON metadata: { "action": "Typing", "duration": 2000, "asset": "path/to/video.mp4" }
+  final String? metadata;
+  const StoryNode(
+      {required this.id,
+      required this.type,
+      this.senderId,
+      this.content,
+      this.nextNodeId,
+      this.metadata});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || senderId != null) {
+      map['sender_id'] = Variable<String>(senderId);
+    }
+    if (!nullToAbsent || content != null) {
+      map['content'] = Variable<String>(content);
+    }
+    if (!nullToAbsent || nextNodeId != null) {
+      map['next_node_id'] = Variable<String>(nextNodeId);
+    }
+    if (!nullToAbsent || metadata != null) {
+      map['metadata'] = Variable<String>(metadata);
+    }
+    return map;
+  }
+
+  StoryNodesCompanion toCompanion(bool nullToAbsent) {
+    return StoryNodesCompanion(
+      id: Value(id),
+      type: Value(type),
+      senderId: senderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(senderId),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
+      nextNodeId: nextNodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextNodeId),
+      metadata: metadata == null && nullToAbsent
+          ? const Value.absent()
+          : Value(metadata),
+    );
+  }
+
+  factory StoryNode.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoryNode(
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      senderId: serializer.fromJson<String?>(json['senderId']),
+      content: serializer.fromJson<String?>(json['content']),
+      nextNodeId: serializer.fromJson<String?>(json['nextNodeId']),
+      metadata: serializer.fromJson<String?>(json['metadata']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'senderId': serializer.toJson<String?>(senderId),
+      'content': serializer.toJson<String?>(content),
+      'nextNodeId': serializer.toJson<String?>(nextNodeId),
+      'metadata': serializer.toJson<String?>(metadata),
+    };
+  }
+
+  StoryNode copyWith(
+          {String? id,
+          String? type,
+          Value<String?> senderId = const Value.absent(),
+          Value<String?> content = const Value.absent(),
+          Value<String?> nextNodeId = const Value.absent(),
+          Value<String?> metadata = const Value.absent()}) =>
+      StoryNode(
+        id: id ?? this.id,
+        type: type ?? this.type,
+        senderId: senderId.present ? senderId.value : this.senderId,
+        content: content.present ? content.value : this.content,
+        nextNodeId: nextNodeId.present ? nextNodeId.value : this.nextNodeId,
+        metadata: metadata.present ? metadata.value : this.metadata,
+      );
+  StoryNode copyWithCompanion(StoryNodesCompanion data) {
+    return StoryNode(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      senderId: data.senderId.present ? data.senderId.value : this.senderId,
+      content: data.content.present ? data.content.value : this.content,
+      nextNodeId:
+          data.nextNodeId.present ? data.nextNodeId.value : this.nextNodeId,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoryNode(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('senderId: $senderId, ')
+          ..write('content: $content, ')
+          ..write('nextNodeId: $nextNodeId, ')
+          ..write('metadata: $metadata')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, type, senderId, content, nextNodeId, metadata);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoryNode &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.senderId == this.senderId &&
+          other.content == this.content &&
+          other.nextNodeId == this.nextNodeId &&
+          other.metadata == this.metadata);
+}
+
+class StoryNodesCompanion extends UpdateCompanion<StoryNode> {
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String?> senderId;
+  final Value<String?> content;
+  final Value<String?> nextNodeId;
+  final Value<String?> metadata;
+  final Value<int> rowid;
+  const StoryNodesCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.senderId = const Value.absent(),
+    this.content = const Value.absent(),
+    this.nextNodeId = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoryNodesCompanion.insert({
+    required String id,
+    required String type,
+    this.senderId = const Value.absent(),
+    this.content = const Value.absent(),
+    this.nextNodeId = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        type = Value(type);
+  static Insertable<StoryNode> custom({
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? senderId,
+    Expression<String>? content,
+    Expression<String>? nextNodeId,
+    Expression<String>? metadata,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (senderId != null) 'sender_id': senderId,
+      if (content != null) 'content': content,
+      if (nextNodeId != null) 'next_node_id': nextNodeId,
+      if (metadata != null) 'metadata': metadata,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoryNodesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? type,
+      Value<String?>? senderId,
+      Value<String?>? content,
+      Value<String?>? nextNodeId,
+      Value<String?>? metadata,
+      Value<int>? rowid}) {
+    return StoryNodesCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      senderId: senderId ?? this.senderId,
+      content: content ?? this.content,
+      nextNodeId: nextNodeId ?? this.nextNodeId,
+      metadata: metadata ?? this.metadata,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (senderId.present) {
+      map['sender_id'] = Variable<String>(senderId.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (nextNodeId.present) {
+      map['next_node_id'] = Variable<String>(nextNodeId.value);
+    }
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoryNodesCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('senderId: $senderId, ')
+          ..write('content: $content, ')
+          ..write('nextNodeId: $nextNodeId, ')
+          ..write('metadata: $metadata, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1201,12 +1597,14 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _eventIdMeta =
-      const VerificationMeta('eventId');
+  static const VerificationMeta _nodeIdMeta = const VerificationMeta('nodeId');
   @override
-  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
-      'event_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<String> nodeId = GeneratedColumn<String>(
+      'node_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES story_nodes (id)'));
   static const VerificationMeta _threadIdMeta =
       const VerificationMeta('threadId');
   @override
@@ -1292,7 +1690,7 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        eventId,
+        nodeId,
         threadId,
         senderId,
         content,
@@ -1318,9 +1716,9 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('event_id')) {
-      context.handle(_eventIdMeta,
-          eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta));
+    if (data.containsKey('node_id')) {
+      context.handle(_nodeIdMeta,
+          nodeId.isAcceptableOrUnknown(data['node_id']!, _nodeIdMeta));
     }
     if (data.containsKey('thread_id')) {
       context.handle(_threadIdMeta,
@@ -1385,8 +1783,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     return Message(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      eventId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}event_id']),
+      nodeId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}node_id']),
       threadId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
       senderId: attachedDatabase.typeMapping
@@ -1420,45 +1818,23 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
 
 class Message extends DataClass implements Insertable<Message> {
   final int id;
-
-  /// eventId from episode JSON (e001, e002, etc.)
-  final String? eventId;
-
-  /// chat thread
+  final String? nodeId;
   final String threadId;
-
-  /// sender character id
   final String senderId;
-
-  /// message text
   final String? content;
 
-  /// message type
-  /// text / image / video / audio / system / typing / choice
+  /// text, video, image, call_log, system_label
   final String type;
-
-  /// attachment
   final String? mediaPath;
-
-  /// ordering for playback
   final int sequence;
-
-  /// event timestamp
   final DateTime timestamp;
   final bool isPlayerMessage;
   final bool isSecret;
   final bool isRead;
-
-  /// JSON metadata
-  /// contains:
-  /// choiceId
-  /// delayAfter
-  /// typing.duration
-  /// etc
   final String? meta;
   const Message(
       {required this.id,
-      this.eventId,
+      this.nodeId,
       required this.threadId,
       required this.senderId,
       this.content,
@@ -1474,8 +1850,8 @@ class Message extends DataClass implements Insertable<Message> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    if (!nullToAbsent || eventId != null) {
-      map['event_id'] = Variable<String>(eventId);
+    if (!nullToAbsent || nodeId != null) {
+      map['node_id'] = Variable<String>(nodeId);
     }
     map['thread_id'] = Variable<String>(threadId);
     map['sender_id'] = Variable<String>(senderId);
@@ -1500,9 +1876,8 @@ class Message extends DataClass implements Insertable<Message> {
   MessagesCompanion toCompanion(bool nullToAbsent) {
     return MessagesCompanion(
       id: Value(id),
-      eventId: eventId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(eventId),
+      nodeId:
+          nodeId == null && nullToAbsent ? const Value.absent() : Value(nodeId),
       threadId: Value(threadId),
       senderId: Value(senderId),
       content: content == null && nullToAbsent
@@ -1526,7 +1901,7 @@ class Message extends DataClass implements Insertable<Message> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Message(
       id: serializer.fromJson<int>(json['id']),
-      eventId: serializer.fromJson<String?>(json['eventId']),
+      nodeId: serializer.fromJson<String?>(json['nodeId']),
       threadId: serializer.fromJson<String>(json['threadId']),
       senderId: serializer.fromJson<String>(json['senderId']),
       content: serializer.fromJson<String?>(json['content']),
@@ -1545,7 +1920,7 @@ class Message extends DataClass implements Insertable<Message> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'eventId': serializer.toJson<String?>(eventId),
+      'nodeId': serializer.toJson<String?>(nodeId),
       'threadId': serializer.toJson<String>(threadId),
       'senderId': serializer.toJson<String>(senderId),
       'content': serializer.toJson<String?>(content),
@@ -1562,7 +1937,7 @@ class Message extends DataClass implements Insertable<Message> {
 
   Message copyWith(
           {int? id,
-          Value<String?> eventId = const Value.absent(),
+          Value<String?> nodeId = const Value.absent(),
           String? threadId,
           String? senderId,
           Value<String?> content = const Value.absent(),
@@ -1576,7 +1951,7 @@ class Message extends DataClass implements Insertable<Message> {
           Value<String?> meta = const Value.absent()}) =>
       Message(
         id: id ?? this.id,
-        eventId: eventId.present ? eventId.value : this.eventId,
+        nodeId: nodeId.present ? nodeId.value : this.nodeId,
         threadId: threadId ?? this.threadId,
         senderId: senderId ?? this.senderId,
         content: content.present ? content.value : this.content,
@@ -1592,7 +1967,7 @@ class Message extends DataClass implements Insertable<Message> {
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
       id: data.id.present ? data.id.value : this.id,
-      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      nodeId: data.nodeId.present ? data.nodeId.value : this.nodeId,
       threadId: data.threadId.present ? data.threadId.value : this.threadId,
       senderId: data.senderId.present ? data.senderId.value : this.senderId,
       content: data.content.present ? data.content.value : this.content,
@@ -1613,7 +1988,7 @@ class Message extends DataClass implements Insertable<Message> {
   String toString() {
     return (StringBuffer('Message(')
           ..write('id: $id, ')
-          ..write('eventId: $eventId, ')
+          ..write('nodeId: $nodeId, ')
           ..write('threadId: $threadId, ')
           ..write('senderId: $senderId, ')
           ..write('content: $content, ')
@@ -1630,26 +2005,14 @@ class Message extends DataClass implements Insertable<Message> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      eventId,
-      threadId,
-      senderId,
-      content,
-      type,
-      mediaPath,
-      sequence,
-      timestamp,
-      isPlayerMessage,
-      isSecret,
-      isRead,
-      meta);
+  int get hashCode => Object.hash(id, nodeId, threadId, senderId, content, type,
+      mediaPath, sequence, timestamp, isPlayerMessage, isSecret, isRead, meta);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Message &&
           other.id == this.id &&
-          other.eventId == this.eventId &&
+          other.nodeId == this.nodeId &&
           other.threadId == this.threadId &&
           other.senderId == this.senderId &&
           other.content == this.content &&
@@ -1665,7 +2028,7 @@ class Message extends DataClass implements Insertable<Message> {
 
 class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<int> id;
-  final Value<String?> eventId;
+  final Value<String?> nodeId;
   final Value<String> threadId;
   final Value<String> senderId;
   final Value<String?> content;
@@ -1679,7 +2042,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<String?> meta;
   const MessagesCompanion({
     this.id = const Value.absent(),
-    this.eventId = const Value.absent(),
+    this.nodeId = const Value.absent(),
     this.threadId = const Value.absent(),
     this.senderId = const Value.absent(),
     this.content = const Value.absent(),
@@ -1694,7 +2057,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   });
   MessagesCompanion.insert({
     this.id = const Value.absent(),
-    this.eventId = const Value.absent(),
+    this.nodeId = const Value.absent(),
     required String threadId,
     required String senderId,
     this.content = const Value.absent(),
@@ -1711,7 +2074,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
         sequence = Value(sequence);
   static Insertable<Message> custom({
     Expression<int>? id,
-    Expression<String>? eventId,
+    Expression<String>? nodeId,
     Expression<String>? threadId,
     Expression<String>? senderId,
     Expression<String>? content,
@@ -1726,7 +2089,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (eventId != null) 'event_id': eventId,
+      if (nodeId != null) 'node_id': nodeId,
       if (threadId != null) 'thread_id': threadId,
       if (senderId != null) 'sender_id': senderId,
       if (content != null) 'content': content,
@@ -1743,7 +2106,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
 
   MessagesCompanion copyWith(
       {Value<int>? id,
-      Value<String?>? eventId,
+      Value<String?>? nodeId,
       Value<String>? threadId,
       Value<String>? senderId,
       Value<String?>? content,
@@ -1757,7 +2120,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       Value<String?>? meta}) {
     return MessagesCompanion(
       id: id ?? this.id,
-      eventId: eventId ?? this.eventId,
+      nodeId: nodeId ?? this.nodeId,
       threadId: threadId ?? this.threadId,
       senderId: senderId ?? this.senderId,
       content: content ?? this.content,
@@ -1778,8 +2141,8 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (eventId.present) {
-      map['event_id'] = Variable<String>(eventId.value);
+    if (nodeId.present) {
+      map['node_id'] = Variable<String>(nodeId.value);
     }
     if (threadId.present) {
       map['thread_id'] = Variable<String>(threadId.value);
@@ -1821,7 +2184,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   String toString() {
     return (StringBuffer('MessagesCompanion(')
           ..write('id: $id, ')
-          ..write('eventId: $eventId, ')
+          ..write('nodeId: $nodeId, ')
           ..write('threadId: $threadId, ')
           ..write('senderId: $senderId, ')
           ..write('content: $content, ')
@@ -2245,6 +2608,14 @@ class $StoryStateTable extends StoryState
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("value" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _intValueMeta =
+      const VerificationMeta('intValue');
+  @override
+  late final GeneratedColumn<int> intValue = GeneratedColumn<int>(
+      'int_value', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _stringValueMeta =
       const VerificationMeta('stringValue');
   @override
@@ -2260,7 +2631,8 @@ class $StoryStateTable extends StoryState
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
   @override
-  List<GeneratedColumn> get $columns => [key, value, stringValue, updatedAt];
+  List<GeneratedColumn> get $columns =>
+      [key, value, intValue, stringValue, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2280,6 +2652,10 @@ class $StoryStateTable extends StoryState
     if (data.containsKey('value')) {
       context.handle(
           _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    }
+    if (data.containsKey('int_value')) {
+      context.handle(_intValueMeta,
+          intValue.isAcceptableOrUnknown(data['int_value']!, _intValueMeta));
     }
     if (data.containsKey('string_value')) {
       context.handle(
@@ -2304,6 +2680,8 @@ class $StoryStateTable extends StoryState
           .read(DriftSqlType.string, data['${effectivePrefix}key'])!,
       value: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}value'])!,
+      intValue: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}int_value'])!,
       stringValue: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}string_value']),
       updatedAt: attachedDatabase.typeMapping
@@ -2320,11 +2698,13 @@ class $StoryStateTable extends StoryState
 class StoryStateData extends DataClass implements Insertable<StoryStateData> {
   final String key;
   final bool value;
+  final int intValue;
   final String? stringValue;
   final DateTime updatedAt;
   const StoryStateData(
       {required this.key,
       required this.value,
+      required this.intValue,
       this.stringValue,
       required this.updatedAt});
   @override
@@ -2332,6 +2712,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     final map = <String, Expression>{};
     map['key'] = Variable<String>(key);
     map['value'] = Variable<bool>(value);
+    map['int_value'] = Variable<int>(intValue);
     if (!nullToAbsent || stringValue != null) {
       map['string_value'] = Variable<String>(stringValue);
     }
@@ -2343,6 +2724,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     return StoryStateCompanion(
       key: Value(key),
       value: Value(value),
+      intValue: Value(intValue),
       stringValue: stringValue == null && nullToAbsent
           ? const Value.absent()
           : Value(stringValue),
@@ -2356,6 +2738,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     return StoryStateData(
       key: serializer.fromJson<String>(json['key']),
       value: serializer.fromJson<bool>(json['value']),
+      intValue: serializer.fromJson<int>(json['intValue']),
       stringValue: serializer.fromJson<String?>(json['stringValue']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -2366,6 +2749,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     return <String, dynamic>{
       'key': serializer.toJson<String>(key),
       'value': serializer.toJson<bool>(value),
+      'intValue': serializer.toJson<int>(intValue),
       'stringValue': serializer.toJson<String?>(stringValue),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -2374,11 +2758,13 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
   StoryStateData copyWith(
           {String? key,
           bool? value,
+          int? intValue,
           Value<String?> stringValue = const Value.absent(),
           DateTime? updatedAt}) =>
       StoryStateData(
         key: key ?? this.key,
         value: value ?? this.value,
+        intValue: intValue ?? this.intValue,
         stringValue: stringValue.present ? stringValue.value : this.stringValue,
         updatedAt: updatedAt ?? this.updatedAt,
       );
@@ -2386,6 +2772,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     return StoryStateData(
       key: data.key.present ? data.key.value : this.key,
       value: data.value.present ? data.value.value : this.value,
+      intValue: data.intValue.present ? data.intValue.value : this.intValue,
       stringValue:
           data.stringValue.present ? data.stringValue.value : this.stringValue,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -2397,6 +2784,7 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
     return (StringBuffer('StoryStateData(')
           ..write('key: $key, ')
           ..write('value: $value, ')
+          ..write('intValue: $intValue, ')
           ..write('stringValue: $stringValue, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2404,13 +2792,14 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
   }
 
   @override
-  int get hashCode => Object.hash(key, value, stringValue, updatedAt);
+  int get hashCode => Object.hash(key, value, intValue, stringValue, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StoryStateData &&
           other.key == this.key &&
           other.value == this.value &&
+          other.intValue == this.intValue &&
           other.stringValue == this.stringValue &&
           other.updatedAt == this.updatedAt);
 }
@@ -2418,12 +2807,14 @@ class StoryStateData extends DataClass implements Insertable<StoryStateData> {
 class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
   final Value<String> key;
   final Value<bool> value;
+  final Value<int> intValue;
   final Value<String?> stringValue;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const StoryStateCompanion({
     this.key = const Value.absent(),
     this.value = const Value.absent(),
+    this.intValue = const Value.absent(),
     this.stringValue = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2431,6 +2822,7 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
   StoryStateCompanion.insert({
     required String key,
     this.value = const Value.absent(),
+    this.intValue = const Value.absent(),
     this.stringValue = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2438,6 +2830,7 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
   static Insertable<StoryStateData> custom({
     Expression<String>? key,
     Expression<bool>? value,
+    Expression<int>? intValue,
     Expression<String>? stringValue,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -2445,6 +2838,7 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
     return RawValuesInsertable({
       if (key != null) 'key': key,
       if (value != null) 'value': value,
+      if (intValue != null) 'int_value': intValue,
       if (stringValue != null) 'string_value': stringValue,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2454,12 +2848,14 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
   StoryStateCompanion copyWith(
       {Value<String>? key,
       Value<bool>? value,
+      Value<int>? intValue,
       Value<String?>? stringValue,
       Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
     return StoryStateCompanion(
       key: key ?? this.key,
       value: value ?? this.value,
+      intValue: intValue ?? this.intValue,
       stringValue: stringValue ?? this.stringValue,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -2474,6 +2870,9 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
     }
     if (value.present) {
       map['value'] = Variable<bool>(value.value);
+    }
+    if (intValue.present) {
+      map['int_value'] = Variable<int>(intValue.value);
     }
     if (stringValue.present) {
       map['string_value'] = Variable<String>(stringValue.value);
@@ -2492,6 +2891,7 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
     return (StringBuffer('StoryStateCompanion(')
           ..write('key: $key, ')
           ..write('value: $value, ')
+          ..write('intValue: $intValue, ')
           ..write('stringValue: $stringValue, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2596,11 +2996,7 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
 class Episode extends DataClass implements Insertable<Episode> {
   final String id;
   final bool isUnlocked;
-
-  /// playback progress (event index)
   final int progress;
-
-  /// episode version (for future updates)
   final int version;
   const Episode(
       {required this.id,
@@ -2779,6 +3175,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PlayersTable players = $PlayersTable(this);
   late final $CharactersTable characters = $CharactersTable(this);
   late final $ThreadsTable threads = $ThreadsTable(this);
+  late final $StoryNodesTable storyNodes = $StoryNodesTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $StoryStateTable storyState = $StoryStateTable(this);
@@ -2791,6 +3188,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         players,
         characters,
         threads,
+        storyNodes,
         messages,
         notifications,
         storyState,
@@ -2992,6 +3390,7 @@ typedef $$CharactersTableCreateCompanionBuilder = CharactersCompanion Function({
   Value<String?> bio,
   Value<String?> knownInfo,
   Value<String?> investigationNotes,
+  Value<String> colorHex,
   Value<int> rowid,
 });
 typedef $$CharactersTableUpdateCompanionBuilder = CharactersCompanion Function({
@@ -3002,8 +3401,29 @@ typedef $$CharactersTableUpdateCompanionBuilder = CharactersCompanion Function({
   Value<String?> bio,
   Value<String?> knownInfo,
   Value<String?> investigationNotes,
+  Value<String> colorHex,
   Value<int> rowid,
 });
+
+final class $$CharactersTableReferences
+    extends BaseReferences<_$AppDatabase, $CharactersTable, Character> {
+  $$CharactersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$StoryNodesTable, List<StoryNode>>
+      _storyNodesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.storyNodes,
+          aliasName:
+              $_aliasNameGenerator(db.characters.id, db.storyNodes.senderId));
+
+  $$StoryNodesTableProcessedTableManager get storyNodesRefs {
+    final manager = $$StoryNodesTableTableManager($_db, $_db.storyNodes)
+        .filter((f) => f.senderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_storyNodesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$CharactersTableFilterComposer
     extends Composer<_$AppDatabase, $CharactersTable> {
@@ -3035,6 +3455,30 @@ class $$CharactersTableFilterComposer
   ColumnFilters<String> get investigationNotes => $composableBuilder(
       column: $table.investigationNotes,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get colorHex => $composableBuilder(
+      column: $table.colorHex, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> storyNodesRefs(
+      Expression<bool> Function($$StoryNodesTableFilterComposer f) f) {
+    final $$StoryNodesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.storyNodes,
+        getReferencedColumn: (t) => t.senderId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoryNodesTableFilterComposer(
+              $db: $db,
+              $table: $db.storyNodes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$CharactersTableOrderingComposer
@@ -3067,6 +3511,9 @@ class $$CharactersTableOrderingComposer
   ColumnOrderings<String> get investigationNotes => $composableBuilder(
       column: $table.investigationNotes,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get colorHex => $composableBuilder(
+      column: $table.colorHex, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CharactersTableAnnotationComposer
@@ -3098,6 +3545,30 @@ class $$CharactersTableAnnotationComposer
 
   GeneratedColumn<String> get investigationNotes => $composableBuilder(
       column: $table.investigationNotes, builder: (column) => column);
+
+  GeneratedColumn<String> get colorHex =>
+      $composableBuilder(column: $table.colorHex, builder: (column) => column);
+
+  Expression<T> storyNodesRefs<T extends Object>(
+      Expression<T> Function($$StoryNodesTableAnnotationComposer a) f) {
+    final $$StoryNodesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.storyNodes,
+        getReferencedColumn: (t) => t.senderId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoryNodesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.storyNodes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$CharactersTableTableManager extends RootTableManager<
@@ -3109,9 +3580,9 @@ class $$CharactersTableTableManager extends RootTableManager<
     $$CharactersTableAnnotationComposer,
     $$CharactersTableCreateCompanionBuilder,
     $$CharactersTableUpdateCompanionBuilder,
-    (Character, BaseReferences<_$AppDatabase, $CharactersTable, Character>),
+    (Character, $$CharactersTableReferences),
     Character,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool storyNodesRefs})> {
   $$CharactersTableTableManager(_$AppDatabase db, $CharactersTable table)
       : super(TableManagerState(
           db: db,
@@ -3130,6 +3601,7 @@ class $$CharactersTableTableManager extends RootTableManager<
             Value<String?> bio = const Value.absent(),
             Value<String?> knownInfo = const Value.absent(),
             Value<String?> investigationNotes = const Value.absent(),
+            Value<String> colorHex = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CharactersCompanion(
@@ -3140,6 +3612,7 @@ class $$CharactersTableTableManager extends RootTableManager<
             bio: bio,
             knownInfo: knownInfo,
             investigationNotes: investigationNotes,
+            colorHex: colorHex,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -3150,6 +3623,7 @@ class $$CharactersTableTableManager extends RootTableManager<
             Value<String?> bio = const Value.absent(),
             Value<String?> knownInfo = const Value.absent(),
             Value<String?> investigationNotes = const Value.absent(),
+            Value<String> colorHex = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CharactersCompanion.insert(
@@ -3160,12 +3634,39 @@ class $$CharactersTableTableManager extends RootTableManager<
             bio: bio,
             knownInfo: knownInfo,
             investigationNotes: investigationNotes,
+            colorHex: colorHex,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$CharactersTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({storyNodesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (storyNodesRefs) db.storyNodes],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (storyNodesRefs)
+                    await $_getPrefetchedData<Character, $CharactersTable,
+                            StoryNode>(
+                        currentTable: table,
+                        referencedTable: $$CharactersTableReferences
+                            ._storyNodesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CharactersTableReferences(db, table, p0)
+                                .storyNodesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.senderId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -3178,9 +3679,9 @@ typedef $$CharactersTableProcessedTableManager = ProcessedTableManager<
     $$CharactersTableAnnotationComposer,
     $$CharactersTableCreateCompanionBuilder,
     $$CharactersTableUpdateCompanionBuilder,
-    (Character, BaseReferences<_$AppDatabase, $CharactersTable, Character>),
+    (Character, $$CharactersTableReferences),
     Character,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool storyNodesRefs})>;
 typedef $$ThreadsTableCreateCompanionBuilder = ThreadsCompanion Function({
   required String id,
   required String title,
@@ -3477,9 +3978,368 @@ typedef $$ThreadsTableProcessedTableManager = ProcessedTableManager<
     (Thread, $$ThreadsTableReferences),
     Thread,
     PrefetchHooks Function({bool messagesRefs})>;
+typedef $$StoryNodesTableCreateCompanionBuilder = StoryNodesCompanion Function({
+  required String id,
+  required String type,
+  Value<String?> senderId,
+  Value<String?> content,
+  Value<String?> nextNodeId,
+  Value<String?> metadata,
+  Value<int> rowid,
+});
+typedef $$StoryNodesTableUpdateCompanionBuilder = StoryNodesCompanion Function({
+  Value<String> id,
+  Value<String> type,
+  Value<String?> senderId,
+  Value<String?> content,
+  Value<String?> nextNodeId,
+  Value<String?> metadata,
+  Value<int> rowid,
+});
+
+final class $$StoryNodesTableReferences
+    extends BaseReferences<_$AppDatabase, $StoryNodesTable, StoryNode> {
+  $$StoryNodesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CharactersTable _senderIdTable(_$AppDatabase db) =>
+      db.characters.createAlias(
+          $_aliasNameGenerator(db.storyNodes.senderId, db.characters.id));
+
+  $$CharactersTableProcessedTableManager? get senderId {
+    final $_column = $_itemColumn<String>('sender_id');
+    if ($_column == null) return null;
+    final manager = $$CharactersTableTableManager($_db, $_db.characters)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_senderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$MessagesTable, List<Message>> _messagesRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.messages,
+          aliasName:
+              $_aliasNameGenerator(db.storyNodes.id, db.messages.nodeId));
+
+  $$MessagesTableProcessedTableManager get messagesRefs {
+    final manager = $$MessagesTableTableManager($_db, $_db.messages)
+        .filter((f) => f.nodeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_messagesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$StoryNodesTableFilterComposer
+    extends Composer<_$AppDatabase, $StoryNodesTable> {
+  $$StoryNodesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get content => $composableBuilder(
+      column: $table.content, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nextNodeId => $composableBuilder(
+      column: $table.nextNodeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get metadata => $composableBuilder(
+      column: $table.metadata, builder: (column) => ColumnFilters(column));
+
+  $$CharactersTableFilterComposer get senderId {
+    final $$CharactersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.senderId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableFilterComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> messagesRefs(
+      Expression<bool> Function($$MessagesTableFilterComposer f) f) {
+    final $$MessagesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.messages,
+        getReferencedColumn: (t) => t.nodeId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MessagesTableFilterComposer(
+              $db: $db,
+              $table: $db.messages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$StoryNodesTableOrderingComposer
+    extends Composer<_$AppDatabase, $StoryNodesTable> {
+  $$StoryNodesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get content => $composableBuilder(
+      column: $table.content, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nextNodeId => $composableBuilder(
+      column: $table.nextNodeId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get metadata => $composableBuilder(
+      column: $table.metadata, builder: (column) => ColumnOrderings(column));
+
+  $$CharactersTableOrderingComposer get senderId {
+    final $$CharactersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.senderId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableOrderingComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StoryNodesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StoryNodesTable> {
+  $$StoryNodesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get nextNodeId => $composableBuilder(
+      column: $table.nextNodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
+
+  $$CharactersTableAnnotationComposer get senderId {
+    final $$CharactersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.senderId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> messagesRefs<T extends Object>(
+      Expression<T> Function($$MessagesTableAnnotationComposer a) f) {
+    final $$MessagesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.messages,
+        getReferencedColumn: (t) => t.nodeId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MessagesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.messages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$StoryNodesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $StoryNodesTable,
+    StoryNode,
+    $$StoryNodesTableFilterComposer,
+    $$StoryNodesTableOrderingComposer,
+    $$StoryNodesTableAnnotationComposer,
+    $$StoryNodesTableCreateCompanionBuilder,
+    $$StoryNodesTableUpdateCompanionBuilder,
+    (StoryNode, $$StoryNodesTableReferences),
+    StoryNode,
+    PrefetchHooks Function({bool senderId, bool messagesRefs})> {
+  $$StoryNodesTableTableManager(_$AppDatabase db, $StoryNodesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StoryNodesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StoryNodesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StoryNodesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<String?> senderId = const Value.absent(),
+            Value<String?> content = const Value.absent(),
+            Value<String?> nextNodeId = const Value.absent(),
+            Value<String?> metadata = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StoryNodesCompanion(
+            id: id,
+            type: type,
+            senderId: senderId,
+            content: content,
+            nextNodeId: nextNodeId,
+            metadata: metadata,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String type,
+            Value<String?> senderId = const Value.absent(),
+            Value<String?> content = const Value.absent(),
+            Value<String?> nextNodeId = const Value.absent(),
+            Value<String?> metadata = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StoryNodesCompanion.insert(
+            id: id,
+            type: type,
+            senderId: senderId,
+            content: content,
+            nextNodeId: nextNodeId,
+            metadata: metadata,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$StoryNodesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({senderId = false, messagesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (messagesRefs) db.messages],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (senderId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.senderId,
+                    referencedTable:
+                        $$StoryNodesTableReferences._senderIdTable(db),
+                    referencedColumn:
+                        $$StoryNodesTableReferences._senderIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (messagesRefs)
+                    await $_getPrefetchedData<StoryNode, $StoryNodesTable,
+                            Message>(
+                        currentTable: table,
+                        referencedTable:
+                            $$StoryNodesTableReferences._messagesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$StoryNodesTableReferences(db, table, p0)
+                                .messagesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.nodeId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$StoryNodesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $StoryNodesTable,
+    StoryNode,
+    $$StoryNodesTableFilterComposer,
+    $$StoryNodesTableOrderingComposer,
+    $$StoryNodesTableAnnotationComposer,
+    $$StoryNodesTableCreateCompanionBuilder,
+    $$StoryNodesTableUpdateCompanionBuilder,
+    (StoryNode, $$StoryNodesTableReferences),
+    StoryNode,
+    PrefetchHooks Function({bool senderId, bool messagesRefs})>;
 typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   Value<int> id,
-  Value<String?> eventId,
+  Value<String?> nodeId,
   required String threadId,
   required String senderId,
   Value<String?> content,
@@ -3494,7 +4354,7 @@ typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<int> id,
-  Value<String?> eventId,
+  Value<String?> nodeId,
   Value<String> threadId,
   Value<String> senderId,
   Value<String?> content,
@@ -3511,6 +4371,20 @@ typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
 final class $$MessagesTableReferences
     extends BaseReferences<_$AppDatabase, $MessagesTable, Message> {
   $$MessagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $StoryNodesTable _nodeIdTable(_$AppDatabase db) => db.storyNodes
+      .createAlias($_aliasNameGenerator(db.messages.nodeId, db.storyNodes.id));
+
+  $$StoryNodesTableProcessedTableManager? get nodeId {
+    final $_column = $_itemColumn<String>('node_id');
+    if ($_column == null) return null;
+    final manager = $$StoryNodesTableTableManager($_db, $_db.storyNodes)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_nodeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static $ThreadsTable _threadIdTable(_$AppDatabase db) => db.threads
       .createAlias($_aliasNameGenerator(db.messages.threadId, db.threads.id));
@@ -3538,9 +4412,6 @@ class $$MessagesTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get eventId => $composableBuilder(
-      column: $table.eventId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get senderId => $composableBuilder(
       column: $table.senderId, builder: (column) => ColumnFilters(column));
@@ -3572,6 +4443,26 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<String> get meta => $composableBuilder(
       column: $table.meta, builder: (column) => ColumnFilters(column));
+
+  $$StoryNodesTableFilterComposer get nodeId {
+    final $$StoryNodesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.nodeId,
+        referencedTable: $db.storyNodes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoryNodesTableFilterComposer(
+              $db: $db,
+              $table: $db.storyNodes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   $$ThreadsTableFilterComposer get threadId {
     final $$ThreadsTableFilterComposer composer = $composerBuilder(
@@ -3606,9 +4497,6 @@ class $$MessagesTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get eventId => $composableBuilder(
-      column: $table.eventId, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get senderId => $composableBuilder(
       column: $table.senderId, builder: (column) => ColumnOrderings(column));
 
@@ -3639,6 +4527,26 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<String> get meta => $composableBuilder(
       column: $table.meta, builder: (column) => ColumnOrderings(column));
+
+  $$StoryNodesTableOrderingComposer get nodeId {
+    final $$StoryNodesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.nodeId,
+        referencedTable: $db.storyNodes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoryNodesTableOrderingComposer(
+              $db: $db,
+              $table: $db.storyNodes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   $$ThreadsTableOrderingComposer get threadId {
     final $$ThreadsTableOrderingComposer composer = $composerBuilder(
@@ -3673,9 +4581,6 @@ class $$MessagesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get eventId =>
-      $composableBuilder(column: $table.eventId, builder: (column) => column);
-
   GeneratedColumn<String> get senderId =>
       $composableBuilder(column: $table.senderId, builder: (column) => column);
 
@@ -3705,6 +4610,26 @@ class $$MessagesTableAnnotationComposer
 
   GeneratedColumn<String> get meta =>
       $composableBuilder(column: $table.meta, builder: (column) => column);
+
+  $$StoryNodesTableAnnotationComposer get nodeId {
+    final $$StoryNodesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.nodeId,
+        referencedTable: $db.storyNodes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoryNodesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.storyNodes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   $$ThreadsTableAnnotationComposer get threadId {
     final $$ThreadsTableAnnotationComposer composer = $composerBuilder(
@@ -3738,7 +4663,7 @@ class $$MessagesTableTableManager extends RootTableManager<
     $$MessagesTableUpdateCompanionBuilder,
     (Message, $$MessagesTableReferences),
     Message,
-    PrefetchHooks Function({bool threadId})> {
+    PrefetchHooks Function({bool nodeId, bool threadId})> {
   $$MessagesTableTableManager(_$AppDatabase db, $MessagesTable table)
       : super(TableManagerState(
           db: db,
@@ -3751,7 +4676,7 @@ class $$MessagesTableTableManager extends RootTableManager<
               $$MessagesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
-            Value<String?> eventId = const Value.absent(),
+            Value<String?> nodeId = const Value.absent(),
             Value<String> threadId = const Value.absent(),
             Value<String> senderId = const Value.absent(),
             Value<String?> content = const Value.absent(),
@@ -3766,7 +4691,7 @@ class $$MessagesTableTableManager extends RootTableManager<
           }) =>
               MessagesCompanion(
             id: id,
-            eventId: eventId,
+            nodeId: nodeId,
             threadId: threadId,
             senderId: senderId,
             content: content,
@@ -3781,7 +4706,7 @@ class $$MessagesTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
-            Value<String?> eventId = const Value.absent(),
+            Value<String?> nodeId = const Value.absent(),
             required String threadId,
             required String senderId,
             Value<String?> content = const Value.absent(),
@@ -3796,7 +4721,7 @@ class $$MessagesTableTableManager extends RootTableManager<
           }) =>
               MessagesCompanion.insert(
             id: id,
-            eventId: eventId,
+            nodeId: nodeId,
             threadId: threadId,
             senderId: senderId,
             content: content,
@@ -3813,7 +4738,7 @@ class $$MessagesTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$MessagesTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({threadId = false}) {
+          prefetchHooksCallback: ({nodeId = false, threadId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -3830,6 +4755,15 @@ class $$MessagesTableTableManager extends RootTableManager<
                       dynamic,
                       dynamic,
                       dynamic>>(state) {
+                if (nodeId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.nodeId,
+                    referencedTable: $$MessagesTableReferences._nodeIdTable(db),
+                    referencedColumn:
+                        $$MessagesTableReferences._nodeIdTable(db).id,
+                  ) as T;
+                }
                 if (threadId) {
                   state = state.withJoin(
                     currentTable: table,
@@ -3862,7 +4796,7 @@ typedef $$MessagesTableProcessedTableManager = ProcessedTableManager<
     $$MessagesTableUpdateCompanionBuilder,
     (Message, $$MessagesTableReferences),
     Message,
-    PrefetchHooks Function({bool threadId})>;
+    PrefetchHooks Function({bool nodeId, bool threadId})>;
 typedef $$NotificationsTableCreateCompanionBuilder = NotificationsCompanion
     Function({
   required String id,
@@ -4071,6 +5005,7 @@ typedef $$NotificationsTableProcessedTableManager = ProcessedTableManager<
 typedef $$StoryStateTableCreateCompanionBuilder = StoryStateCompanion Function({
   required String key,
   Value<bool> value,
+  Value<int> intValue,
   Value<String?> stringValue,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -4078,6 +5013,7 @@ typedef $$StoryStateTableCreateCompanionBuilder = StoryStateCompanion Function({
 typedef $$StoryStateTableUpdateCompanionBuilder = StoryStateCompanion Function({
   Value<String> key,
   Value<bool> value,
+  Value<int> intValue,
   Value<String?> stringValue,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -4097,6 +5033,9 @@ class $$StoryStateTableFilterComposer
 
   ColumnFilters<bool> get value => $composableBuilder(
       column: $table.value, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get intValue => $composableBuilder(
+      column: $table.intValue, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get stringValue => $composableBuilder(
       column: $table.stringValue, builder: (column) => ColumnFilters(column));
@@ -4120,6 +5059,9 @@ class $$StoryStateTableOrderingComposer
   ColumnOrderings<bool> get value => $composableBuilder(
       column: $table.value, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get intValue => $composableBuilder(
+      column: $table.intValue, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get stringValue => $composableBuilder(
       column: $table.stringValue, builder: (column) => ColumnOrderings(column));
 
@@ -4141,6 +5083,9 @@ class $$StoryStateTableAnnotationComposer
 
   GeneratedColumn<bool> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<int> get intValue =>
+      $composableBuilder(column: $table.intValue, builder: (column) => column);
 
   GeneratedColumn<String> get stringValue => $composableBuilder(
       column: $table.stringValue, builder: (column) => column);
@@ -4177,6 +5122,7 @@ class $$StoryStateTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> key = const Value.absent(),
             Value<bool> value = const Value.absent(),
+            Value<int> intValue = const Value.absent(),
             Value<String?> stringValue = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -4184,6 +5130,7 @@ class $$StoryStateTableTableManager extends RootTableManager<
               StoryStateCompanion(
             key: key,
             value: value,
+            intValue: intValue,
             stringValue: stringValue,
             updatedAt: updatedAt,
             rowid: rowid,
@@ -4191,6 +5138,7 @@ class $$StoryStateTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String key,
             Value<bool> value = const Value.absent(),
+            Value<int> intValue = const Value.absent(),
             Value<String?> stringValue = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -4198,6 +5146,7 @@ class $$StoryStateTableTableManager extends RootTableManager<
               StoryStateCompanion.insert(
             key: key,
             value: value,
+            intValue: intValue,
             stringValue: stringValue,
             updatedAt: updatedAt,
             rowid: rowid,
@@ -4384,6 +5333,8 @@ class $AppDatabaseManager {
       $$CharactersTableTableManager(_db, _db.characters);
   $$ThreadsTableTableManager get threads =>
       $$ThreadsTableTableManager(_db, _db.threads);
+  $$StoryNodesTableTableManager get storyNodes =>
+      $$StoryNodesTableTableManager(_db, _db.storyNodes);
   $$MessagesTableTableManager get messages =>
       $$MessagesTableTableManager(_db, _db.messages);
   $$NotificationsTableTableManager get notifications =>
