@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,13 +8,18 @@ import 'tables.dart';
 
 part 'drift_database.g.dart';
 
-@DriftDatabase(tables: [Players, Characters, Threads, Messages, Notifications, StoryState, Episodes])
+@DriftDatabase(tables: [
+  Players, 
+  Characters, 
+  Threads, 
+  Messages, 
+  Notifications, 
+  StoryState, 
+  Episodes, 
+  StoryNodes
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
-
-  // ---------------------------
-  // SINGLETON
-  // ---------------------------
 
   static AppDatabase? _instance;
 
@@ -24,16 +28,8 @@ class AppDatabase extends _$AppDatabase {
     return _instance!;
   }
 
-  // ---------------------------
-  // SCHEMA VERSION
-  // ---------------------------
-
   @override
-  int get schemaVersion => 6;
-
-  // ---------------------------
-  // MIGRATIONS
-  // ---------------------------
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,23 +37,52 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      if (from < 6) {
-        await m.createTable(notifications);
+      if (from < 7) {
+        // Drop and recreate to ensure Node-Based architecture is clean
+        await m.createTable(storyNodes);
+        try {
+          await m.addColumn(storyState, storyState.intValue);
+        } catch (e) {
+          // Column might already exist in some dev versions
+        }
       }
     },
   );
 
-  // ---------------------------
-  // INIT
-  // ---------------------------
-
-  /// Warm-up database connection
   static Future<void> init() async {
     await instance.customSelect('SELECT 1').get();
   }
 
   // ---------------------------
-  // RESET FUNCTIONS
+  // NARRATIVE DAOs (Data Access)
+  // ---------------------------
+
+  Future<StoryNode?> getNextNode(String? nodeId) async {
+    if (nodeId == null) return null;
+    return (select(storyNodes)..where((t) => t.id.equals(nodeId))).getSingleOrNull();
+  }
+
+  Stream<List<Message>> watchChatMessages(String threadId) {
+    return (select(messages)
+          ..where((t) => t.threadId.equals(threadId))
+          ..orderBy([(t) => OrderingTerm.asc(t.sequence)]))
+        .watch();
+  }
+
+  Future<void> updateStoryFlag(String key, {bool? bVal, int? iVal, String? sVal}) async {
+    await into(storyState).insertOnConflictUpdate(
+      StoryStateCompanion(
+        key: Value(key),
+        value: Value(bVal ?? false),
+        intValue: Value(iVal ?? 0),
+        stringValue: Value(sVal),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  // ---------------------------
+  // RESET LOGIC
   // ---------------------------
 
   Future<void> resetAllProgress() async {
@@ -67,26 +92,15 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(threads);
       b.deleteAll(storyState);
       b.deleteAll(episodes);
+      b.deleteAll(storyNodes);
     });
   }
-
-  Future<void> resetEpisode(String episodeId) async {
-    await (delete(messages)..where((m) => m.threadId.like('$episodeId%'))).go();
-    await (delete(threads)..where((t) => t.id.like('$episodeId%'))).go();
-    await (delete(storyState)..where((s) => s.key.like('$episodeId%'))).go();
-  }
 }
-
-// ---------------------------
-// DATABASE CONNECTION
-// ---------------------------
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-
-    final file = File(p.join(dbFolder.path, 'dreadmoor.sqlite'));
-
+    final file = File(p.join(dbFolder.path, 'dreadmoor_v7.sqlite'));
     return NativeDatabase(file, logStatements: false);
   });
 }
