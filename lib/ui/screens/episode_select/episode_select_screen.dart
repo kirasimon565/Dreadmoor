@@ -17,7 +17,7 @@ class EpisodeSelectScreen extends ConsumerWidget {
     final episodesAsync = ref.watch(episodesProvider);
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Column(
         children: [
           CustomScreenHeader(
@@ -122,9 +122,9 @@ class _SeasonHeader extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: DreadmoorColors.surface,
+        color: DreadmoorColors.surface(Theme.of(context).brightness),
         border: Border(
-          left: BorderSide(color: DreadmoorColors.accentRed, width: 2),
+          left: BorderSide(color: DreadmoorColors.evidenceRed, width: 2),
         ),
       ),
       child: Row(
@@ -137,7 +137,7 @@ class _SeasonHeader extends StatelessWidget {
                 style: GoogleFonts.michroma(
                   fontSize: 11,
                   letterSpacing: 3,
-                  color: DreadmoorColors.textPrimary,
+                  color: DreadmoorColors.text(Theme.of(context).brightness),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -147,7 +147,7 @@ class _SeasonHeader extends StatelessWidget {
                 style: GoogleFonts.michroma(
                   fontSize: 9,
                   letterSpacing: 2,
-                  color: DreadmoorColors.accentRed,
+                  color: DreadmoorColors.evidenceRed,
                 ),
               ),
             ],
@@ -164,18 +164,18 @@ class _SeasonHeader extends StatelessWidget {
                   height: 7,
                   decoration: BoxDecoration(
                     color: i == 0
-                        ? DreadmoorColors.accentCyan
-                        : DreadmoorColors.surface,
+                        ? DreadmoorColors.investigatorCyan
+                        : DreadmoorColors.surface(Theme.of(context).brightness),
                     border: Border.all(
                       color: i == 0
-                          ? DreadmoorColors.accentCyan
-                          : DreadmoorColors.textMeta.withOpacity(0.3),
+                          ? DreadmoorColors.investigatorCyan
+                          : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4).withOpacity(0.3),
                       width: 1,
                     ),
                     boxShadow: i == 0
                         ? [
                             BoxShadow(
-                              color: DreadmoorColors.glowCyan.withValues(
+                              color: DreadmoorColors.investigatorCyan.withOpacity(0.5).withValues(
                                 alpha: 0.5,
                               ),
                               blurRadius: 8,
@@ -209,7 +209,7 @@ class _LoadingState extends StatelessWidget {
           width: 28,
           height: 28,
           child: CircularProgressIndicator(
-            color: DreadmoorColors.accentCyan,
+            color: DreadmoorColors.investigatorCyan,
             strokeWidth: 1.5,
           ),
         ),
@@ -219,7 +219,7 @@ class _LoadingState extends StatelessWidget {
           style: GoogleFonts.michroma(
             fontSize: 10,
             letterSpacing: 3,
-            color: DreadmoorColors.textMeta,
+            color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
           ),
         ),
       ],
@@ -240,7 +240,7 @@ class _ErrorState extends StatelessWidget {
         children: [
           Icon(
             Icons.warning_amber_rounded,
-            color: DreadmoorColors.accentRed,
+            color: DreadmoorColors.evidenceRed,
             size: 32,
           ),
           const SizedBox(height: 16),
@@ -249,7 +249,7 @@ class _ErrorState extends StatelessWidget {
             style: GoogleFonts.michroma(
               fontSize: 12,
               letterSpacing: 2.5,
-              color: DreadmoorColors.accentRed,
+              color: DreadmoorColors.evidenceRed,
             ),
           ),
           const SizedBox(height: 8),
@@ -258,7 +258,7 @@ class _ErrorState extends StatelessWidget {
             style: GoogleFonts.michroma(
               fontSize: 9,
               letterSpacing: 2,
-              color: DreadmoorColors.textMeta,
+              color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
             ),
           ),
         ],
@@ -281,13 +281,13 @@ class _EmptyState extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               border: Border.all(
-                color: DreadmoorColors.textMeta.withOpacity(0.3),
+                color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4).withOpacity(0.3),
                 width: 1,
               ),
             ),
             child: Icon(
               Icons.folder_off_outlined,
-              color: DreadmoorColors.textMeta.withOpacity(0.4),
+              color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4).withOpacity(0.4),
               size: 22,
             ),
           ),
@@ -297,7 +297,7 @@ class _EmptyState extends StatelessWidget {
             style: GoogleFonts.michroma(
               fontSize: 10,
               letterSpacing: 3,
-              color: DreadmoorColors.textMeta,
+              color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
             ),
           ),
         ],

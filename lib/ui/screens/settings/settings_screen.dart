@@ -45,10 +45,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: DreadmoorColors.surface,
+            backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
             content: Text(
               'Progress saved.',
-              style: GoogleFonts.inter(color: DreadmoorColors.textPrimary),
+              style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.text(Theme.of(context).brightness)),
             ),
           ),
         );
@@ -57,10 +57,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: DreadmoorColors.surface,
+            backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
             content: Text(
               'Save failed. Try again.',
-              style: GoogleFonts.inter(color: DreadmoorColors.accentRed),
+              style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.evidenceRed),
             ),
           ),
         );
@@ -99,10 +99,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: DreadmoorColors.surface,
+              backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
               content: Text(
                 'No saved game found.',
-                style: GoogleFonts.inter(color: DreadmoorColors.textSecondary),
+                style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7)),
               ),
             ),
           );
@@ -133,10 +133,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: DreadmoorColors.surface,
+            backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
             content: Text(
               'Load failed. Try again.',
-              style: GoogleFonts.inter(color: DreadmoorColors.accentRed),
+              style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.evidenceRed),
             ),
           ),
         );
@@ -150,21 +150,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: DreadmoorColors.surface,
+        backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
         title: Text(
           "RESET PROGRESS?",
-          style: GoogleFonts.michroma(color: DreadmoorColors.accentRed),
+          style: GoogleFonts.michroma(color: DreadmoorColors.evidenceRed),
         ),
         content: Text(
           "This will erase all local data and restart the story. This cannot be undone.",
-          style: GoogleFonts.inter(color: DreadmoorColors.textPrimary),
+          style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.text(Theme.of(context).brightness)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               "CANCEL",
-              style: GoogleFonts.michroma(color: DreadmoorColors.textSecondary),
+              style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7)),
             ),
           ),
           TextButton(
@@ -174,7 +174,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             child: Text(
               "CONFIRM",
-              style: GoogleFonts.michroma(color: DreadmoorColors.accentRed),
+              style: GoogleFonts.michroma(color: DreadmoorColors.evidenceRed),
             ),
           ),
         ],
@@ -197,10 +197,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: DreadmoorColors.surface,
+            backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
             content: Text(
               'Reset failed. Try again.',
-              style: GoogleFonts.inter(color: DreadmoorColors.accentRed),
+              style: GoogleFonts.spaceGrotesk(color: DreadmoorColors.evidenceRed),
             ),
           ),
         );
@@ -213,7 +213,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Column(
         children: [
           CustomScreenHeader(
@@ -298,7 +298,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Center(
                   child: Text(
                     "© 2025 Blackmoon Studio. All rights reserved.",
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 9,
                       color: Colors.white.withOpacity(0.25),
                       letterSpacing: 1.0,
@@ -330,7 +330,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       title,
       style: GoogleFonts.michroma(
         fontSize: 10,
-        color: DreadmoorColors.textMeta,
+        color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
         letterSpacing: 1.5,
       ),
     ),
@@ -356,12 +356,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Text(
                 title,
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
+                style: GoogleFonts.spaceGrotesk(fontSize: 14, color: Colors.white),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 10,
                   color: Colors.white.withOpacity(0.54),
                 ),
@@ -381,15 +381,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(12),
       color: value
-          ? DreadmoorColors.accentCyan.withOpacity(0.2)
+          ? DreadmoorColors.investigatorCyan.withOpacity(0.2)
           : Colors.white.withOpacity(0.1),
       border: Border.all(
         color: value
-            ? DreadmoorColors.accentCyan
+            ? DreadmoorColors.investigatorCyan
             : Colors.white.withOpacity(0.2),
       ),
       boxShadow: value
-          ? [BoxShadow(color: DreadmoorColors.glowCyan, blurRadius: 8)]
+          ? [BoxShadow(color: DreadmoorColors.investigatorCyan.withOpacity(0.5), blurRadius: 8)]
           : [],
     ),
     child: Align(
@@ -400,7 +400,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: value ? DreadmoorColors.accentCyan : Colors.white54,
+          color: value ? DreadmoorColors.investigatorCyan : Colors.white54,
         ),
       ),
     ),
@@ -424,14 +424,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }) => ListTile(
     contentPadding: EdgeInsets.zero,
     onTap: onTap,
-    leading: Icon(icon, color: DreadmoorColors.accentCyan, size: 20),
+    leading: Icon(icon, color: DreadmoorColors.investigatorCyan, size: 20),
     title: Text(
       label,
       style: GoogleFonts.michroma(fontSize: 12, color: Colors.white),
     ),
     subtitle: Text(
       subtitle,
-      style: GoogleFonts.inter(
+      style: GoogleFonts.spaceGrotesk(
         fontSize: 10,
         color: Colors.white.withOpacity(0.45),
       ),
@@ -445,7 +445,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       children: [
         Text(
           role,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.spaceGrotesk(
             fontSize: 11,
             color: Colors.white.withOpacity(0.45),
           ),
@@ -469,16 +469,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       "Reset Progress",
       style: GoogleFonts.michroma(
         fontSize: 12,
-        color: DreadmoorColors.accentRed,
+        color: DreadmoorColors.evidenceRed,
       ),
     ),
     subtitle: Text(
       "Erases all data and restarts the story.",
-      style: GoogleFonts.inter(fontSize: 10, color: Colors.white54),
+      style: GoogleFonts.spaceGrotesk(fontSize: 10, color: Colors.white54),
     ),
     trailing: Icon(
       Icons.warning_amber_rounded,
-      color: DreadmoorColors.accentRed,
+      color: DreadmoorColors.evidenceRed,
     ),
   );
 }

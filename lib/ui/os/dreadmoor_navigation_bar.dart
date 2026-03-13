@@ -15,10 +15,10 @@ class DreadmoorNavigationBar extends ConsumerWidget {
     return Container(
       height: 64,
       decoration: const BoxDecoration(
-        color: DreadmoorColors.surfaceAlt,
+        color: DreadmoorColors.surface(Theme.of(context).brightness),
         border: Border(
           top: BorderSide(
-            color: DreadmoorColors.divider,
+            color: DreadmoorColors.divider(Theme.of(context).brightness),
             width: 1.0,
           ),
         ),
@@ -78,7 +78,7 @@ class _NavItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final color = isActive ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary;
+    final color = isActive ? DreadmoorColors.investigatorCyan : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7);
 
     return Expanded(
       child: GestureDetector(

@@ -26,7 +26,7 @@ class GlobalScheduler {
   // --------------------------------------------------
 
   /// Starts the story from a specific Node ID (e.g., 'SCENE_1_NEWS_ARTICLE')
-  Future<void> startFromNode(String nodeId) async {
+  Future<void> processNode(String nodeId) async {
     _timer?.cancel();
     
     final db = ref.read(databaseProvider);

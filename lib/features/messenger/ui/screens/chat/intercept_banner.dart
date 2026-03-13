@@ -68,7 +68,7 @@ class _InterceptBannerState extends State<InterceptBanner>
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             // Matching the "Unknown" pill header style
-            color: isDark ? const Color(0xFFB71C1C).withOpacity(0.9) : const Color(0xFFB71C1C),
+            color: isDark ? DreadmoorColors.evidenceRed.withOpacity(0.9) : DreadmoorColors.evidenceRed,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: Colors.black.withOpacity(0.2),
@@ -95,7 +95,7 @@ class _InterceptBannerState extends State<InterceptBanner>
                     children: [
                       Text(
                         "SIGNAL INTERCEPTED",
-                        style: GoogleFonts.spectral(
+                        style: GoogleFonts.michroma(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,

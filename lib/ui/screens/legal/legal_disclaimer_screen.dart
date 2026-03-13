@@ -12,7 +12,7 @@ class LegalDisclaimerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
@@ -82,7 +82,7 @@ class LegalDisclaimerScreen extends StatelessWidget {
                               style: GoogleFonts.michroma(
                                 fontSize: 9,
                                 letterSpacing: 2,
-                                color: DreadmoorColors.textMeta.withValues(
+                                color: DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                   alpha: 0.5,
                                 ),
                               ),
@@ -93,7 +93,7 @@ class LegalDisclaimerScreen extends StatelessWidget {
                               style: GoogleFonts.michroma(
                                 fontSize: 8,
                                 letterSpacing: 2.5,
-                                color: DreadmoorColors.textMeta.withValues(
+                                color: DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                   alpha: 0.3,
                                 ),
                               ),
@@ -128,7 +128,7 @@ class _DocumentStamp extends StatelessWidget {
           Icon(
             Icons.gavel_rounded,
             size: 13,
-            color: DreadmoorColors.textMeta.withOpacity(0.4),
+            color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4).withOpacity(0.4),
           ),
           const SizedBox(width: 10),
           Text(
@@ -136,7 +136,7 @@ class _DocumentStamp extends StatelessWidget {
             style: GoogleFonts.sourceCodePro(
               fontSize: 10,
               letterSpacing: 1.5,
-              color: DreadmoorColors.textMeta.withOpacity(0.4),
+              color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4).withOpacity(0.4),
             ),
           ),
           const Spacer(),
@@ -144,7 +144,7 @@ class _DocumentStamp extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               border: Border.all(
-                color: DreadmoorColors.accentCyan.withOpacity(0.3),
+                color: DreadmoorColors.investigatorCyan.withOpacity(0.3),
               ),
             ),
             child: Text(
@@ -152,7 +152,7 @@ class _DocumentStamp extends StatelessWidget {
               style: GoogleFonts.michroma(
                 fontSize: 7,
                 letterSpacing: 2,
-                color: DreadmoorColors.accentCyan.withOpacity(0.5),
+                color: DreadmoorColors.investigatorCyan.withOpacity(0.5),
               ),
             ),
           ),
@@ -187,7 +187,7 @@ class _LegalSection extends StatelessWidget {
                 index,
                 style: GoogleFonts.michroma(
                   fontSize: 22,
-                  color: DreadmoorColors.accentCyan.withOpacity(0.1),
+                  color: DreadmoorColors.investigatorCyan.withOpacity(0.1),
                   letterSpacing: -1,
                   height: 1.0,
                 ),
@@ -202,13 +202,13 @@ class _LegalSection extends StatelessWidget {
                       style: GoogleFonts.michroma(
                         fontSize: 10,
                         letterSpacing: 2.5,
-                        color: DreadmoorColors.accentCyan,
+                        color: DreadmoorColors.investigatorCyan,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Container(
                       height: 1,
-                      color: DreadmoorColors.accentCyan.withOpacity(0.15),
+                      color: DreadmoorColors.investigatorCyan.withOpacity(0.15),
                     ),
                   ],
                 ),

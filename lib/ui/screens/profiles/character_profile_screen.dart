@@ -25,7 +25,7 @@ class CharacterProfileScreen extends ConsumerWidget {
     return profileAsync.when(
       loading: () => const Scaffold(
         backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: DreadmoorColors.accentCyan)),
+        body: Center(child: CircularProgressIndicator(color: DreadmoorColors.investigatorCyan)),
       ),
       error: (err, stack) => Scaffold(body: Center(child: Text('Load Error: $err'))),
       data: (profile) {
@@ -87,7 +87,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                               profile.phoneNumber ?? "ID: HIDDEN",
                               style: DreadmoorTheme.bodyStyle.copyWith(
                                 fontSize: 13,
-                                color: DreadmoorColors.accentCyan,
+                                color: DreadmoorColors.investigatorCyan,
                                 letterSpacing: 1.5,
                               ),
                             ),
@@ -147,7 +147,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.5,
-                                      color: DreadmoorColors.textSecondary,
+                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                                     ),
                                   ),
                                   const Divider(height: 24, thickness: 1),
@@ -186,7 +186,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                   ),
                   child: CircleAvatar(
                     radius: 65,
-                    backgroundColor: DreadmoorColors.surfaceAlt,
+                    backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
                     backgroundImage: _resolveImage(profile.avatar),
                   ),
                 ),

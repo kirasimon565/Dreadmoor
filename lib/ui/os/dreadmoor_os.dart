@@ -25,7 +25,7 @@ class DreadmoorOS extends ConsumerWidget {
     final isHacked = ref.watch(isHackedProvider); // New state for Scene 5
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           // MAIN OS LAYER

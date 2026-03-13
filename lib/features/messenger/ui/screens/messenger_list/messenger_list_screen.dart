@@ -27,7 +27,7 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DreadmoorColors.surface(brightness),
+        backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // Sharper
         title: Text(
           "NEW CONNECTION",

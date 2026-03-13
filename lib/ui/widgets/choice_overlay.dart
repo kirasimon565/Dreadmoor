@@ -96,7 +96,11 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay> {
                                     alignment: Alignment.center,
                                     child: Text(
                                       choice.text.toUpperCase(),
-                                      style: GoogleFonts.spectral(
+                                      style: isDark ? GoogleFonts.spaceGrotesk(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ) : GoogleFonts.spectral(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black87,
@@ -158,7 +162,7 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay> {
           children: [
             Text(
               "Send message...",
-              style: GoogleFonts.spectral(fontSize: 22, color: Colors.black45),
+              style: isDark ? GoogleFonts.spaceGrotesk(fontSize: 18, color: Colors.black45) : GoogleFonts.spectral(fontSize: 22, color: Colors.black45),
             ),
             
             // RED QUILL SEND BUTTON

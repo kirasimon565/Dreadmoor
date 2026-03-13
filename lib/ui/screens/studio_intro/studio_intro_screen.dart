@@ -157,7 +157,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -168,7 +168,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
             color: Colors.white.withOpacity(0.18),
             colorBlendMode: BlendMode.modulate,
             errorBuilder: (_, __, ___) =>
-                const ColoredBox(color: DreadmoorColors.background),
+                ColoredBox(color: DreadmoorColors.background(Theme.of(context).brightness)),
           ),
 
           // ── 2. Grain / glitch overlay ─────────────────────────────────
@@ -241,7 +241,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                         child: Text(
                           "These characters and places are purely fictional.\n"
                           "Any resemblance to actual persons or events is purely coincidental.",
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.spaceGrotesk(
                             fontSize: 9,
                             letterSpacing: 1.2,
                             height: 1.9,
@@ -285,11 +285,9 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                     const SizedBox(width: 8),
                     Text(
                       "Loading",
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.spaceGrotesk(
                         fontSize: 10,
-                        color: DreadmoorColors.accentCyan.withValues(
-                          alpha: 0.45,
-                        ),
+                        color: DreadmoorColors.investigatorCyan.withOpacity(0.45),
                         letterSpacing: 1.5,
                       ),
                     ),
@@ -299,7 +297,7 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                 // Version
                 Text(
                   "v1.0.0",
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.spaceGrotesk(
                     fontSize: 10,
                     color: Colors.white.withOpacity(0.2),
                     letterSpacing: 1.0,

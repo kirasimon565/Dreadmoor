@@ -78,7 +78,7 @@ class DossierCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DreadmoorColors.surface,
+        color: DreadmoorColors.surface(Theme.of(context).brightness),
         border: Border.all(color: Colors.white.withOpacity(0.07)),
       ),
       child: child,
@@ -105,7 +105,7 @@ class SectionLabel extends StatelessWidget {
             style: GoogleFonts.michroma(
               fontSize: 8,
               letterSpacing: 3,
-              color: DreadmoorColors.textMeta,
+              color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
             ),
           ),
           const SizedBox(width: 10),

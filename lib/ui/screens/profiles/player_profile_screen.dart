@@ -157,7 +157,7 @@ class ProfileScreen extends ConsumerWidget {
                                     style: DreadmoorTheme.bodyStyle.copyWith(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: DreadmoorColors.textSecondary,
+                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                                     ),
                                   ),
                                   const Divider(height: 24),

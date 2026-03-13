@@ -115,7 +115,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           Positioned(
@@ -155,7 +155,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
                     style: GoogleFonts.michroma(
                       fontSize: 13,
                       letterSpacing: 2.0,
-                      color: DreadmoorColors.accentCyan,
+                      color: DreadmoorColors.investigatorCyan,
                     ),
                   ),
                   Text(
@@ -163,7 +163,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
                     style: GoogleFonts.michroma(
                       fontSize: 28,
                       letterSpacing: 2.0,
-                      color: DreadmoorColors.textPrimary,
+                      color: DreadmoorColors.text(Theme.of(context).brightness),
                     ),
                   ),
                   const SizedBox(height: 48),
@@ -189,7 +189,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
                     style: GoogleFonts.michroma(
                       fontSize: 11,
                       letterSpacing: 2.0,
-                      color: DreadmoorColors.textSecondary,
+                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -219,7 +219,7 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
                       "THIS CANNOT BE CHANGED LATER.",
                       style: GoogleFonts.inter(
                         fontSize: 11,
-                        color: DreadmoorColors.accentRed.withOpacity(0.7),
+                        color: DreadmoorColors.evidenceRed.withOpacity(0.7),
                         letterSpacing: 1.5,
                       ),
                     ),
@@ -261,7 +261,7 @@ class _GlassInputField extends StatelessWidget {
           style: GoogleFonts.michroma(
             fontSize: 11,
             letterSpacing: 2.0,
-            color: DreadmoorColors.textSecondary,
+            color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 8),
@@ -273,10 +273,10 @@ class _GlassInputField extends StatelessWidget {
               height: 52,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: DreadmoorColors.surface.withOpacity(0.5),
+                color: DreadmoorColors.surface(Theme.of(context).brightness).withOpacity(0.5),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: DreadmoorColors.accentCyan.withOpacity(0.2),
+                  color: DreadmoorColors.investigatorCyan.withOpacity(0.2),
                   width: 0.6,
                 ),
               ),
@@ -285,12 +285,12 @@ class _GlassInputField extends StatelessWidget {
                   controller: controller,
                   autofocus: true,
                   textInputAction: TextInputAction.done,
-                  style: GoogleFonts.inter(color: DreadmoorColors.textPrimary),
-                  cursorColor: DreadmoorColors.accentCyan,
+                  style: GoogleFonts.inter(color: DreadmoorColors.text(Theme.of(context).brightness)),
+                  cursorColor: DreadmoorColors.investigatorCyan,
                   decoration: InputDecoration.collapsed(
                     hintText: hint,
                     hintStyle: GoogleFonts.inter(
-                      color: DreadmoorColors.textMeta,
+                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
                     ),
                   ),
                 ),
@@ -325,17 +325,17 @@ class _GenderChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? DreadmoorColors.accentCyan.withOpacity(0.1)
+              ? DreadmoorColors.investigatorCyan.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? DreadmoorColors.accentCyan
+                ? DreadmoorColors.investigatorCyan
                 : Colors.white.withOpacity(0.08),
             width: 1,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: DreadmoorColors.glowCyan, blurRadius: 12)]
+              ? [BoxShadow(color: DreadmoorColors.investigatorCyan.withOpacity(0.5), blurRadius: 12)]
               : [],
         ),
         child: Row(
@@ -344,8 +344,8 @@ class _GenderChip extends StatelessWidget {
               icon,
               size: 16,
               color: isSelected
-                  ? DreadmoorColors.accentCyan
-                  : DreadmoorColors.textSecondary,
+                  ? DreadmoorColors.investigatorCyan
+                  : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
             ),
             const SizedBox(width: 8),
             Text(
@@ -354,8 +354,8 @@ class _GenderChip extends StatelessWidget {
                 fontSize: 11,
                 letterSpacing: 2.0,
                 color: isSelected
-                    ? DreadmoorColors.accentCyan
-                    : DreadmoorColors.textSecondary,
+                    ? DreadmoorColors.investigatorCyan
+                    : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
               ),
             ),
           ],
@@ -381,14 +381,14 @@ class _ConfirmButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              DreadmoorColors.accentCyan.withOpacity(0.15),
+              DreadmoorColors.investigatorCyan.withOpacity(0.15),
               Colors.transparent,
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           border: Border.all(
-            color: DreadmoorColors.accentCyan.withOpacity(0.6),
+            color: DreadmoorColors.investigatorCyan.withOpacity(0.6),
             width: 0.6,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -399,7 +399,7 @@ class _ConfirmButton extends StatelessWidget {
             style: GoogleFonts.michroma(
               fontSize: 14,
               letterSpacing: 3.0,
-              color: DreadmoorColors.accentCyan,
+              color: DreadmoorColors.investigatorCyan,
             ),
           ),
         ),
