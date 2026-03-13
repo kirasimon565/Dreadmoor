@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
@@ -16,61 +16,62 @@ class AppsScreen extends ConsumerWidget {
     final totalMinutes = ref.watch(gameClockProvider);
     final timeString = formatGameTime(totalMinutes);
     final dateString = formatGameDateFull(totalMinutes);
+    final b = Theme.of(context).brightness;
+    final isDark = b == Brightness.dark;
 
-    // Browser unlocking logic tied directly to the story's "article_read" flag
+    // Browser logic
     final flagsAsync = ref.watch(gameFlagsProvider);
     final browserUnlocked = flagsAsync.value?['article_read'] == true;
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Subtle atmospheric background
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0, -0.4),
-                  radius: 1.2,
-                  colors: [
-                    DreadmoorColors.surfaceAlt,
-                    DreadmoorColors.background,
-                  ],
+          // ── THE ATMOSPHERIC BACKGROUND ──────────────────────────────────
+          // In Light Mode, it looks like parchment. In Dark, it's deep slate.
+          if (isDark)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -0.4),
+                    radius: 1.2,
+                    colors: [
+                      const Color(0xFF1A1F2B), // Deep Blue-Gray
+                      const Color(0xFF0A0C10), // Pure Slate
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 80),
 
-                // Lock/Home Screen Clock Widget
+                // ── THE INVESTIGATOR CLOCK ────────────────────────────────
                 Column(
                   children: [
                     Text(
                       timeString,
-                      style: DreadmoorTheme.headingStyle.copyWith(
-                        fontSize: 64,
-                        fontWeight: FontWeight.w300,
-                        color: DreadmoorColors.textPrimary,
-                        letterSpacing: 2,
-                        shadows: [
-                            BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
-                                blurRadius: 20,
-                            )
-                        ]
+                      style: GoogleFonts.spectral(
+                        fontSize: 82,
+                        fontWeight: FontWeight.w200,
+                        color: DreadmoorColors.text(b),
+                        letterSpacing: -2,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      dateString.toUpperCase(),
-                      style: DreadmoorTheme.bodyStyle.copyWith(
-                        fontSize: 14,
-                        color: DreadmoorColors.textSecondary,
-                        letterSpacing: 2,
+                    Transform.translate(
+                      offset: const Offset(0, -10),
+                      child: Text(
+                        dateString.toUpperCase(),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: DreadmoorColors.text(b).withOpacity(0.5),
+                          letterSpacing: 4,
+                        ),
                       ),
                     ),
                   ],
@@ -78,36 +79,48 @@ class AppsScreen extends ConsumerWidget {
 
                 const Spacer(),
 
-                // Apps Grid
+                // ── TACTICAL APP GRID ─────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 32,
-                    crossAxisSpacing: 20,
-                    physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Wrap(
+                    spacing: 24,
+                    runSpacing: 32,
+                    alignment: WrapAlignment.center,
                     children: [
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.chat_bubble_outline_rounded,
+                        label: "MESSENGER",
+                        app: PhoneApp.messenger,
+                        b: b,
+                      ),
+                      _buildAppIcon(
+                        ref,
+                        icon: Icons.phone_outlined,
+                        label: "DIALER",
+                        app: PhoneApp.phone,
+                        b: b,
+                      ),
                       if (browserUnlocked)
                         _buildAppIcon(
                           ref,
-                          icon: Icons.public,
-                          label: "Browser",
+                          icon: Icons.language_outlined,
+                          label: "BROWSER",
                           app: PhoneApp.browser,
-                          color: Colors.blueAccent,
+                          b: b,
                         ),
                       _buildAppIcon(
                         ref,
-                        icon: Icons.phone,
-                        label: "Phone",
-                        app: PhoneApp.phone,
-                        color: DreadmoorColors.accentCyan,
+                        icon: Icons.folder_open_outlined,
+                        label: "FILES",
+                        app: PhoneApp.store, // Assuming store handles files/dlc
+                        b: b,
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 48), // Padding above bottom nav
+                const SizedBox(height: 100), 
               ],
             ),
           ),
@@ -120,45 +133,38 @@ class AppsScreen extends ConsumerWidget {
     required IconData icon,
     required String label,
     required PhoneApp app,
-    required Color color,
+    required Brightness b,
   }) {
+    final isDark = b == Brightness.dark;
+    final accent = isDark ? DreadmoorColors.investigatorCyan : DreadmoorColors.evidenceRed;
+
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        ref.read(activeAppProvider.notifier).state = app;
-      },
+      onTap: () => ref.read(activeAppProvider.notifier).state = app,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            height: 56,
-            width: 56,
+            height: 64,
+            width: 64,
             decoration: BoxDecoration(
-              color: DreadmoorColors.surface, // Solid surface for app icons
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: isDark ? Colors.black26 : Colors.white54,
+              borderRadius: BorderRadius.circular(4), // Sharp corners
+              border: Border.all(
+                color: DreadmoorColors.divider(b),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: accent, size: 28),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             label,
-            style: DreadmoorTheme.bodyStyle.copyWith(
-              color: DreadmoorColors.textPrimary,
-              fontSize: 11,
-              shadows: [
-                 BoxShadow(color: Colors.black, blurRadius: 4)
-              ]
+            style: GoogleFonts.spaceGrotesk(
+              color: DreadmoorColors.text(b),
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
