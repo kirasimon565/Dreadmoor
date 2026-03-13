@@ -7,6 +7,7 @@ import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/state/player_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/core/models/script_models.dart';
 
 class ChoiceOverlay extends ConsumerStatefulWidget {
   const ChoiceOverlay({super.key});

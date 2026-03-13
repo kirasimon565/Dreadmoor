@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/features/browser/ui/screens/browser/browser_home_screen.dart';
-import 'package:dreadmoor/features/browser/ui/screens/browser/news_article_screen.dart'; // Updated name
+import 'package:dreadmoor/features/browser/ui/screens/browser/article_viewer_screen.dart'; // Updated name
 import 'package:dreadmoor/features/browser/article_model.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 
@@ -98,7 +98,7 @@ class BrowserNavigator extends StatelessWidget {
 
                   // THE ARTICLE CONTENT
                   Expanded(
-                    child: NewsArticleScreen(article: article),
+                    child: ArticleViewerScreen(article: article),
                   )
                 ],
               ),

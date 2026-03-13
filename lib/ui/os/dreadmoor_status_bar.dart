@@ -16,7 +16,7 @@ class DreadmoorStatusBar extends ConsumerWidget {
     return Container(
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: DreadmoorColors.surface(Theme.of(context).brightness),
         border: Border(
           bottom: BorderSide(
@@ -38,7 +38,7 @@ class DreadmoorStatusBar extends ConsumerWidget {
             },
             child: Text(
               timeString,
-              style: DreadmoorTheme.bodyStyle.copyWith(
+              style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                 fontSize: 12,
                 color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
               ),
@@ -55,19 +55,19 @@ class DreadmoorStatusBar extends ConsumerWidget {
             },
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.signal_cellular_4_bar,
                   size: 14,
                   color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                 ),
                 const SizedBox(width: 6),
-                const Icon(
+                Icon(
                   Icons.wifi,
                   size: 14,
                   color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                 ),
                 const SizedBox(width: 6),
-                const Icon(
+                Icon(
                   Icons.battery_full,
                   size: 14,
                   color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),

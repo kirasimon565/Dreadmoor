@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/features/phone/ui/screens/phone/phone_app_screen.dart';
-import 'package:dreadmoor/features/phone/ui/screens/phone/incoming_call_screen.dart';
+import 'package:dreadmoor/features/phone/ui/screens/call/incoming_call_screen.dart';
 import 'package:dreadmoor/features/phone/phone_state.dart';
 
 class PhoneRoutes {
@@ -34,7 +34,7 @@ class PhoneNavigator extends ConsumerWidget {
           case PhoneRoutes.dialpad:
             return _noTransitionRoute(const PhoneAppScreen());
           case PhoneRoutes.call:
-            return _noTransitionRoute(const IncomingCallScreen());
+            return _noTransitionRoute(IncomingCallScreen(callerName: 'Unknown', callerNumber: '0000', onAccept: (){}, onDecline: (){}));
           default:
             return null;
         }

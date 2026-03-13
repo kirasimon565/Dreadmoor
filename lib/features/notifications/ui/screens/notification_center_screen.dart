@@ -9,6 +9,7 @@ import 'package:dreadmoor/ui/os/components/os_header.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
+import 'package:dreadmoor/features/notifications/app_notification.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 
 class NotificationCenterScreen extends ConsumerWidget {

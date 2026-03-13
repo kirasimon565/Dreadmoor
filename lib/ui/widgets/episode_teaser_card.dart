@@ -132,7 +132,7 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                     if (widget.isLocked)
                       Positioned.fill(
                         child: Container(
-                          color: DreadmoorColors.background.withValues(
+                          color: DreadmoorColors.background(Theme.of(context).brightness).withValues(
                             alpha: 0.55,
                           ),
                         ),

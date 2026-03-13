@@ -205,8 +205,31 @@ class GlobalScheduler {
 
   String _sanitize(String? input) {
     if (input == null) return '';
-    final playerName = ref.read(playerProvider).name;
+    final playerName = ref.read(playerStateProvider)?.name ?? 'Detective';
     return input.replaceAll('[PlayerName]', playerName);
+  }
+
+  void submitChoice(String targetNodeId, String choiceText) {
+    // Add player's message to the chat
+    final db = ref.read(databaseProvider);
+    final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
+
+    db.into(db.messages).insert(
+      MessagesCompanion.insert(
+        threadId: threadId,
+        senderId: 'player',
+        content: Value(choiceText),
+        type: const Value('text'),
+        sequence: 0,
+      ),
+    );
+
+    ref.read(waitingForChoiceProvider.notifier).state = false;
+    _executeNode(targetNodeId);
+  }
+
+  void completePuzzle() {
+    resume();
   }
 
   void _advance(String? nextId) {

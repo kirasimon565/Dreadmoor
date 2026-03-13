@@ -79,6 +79,6 @@ class DreadmoorNavNotifier extends StateNotifier<String> {
 // ---------------------------
 final globalSchedulerProvider = Provider<GlobalScheduler>((ref) {
   final scheduler = GlobalScheduler(ref);
-  ref.onDispose(() => scheduler.dispose());
+  // ref.onDispose(() => scheduler.dispose());
   return scheduler;
 });

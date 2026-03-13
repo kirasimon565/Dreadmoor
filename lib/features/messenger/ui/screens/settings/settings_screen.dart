@@ -70,7 +70,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: "Investigator Profile",
                     subtitle: "Manage ID and credentials",
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerProfileScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
                     },
                   ),
 
@@ -93,7 +93,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _buildSectionTitle(context, "DATA MANAGEMENT"),
                   _buildSettingRow(
                     context,
-                    icon: Icons.Sd_storage_outlined,
+                    icon: Icons.sd_storage_outlined,
                     title: "Save State",
                     subtitle: "Commit current progress to disk",
                     onTap: () {

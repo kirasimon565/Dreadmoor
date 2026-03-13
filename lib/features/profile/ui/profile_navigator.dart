@@ -17,7 +17,7 @@ class ProfileNavigator extends StatelessWidget {
           // Use a Fade transition for the Player Profile to make it feel like 
           // a deep-level OS system loading up.
           return PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const PlayerProfileScreen(),
+            pageBuilder: (context, animation, secondaryAnimation) => const ProfileScreen(),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },

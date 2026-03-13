@@ -86,7 +86,7 @@ class EpisodeSelectScreen extends ConsumerWidget {
     } else {
       // Episode not started — start it
       final scheduler = ref.read(globalSchedulerProvider);
-      await scheduler.startThread(episodeId, 'main');
+      await scheduler.processNode(episodeId);
       if (context.mounted) context.go('/messenger');
     }
   }

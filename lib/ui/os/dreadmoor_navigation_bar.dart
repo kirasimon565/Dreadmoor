@@ -14,7 +14,7 @@ class DreadmoorNavigationBar extends ConsumerWidget {
 
     return Container(
       height: 64,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: DreadmoorColors.surface(Theme.of(context).brightness),
         border: Border(
           top: BorderSide(
@@ -93,7 +93,7 @@ class _NavItem extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: DreadmoorTheme.bodyStyle.copyWith(
+              style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                 fontSize: 10,
                 color: color,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
