@@ -69,6 +69,7 @@ class _NavItem extends ConsumerWidget {
   final bool isActive;
 
   const _NavItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.app,
@@ -79,29 +80,27 @@ class _NavItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final color = isActive ? DreadmoorColors.accentCyan : DreadmoorColors.textSecondary;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        ref.read(activeAppProvider.notifier).state = app;
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: DreadmoorTheme.bodyStyle.copyWith(
-              fontSize: 10,
-              color: color,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          ref.read(activeAppProvider.notifier).state = app;
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: DreadmoorTheme.bodyStyle.copyWith(
+                fontSize: 10,
+                color: color,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
