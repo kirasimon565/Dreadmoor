@@ -22,37 +22,55 @@ class MessengerNavigator extends StatelessWidget {
     return Navigator(
       initialRoute: MessengerRoutes.list,
       onGenerateRoute: (settings) {
-        if (settings.name == MessengerRoutes.list) {
-          return MaterialPageRoute(builder: (_) => const MessengerListScreen());
+        switch (settings.name) {
+          case MessengerRoutes.list:
+            return _noTransitionRoute(const MessengerListScreen());
+
+          case MessengerRoutes.chat:
+            final threadId = settings.arguments as String;
+            // Full-screen Chat with the Red Quill Input
+            return _noTransitionRoute(ChatScreen(threadId: threadId));
+
+          case MessengerRoutes.secret:
+            final threadId = settings.arguments as String;
+            return _noTransitionRoute(SecretChatScreen(threadId: threadId));
+
+          case MessengerRoutes.profile:
+            final threadId = settings.arguments as String;
+            // The Case File overlaps from the bottom (Slide Up)
+            return _slideUpRoute(CharacterProfileScreen(threadId: threadId));
+
+          case MessengerRoutes.settings:
+            return _noTransitionRoute(const SettingsScreen());
+
+          default:
+            return null;
         }
-        if (settings.name == MessengerRoutes.chat) {
-          final threadId = settings.arguments as String;
-          return MaterialPageRoute(builder: (_) => ChatScreen(threadId: threadId));
-        }
-        if (settings.name == MessengerRoutes.secret) {
-          final threadId = settings.arguments as String;
-          return MaterialPageRoute(builder: (_) => SecretChatScreen(threadId: threadId));
-        }
-        if (settings.name == MessengerRoutes.profile) {
-          final threadId = settings.arguments as String;
-          return PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => CharacterProfileScreen(threadId: threadId),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(0.0, 1.0);
-              const end = Offset.zero;
-              const curve = Curves.ease;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: child,
-              );
-            },
-          );
-        }
-        if (settings.name == MessengerRoutes.settings) {
-          return MaterialPageRoute(builder: (_) => const SettingsScreen());
-        }
-        return null;
+      },
+    );
+  }
+
+  /// OS-style instant switching for apps and chats
+  Route _noTransitionRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+    );
+  }
+
+  /// Dramatic "Open Case File" animation for character profiles
+  Route _slideUpRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.easeOutQuart; // Smooth, heavy deceleration
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
       },
     );
   }
