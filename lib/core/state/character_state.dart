@@ -1,31 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:drift/drift.dart';
 import '../persistence/drift_database.dart';
 import 'game_state.dart';
 
+/// ------------------------------------------------------------
+/// CHARACTER PROFILE MODEL
+/// Refactored to map directly from our Relational Database
+/// ------------------------------------------------------------
 class CharacterProfile {
   final String id;
   final String name;
   final String? phoneNumber;
-
-  final String avatar;
-  final String headerImage;
-
-  final List<String> photos;
-
+  final String? avatar;
+  final String? headerImage;
+  final List<CharacterPhoto> gallery; // Real photos from DB
   final String? bio;
-
-  final Map<String, String> info;
-
+  final Map<String, String> info; // Dynamic metadata
   final List<String> notes;
 
   const CharacterProfile({
     required this.id,
     required this.name,
     this.phoneNumber,
-    required this.avatar,
-    required this.headerImage,
-    required this.photos,
+    this.avatar,
+    this.headerImage,
+    required this.gallery,
     this.bio,
     required this.info,
     required this.notes,
@@ -33,80 +32,72 @@ class CharacterProfile {
 }
 
 /// ------------------------------------------------------------
-/// CHARACTER PROFILE PROVIDER
+/// SINGLE CHARACTER PROVIDER (REACTIVE)
 /// ------------------------------------------------------------
-
 final characterProvider = FutureProvider.family<CharacterProfile?, String>((
   ref,
   characterId,
 ) async {
   final db = ref.watch(databaseProvider);
 
-  final thread = await (db.select(
-    db.threads,
-  )..where((t) => t.id.equals(characterId)))
+  // 1. Fetch character core data
+  final charRow = await (db.select(db.characters)
+        ..where((c) => c.id.equals(characterId)))
       .getSingleOrNull();
 
-  if (thread == null) return null;
+  if (charRow == null) return null;
 
-  /// Participants list stored as CSV
-  final participants = thread.participants.split(',');
+  // 2. Fetch all gallery photos from our new table
+  final photos = await db.getCharacterGallery(characterId);
 
-  final name = participants.isNotEmpty ? participants.first : characterId;
-
-  /// Default assets (can be replaced later with DB-driven values)
-  final avatar = "assets/characters/$characterId/avatar.png";
-  final header = "assets/characters/$characterId/header.jpg";
-
-  /// Placeholder dynamic content
-  /// Later these can come from JSON / DB
-  final photos = <String>[
-    "assets/characters/$characterId/p1.jpg",
-    "assets/characters/$characterId/p2.jpg",
-    "assets/characters/$characterId/p3.jpg",
-    "assets/characters/$characterId/p4.jpg",
-    "assets/characters/$characterId/p5.jpg",
-    "assets/characters/$characterId/p6.jpg",
-  ];
-
+  // 3. Parse dynamic info from the DB strings
+  // We can expand this logic as the investigation deepens
   final info = <String, String>{
-    "Occupation": "Unknown",
-    "Location": "Dreadmoor",
+    "Occupation": charRow.id == 'michael' ? "Journalist" : "Unknown",
+    "Status": "Active",
+    "Clearance": "Level 4", // Matching your Natalie screenshot
   };
 
-  final notes = <String>["Profile discovered during investigation."];
+  final notes = <String>[
+    charRow.investigationNotes ?? "No notes collected yet."
+  ];
 
   return CharacterProfile(
-    id: characterId,
-    name: name,
-    phoneNumber: null,
-    avatar: avatar,
-    headerImage: header,
-    photos: photos,
-    bio: null,
+    id: charRow.id,
+    name: charRow.name,
+    phoneNumber: charRow.phoneNumber,
+    avatar: charRow.avatarPath,
+    headerImage: "assets/characters/${charRow.id}/header.jpg", // Themed header
+    gallery: photos,
+    bio: charRow.bio,
     info: info,
     notes: notes,
   );
 });
 
 /// ------------------------------------------------------------
-/// ALL CHARACTERS
+/// ALL DISCOVERED CHARACTERS (Used for Contacts App)
 /// ------------------------------------------------------------
-
 final charactersProvider = FutureProvider<List<CharacterProfile>>((ref) async {
   final db = ref.watch(databaseProvider);
 
-  final threads = await db.select(db.threads).get();
+  // Fetch all characters who are actually in our database
+  final charRows = await db.select(db.characters).get();
 
   final profiles = <CharacterProfile>[];
 
-  for (final thread in threads) {
-    final character = await ref.read(characterProvider(thread.id).future);
+  for (final row in charRows) {
+    // We skip the 'system' character from the contact list
+    if (row.id == 'system') continue;
 
-    if (character != null) {
-      profiles.add(character);
+    final profile = await ref.read(characterProvider(row.id).future);
+    if (profile != null) {
+      profiles.add(profile);
     }
   }
 
+  // Sort by name for the Contacts App
+  profiles.sort((a, b) => a.name.compareTo(b.name));
+  
   return profiles;
 });
