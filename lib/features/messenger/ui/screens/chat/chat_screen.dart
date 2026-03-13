@@ -11,8 +11,7 @@ import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
-import 'package:dreadmoor/ui/os/components/os_header.dart';
-import 'intercept_banner.dart';
+import 'chat_header_neon_group.dart'; // Updated to the "Unknown Pill" header
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String threadId;
@@ -42,6 +41,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           leftOuterJoin(db.characters, db.characters.id.equalsExp(db.messages.senderId)),
         ]).watch();
 
+    // Notify the scheduler which thread is active for real-time injections
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(activeThreadIdProvider.notifier).state = widget.threadId;
@@ -67,209 +67,102 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Background Gradient for depth
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    DreadmoorColors.surfaceAlt.withOpacity(0.4),
-                    DreadmoorColors.background,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Grain overlay
-          IgnorePointer(
-            child: Opacity(
-              opacity: 0.04,
-              child: Image.asset(
-                'assets/ui/glitch_overlay.png',
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorBuilder: (_, __, ___) => const SizedBox(),
-              ),
-            ),
-          ),
-
-          // Main column
-          Column(
-            children: [
-              // Unified Header
-              StreamBuilder<Thread?>(
-                stream: _threadStream,
-                builder: (context, snapshot) {
-                  final thread = snapshot.data;
-                  return StreamBuilder<Character?>(
-                    stream: (ref.read(databaseProvider).select(ref.read(databaseProvider).characters)
-                      ..where((c) => c.id.equals(thread?.id ?? '')))
-                    .watchSingleOrNull(),
-                    builder: (context, charSnapshot) {
-                      final character = charSnapshot.data;
-
-                      return OSHeader(
-                        title: thread?.title ?? 'UNKNOWN',
-                        subtitle: thread?.isTyping == true ? 'typing...' : 'online',
-                        onTitleTap: () {
-                          Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
-                        },
-                        leading: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            Navigator.of(context).pop();
-                          },
-                          child: const Icon(Icons.arrow_back_ios, color: DreadmoorColors.textSecondary, size: 20),
-                        ),
-                        trailing: GestureDetector(
-                          onTap: () {
-                             // Opens Character Profile
-                             Navigator.of(context).pushNamed('/profile/character', arguments: thread?.id);
-                          },
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: DreadmoorColors.surfaceGlass,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: DreadmoorColors.borderGlass),
-                            ),
-                            clipBehavior: Clip.hardEdge,
-                            child: character?.avatarPath != null
-                                ? Image.asset(character!.avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16))
-                                : const Icon(Icons.person, color: DreadmoorColors.textSecondary, size: 16),
-                          ),
-                        ),
-                      );
-                    }
-                  );
-                },
-              ),
-
-              const InterceptBanner(isVisible: false),
-
-              // Message list
-              Expanded(
-                child: StreamBuilder<List<TypedResult>>(
-                  stream: _messagesStream,
+          // MAIN CONVERSATION LAYER
+          SafeArea(
+            child: Column(
+              children: [
+                // 1. DYNAMIC HEADER (The Grey Pill Redesign)
+                StreamBuilder<Thread?>(
+                  stream: _threadStream,
                   builder: (context, snapshot) {
-                    final messages = snapshot.data ?? [];
-
-                    if (messages.length != _lastMessageCount) {
-                      _lastMessageCount = messages.length;
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _scrollToBottom(animated: _lastMessageCount > 1);
-                      });
-                    }
-
-                    return ListView.builder(
-                      controller: _scrollController,
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24), // Increased vertical padding
-                      itemCount: messages.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == messages.length) {
-                          return StreamBuilder<Thread?>(
-                            stream: _threadStream,
-                            builder: (context, snap) {
-                              final typing = snap.data?.isTyping ?? false;
-                              if (typing) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 40, bottom: 16, top: 4), // Align with character bubbles
-                                  child: const Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: GunTypingIndicator()
-                                  ),
-                                );
-                              }
-                              return const SizedBox(height: 100);
-                            },
-                          );
-                        }
-
-                        final row = messages[index];
-                        final msg = row.readTable(ref.read(databaseProvider).messages);
-                        final character = row.readTableOrNull(ref.read(databaseProvider).characters);
-
-                        // Grouping logic
-                        bool isFirstInGroup = true;
-                        if (index > 0) {
-                          final prevMsg = messages[index - 1].readTable(ref.read(databaseProvider).messages);
-                          if (prevMsg.senderId == msg.senderId) {
-                              isFirstInGroup = false;
-                          }
-                        }
-
-                        // Group timestamps by minute
-                        bool isLastInMinuteGroup = true;
-                        if (index < messages.length - 1) {
-                          final nextMsg = messages[index + 1].readTable(ref.read(databaseProvider).messages);
-                          if (nextMsg.senderId == msg.senderId && msg.timestamp != null && nextMsg.timestamp != null) {
-                             if (msg.timestamp!.hour == nextMsg.timestamp!.hour && msg.timestamp!.minute == nextMsg.timestamp!.minute) {
-                               isLastInMinuteGroup = false;
-                             }
-                          }
-                        }
-
-                        return Padding(
-                          padding: EdgeInsets.only(top: isFirstInGroup ? 12.0 : 4.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: msg.isPlayerMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
-                            children: [
-                              if (!msg.isPlayerMessage && isLastInMinuteGroup)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
-                                  child: Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: DreadmoorColors.borderSubtle),
-                                    ),
-                                    clipBehavior: Clip.hardEdge,
-                                    child: character?.avatarPath != null
-                                        ? Image.asset(character!.avatarPath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary))
-                                        : const Icon(Icons.person, size: 12, color: DreadmoorColors.textSecondary),
-                                  ),
-                                )
-                              else if (!msg.isPlayerMessage)
-                                const SizedBox(width: 32),
-
-                              Flexible(
-                                child: ChatBubble(
-                                  text: msg.content ?? "",
-                                  isMe: msg.isPlayerMessage,
-                                  senderId: msg.senderId,
-                                  senderName: character?.name,
-                                  // Only pass timestamp if it's the last message in that minute group
-                                  timestamp: isLastInMinuteGroup ? msg.timestamp : null,
-                                  isSecret: msg.isSecret,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                    final thread = snapshot.data;
+                    return ChatHeaderNeonGroup(
+                      title: thread?.title ?? 'UNKNOWN',
+                      onBackPressed: () => Navigator.pop(context),
+                      // Pass character avatar if exists
+                      avatarPaths: thread != null ? [thread.id] : [], 
                     );
                   },
                 ),
-              ),
-            ],
+
+                // 2. SCROLLABLE MESSAGE LIST
+                Expanded(
+                  child: StreamBuilder<List<TypedResult>>(
+                    stream: _messagesStream,
+                    builder: (context, snapshot) {
+                      final messages = snapshot.data ?? [];
+
+                      if (messages.length != _lastMessageCount) {
+                        _lastMessageCount = messages.length;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _scrollToBottom(animated: _lastMessageCount > 1);
+                        });
+                      }
+
+                      return ListView.builder(
+                        controller: _scrollController,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        itemCount: messages.length + 1,
+                        itemBuilder: (context, index) {
+                          // Typing Indicator Placeholder
+                          if (index == messages.length) {
+                            return _buildTypingIndicator();
+                          }
+
+                          final row = messages[index];
+                          final msg = row.readTable(ref.read(databaseProvider).messages);
+                          final character = row.readTableOrNull(ref.read(databaseProvider).characters);
+
+                          return ChatBubble(
+                            text: msg.content ?? "",
+                            isMe: msg.isPlayerMessage,
+                            senderId: msg.senderId,
+                            senderName: character?.name,
+                            timestamp: msg.timestamp,
+                            isSecret: msg.isSecret,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                
+                // 3. BOTTOM SPACING (To clear the Choice Overlay)
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
 
+          // 4. THE INTERACTIVE DOCK (The Quill & Choices)
+          // This sits on top and expands based on waitingForChoiceProvider
           const ChoiceOverlay(),
         ],
       ),
+    );
+  }
+
+  Widget _buildTypingIndicator() {
+    return StreamBuilder<Thread?>(
+      stream: _threadStream,
+      builder: (context, snap) {
+        if (snap.data?.isTyping == true) {
+          return const Padding(
+            padding: EdgeInsets.only(left: 20, bottom: 20),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: GunTypingIndicator(),
+            ),
+          );
+        }
+        return const SizedBox(height: 20);
+      },
     );
   }
 }
