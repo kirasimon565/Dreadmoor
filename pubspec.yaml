@@ -86,7 +86,7 @@ flutter:
     - assets/media/sfx/
 
     # Episodes (auto-load all episode json files)
-    - content/episodes/
+    - assets/story/ep01/
 
   fonts:
     - family: NoirDisplay
