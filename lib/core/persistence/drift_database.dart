@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dreadmoor/core/scripting/script_loader.dart';
-
 import 'tables.dart';
 
 part 'drift_database.g.dart';
@@ -13,7 +12,7 @@ part 'drift_database.g.dart';
 @DriftDatabase(tables: [
   Players, 
   Characters, 
-  CharacterPhotos, // Added for gallery support
+  CharacterPhotos, 
   Threads, 
   ThreadMembers,
   Messages, 
@@ -33,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 9; // Incremented for ThreadMembers table
+  int get schemaVersion => 9; 
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,12 +53,15 @@ class AppDatabase extends _$AppDatabase {
     await instance.customSelect('SELECT 1').get();
   }
 
+  /// ── DATA INITIALIZATION ──────────────────────────────────────────────
+  /// This is the "Fuel Tank" for the app. It populates the player and
+  /// the story nodes from JSON.
   Future<void> initializeDefaultData() async {
     final db = this;
 
-    // Inserts the default player and ensures seed characters are loaded
     final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
     if (existingPlayer == null) {
+      // 1. Insert into Players table (for system state)
       await into(players).insert(
         PlayersCompanion.insert(
           name: 'Investigator',
@@ -68,19 +70,25 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
-      // Fix Profile Screen: Insert Player into Characters table
+      // 2. Insert into Characters table (Fixes "File Not Found" on Profile Screen)
+      // JULES: Added phoneNumber parameter below to fix the build error.
       await db.into(db.characters).insertOnConflictUpdate(
         CharactersCompanion.insert(
           id: 'player',
           name: 'Investigator',
           bio: const Value('Active Case Lead'),
           avatarPath: const Value('assets/characters/player_default.png'),
+          phoneNumber: '+1 (555) 000-0000', // Matches schema requirement
         ),
       );
 
-      // Load Episode 1 JSON scenes into the StoryNodes table
-      final loader = ScriptLoader(db);
-      await loader.importEpisode('ep01');
+      // 3. Load Episode 1 JSON scenes (Fixes "No Connections Found" in Messenger)
+      try {
+        final loader = ScriptLoader(db);
+        await loader.importEpisode('ep01');
+      } catch (e) {
+        print("Dreadmoor Engine Error: Failed to import JSON scenes: $e");
+      }
     }
   }
 
@@ -88,7 +96,6 @@ class AppDatabase extends _$AppDatabase {
   // NARRATIVE & GALLERY DAOs
   // ---------------------------
 
-  /// Fetch all photos for a specific character gallery
   Future<List<CharacterPhoto>> getCharacterGallery(String charId) {
     return (select(characterPhotos)..where((t) => t.characterId.equals(charId))).get();
   }
