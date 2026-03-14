@@ -92,7 +92,7 @@ class ArticleViewerScreen extends StatelessWidget {
               child: Text(
                 p,
                 style: GoogleFonts.spectral(
-                  fontSize: 18,
+                  fontSize: 17,
                   height: 1.6,
                   color: DreadmoorColors.text(brightness).withOpacity(0.9),
                 ),

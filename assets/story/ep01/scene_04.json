@@ -1,7 +1,7 @@
 {
   "scenes": [
     {
-      "id": "SCENE_4_START",
+      "id": "s4_video",
       "type": "Chat_Event",
       "chat": "Private_Unknown",
       "sender": "Unknown",
@@ -10,12 +10,12 @@
     },
     {
       "id": "S4_VIDEO_NODE",
-      "type": "Video_Message",
+      "type": "S4_VIDEO_NODE",
       "chat": "Private_Unknown",
       "sender": "Unknown",
-      "file_asset": "assets/media/videos/party_clip.mp4",
+      "file_asset": "assets/video/party_clip.mp4",
       "duration": 10,
-      "next": "S4_Player_Reaction"
+      "next": "s4_intercept"
     },
     {
       "id": "S4_Player_Reaction",

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/features/browser/ui/screens/browser/browser_home_screen.dart';
 import 'package:dreadmoor/features/browser/ui/screens/browser/article_viewer_screen.dart'; // Updated name
 import 'package:dreadmoor/features/browser/article_model.dart';
@@ -55,9 +57,17 @@ class BrowserNavigator extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 20),
-                          onPressed: () => Navigator.of(context).pop(),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            return IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                // Resume the story once the article is closed
+                                ref.read(globalSchedulerProvider).resume();
+                              },
+                            );
+                          }
                         ),
                         
                         Expanded(

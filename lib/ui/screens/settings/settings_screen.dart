@@ -224,6 +224,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
+                // ── THEME ──────────────────────────────────────────────
+                _section("THEME"),
+                _toggle(
+                  "Light Mode (Archive)",
+                  "Switch between Archive and Slate OS themes",
+                  ref.watch(themeModeProvider) == ThemeMode.light,
+                  (v) {
+                    ref.read(themeModeProvider.notifier).setTheme(
+                          v ? ThemeMode.light : ThemeMode.dark,
+                        );
+                  },
+                ),
+
+                const SizedBox(height: 32),
+
                 // ── GAMEPLAY ───────────────────────────────────────────
                 _section("GAMEPLAY"),
                 _toggle(

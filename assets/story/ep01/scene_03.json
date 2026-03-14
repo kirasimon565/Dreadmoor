@@ -1,7 +1,7 @@
 {
   "scenes": [
     {
-      "id": "SCENE_3_START",
+      "id": "s3_group_chat",
       "type": "Chat_Event",
       "chat": "Group_Dreadmoor_News",
       "sender": "System",
@@ -341,7 +341,7 @@
       "type": "System_Event",
       "action": "Switch_Context",
       "target": "Private_Chat_Unknown",
-      "next": "SCENE_4_START"
+      "next": "s4_video"
     }
   ]
 }

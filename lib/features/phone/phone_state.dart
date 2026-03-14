@@ -63,12 +63,18 @@ class PhoneState {
   final String callerName;
   final String callerNumber;
   final List<CallEntry> history;
+  final bool canDecline;
+  final VoidCallback? onDecline;
+  final VoidCallback? onAccept;
 
   PhoneState({
     required this.callState,
     required this.callerName,
     required this.callerNumber,
     required this.history,
+    this.canDecline = true,
+    this.onDecline,
+    this.onAccept,
   });
 
   PhoneState copyWith({
@@ -76,12 +82,18 @@ class PhoneState {
     String? callerName,
     String? callerNumber,
     List<CallEntry>? history,
+    bool? canDecline,
+    VoidCallback? onDecline,
+    VoidCallback? onAccept,
   }) {
     return PhoneState(
       callState: callState ?? this.callState,
       callerName: callerName ?? this.callerName,
       callerNumber: callerNumber ?? this.callerNumber,
       history: history ?? this.history,
+      canDecline: canDecline ?? this.canDecline,
+      onDecline: onDecline ?? this.onDecline,
+      onAccept: onAccept ?? this.onAccept,
     );
   }
 }
@@ -173,11 +185,14 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
     _saveHistory(newHistory);
   }
 
-  void receiveIncomingCall(String name, String number) {
+  void receiveIncomingCall(String name, String number, {bool canDecline = true, VoidCallback? onDecline, VoidCallback? onAccept}) {
     state = state.copyWith(
       callState: CallState.incoming,
       callerName: name,
       callerNumber: number,
+      canDecline: canDecline,
+      onDecline: onDecline,
+      onAccept: onAccept,
     );
   }
 

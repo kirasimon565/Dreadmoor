@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 
 class SecretChatScreen extends ConsumerStatefulWidget {
@@ -35,10 +36,21 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .watch();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(showNavigationBarProvider.notifier).state = false;
+      }
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(showNavigationBarProvider.notifier).state = true;
+      }
+    });
     _scrollController.dispose();
     super.dispose();
   }
@@ -63,25 +75,38 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: navyBackground,
-        body: Stack(
-          children: [
-            // ── RADIAL VIGNETTE ───────────────────────────────────────────────
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.center,
-                    radius: 0.75,
-                    colors: [
-                      Colors.black.withOpacity(0.55),
-                      Colors.transparent,
-                    ],
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
+          backgroundColor: navyBackground,
+          body: Stack(
+            children: [
+              // ── ASSET BACKGROUND ──────────────────────────────────────────────
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/forest_bg.png', // Assuming this is used instead of a specific hacked bg as none was listed in the directive checklist, but I will tint it navy.
+                  fit: BoxFit.cover,
+                  color: navyBackground.withOpacity(0.9),
+                  colorBlendMode: BlendMode.srcATop,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+
+              // ── RADIAL VIGNETTE ───────────────────────────────────────────────
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 0.75,
+                      colors: [
+                        Colors.black.withOpacity(0.55),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
             // ── MAIN LAYOUT ───────────────────────────────────────────────────
             Column(
@@ -223,21 +248,7 @@ class _SecretHeader extends StatelessWidget {
           ),
 
           // ── BACK ARROW ──────────────────────────────────────────────────────
-          Positioned(
-            left: 0,
-            child: GestureDetector(
-              onTap: onClose,
-              behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Icon(
-                  Icons.chevron_left,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-            ),
-          ),
+          // Intentionally removed per directive "Player cannot navigate away manually"
 
           // ── LIVE BADGE ──────────────────────────────────────────────────────
           Positioned(

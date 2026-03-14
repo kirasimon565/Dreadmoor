@@ -74,13 +74,25 @@ flutter:
     - assets/branding/
     - assets/backgrounds/
     - assets/ui/
+    - assets/ui/quill_red.png
+    - assets/ui/quill_black.png
     - assets/characters/
     - assets/map/
     - assets/map/locations/
     - assets/icon/
     - assets/music/
+    - assets/images/
+    - assets/images/forest_bg.png
+    - assets/images/group_chat_bg.png
+    - assets/images/moon_tower_hero.png
+    - assets/headers/
+    - assets/headers/default_case.jpg
 
     # Media
+    - assets/video/
+    - assets/video/party_clip.mp4
+    - assets/audio/
+    - assets/audio/phone_ringtone_glitch.mp3
     - assets/media/videos/
     - assets/media/audio/
     - assets/media/sfx/

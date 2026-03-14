@@ -65,6 +65,17 @@ class StoryNodes extends Table {
 }
 
 // --------------------------------------------------
+// THREAD_MEMBERS: Group chat / Thread participants
+// --------------------------------------------------
+class ThreadMembers extends Table {
+  TextColumn get threadId => text().references(Threads, #id)();
+  TextColumn get characterId => text().references(Characters, #id)();
+
+  @override
+  Set<Column> get primaryKey => {threadId, characterId};
+}
+
+// --------------------------------------------------
 // THREADS: Active conversations
 // --------------------------------------------------
 class Threads extends Table {

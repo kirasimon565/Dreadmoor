@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
+
+import 'package:dreadmoor/core/state/game_state.dart';
 
 /// Call this to open the full-screen viewer:
 ///
@@ -147,10 +150,18 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
                   child: Row(
                     children: [
                       // Close
-                      IconButton(
-                        icon: const Icon(Icons.close,
-                            color: Colors.white, size: 26),
-                        onPressed: () => Navigator.pop(context),
+                      Consumer(
+                        builder: (context, ref, _) {
+                          return IconButton(
+                            icon: const Icon(Icons.close,
+                                color: Colors.white, size: 26),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              // Resume story if it was paused waiting for video
+                              ref.read(globalSchedulerProvider).resume();
+                            },
+                          );
+                        }
                       ),
                       const Spacer(),
                       // Counter

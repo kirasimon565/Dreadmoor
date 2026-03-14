@@ -1,0 +1,44 @@
+{
+  "scenes": [
+    {
+      "id": "s6_ring_1",
+      "type": "IncomingCall",
+      "caller_id": "Unknown_Number",
+      "status": "Ringing",
+      "audio_loop": "assets/audio/phone_ringtone_glitch.mp3",
+      "next_on_decline": { "delay_seconds": 2, "target": "s6_ring_2" },
+      "next": "s6_accept"
+    },
+    {
+      "id": "s6_ring_2",
+      "type": "IncomingCall",
+      "caller_id": "Unknown_Number",
+      "status": "Ringing",
+      "audio_loop": "assets/audio/phone_ringtone_glitch.mp3",
+      "next_on_decline": { "delay_seconds": 3, "target": "s6_ring_final" },
+      "next": "s6_accept"
+    },
+    {
+      "id": "s6_ring_final",
+      "type": "S6_Ringing_Final",
+      "caller_id": "Unknown_Number",
+      "status": "Force_Ringing",
+      "action": "Disable_Decline_Button",
+      "next": "s6_accept"
+    },
+    {
+      "id": "s6_accept",
+      "type": "S6_Accept_Call",
+      "status": "Connected",
+      "audio_asset": "assets/audio/threatening_call_01.mp3",
+      "visual_effect": "Audio_Waveform_Glitch",
+      "next": "EPISODE_1_END"
+    },
+    {
+      "id": "EPISODE_1_END",
+      "type": "System_Event",
+      "action": "Trigger_Credits",
+      "text": "TO BE CONTINUED IN EPISODE 2"
+    }
+  ]
+}

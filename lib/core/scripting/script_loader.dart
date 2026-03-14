@@ -11,71 +11,55 @@ class ScriptLoader {
   /// Main entry point: Scans the assets/story folder and imports into DB
   Future<void> importEpisode(String episodeId) async {
     try {
-      // 1. Load the markdown file from the new path
-      final String rawContent = await rootBundle.loadString(
-        'assets/story/$episodeId/script.md',
-      );
+      // JSON-based approach for EP_01
+      final List<String> scenes = [
+        'assets/story/ep01/scene_01.json',
+        'assets/story/ep01/scene_02.json',
+        'assets/story/ep01/scene_03.json',
+        'assets/story/ep01/scene_04.json',
+        'assets/story/ep01/scene_05.json',
+        'assets/story/ep01/scene_06.json',
+      ];
 
-      // 2. Split the file into individual Node blocks using the "# " delimiter
-      final List<String> blocks = rawContent.split(RegExp(r'\n(?=# )'));
+      for (var path in scenes) {
+        final String rawContent = await rootBundle.loadString(path);
+        final Map<String, dynamic> data = jsonDecode(rawContent);
+        final List<dynamic> nodesList = data['scenes'];
 
-      for (var block in blocks) {
-        if (block.trim().isEmpty) continue;
-        await _parseAndInsertNode(block.trim());
+        for (var node in nodesList) {
+          await _parseAndInsertNode(node);
+        }
       }
-      
+
       print("DreadmoorOS: Episode $episodeId imported successfully.");
     } catch (e) {
       print("DreadmoorOS Critical Error: Failed to import episode $episodeId: $e");
     }
   }
 
-  /// The Regex Engine: Turns plain text into a Database Row
-  Future<void> _parseAndInsertNode(String block) async {
-    // Regex Patterns for Obsidian Protocol
-    final idMatch = RegExp(r'# ([\w_]+)').firstMatch(block);
-    final typeMatch = RegExp(r'Type: ([\w_]+)').firstMatch(block);
-    final chatMatch = RegExp(r'Chat: ([\w_]+)').firstMatch(block);
-    final senderMatch = RegExp(r'Sender: ([\w_]+)').firstMatch(block);
-    final nextMatch = RegExp(r'Next: \[\[([\w_]+)\]\]').firstMatch(block);
-    
-    // Extract Text (handles multi-line content)
-    final textMatch = RegExp(r'Text: ([\s\S]*?)(?=\n\w+:|$)').firstMatch(block);
+  /// Parses a single JSON node and inserts it into the Database
+  Future<void> _parseAndInsertNode(Map<String, dynamic> nodeData) async {
+    final String nodeId = nodeData['id'];
+    final String type = nodeData['type'];
 
-    // Extract Metadata (Typing, Pauses, Files)
-    final actionMatch = RegExp(r'Action: ([\w_]+)').firstMatch(block);
-    final durationMatch = RegExp(r'Duration: (\d+)').firstMatch(block);
-    final assetMatch = RegExp(r'File_Asset: ([\/\w\.-]+)').firstMatch(block);
-
-    // Extract Choices (Only for Player_Choice nodes)
-    final List<Map<String, String>> options = [];
-    final optionMatches = RegExp(r'- Option: "(.*?)" -> \[\[([\w_]+)\]\]').allMatches(block);
-    for (final m in optionMatches) {
-      options.add({'text': m.group(1)!, 'target': m.group(2)!});
+    // Map metadata (all extra keys not directly supported by schema)
+    final Map<String, dynamic> metadata = {};
+    for (var key in nodeData.keys) {
+      if (!['id', 'type', 'sender', 'text', 'next'].contains(key)) {
+        metadata[key] = nodeData[key];
+      }
     }
 
-    if (idMatch != null) {
-      final nodeId = idMatch.group(1)!;
-      
-      // Build metadata map
-      final Map<String, dynamic> metadata = {
-        if (actionMatch != null) 'action': actionMatch.group(1),
-        if (durationMatch != null) 'duration': int.parse(durationMatch.group(1)!),
-        if (assetMatch != null) 'file_asset': assetMatch.group(1),
-        if (options.isNotEmpty) 'options': options,
-      };
-
-      // Insert into StoryNodes Table
-      await db.into(db.storyNodes).insertOnConflictUpdate(
-        StoryNodesCompanion.insert(
-          id: nodeId,
-          type: typeMatch?.group(1) ?? 'Chat_Event',
-          senderId: drift.Value(senderMatch?.group(1)),
-          content: drift.Value(textMatch?.group(1)?.trim()),
-          nextNodeId: drift.Value(nextMatch?.group(1)),
-          metadata: drift.Value(jsonEncode(metadata)),
-        ),
-      );
-    }
+    // Insert into StoryNodes Table
+    await db.into(db.storyNodes).insertOnConflictUpdate(
+      StoryNodesCompanion.insert(
+        id: nodeId,
+        type: type,
+        senderId: drift.Value(nodeData['sender']),
+        content: drift.Value(nodeData['text']),
+        nextNodeId: drift.Value(nodeData['next']),
+        metadata: drift.Value(jsonEncode(metadata)),
+      ),
+    );
   }
 }
