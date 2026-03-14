@@ -460,8 +460,9 @@ class _HeroButtonState extends State<_HeroButton> {
                   const SizedBox(width: 12),
                   Text(
                     widget.label,
-                    style: GoogleFonts.michroma(
-                      fontSize: 15,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                       letterSpacing: 3.0,
                       color: DreadmoorColors.investigatorCyan.withOpacity(0.9),
                     ),
