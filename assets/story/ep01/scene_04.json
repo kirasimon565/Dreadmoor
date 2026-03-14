@@ -15,7 +15,7 @@
       "sender": "Unknown",
       "file_asset": "assets/media/videos/party_clip.mp4",
       "duration": 10,
-      "next": "s4_intercept"
+      "next": "S4_Player_Reaction"
     },
     {
       "id": "S4_Player_Reaction",
@@ -259,7 +259,7 @@
       "sender": "michael",
       "action": "Typing",
       "text": "Something about last night feels... unfinished.",
-      "next": "SCENE_5_START"
+      "next": "s4_intercept"
     }
   ]
 }
