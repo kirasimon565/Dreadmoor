@@ -375,14 +375,14 @@
       "type": "Chat_Event",
       "sender": "Unknown",
       "text": "Good. Don't say anything stupid.",
-      "next": "S2_SYSTEM_ADD"
+      "next": "s2_system_add"
     },
     {
       "id": "S2_Add_Forced",
       "type": "Chat_Event",
       "sender": "Unknown",
       "text": "Hesitating won't save her. Every second you wait, they perfect the lie.",
-      "next": "S2_SYSTEM_ADD"
+      "next": "s2_system_add"
     },
     {
       "id": "s2_system_add",
