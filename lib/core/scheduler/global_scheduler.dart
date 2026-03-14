@@ -259,6 +259,21 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = _resolveThreadId(node);
 
+    // Ensure thread exists before inserting a message to prevent constraint failures
+    final existingThread = await (db.select(db.threads)..where((t) => t.id.equals(threadId))).getSingleOrNull();
+    if (existingThread == null) {
+      String title = "Unknown";
+      if (threadId == 'intercept_amelia_michael') title = "Amelia & Michael";
+      if (threadId == 'group_dreadmoor_news') title = "Dreadmoor News";
+
+      await db.into(db.threads).insert(ThreadsCompanion.insert(
+        id: threadId,
+        title: title,
+        participants: threadId == 'group_dreadmoor_news' ? 'amelia,chris,abigail,michael' : 'unknown',
+        isSecret: Value(threadId == 'intercept_amelia_michael'),
+      ));
+    }
+
     // This ensures videos are inserted as 'video' type, NOT text paths
     final msgType = node.type == 'Video_Message' ? 'video' : 'text';
     final content = node.content ?? meta['file_asset'] ?? '';
@@ -274,6 +289,10 @@ class GlobalScheduler {
         sequence: 0, // Logic handles sequence via ID/Timestamp now
       ),
     );
+
+    // Update thread lastMessageId so it sorts properly on home screen
+    await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
+        .write(ThreadsCompanion(lastMessageId: Value(id)));
 
     _playSound('sfx/message_receive.mp3');
     _advance(node.nextNodeId);

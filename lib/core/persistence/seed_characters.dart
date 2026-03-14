@@ -52,6 +52,14 @@ Future<void> seedCharacters(AppDatabase db) async {
       bio: const Value("System notifications"),
       colorHex: const Value('#FFFFFF'),
     ),
+    CharactersCompanion.insert(
+      id: 'player',
+      name: 'Investigator',
+      phoneNumber: 'Me',
+      avatarPath: const Value(null),
+      bio: const Value("My internal notes and findings."),
+      colorHex: const Value('#FFFFFF'),
+    ),
   ];
 
   // 2. Define Character Gallery Photos

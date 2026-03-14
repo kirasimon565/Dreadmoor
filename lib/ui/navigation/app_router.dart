@@ -88,6 +88,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       /// If player already setup but tries to access other early routes
       if (hasCompletedSetup && !onOS && !onWelcome && !onIntroTrailer && !onTitleCinematic) {
+        // Exception: Let utility routes pass through (like settings or debug)
+        final allowedUtilities = [
+          Routes.settings,
+          Routes.debug,
+          Routes.legal,
+          Routes.credits,
+          Routes.episodes,
+          Routes.save,
+        ];
+        if (allowedUtilities.contains(loc) || loc.startsWith('/recap') || loc.startsWith('/chat') || loc.startsWith('/secret') || loc.startsWith('/profile')) {
+          return null;
+        }
+
+        // Otherwise enforce OS routing
         return Routes.os;
       }
 

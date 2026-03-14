@@ -49,9 +49,11 @@ class AppsScreen extends ConsumerWidget {
             ),
 
           SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 80),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  const SizedBox(height: 80),
 
                 // ── THE INVESTIGATOR CLOCK ────────────────────────────────
                 Column(
@@ -123,8 +125,9 @@ class AppsScreen extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 100), 
-              ],
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
           ),
         ],
