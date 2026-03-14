@@ -1,0 +1,27 @@
+{
+  "scenes": [
+    {
+      "id": "SCENE_1_NEWS_ARTICLE",
+      "type": "News_Module",
+      "theme": "Dreadmoor_Standard",
+      "headline": "Woman Reported Missing Following Midnight Party at Abandoned Factory",
+      "subheadline": "Police are investigating the disappearance of 26-year-old Rebecca Stone.",
+      "image_asset": "assets/media/images/factory_police.png",
+      "caption": "Officers respond to the abandoned factory on the outskirts of Dreadmoor.",
+      "body": [
+        "Rebecca Stone, 26, was reported missing early Sunday morning after attending a private gathering at an abandoned factory on the outskirts of Dreadmoor.",
+        "According to initial reports, Stone arrived at the location shortly before 11:00 PM on Saturday evening. Witnesses at the gathering stated that she was last seen shortly after midnight. Friends who attended the event told authorities that Stone left the premises on her own.",
+        "The factory, which has been vacant for several years, is located near the eastern industrial district and is not authorized for public use. It remains unclear why the gathering was held at the property."
+      ],
+      "next": "SCENE_1_NOTIFICATION_TRIGGER"
+    },
+    {
+      "id": "SCENE_1_NOTIFICATION_TRIGGER",
+      "type": "System_Event",
+      "action": "Push_Notification",
+      "sender": "Unknown",
+      "text": "Well... That's convenient.",
+      "next": "SCENE_2_START"
+    }
+  ]
+}
