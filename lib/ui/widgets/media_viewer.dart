@@ -23,13 +23,13 @@ class MediaViewer extends StatelessWidget {
   });
 
   /// Hero-animated push into full-screen viewer.
-  static void open(
+  static Future<void> open(
     BuildContext context, {
     required List<MediaItem> items,
     int initialIndex = 0,
   }) {
     HapticFeedback.lightImpact();
-    Navigator.of(context).push(
+    return Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black,
