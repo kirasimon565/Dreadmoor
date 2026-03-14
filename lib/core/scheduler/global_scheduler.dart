@@ -217,7 +217,7 @@ class GlobalScheduler {
     ref.read(activeThreadIdProvider.notifier).state = 'intercept_amelia_michael';
 
     // We update UI flags here instead of in the UI component directly since it's a forced transition
-    router.go(Routes.secretChat('intercept_amelia_michael'));
+    router.go(Routes.secret('intercept_amelia_michael'));
 
     _advance(node.nextNodeId);
   }
@@ -247,8 +247,9 @@ class GlobalScheduler {
   }
 
   void _handleS6AcceptCall(StoryNode node, Map<String, dynamic> meta) {
-    final router = ref.read(appRouterProvider);
-    router.go(Routes.activeCall('Unknown'));
+    // The ActiveCallScreen is pushed internally by the OS overlay when phoneState updates,
+    // so we don't need a GoRouter path for it. We just start the call via the provider.
+    ref.read(phoneProvider.notifier).startCall('Unknown', 'Unknown Number', ref.read(gameClockProvider));
 
     ref.read(activeNodeIdProvider.notifier).state = node.nextNodeId;
     pause(); // Wait for call to end

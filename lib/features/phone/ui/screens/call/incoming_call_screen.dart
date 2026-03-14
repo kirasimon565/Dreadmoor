@@ -104,7 +104,7 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                   
                   // CALLER NAME (Spectral Serif)
                   Text(
-                    callerName.toUpperCase(),
+                    widget.callerName.toUpperCase(),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.spectral(
                       fontSize: 32,
@@ -118,7 +118,7 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                   
                   // CALLER NUMBER (Technical Sans)
                   Text(
-                    callerNumber,
+                    widget.callerNumber,
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 16,
                       color: Colors.white70,
