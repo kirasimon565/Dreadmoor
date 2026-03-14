@@ -1,0 +1,347 @@
+{
+  "scenes": [
+    {
+      "id": "SCENE_3_START",
+      "type": "Chat_Event",
+      "chat": "Group_Dreadmoor_News",
+      "sender": "System",
+      "text": "[PlayerName] was added to the group.",
+      "next": "S3_Initial_Shock"
+    },
+    {
+      "id": "S3_Initial_Shock",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 2000,
+      "text": "Wait, who just added [PlayerName]?",
+      "next": "S3_Chris_Denial"
+    },
+    {
+      "id": "S3_Chris_Denial",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "Not me.",
+      "next": "S3_Abigail_Skeptic"
+    },
+    {
+      "id": "S3_Abigail_Skeptic",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "Is this some kind of prank? This isn't the time.",
+      "next": "S3_Michael_Mediator"
+    },
+    {
+      "id": "S3_Michael_Mediator",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Everyone take a breath. Let's just ask before we start guessing.",
+      "next": "S3_Amelia_Direct"
+    },
+    {
+      "id": "S3_Amelia_Direct",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "Fine.",
+      "next": "S3_Amelia_Direct_2"
+    },
+    {
+      "id": "S3_Amelia_Direct_2",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "Who are you? And how did you get an invite to this thread?",
+      "next": "S3_Choice_Intro"
+    },
+    {
+      "id": "S3_Choice_Intro",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "I think I was added by mistake.",
+          "next": "S3_Branch_Mistake"
+        },
+        {
+          "text": "I'm here because of Rebecca.",
+          "next": "S3_Branch_Rebecca"
+        },
+        {
+          "text": "Depends on who's asking.",
+          "next": "S3_Branch_Aggressive"
+        }
+      ]
+    },
+    {
+      "id": "S3_Branch_Mistake",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "Mistake? Nobody here added you, so that's impossible.",
+      "next": "S3_Abigail_Push"
+    },
+    {
+      "id": "S3_Branch_Rebecca",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "What about her? The news is already out.",
+      "next": "S3_Abigail_Push"
+    },
+    {
+      "id": "S3_Branch_Aggressive",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "Excuse me? You're the one intruding here.",
+      "next": "S3_Abigail_Push"
+    },
+    {
+      "id": "S3_Abigail_Push",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "Amelia, just kick them. We don't need this right now.",
+      "next": "S3_Chris_Agree"
+    },
+    {
+      "id": "S3_Chris_Agree",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "Yeah, I'm on it—",
+      "next": "S3_Michael_Intervene"
+    },
+    {
+      "id": "S3_Michael_Intervene",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Stop_Typing",
+      "text": "Wait.",
+      "next": "S3_Michael_Intervene_2"
+    },
+    {
+      "id": "S3_Michael_Intervene_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "You clearly joined for a reason, [PlayerName]. What is it?",
+      "next": "S3_Choice_WhyHere"
+    },
+    {
+      "id": "S3_Choice_WhyHere",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "I'm trying to find her.",
+          "next": "S3_Search_Reaction"
+        },
+        {
+          "text": "The news report... something doesn't feel right.",
+          "next": "S3_Sus_Reaction"
+        }
+      ]
+    },
+    {
+      "id": "S3_Search_Reaction",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "You? Looking for my sister?",
+      "next": "S3_Michael_ID_Check"
+    },
+    {
+      "id": "S3_Sus_Reaction",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "'Doesn't feel right'? What's that supposed to mean?",
+      "next": "S3_Michael_ID_Check"
+    },
+    {
+      "id": "S3_Michael_ID_Check",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Look, you still haven't explained who you are.",
+      "next": "S3_Choice_Identity"
+    },
+    {
+      "id": "S3_Choice_Identity",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "I knew her. We were... close.",
+          "next": "S3_KnewHer_Branch"
+        },
+        {
+          "text": "My identity doesn't matter. Rebecca is missing.",
+          "next": "S3_NoID_Branch"
+        }
+      ]
+    },
+    {
+      "id": "S3_KnewHer_Branch",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "Close? That's funny. She never mentioned a \"[PlayerName].\"",
+      "next": "S3_Michael_Logic"
+    },
+    {
+      "id": "S3_NoID_Branch",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "It matters when you're lurking in a private chat.",
+      "next": "S3_Michael_Logic"
+    },
+    {
+      "id": "S3_Michael_Logic",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Actually, it matters a lot. You didn't get in here by accident.",
+      "next": "S3_Michael_Logic_2"
+    },
+    {
+      "id": "S3_Michael_Logic_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "Tell us something useful. Why are you *really* involved?",
+      "next": "S3_Choice_Motivation"
+    },
+    {
+      "id": "S3_Choice_Motivation",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "Because no one else seems to be taking this seriously.",
+          "next": "S3_Motivation_A"
+        },
+        {
+          "text": "Because your story to the police is full of holes.",
+          "next": "S3_Motivation_B"
+        }
+      ]
+    },
+    {
+      "id": "S3_Motivation_A",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "Excuse m—",
+      "next": "S3_Amelia_Typo"
+    },
+    {
+      "id": "S3_Amelia_Typo",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "*me. You think we haven't been dealing with this all night?",
+      "next": "S3_Michael_Warning"
+    },
+    {
+      "id": "S3_Motivation_B",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "Holes? That's a bold claim for someone who wasn't there.",
+      "next": "S3_Michael_Warning"
+    },
+    {
+      "id": "S3_Michael_Warning",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Either way, you clearly have a theory.",
+      "next": "S3_Michael_Warning_2"
+    },
+    {
+      "id": "S3_Michael_Warning_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "So say it. What do you think happened to Rebecca?",
+      "next": "S3_Choice_The_Theory"
+    },
+    {
+      "id": "S3_Choice_The_Theory",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "I think someone in this group is lying.",
+          "next": "S3_Liar_Branch"
+        },
+        {
+          "text": "I think she didn't leave when you claim she did.",
+          "next": "S3_Timeline_Branch"
+        }
+      ]
+    },
+    {
+      "id": "S3_Liar_Branch",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "Are you serious right now? You don't even know us.",
+      "next": "S3_Michael_Timeline_Interject"
+    },
+    {
+      "id": "S3_Timeline_Branch",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "We told the police exactly what we saw. She left.",
+      "next": "S3_Michael_Timeline_Interject"
+    },
+    {
+      "id": "S3_Michael_Timeline_Interject",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Interesting.",
+      "next": "S3_Michael_Timeline_Interject_2"
+    },
+    {
+      "id": "S3_Michael_Timeline_Interject_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "So it's the timeline. Specifically, the moment she left.",
+      "next": "S3_Chris_Defensive"
+    },
+    {
+      "id": "S3_Chris_Defensive",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "Midnight. She left around midnight.",
+      "next": "S3_Abigail_Backup"
+    },
+    {
+      "id": "S3_Abigail_Backup",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "That's what we all said.",
+      "next": "S3_Michael_Doubt"
+    },
+    {
+      "id": "S3_Michael_Doubt",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "'Around midnight.'",
+      "next": "S3_Michael_Doubt_2"
+    },
+    {
+      "id": "S3_Michael_Doubt_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1500,
+      "text": "That usually means no one actually checked their phone.",
+      "next": "S3_Amelia_Final"
+    },
+    {
+      "id": "S3_Amelia_Final",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "She left. End of story. I'm not debating this with a stranger.",
+      "next": "S3_TRIGGER_UNKNOWN"
+    },
+    {
+      "id": "S3_TRIGGER_UNKNOWN",
+      "type": "System_Event",
+      "action": "Switch_Context",
+      "target": "Private_Chat_Unknown",
+      "next": "SCENE_4_START"
+    }
+  ]
+}
