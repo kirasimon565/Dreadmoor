@@ -1,0 +1,73 @@
+{
+  "scenes": [
+    {
+      "id": "SCENE_6_START",
+      "type": "Phone_Call_Event",
+      "caller_id": "Unknown_Number",
+      "status": "Ringing",
+      "audio_loop": "assets/media/sfx/phone_ringtone_glitch.mp3",
+      "next_on_decline": "S6_Decline_1",
+      "next_on_accept": "S6_Accept_Call"
+    },
+    {
+      "id": "S6_Decline_1",
+      "type": "System_Event",
+      "action": "Update_Call_Log",
+      "text": "Call Declined.",
+      "next": "S6_Wait_1"
+    },
+    {
+      "id": "S6_Wait_1",
+      "type": "System_Event",
+      "action": "UI_Pause",
+      "duration": 2000,
+      "text": "(2 seconds pass...)",
+      "next": "S6_Ringing_2"
+    },
+    {
+      "id": "S6_Ringing_2",
+      "type": "Phone_Call_Event",
+      "caller_id": "Unknown_Number",
+      "status": "Ringing",
+      "next_on_decline": "S6_Decline_2",
+      "next_on_accept": "S6_Accept_Call"
+    },
+    {
+      "id": "S6_Decline_2",
+      "type": "System_Event",
+      "action": "Update_Call_Log",
+      "text": "Call Declined.",
+      "next": "S6_Wait_2"
+    },
+    {
+      "id": "S6_Wait_2",
+      "type": "System_Event",
+      "action": "UI_Pause",
+      "duration": 3000,
+      "text": "(3 seconds pass...)",
+      "next": "S6_Ringing_Final"
+    },
+    {
+      "id": "S6_Ringing_Final",
+      "type": "Phone_Call_Event",
+      "caller_id": "Unknown_Number",
+      "status": "Force_Ringing",
+      "action": "Disable_Decline_Button",
+      "next_on_accept": "S6_Accept_Call"
+    },
+    {
+      "id": "S6_Accept_Call",
+      "type": "Full_Screen_Call_UI",
+      "status": "Connected",
+      "audio_asset": "assets/media/sfx/threatening_call_01.mp3",
+      "visual_effect": "Audio_Waveform_Glitch",
+      "next": "EPISODE_1_END"
+    },
+    {
+      "id": "EPISODE_1_END",
+      "type": "System_Event",
+      "action": "Trigger_Credits",
+      "text": "TO BE CONTINUED IN EPISODE 2"
+    }
+  ]
+}
