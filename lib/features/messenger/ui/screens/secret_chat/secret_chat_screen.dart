@@ -108,9 +108,9 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                 ),
               ),
 
-            // ── MAIN LAYOUT ───────────────────────────────────────────────────
-            Column(
-              children: [
+              // ── MAIN LAYOUT ───────────────────────────────────────────────────
+              Column(
+                children: [
                 // ── HEADER ────────────────────────────────────────────────────
                 _SecretHeader(
                   threadStream: _threadStream,
@@ -157,11 +157,12 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                   ),
                 ),
 
-                // ── STATUS BAR ────────────────────────────────────────────────
-                const _SpyStatusBar(),
-              ],
-            ),
-          ],
+                  // ── STATUS BAR ────────────────────────────────────────────────
+                  const _SpyStatusBar(),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
