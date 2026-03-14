@@ -1,0 +1,265 @@
+{
+  "scenes": [
+    {
+      "id": "SCENE_4_START",
+      "type": "Chat_Event",
+      "chat": "Private_Unknown",
+      "sender": "Unknown",
+      "text": "Keep your eyes on this.",
+      "next": "S4_VIDEO_NODE"
+    },
+    {
+      "id": "S4_VIDEO_NODE",
+      "type": "Video_Message",
+      "chat": "Private_Unknown",
+      "sender": "Unknown",
+      "file_asset": "assets/media/videos/party_clip.mp4",
+      "duration": 10,
+      "next": "S4_Player_Reaction"
+    },
+    {
+      "id": "S4_Player_Reaction",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "Where the hell did you get this?",
+          "next": "S4_Unknown_Source"
+        }
+      ]
+    },
+    {
+      "id": "S4_Unknown_Source",
+      "type": "Chat_Event",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Same place I found their chat logs.",
+      "next": "S4_Unknown_Explain"
+    },
+    {
+      "id": "S4_Unknown_Explain",
+      "type": "Chat_Event",
+      "sender": "Unknown",
+      "text": "Someone recorded the party and tried to wipe the evidence. They missed a backup.",
+      "next": "S4_Player_Realization"
+    },
+    {
+      "id": "S4_Player_Realization",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "Rebecca is in the background. She's still there.",
+          "next": "S4_Unknown_Confirm"
+        }
+      ]
+    },
+    {
+      "id": "S4_Unknown_Confirm",
+      "type": "Chat_Event",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1500,
+      "text": "Exactly. Which proves the 'midnight' story is a lie.",
+      "next": "S4_The_Mission"
+    },
+    {
+      "id": "S4_The_Mission",
+      "type": "Chat_Event",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Go back to the group. Watch them. One of them is cracking.",
+      "next": "S4_SWITCH_GROUP"
+    },
+    {
+      "id": "S4_SWITCH_GROUP",
+      "type": "System_Event",
+      "action": "Switch_Context",
+      "target": "Group_Dreadmoor_News",
+      "next": "S4_Group_Loop"
+    },
+    {
+      "id": "S4_Group_Loop",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "I don't get it. Why is everyone obsessing over the time?",
+      "next": "S4_Abigail_Echo"
+    },
+    {
+      "id": "S4_Abigail_Echo",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "Seriously. She left. That's the only part that matters.",
+      "next": "S4_Michael_Pressure"
+    },
+    {
+      "id": "S4_Michael_Pressure",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "It matters because consistency is the only thing that keeps the police away.",
+      "next": "S4_Michael_Pressure_2"
+    },
+    {
+      "id": "S4_Michael_Pressure_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "If three people give three different stories, it's not a 'mistake' anymore. It's a red flag.",
+      "next": "S4_Abigail_Defend"
+    },
+    {
+      "id": "S4_Abigail_Defend",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "We aren't. We're all saying the same thing.",
+      "next": "S4_Michael_Counter"
+    },
+    {
+      "id": "S4_Michael_Counter",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Midnight. Outside for air. Didn't see her leave.",
+      "next": "S4_Michael_Counter_2"
+    },
+    {
+      "id": "S4_Michael_Counter_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "Those aren't 'the same thing,' Abigail.",
+      "next": "S4_Amelia_Hostile"
+    },
+    {
+      "id": "S4_Amelia_Hostile",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "Stop twisting our words, Michael. You're acting like something happened.",
+      "next": "S4_Michael_Neutral"
+    },
+    {
+      "id": "S4_Michael_Neutral",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "I'm just repeating what was said. If it sounds suspicious, maybe it is.",
+      "next": "S4_Choice_Entry"
+    },
+    {
+      "id": "S4_Choice_Entry",
+      "type": "Player_Choice",
+      "options": [
+        {
+          "text": "The timeline doesn't fit. You're hiding something.",
+          "next": "S4_Group_React_B"
+        },
+        {
+          "text": "Rebecca is missing and you're arguing about semantics?",
+          "next": "S4_Group_React_A"
+        }
+      ]
+    },
+    {
+      "id": "S4_Group_React_A",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "Semantics? We've been up all night with investigators!",
+      "next": "S4_Michael_Question"
+    },
+    {
+      "id": "S4_Group_React_B",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "Hiding something? You don't even know us!",
+      "next": "S4_Michael_Question"
+    },
+    {
+      "id": "S4_Michael_Question",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Let's cut to the chase.",
+      "next": "S4_Michael_Question_2"
+    },
+    {
+      "id": "S4_Michael_Question_2",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "text": "When was the absolute LAST time anyone saw Rebecca inside that factory?",
+      "next": "S4_The_Slip"
+    },
+    {
+      "id": "S4_The_Slip",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "Around 1—",
+      "next": "S4_Amelia_Interruption"
+    },
+    {
+      "id": "S4_Amelia_Interruption",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "action": "Stop_Typing",
+      "text": "Chris. Stop.",
+      "next": "S4_Chris_Delete"
+    },
+    {
+      "id": "S4_Chris_Delete",
+      "type": "Message_Event",
+      "sender": "chris",
+      "action": "Delete_Message",
+      "target_message": "S4_The_Slip",
+      "next": "S4_Michael_Catch"
+    },
+    {
+      "id": "S4_Michael_Catch",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 2000,
+      "text": "'Around one' what, Chris?",
+      "next": "S4_Chris_Backtrack"
+    },
+    {
+      "id": "S4_Chris_Backtrack",
+      "type": "Chat_Event",
+      "sender": "chris",
+      "text": "I'm just guessing! We were all drinking. No one had a stopwatch.",
+      "next": "S4_Abigail_Exit"
+    },
+    {
+      "id": "S4_Abigail_Exit",
+      "type": "Chat_Event",
+      "sender": "abigail",
+      "text": "This is getting weird. I'm done with this.",
+      "next": "S4_Group_Offline"
+    },
+    {
+      "id": "S4_Group_Offline",
+      "type": "System_Notification",
+      "text": "Abigail and Chris went offline.",
+      "next": "S4_Amelia_Last"
+    },
+    {
+      "id": "S4_Amelia_Last",
+      "type": "Chat_Event",
+      "sender": "amelia",
+      "text": "I'm not doing this. Leave it to the police.",
+      "next": "S4_Amelia_Offline"
+    },
+    {
+      "id": "S4_Amelia_Offline",
+      "type": "System_Notification",
+      "text": "Amelia went offline.",
+      "next": "S4_Michael_Closing"
+    },
+    {
+      "id": "S4_Michael_Closing",
+      "type": "Chat_Event",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Something about last night feels... unfinished.",
+      "next": "SCENE_5_START"
+    }
+  ]
+}
