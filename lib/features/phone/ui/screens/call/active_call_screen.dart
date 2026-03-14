@@ -48,7 +48,8 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
   Future<void> _playBackgroundGlitches() async {
     await _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
     await _ringtonePlayer.setVolume(0.3);
-    await _ringtonePlayer.play(AssetSource('audio/phone_ringtone_glitch.mp3'));
+    // AssetSource expects path relative to 'assets/', so we pass 'media/sfx/...'
+    await _ringtonePlayer.play(AssetSource('media/sfx/phone_ringtone_glitch.mp3'));
   }
 
   @override
@@ -74,7 +75,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
           // 1. CINEMATIC BACKGROUND (Matches your Profile/Call redesign)
           Positioned.fill(
             child: Image.asset(
-              'assets/images/moon_tower_hero.png',
+              'assets/media/images/moon_tower_hero.png',
               fit: BoxFit.cover,
             ),
           ),

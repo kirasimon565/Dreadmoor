@@ -110,8 +110,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     duration: const Duration(milliseconds: 600),
                     child: Image.asset(
                       isGroup
-                          ? 'assets/images/group_chat_bg.png'   // ← your group bg
-                          : 'assets/images/forest_bg.png',       // ← your single bg
+                          ? 'assets/media/images/group_chat_bg.png'   // ← your group bg
+                          : 'assets/media/images/forest_bg.png',       // ← your single bg
                       key: ValueKey(isGroup),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _FallbackBackground(
