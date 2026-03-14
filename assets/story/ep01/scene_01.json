@@ -1,7 +1,7 @@
 {
   "scenes": [
     {
-      "id": "s1_start",
+      "id": "SCENE_1_NEWS_ARTICLE",
       "type": "News_Module",
       "theme": "Dreadmoor_Standard",
       "headline": "Woman Reported Missing Following Midnight Party at Abandoned Factory",

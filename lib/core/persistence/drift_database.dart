@@ -4,6 +4,8 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:dreadmoor/core/scripting/script_loader.dart';
+
 import 'tables.dart';
 
 part 'drift_database.g.dart';
@@ -53,6 +55,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> initializeDefaultData() async {
+    final db = this;
+
     // Inserts the default player and ensures seed characters are loaded
     final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
     if (existingPlayer == null) {
@@ -63,6 +67,20 @@ class AppDatabase extends _$AppDatabase {
           phoneNumber: const Value('+1 (555) 000-0000'),
         ),
       );
+
+      // Fix Profile Screen: Insert Player into Characters table
+      await db.into(db.characters).insertOnConflictUpdate(
+        CharactersCompanion.insert(
+          id: 'player',
+          name: 'Investigator',
+          bio: const Value('Active Case Lead'),
+          avatarPath: const Value('assets/characters/player_default.png'),
+        ),
+      );
+
+      // Load Episode 1 JSON scenes into the StoryNodes table
+      final loader = ScriptLoader(db);
+      await loader.importEpisode('ep01');
     }
   }
 

@@ -144,7 +144,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       if (flag != null && flag.value) {
         _stopMusicAndNavigate(() {
           // Cold launch entry point since there's no active game yet
-          ref.read(globalSchedulerProvider).processNode('s1_start');
+          ref.read(globalSchedulerProvider).processNode('SCENE_1_NEWS_ARTICLE');
           context.go(Routes.messenger);
         });
       } else {
@@ -157,9 +157,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           mode: InsertMode.insertOrReplace,
         );
         _stopMusicAndNavigate(() {
-          // It will redirect to OS after intro cinematic and then we process s1_start there,
+          // It will redirect to OS after intro cinematic and then we process SCENE_1_NEWS_ARTICLE there,
           // or we can just process it now so it's ready.
-          ref.read(globalSchedulerProvider).processNode('s1_start');
+          ref.read(globalSchedulerProvider).processNode('SCENE_1_NEWS_ARTICLE');
           context.go(Routes.introTrailer);
         });
       }
