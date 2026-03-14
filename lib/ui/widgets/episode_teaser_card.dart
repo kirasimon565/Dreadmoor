@@ -71,10 +71,10 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
   }
 
   Color get _statusColor {
-    if (widget.isLocked) return DreadmoorColors.textMeta;
-    if (widget.progress == 100) return DreadmoorColors.accentCyan;
-    if (widget.progress > 0) return DreadmoorColors.accentRed;
-    return DreadmoorColors.accentCyan;
+    if (widget.isLocked) return DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4);
+    if (widget.progress == 100) return DreadmoorColors.investigatorCyan;
+    if (widget.progress > 0) return DreadmoorColors.evidenceRed;
+    return DreadmoorColors.investigatorCyan;
   }
 
   @override
@@ -94,11 +94,11 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
                 decoration: BoxDecoration(
-                  color: DreadmoorColors.surface,
+                  color: DreadmoorColors.surface(Theme.of(context).brightness),
                   border: Border(
                     left: BorderSide(
                       color: widget.isLocked
-                          ? DreadmoorColors.textMeta.withOpacity(0.3)
+                          ? DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.12)
                           : _statusColor,
                       width: _isHovered && !widget.isLocked ? 3 : 2,
                     ),
@@ -132,7 +132,7 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                     if (widget.isLocked)
                       Positioned.fill(
                         child: Container(
-                          color: DreadmoorColors.background.withValues(
+                          color: DreadmoorColors.background(Theme.of(context).brightness).withValues(
                             alpha: 0.55,
                           ),
                         ),
@@ -155,7 +155,7 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                   fontSize: 48,
                                   height: 1.0,
                                   color: widget.isLocked
-                                      ? DreadmoorColors.textMeta.withValues(
+                                      ? DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                           alpha: 0.25,
                                         )
                                       : _statusColor.withOpacity(0.18),
@@ -202,9 +202,8 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                         fontSize: 15,
                                         letterSpacing: 1.5,
                                         color: widget.isLocked
-                                            ? DreadmoorColors.textMeta
-                                                  .withOpacity(0.4)
-                                            : DreadmoorColors.textPrimary,
+                                            ? DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.16)
+                                            : DreadmoorColors.text(Theme.of(context).brightness),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -221,7 +220,7 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                       ? Icons.replay_rounded
                                       : Icons.play_arrow_rounded,
                                   color: widget.isLocked
-                                      ? DreadmoorColors.textMeta.withValues(
+                                      ? DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                           alpha: 0.3,
                                         )
                                       : _statusColor.withOpacity(0.8),
@@ -237,10 +236,10 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                           Container(
                             height: 1,
                             color: widget.isLocked
-                                ? DreadmoorColors.textMeta.withValues(
+                                ? DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                     alpha: 0.12,
                                   )
-                                : DreadmoorColors.textMeta.withValues(
+                                : DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                     alpha: 0.2,
                                   ),
                           ),
@@ -256,10 +255,10 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                               fontSize: 13,
                               height: 1.6,
                               color: widget.isLocked
-                                  ? DreadmoorColors.textMeta.withValues(
+                                  ? DreadmoorColors.text(Theme.of(context).brightness).withValues(
                                       alpha: 0.35,
                                     )
-                                  : DreadmoorColors.textSecondary,
+                                  : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                               letterSpacing: widget.isLocked ? 1.2 : 0.2,
                             ),
                           ),
@@ -281,7 +280,7 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  color: DreadmoorColors.accentRed.withValues(
+                                  color: DreadmoorColors.evidenceRed.withValues(
                                     alpha: 0.5,
                                   ),
                                 ),
@@ -291,7 +290,7 @@ class _EpisodeTeaserCardState extends State<EpisodeTeaserCard>
                                   style: GoogleFonts.michroma(
                                     fontSize: 9,
                                     letterSpacing: 3,
-                                    color: DreadmoorColors.accentRed.withValues(
+                                    color: DreadmoorColors.evidenceRed.withValues(
                                       alpha: 0.5,
                                     ),
                                   ),
@@ -332,7 +331,7 @@ class _ProgressBar extends StatelessWidget {
               style: GoogleFonts.michroma(
                 fontSize: 8,
                 letterSpacing: 2,
-                color: DreadmoorColors.textMeta,
+                color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
               ),
             ),
             Text(
@@ -352,7 +351,7 @@ class _ProgressBar extends StatelessWidget {
               // Track
               Container(
                 height: 2,
-                color: DreadmoorColors.textMeta.withOpacity(0.15),
+                color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.06),
               ),
               // Fill
               FractionallySizedBox(

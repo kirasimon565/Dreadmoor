@@ -27,7 +27,7 @@ class GunTypingIndicator extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: DreadmoorColors.surface.withOpacity(0.35),
+                color: DreadmoorColors.surface(Theme.of(context).brightness).withOpacity(0.35),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.08),
                   width: 0.6,

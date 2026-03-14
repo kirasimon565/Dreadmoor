@@ -70,7 +70,7 @@ class DreadmoorTheme {
       ),
 
       // CARDS (Floating Card Design from your screenshot)
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardColor,
         elevation: 4,
         shadowColor: Colors.black.withOpacity(0.1),
@@ -81,7 +81,7 @@ class DreadmoorTheme {
       ),
 
       // TABS (Used in Profiles)
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: accent,
         unselectedLabelColor: textColor.withOpacity(0.5),
         indicatorColor: accent,

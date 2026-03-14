@@ -40,7 +40,7 @@ class _ContentUpdateScreenState extends State<ContentUpdateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -80,7 +80,7 @@ class _ContentUpdateScreenState extends State<ContentUpdateScreen> {
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
                     valueColor: AlwaysStoppedAnimation(
-                      DreadmoorColors.accentCyan,
+                      DreadmoorColors.investigatorCyan,
                     ),
                   ),
                 ),
@@ -90,7 +90,7 @@ class _ContentUpdateScreenState extends State<ContentUpdateScreen> {
                   style: GoogleFonts.michroma(
                     fontSize: 12,
                     letterSpacing: 2.5,
-                    color: DreadmoorColors.textPrimary,
+                    color: DreadmoorColors.text(Theme.of(context).brightness),
                   ),
                 ),
                 const SizedBox(height: 10),

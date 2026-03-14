@@ -92,7 +92,7 @@ class ProfileScreen extends ConsumerWidget {
                             // NAME
                             Text(
                               profile.name,
-                              style: DreadmoorTheme.headingStyle.copyWith(
+                              style: DreadmoorTheme.headingStyle(Theme.of(context).brightness).copyWith(
                                 fontSize: 28,
                                 color: Theme.of(context).textTheme.bodyLarge?.color,
                               ),
@@ -154,10 +154,10 @@ class ProfileScreen extends ConsumerWidget {
                                   // NOTES SECTION
                                   Text(
                                     "INVESTIGATION NOTES",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
+                                    style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: DreadmoorColors.textSecondary,
+                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                                     ),
                                   ),
                                   const Divider(height: 24),
@@ -165,7 +165,7 @@ class ProfileScreen extends ConsumerWidget {
                                     profile.notes.isNotEmpty 
                                         ? profile.notes.join('\n\n') 
                                         : "No internal notes recorded for this subject.",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
+                                    style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                                       height: 1.6,
                                       fontSize: 14,
                                     ),

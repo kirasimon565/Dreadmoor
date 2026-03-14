@@ -13,7 +13,7 @@ class CreditsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
@@ -89,7 +89,7 @@ class CreditsScreen extends StatelessWidget {
                             Icon(
                               Icons.article_outlined,
                               size: 13,
-                              color: DreadmoorColors.accentCyan.withValues(
+                              color: DreadmoorColors.investigatorCyan.withValues(
                                 alpha: 0.8,
                               ),
                             ),
@@ -99,7 +99,7 @@ class CreditsScreen extends StatelessWidget {
                               style: GoogleFonts.michroma(
                                 fontSize: 10,
                                 letterSpacing: 2.5,
-                                color: DreadmoorColors.accentCyan,
+                                color: DreadmoorColors.investigatorCyan,
                               ),
                             ),
                           ],
@@ -113,7 +113,7 @@ class CreditsScreen extends StatelessWidget {
                         style: GoogleFonts.michroma(
                           fontSize: 9,
                           letterSpacing: 1.5,
-                          color: DreadmoorColors.textMeta.withValues(
+                          color: DreadmoorColors.text(Theme.of(context).brightness).withValues(
                             alpha: 0.5,
                           ),
                         ),
@@ -124,7 +124,7 @@ class CreditsScreen extends StatelessWidget {
                         style: GoogleFonts.michroma(
                           fontSize: 8,
                           letterSpacing: 2,
-                          color: DreadmoorColors.textMeta.withValues(
+                          color: DreadmoorColors.text(Theme.of(context).brightness).withValues(
                             alpha: 0.3,
                           ),
                         ),
@@ -158,7 +158,7 @@ class _CreditRow extends StatelessWidget {
           style: GoogleFonts.michroma(
             fontSize: 9,
             letterSpacing: 3,
-            color: DreadmoorColors.textMeta,
+            color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
           ),
         ),
         const SizedBox(height: 6),
@@ -167,7 +167,7 @@ class _CreditRow extends StatelessWidget {
           style: GoogleFonts.michroma(
             fontSize: 14,
             letterSpacing: 2,
-            color: DreadmoorColors.textPrimary,
+            color: DreadmoorColors.text(Theme.of(context).brightness),
           ),
           textAlign: TextAlign.center,
         ),
@@ -186,7 +186,7 @@ class _StampText extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         border: Border.all(
-          color: DreadmoorColors.textMeta.withOpacity(0.25),
+          color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4).withOpacity(0.25),
         ),
       ),
       child: Text(
@@ -194,7 +194,7 @@ class _StampText extends StatelessWidget {
         style: GoogleFonts.michroma(
           fontSize: 10,
           letterSpacing: 3,
-          color: DreadmoorColors.textMeta,
+          color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
         ),
       ),
     );

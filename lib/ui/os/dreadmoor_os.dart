@@ -14,7 +14,7 @@ import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/widgets/notification_overlay.dart';
 
 // Component for Scene 5
-import 'package:dreadmoor/ui/os/widgets/glitch_overlay.dart'; 
+// import 'package:dreadmoor/ui/os/widgets/glitch_overlay.dart';
 
 class DreadmoorOS extends ConsumerWidget {
   const DreadmoorOS({super.key});
@@ -25,7 +25,7 @@ class DreadmoorOS extends ConsumerWidget {
     final isHacked = ref.watch(isHackedProvider); // New state for Scene 5
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           // MAIN OS LAYER
@@ -44,7 +44,7 @@ class DreadmoorOS extends ConsumerWidget {
           ),
 
           // SCENE 5: HACKER OVERLAY
-          if (isHacked) const GlitchOverlay(),
+          // if (isHacked) const GlitchOverlay(),
 
           // SCENE 6: INCOMING CALL OVERLAY
           if (phoneState.callState == CallState.incoming)

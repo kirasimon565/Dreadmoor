@@ -89,7 +89,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
               animation: _pulseAnim,
               builder: (_, __) => CustomPaint(
                 painter: VignettePainter(
-                  color: DreadmoorColors.accentRed,
+                  color: DreadmoorColors.evidenceRed,
                   intensity: 0.06 + _pulseAnim.value * 0.08,
                 ),
               ),
@@ -109,7 +109,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                       animation: _pulseAnim,
                       builder: (_, __) => Icon(
                         Icons.error_outline_rounded,
-                        color: DreadmoorColors.accentRed.withValues(
+                        color: DreadmoorColors.evidenceRed.withValues(
                           alpha: 0.5 + _pulseAnim.value * 0.5,
                         ),
                         size: 52,
@@ -124,7 +124,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                     style: GoogleFonts.michroma(
                       fontSize: 20,
                       letterSpacing: 4,
-                      color: DreadmoorColors.accentRed,
+                      color: DreadmoorColors.evidenceRed,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -133,7 +133,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                   Container(
                     height: 1,
                     width: 200,
-                    color: DreadmoorColors.accentRed.withOpacity(0.25),
+                    color: DreadmoorColors.evidenceRed.withOpacity(0.25),
                   ),
                   const SizedBox(height: 20),
 
@@ -157,7 +157,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: DreadmoorColors.accentRed.withValues(
+                          color: DreadmoorColors.evidenceRed.withValues(
                             alpha: 0.25,
                           ),
                         ),
@@ -168,7 +168,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                           Icon(
                             Icons.bug_report_outlined,
                             size: 12,
-                            color: DreadmoorColors.textMeta,
+                            color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -176,7 +176,7 @@ class _FatalErrorScreenState extends State<FatalErrorScreen>
                             style: GoogleFonts.sourceCodePro(
                               fontSize: 9,
                               letterSpacing: 2,
-                              color: DreadmoorColors.textMeta,
+                              color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
                             ),
                           ),
                         ],
@@ -220,11 +220,11 @@ class _RebootButtonState extends State<_RebootButton> {
           decoration: BoxDecoration(
             border: Border.all(
               color: _hovered
-                  ? DreadmoorColors.accentRed
-                  : DreadmoorColors.accentRed.withOpacity(0.5),
+                  ? DreadmoorColors.evidenceRed
+                  : DreadmoorColors.evidenceRed.withOpacity(0.5),
             ),
             color: _hovered
-                ? DreadmoorColors.accentRed.withOpacity(0.12)
+                ? DreadmoorColors.evidenceRed.withOpacity(0.12)
                 : Colors.transparent,
           ),
           child: Row(
@@ -233,7 +233,7 @@ class _RebootButtonState extends State<_RebootButton> {
               Icon(
                 Icons.refresh_rounded,
                 size: 15,
-                color: DreadmoorColors.accentRed.withValues(
+                color: DreadmoorColors.evidenceRed.withValues(
                   alpha: _hovered ? 1.0 : 0.7,
                 ),
               ),
@@ -243,7 +243,7 @@ class _RebootButtonState extends State<_RebootButton> {
                 style: GoogleFonts.michroma(
                   fontSize: 11,
                   letterSpacing: 2.5,
-                  color: DreadmoorColors.accentRed.withValues(
+                  color: DreadmoorColors.evidenceRed.withValues(
                     alpha: _hovered ? 1.0 : 0.7,
                   ),
                 ),

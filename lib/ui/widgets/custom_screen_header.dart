@@ -52,7 +52,7 @@ class CustomScreenHeader extends StatelessWidget {
               height: 56 + topPad,
               padding: EdgeInsets.only(top: topPad),
               decoration: BoxDecoration(
-                color: DreadmoorColors.surface.withOpacity(0.45),
+                color: DreadmoorColors.surface(Theme.of(context).brightness).withOpacity(0.45),
                 border: Border(
                   bottom: BorderSide(
                     color: Colors.white.withOpacity(0.12),
@@ -77,7 +77,7 @@ class CustomScreenHeader extends StatelessWidget {
                   Container(
                     width: 2,
                     height: 12,
-                    color: DreadmoorColors.accentCyan,
+                    color: DreadmoorColors.investigatorCyan,
                     margin: const EdgeInsets.only(right: 8),
                   ),
 

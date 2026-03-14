@@ -24,10 +24,10 @@ class OSHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       decoration: BoxDecoration(
-        color: DreadmoorColors.surfaceAlt,
+        color: DreadmoorColors.surface(Theme.of(context).brightness),
         border: Border(
           bottom: BorderSide(
-            color: DreadmoorColors.borderSubtle.withOpacity(0.5),
+            color: DreadmoorColors.divider(Theme.of(context).brightness).withOpacity(0.5),
             width: 0.5,
           ),
         ),
@@ -48,10 +48,10 @@ class OSHeader extends StatelessWidget {
                 children: [
                   Text(
                     title.toUpperCase(),
-                    style: DreadmoorTheme.headingStyle.copyWith(
+                    style: DreadmoorTheme.headingStyle(Theme.of(context).brightness).copyWith(
                       fontSize: 18,
                       letterSpacing: 2.0,
-                      color: DreadmoorColors.textPrimary,
+                      color: DreadmoorColors.text(Theme.of(context).brightness),
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -61,9 +61,9 @@ class OSHeader extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: DreadmoorTheme.bodyStyle.copyWith(
+                      style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                         fontSize: 11,
-                        color: DreadmoorColors.textSecondary,
+                        color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                         letterSpacing: 1.0,
                       ),
                       maxLines: 1,

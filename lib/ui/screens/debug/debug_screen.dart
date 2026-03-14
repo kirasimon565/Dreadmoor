@@ -148,7 +148,7 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
                       _run('ep01_start', 'START EP01 / AMELIA CHAT', () async {
                         // FIX 1: ref.read inside lambda, not ref.watch in build
                         final scheduler = ref.read(globalSchedulerProvider);
-                        await scheduler.startThread('ep01', 'amelia_chat');
+                        await scheduler.processNode('ep01');
                         if (context.mounted) context.go('/messenger');
                       }),
                 ),
@@ -163,7 +163,7 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
                           throw Exception('No active episode or thread');
                         }
                         final scheduler = ref.read(globalSchedulerProvider);
-                        await scheduler.startThread(ep, thread);
+                        await scheduler.processNode(ep);
                         if (context.mounted) context.go('/chat/$thread');
                       }),
                 ),

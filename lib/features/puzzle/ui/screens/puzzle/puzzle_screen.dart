@@ -9,6 +9,7 @@ import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/os/components/os_header.dart';
 import 'package:dreadmoor/features/puzzle/puzzle_state.dart';
 import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
 class PuzzleScreen extends ConsumerStatefulWidget {
   const PuzzleScreen({super.key});
@@ -286,7 +287,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> with SingleTickerPr
       opacity: 0.03,
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 10),
-        itemBuilder: (_, __) => Container(border: Border.all(color: Colors.white)),
+        itemBuilder: (_, __) => Container(decoration: BoxDecoration(border: Border.all(color: Colors.white))),
       ),
     );
   }

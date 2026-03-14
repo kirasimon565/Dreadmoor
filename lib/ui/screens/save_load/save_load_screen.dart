@@ -83,7 +83,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
     final db = ref.read(databaseProvider);
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
@@ -115,7 +115,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                             Container(
                               width: 3,
                               height: 40,
-                              color: DreadmoorColors.accentCyan,
+                              color: DreadmoorColors.investigatorCyan,
                               margin: const EdgeInsets.only(right: 16, top: 2),
                             ),
                             Expanded(
@@ -127,7 +127,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                                     style: GoogleFonts.michroma(
                                       fontSize: 11,
                                       letterSpacing: 2.5,
-                                      color: DreadmoorColors.accentCyan,
+                                      color: DreadmoorColors.investigatorCyan,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
@@ -136,7 +136,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                                     style: GoogleFonts.sourceCodePro(
                                       fontSize: 12,
                                       height: 1.6,
-                                      color: DreadmoorColors.textSecondary,
+                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                                     ),
                                   ),
                                 ],
@@ -145,7 +145,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                             const SizedBox(width: 12),
                             Icon(
                               Icons.cloud_done_outlined,
-                              color: DreadmoorColors.accentCyan.withValues(
+                              color: DreadmoorColors.investigatorCyan.withValues(
                                 alpha: 0.6,
                               ),
                               size: 20,
@@ -167,7 +167,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                               children: [
                                 Icon(
                                   Icons.schedule_rounded,
-                                  color: DreadmoorColors.textMeta,
+                                  color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
                                   size: 16,
                                 ),
                                 const SizedBox(width: 12),
@@ -177,8 +177,8 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                                     style: GoogleFonts.sourceCodePro(
                                       fontSize: 12,
                                       color: timestamp != null
-                                          ? DreadmoorColors.textSecondary
-                                          : DreadmoorColors.textMeta,
+                                          ? DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7)
+                                          : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
                                     ),
                                   ),
                                 ),
@@ -203,7 +203,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
 
                       const SizedBox(height: 32),
                       if (_isLoading)
-                        const Center(child: CircularProgressIndicator(color: DreadmoorColors.accentCyan)),
+                        const Center(child: CircularProgressIndicator(color: DreadmoorColors.investigatorCyan)),
                     ],
                   ),
                 ),
@@ -260,8 +260,8 @@ class _SaveSlot extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: DreadmoorColors.accentCyan.withOpacity(0.3)),
-        color: DreadmoorColors.surfaceAlt,
+        border: Border.all(color: DreadmoorColors.investigatorCyan.withOpacity(0.3)),
+        color: DreadmoorColors.surface(Theme.of(context).brightness),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -269,7 +269,7 @@ class _SaveSlot extends StatelessWidget {
           Icon(
             Icons.save,
             size: 18,
-            color: DreadmoorColors.accentCyan,
+            color: DreadmoorColors.investigatorCyan,
           ),
           const SizedBox(width: 12),
           Text(
@@ -288,7 +288,7 @@ class _SaveSlot extends StatelessWidget {
               "LOAD",
               style: GoogleFonts.michroma(
                  fontSize: 10,
-                 color: DreadmoorColors.textSecondary,
+                 color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                  letterSpacing: 1.0,
               ),
             ),
@@ -299,7 +299,7 @@ class _SaveSlot extends StatelessWidget {
               "SAVE",
               style: GoogleFonts.michroma(
                  fontSize: 10,
-                 color: DreadmoorColors.accentCyan,
+                 color: DreadmoorColors.investigatorCyan,
                  letterSpacing: 1.0,
               ),
             ),

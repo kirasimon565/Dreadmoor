@@ -53,10 +53,7 @@ class _IntroTrailerScreenState extends ConsumerState<IntroTrailerScreen> {
     // Don't auto-start it since we just want to preload?
     // Wait, the instructions say "preload the OS and episode systems during the video playback".
     // And "Start episode 1 begins" when OS appears.
-    // If we call startEpisode, the scheduler begins.
-    // We should pause it immediately so it doesn't push events while video plays.
-    await scheduler.startEpisode('ep01');
-    scheduler.pause();
+    // Start logic was moved to welcome_screen.dart
   }
 
   @override

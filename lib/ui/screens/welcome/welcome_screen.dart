@@ -144,7 +144,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         // Wait, if hasActiveGame is false here, it means we have no threads,
         // so we need to start the episode
         _stopMusicAndNavigate(() {
-          ref.read(globalSchedulerProvider).startEpisode('ep01');
+          ref.read(globalSchedulerProvider).processNode('s1_start');
           context.go(Routes.messenger);
         });
       } else {
@@ -187,7 +187,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     final hasActiveGame = hasActiveGameAsync.value ?? false;
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
           // â”€â”€ Video background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -365,7 +365,7 @@ class _MusicIndicatorState extends State<_MusicIndicator>
     if (!widget.playing) {
       return Text(
         "v1.0.0",
-        style: GoogleFonts.inter(
+        style: GoogleFonts.spaceGrotesk(
           fontSize: 10,
           letterSpacing: 1.5,
           color: Colors.white.withOpacity(0.25),
@@ -435,13 +435,11 @@ class _HeroButtonState extends State<_HeroButton> {
               height: 64,
               decoration: BoxDecoration(
                 color: _pressed
-                    ? DreadmoorColors.accentCyan.withOpacity(0.12)
-                    : DreadmoorColors.surface.withOpacity(0.25),
+                    ? DreadmoorColors.investigatorCyan.withOpacity(0.12)
+                    : DreadmoorColors.surface(Theme.of(context).brightness).withOpacity(0.25),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: DreadmoorColors.accentCyan.withValues(
-                    alpha: _pressed ? 0.8 : 0.4,
-                  ),
+                  color: DreadmoorColors.investigatorCyan.withOpacity(_pressed ? 0.8 : 0.4),
                   width: 0.8,
                 ),
               ),
@@ -450,7 +448,7 @@ class _HeroButtonState extends State<_HeroButton> {
                 children: [
                   Icon(
                     Icons.play_arrow_rounded,
-                    color: DreadmoorColors.accentCyan.withOpacity(0.9),
+                    color: DreadmoorColors.investigatorCyan.withOpacity(0.9),
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -459,7 +457,7 @@ class _HeroButtonState extends State<_HeroButton> {
                     style: GoogleFonts.michroma(
                       fontSize: 15,
                       letterSpacing: 3.0,
-                      color: DreadmoorColors.accentCyan.withOpacity(0.9),
+                      color: DreadmoorColors.investigatorCyan.withOpacity(0.9),
                     ),
                   ),
                 ],

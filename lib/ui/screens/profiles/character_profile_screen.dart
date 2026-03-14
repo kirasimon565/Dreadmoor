@@ -25,7 +25,7 @@ class CharacterProfileScreen extends ConsumerWidget {
     return profileAsync.when(
       loading: () => const Scaffold(
         backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: DreadmoorColors.accentCyan)),
+        body: Center(child: CircularProgressIndicator(color: DreadmoorColors.investigatorCyan)),
       ),
       error: (err, stack) => Scaffold(body: Center(child: Text('Load Error: $err'))),
       data: (profile) {
@@ -75,7 +75,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                             // SUBJECT NAME
                             Text(
                               profile.name.toUpperCase(),
-                              style: DreadmoorTheme.headingStyle.copyWith(
+                              style: DreadmoorTheme.headingStyle(Theme.of(context).brightness).copyWith(
                                 fontSize: 26,
                                 letterSpacing: 2.0,
                               ),
@@ -85,9 +85,9 @@ class CharacterProfileScreen extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               profile.phoneNumber ?? "ID: HIDDEN",
-                              style: DreadmoorTheme.bodyStyle.copyWith(
+                              style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                                 fontSize: 13,
-                                color: DreadmoorColors.accentCyan,
+                                color: DreadmoorColors.investigatorCyan,
                                 letterSpacing: 1.5,
                               ),
                             ),
@@ -119,7 +119,7 @@ class CharacterProfileScreen extends ConsumerWidget {
 
                                   // EVIDENCE GRID (Populated by Drift DB)
                                   if (profile.gallery.isEmpty)
-                                    _buildEmptyState("NO EVIDENCE RECOVERED")
+                                    _buildEmptyState(context, "NO EVIDENCE RECOVERED")
                                   else
                                     GridView.builder(
                                       shrinkWrap: true,
@@ -143,11 +143,11 @@ class CharacterProfileScreen extends ConsumerWidget {
                                   // INVESTIGATION NOTES (From Character DB)
                                   Text(
                                     "INVESTIGATION NOTES",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
+                                    style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.5,
-                                      color: DreadmoorColors.textSecondary,
+                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
                                     ),
                                   ),
                                   const Divider(height: 24, thickness: 1),
@@ -156,7 +156,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                                     profile.notes.isNotEmpty 
                                         ? profile.notes.join('\n\n') 
                                         : "No internal notes have been recorded for this subject yet.",
-                                    style: DreadmoorTheme.bodyStyle.copyWith(
+                                    style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
                                       fontSize: 14,
                                       height: 1.6,
                                     ),
@@ -186,7 +186,7 @@ class CharacterProfileScreen extends ConsumerWidget {
                   ),
                   child: CircleAvatar(
                     radius: 65,
-                    backgroundColor: DreadmoorColors.surfaceAlt,
+                    backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
                     backgroundImage: _resolveImage(profile.avatar),
                   ),
                 ),
@@ -221,7 +221,7 @@ class CharacterProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(BuildContext context, String message) {
     return Container(
       height: 100,
       width: double.infinity,
@@ -232,7 +232,7 @@ class CharacterProfileScreen extends ConsumerWidget {
       child: Center(
         child: Text(
           message,
-          style: DreadmoorTheme.bodyStyle.copyWith(
+          style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
             color: Colors.grey,
             fontSize: 12,
             letterSpacing: 1.5,

@@ -12,7 +12,7 @@ class DreadmoorBrowserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DreadmoorColors.background,
+      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(46),
         child: AppBar(

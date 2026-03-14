@@ -333,19 +333,19 @@ class _RecapHeader extends StatelessWidget {
         // Top rule
         Row(
           children: [
-            Container(width: 32, height: 1, color: DreadmoorColors.accentRed),
+            Container(width: 32, height: 1, color: DreadmoorColors.evidenceRed),
             const SizedBox(width: 12),
             Text(
               'PREVIOUSLY IN',
               style: GoogleFonts.michroma(
                 fontSize: 9,
                 letterSpacing: 4,
-                color: DreadmoorColors.accentRed,
+                color: DreadmoorColors.evidenceRed,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Container(height: 1, color: DreadmoorColors.accentRed),
+              child: Container(height: 1, color: DreadmoorColors.evidenceRed),
             ),
           ],
         ),
@@ -422,7 +422,7 @@ class _CategoryLabel extends StatelessWidget {
           Container(
             width: 3,
             height: 10,
-            color: DreadmoorColors.accentRed,
+            color: DreadmoorColors.evidenceRed,
             margin: const EdgeInsets.only(right: 10),
           ),
           Text(
@@ -430,7 +430,7 @@ class _CategoryLabel extends StatelessWidget {
             style: GoogleFonts.michroma(
               fontSize: 8,
               letterSpacing: 3.5,
-              color: DreadmoorColors.accentRed,
+              color: DreadmoorColors.evidenceRed,
             ),
           ),
         ],
@@ -449,9 +449,9 @@ class _CliffhangerLine extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         border: Border(
-          left: BorderSide(color: DreadmoorColors.accentRed, width: 2),
+          left: BorderSide(color: DreadmoorColors.evidenceRed, width: 2),
         ),
-        color: DreadmoorColors.accentRed.withOpacity(0.06),
+        color: DreadmoorColors.evidenceRed.withOpacity(0.06),
       ),
       child: Text(
         text,
@@ -479,7 +479,7 @@ class _ChoiceLine extends StatelessWidget {
           padding: const EdgeInsets.only(top: 5),
           child: Icon(
             Icons.arrow_right_rounded,
-            color: DreadmoorColors.accentCyan,
+            color: DreadmoorColors.investigatorCyan,
             size: 18,
           ),
         ),
@@ -490,7 +490,7 @@ class _ChoiceLine extends StatelessWidget {
             style: GoogleFonts.sourceCodePro(
               fontSize: 13,
               height: 1.65,
-              color: DreadmoorColors.accentCyan.withOpacity(0.85),
+              color: DreadmoorColors.investigatorCyan.withOpacity(0.85),
               letterSpacing: 0.3,
             ),
           ),
@@ -586,17 +586,17 @@ class _ContinueButtonState extends State<_ContinueButton> {
           decoration: BoxDecoration(
             border: Border.all(
               color: _hovered
-                  ? DreadmoorColors.accentCyan
+                  ? DreadmoorColors.investigatorCyan
                   : Colors.white.withOpacity(0.25),
               width: 1,
             ),
             color: _hovered
-                ? DreadmoorColors.accentCyan.withOpacity(0.08)
+                ? DreadmoorColors.investigatorCyan.withOpacity(0.08)
                 : Colors.transparent,
             boxShadow: _hovered
                 ? [
                     BoxShadow(
-                      color: DreadmoorColors.glowCyan.withOpacity(0.2),
+                      color: DreadmoorColors.investigatorCyan.withOpacity(0.5).withOpacity(0.2),
                       blurRadius: 20,
                     ),
                   ]
@@ -611,7 +611,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
                   fontSize: 12,
                   letterSpacing: 4,
                   color: _hovered
-                      ? DreadmoorColors.accentCyan
+                      ? DreadmoorColors.investigatorCyan
                       : Colors.white.withOpacity(0.7),
                 ),
               ),
@@ -619,7 +619,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
               Icon(
                 Icons.play_arrow_rounded,
                 color: _hovered
-                    ? DreadmoorColors.accentCyan
+                    ? DreadmoorColors.investigatorCyan
                     : Colors.white.withOpacity(0.5),
                 size: 18,
               ),
@@ -736,7 +736,7 @@ class _LoadingState extends StatelessWidget {
             width: 24,
             height: 24,
             child: CircularProgressIndicator(
-              color: DreadmoorColors.accentRed,
+              color: DreadmoorColors.evidenceRed,
               strokeWidth: 1.5,
             ),
           ),
@@ -766,7 +766,7 @@ class _ErrorState extends StatelessWidget {
         style: GoogleFonts.michroma(
           fontSize: 11,
           letterSpacing: 4,
-          color: DreadmoorColors.accentRed.withOpacity(0.7),
+          color: DreadmoorColors.evidenceRed.withOpacity(0.7),
         ),
       ),
     );
