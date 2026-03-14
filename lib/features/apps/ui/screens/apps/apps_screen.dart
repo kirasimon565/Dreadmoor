@@ -27,27 +27,9 @@ class AppsScreen extends ConsumerWidget {
         globalScheduler.hasProcessed('SCENE_1_NOTIFICATION_TRIGGER');
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: DreadmoorColors.background(b),
       body: Stack(
         children: [
-          // ── THE ATMOSPHERIC BACKGROUND ──────────────────────────────────
-          // In Light Mode, it looks like parchment. In Dark, it's deep slate.
-          if (isDark)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(0, -0.4),
-                    radius: 1.2,
-                    colors: [
-                      const Color(0xFF1A1F2B), // Deep Blue-Gray
-                      const Color(0xFF0A0C10), // Pure Slate
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
           SafeArea(
             child: SizedBox(
               width: double.infinity,

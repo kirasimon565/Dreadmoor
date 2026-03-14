@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/messenger_list/messenger_list_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
 import 'package:dreadmoor/features/messenger/ui/screens/secret_chat/secret_chat_screen.dart';
-import 'package:dreadmoor/features/messenger/ui/screens/settings/settings_screen.dart';
 import 'package:dreadmoor/ui/screens/profiles/character_profile_screen.dart';
 
 class MessengerRoutes {
@@ -11,7 +10,6 @@ class MessengerRoutes {
   static const chat = '/chat';
   static const secret = '/secret';
   static const profile = '/profile/character';
-  static const settings = '/settings';
 }
 
 class MessengerNavigator extends StatelessWidget {
@@ -39,9 +37,6 @@ class MessengerNavigator extends StatelessWidget {
             final threadId = settings.arguments as String;
             // The Case File overlaps from the bottom (Slide Up)
             return _slideUpRoute(CharacterProfileScreen(threadId: threadId));
-
-          case MessengerRoutes.settings:
-            return _noTransitionRoute(const SettingsScreen());
 
           default:
             return null;

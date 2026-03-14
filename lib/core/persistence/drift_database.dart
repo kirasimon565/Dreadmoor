@@ -52,6 +52,20 @@ class AppDatabase extends _$AppDatabase {
     await instance.customSelect('SELECT 1').get();
   }
 
+  Future<void> initializeDefaultData() async {
+    // Inserts the default player and ensures seed characters are loaded
+    final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
+    if (existingPlayer == null) {
+      await into(players).insert(
+        PlayersCompanion.insert(
+          name: 'Investigator',
+          gender: 'Unknown',
+          phoneNumber: const Value('+1 (555) 000-0000'),
+        ),
+      );
+    }
+  }
+
   // ---------------------------
   // NARRATIVE & GALLERY DAOs
   // ---------------------------
