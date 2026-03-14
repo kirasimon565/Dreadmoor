@@ -1,235 +1,424 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:drift/drift.dart' as drift;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
-import 'package:dreadmoor/ui/theme/colors.dart';
-import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/core/state/player_state.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  final String? characterId; // Null if viewing own Player profile
+  final String? characterId;
 
   const ProfileScreen({super.key, this.characterId});
 
-  Future<void> _uploadPlayerPhoto(WidgetRef ref) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    
-    if (pickedFile != null) {
-      final db = ref.read(databaseProvider);
-      final player = ref.read(playerStateProvider);
-      if (player == null) return;
-
-      // In a real scenario, we save to local storage and record in CharacterPhotos table
-      // linked to a special 'player' ID or character ID
-      await db.into(db.characterPhotos).insert(
-        CharacterPhotosCompanion.insert(
-          characterId: 'player', 
-          photoPath: pickedFile.path,
-          caption: const drift.Value('Uploaded by Investigator'),
-        ),
-      );
-      // Refresh state
-      ref.invalidate(characterProvider('player'));
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Determine which ID to fetch (the passed NPC ID or the local 'player' ID)
     final effectiveId = characterId ?? 'player';
     final profileAsync = ref.watch(characterProvider(effectiveId));
+    final isOwnProfile = effectiveId == 'player';
 
     return profileAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Data Error: $err'))),
+      loading: () => const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.white54)),
+      ),
+      error: (err, _) =>
+          Scaffold(body: Center(child: Text('Data error: $err'))),
       data: (profile) {
-        if (profile == null) return const Scaffold(body: Center(child: Text('File Not Found')));
-
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
-                  // 1. HERO HEADER IMAGE (The Landscape)
-                  SliverAppBar(
-                    expandedHeight: 280,
-                    backgroundColor: Colors.black,
-                    leading: characterId != null 
-                      ? IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context))
-                      : null,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Image.asset(
-                        profile.headerImage ?? 'assets/headers/default_header.jpg',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-
-                  // 2. THE FLOATING CONTENT CARD
-                  SliverToBoxAdapter(
-                    child: Transform.translate(
-                      offset: const Offset(0, -40), // Creates the overlap
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(40),
-                            topRight: Radius.circular(40),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 70), // Space for the floating avatar
-
-                            // NAME
-                            Text(
-                              profile.name,
-                              style: DreadmoorTheme.headingStyle(Theme.of(context).brightness).copyWith(
-                                fontSize: 28,
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 32),
-
-                            // MEDIA SECTION
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                        color: const Color(0xFFB71C1C), // Red Tag
-                                        child: const Text(
-                                          "Media",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.2,
-                                          ),
-                                        ),
-                                      ),
-                                      if (effectiveId == 'player')
-                                        IconButton(
-                                          icon: const Icon(Icons.add_a_photo, size: 20),
-                                          onPressed: () => _uploadPlayerPhoto(ref),
-                                        ),
-                                    ],
-                                  ),
-                                  
-                                  const SizedBox(height: 20),
-
-                                  // THE PHOTO GRID
-                                  GridView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    padding: EdgeInsets.zero,
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 16,
-                                      mainAxisSpacing: 16,
-                                      childAspectRatio: 0.85,
-                                    ),
-                                    itemCount: profile.gallery.length,
-                                    itemBuilder: (context, index) {
-                                      final photo = profile.gallery[index];
-                                      return _buildGalleryItem(photo);
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 40),
-
-                                  // NOTES SECTION
-                                  Text(
-                                    "INVESTIGATION NOTES",
-                                    style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
-                                    ),
-                                  ),
-                                  const Divider(height: 24),
-                                  Text(
-                                    profile.notes.isNotEmpty 
-                                        ? profile.notes.join('\n\n') 
-                                        : "No internal notes recorded for this subject.",
-                                    style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
-                                      height: 1.6,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 100),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // 3. THE FLOATING CIRCULAR AVATAR
-              // Positioned exactly between the header and the card
-              Positioned(
-                top: 210, // Adjust based on AppBar height
-                left: MediaQuery.of(context).size.width / 2 - 65,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: CircleAvatar(
-                    radius: 65,
-                    backgroundImage: _resolveAvatar(profile.avatar),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        if (profile == null) {
+          return const Scaffold(body: Center(child: Text('File not found.')));
+        }
+        return _PlayerProfileBody(
+          profile: profile,
+          isOwnProfile: isOwnProfile,
+          onAddPhoto: isOwnProfile
+              ? () => _uploadPhoto(ref, effectiveId)
+              : null,
         );
       },
     );
   }
 
-  ImageProvider _resolveAvatar(String? path) {
+  Future<void> _uploadPhoto(WidgetRef ref, String id) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    final db = ref.read(databaseProvider);
+    await db.into(db.characterPhotos).insert(
+      CharacterPhotosCompanion.insert(
+        characterId: id,
+        photoPath: picked.path,
+        caption: const drift.Value('Uploaded by Investigator'),
+      ),
+    );
+    ref.invalidate(characterProvider(id));
+  }
+}
+
+// ── PLAYER PROFILE BODY ────────────────────────────────────────────────────────
+
+class _PlayerProfileBody extends StatelessWidget {
+  final dynamic profile;
+  final bool isOwnProfile;
+  final VoidCallback? onAddPhoto;
+
+  const _PlayerProfileBody({
+    required this.profile,
+    required this.isOwnProfile,
+    this.onAddPhoto,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const double headerHeight = 300.0;
+    const double cardOverlap = 40.0;
+    const double avatarRadius = 65.0;
+    const double avatarTop = headerHeight - cardOverlap - avatarRadius;
+
+    // Game number — only shown if the profile provides one
+    final String? gameNumber = profile.gameNumber as String?;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // ── SCROLLABLE CONTENT ────────────────────────────────────────────
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── HEADER IMAGE ────────────────────────────────────────────
+                SizedBox(
+                  height: headerHeight,
+                  width: double.infinity,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        profile.headerImage ?? 'assets/headers/default_header.jpg',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Container(color: const Color(0xFF1A2535)),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 80,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.15),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── WHITE CARD ───────────────────────────────────────────────
+                Transform.translate(
+                  offset: const Offset(0, -cardOverlap),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(36),
+                        topRight: Radius.circular(36),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Space for avatar
+                        const SizedBox(height: avatarRadius + 16),
+
+                        // ── NAME ─────────────────────────────────────────────
+                        Center(
+                          child: Text(
+                            profile.name,
+                            style: GoogleFonts.spectral(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF555555),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+
+                        // ── GAME NUMBER (only if available, keeps design clean) ─
+                        if (gameNumber != null && gameNumber.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Center(
+                            child: Text(
+                              gameNumber,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 12,
+                                color: Colors.grey.shade400,
+                                letterSpacing: 2.0,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 28),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ── MEDIA HEADER ROW ──────────────────────────
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 7),
+                                    color: const Color(0xFFB71C1C),
+                                    child: Text(
+                                      'Media',
+                                      style: GoogleFonts.spaceGrotesk(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.4,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isOwnProfile && onAddPhoto != null) ...[
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: onAddPhoto,
+                                      child: Icon(
+                                        Icons.add_a_photo_outlined,
+                                        size: 20,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+
+                              const SizedBox(height: 18),
+
+                              // ── PHOTO GRID ───────────────────────────────
+                              if (profile.gallery.isEmpty)
+                                _EmptyMedia()
+                              else
+                                _PhotoGrid(gallery: profile.gallery),
+
+                              const SizedBox(height: 36),
+
+                              // ── INVESTIGATION NOTES (player only) ─────────
+                              _SectionDivider(label: 'INVESTIGATION NOTES'),
+
+                              const SizedBox(height: 14),
+
+                              if (profile.notes == null ||
+                                  (profile.notes as List).isEmpty)
+                                _EmptyNotes()
+                              else
+                                _NotesList(notes: profile.notes as List<String>),
+
+                              const SizedBox(height: 80),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── BACK BUTTON (only when viewing another player's profile) ────
+          if (characterId != null)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 8,
+              child: IconButton(
+                icon: const Icon(Icons.chevron_left,
+                    color: Colors.white, size: 32),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+
+          // ── FLOATING CIRCULAR AVATAR ────────────────────────────────────
+          Positioned(
+            top: avatarTop,
+            left: MediaQuery.of(context).size.width / 2 - avatarRadius,
+            child: GestureDetector(
+              onTap: isOwnProfile ? onAddPhoto : null,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: CircleAvatar(
+                  radius: avatarRadius,
+                  backgroundColor: const Color(0xFFDDDDDD),
+                  backgroundImage: _resolveImage(profile.avatar),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  ImageProvider _resolveImage(String? path) {
     if (path == null) return const AssetImage('assets/characters/default.png');
     if (path.startsWith('assets/')) return AssetImage(path);
     return FileImage(File(path));
   }
+}
 
-  Widget _buildGalleryItem(CharacterPhoto photo) {
+// ── PHOTO GRID ─────────────────────────────────────────────────────────────────
+
+class _PhotoGrid extends StatelessWidget {
+  final List<dynamic> gallery;
+  const _PhotoGrid({required this.gallery});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.88,
+      ),
+      itemCount: gallery.length,
+      itemBuilder: (context, i) {
+        final photo = gallery[i];
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: photo.photoPath.startsWith('assets/')
+              ? Image.asset(photo.photoPath, fit: BoxFit.cover)
+              : Image.file(File(photo.photoPath), fit: BoxFit.cover),
+        );
+      },
+    );
+  }
+}
+
+// ── EMPTY STATES ───────────────────────────────────────────────────────────────
+
+class _EmptyMedia extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      height: 90,
+      width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          )
-        ],
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: photo.photoPath.startsWith('assets/')
-            ? Image.asset(photo.photoPath, fit: BoxFit.cover)
-            : Image.file(File(photo.photoPath), fit: BoxFit.cover),
+      child: Center(
+        child: Text(
+          'NO MEDIA RECOVERED',
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 11,
+            color: Colors.grey,
+            letterSpacing: 1.6,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _EmptyNotes extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'No internal notes have been recorded yet.',
+      style: GoogleFonts.spectral(
+        fontSize: 14,
+        color: Colors.grey.shade400,
+        height: 1.6,
+        fontStyle: FontStyle.italic,
+      ),
+    );
+  }
+}
+
+// ── SECTION DIVIDER ────────────────────────────────────────────────────────────
+
+class _SectionDivider extends StatelessWidget {
+  final String label;
+  const _SectionDivider({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey.shade400,
+            letterSpacing: 1.8,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Divider(
+            thickness: 1,
+            color: Colors.grey.shade200,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── NOTES LIST ─────────────────────────────────────────────────────────────────
+
+class _NotesList extends StatelessWidget {
+  final List<String> notes;
+  const _NotesList({required this.notes});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: notes.map((note) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(
+            note,
+            style: GoogleFonts.spectral(
+              fontSize: 14,
+              height: 1.65,
+              color: const Color(0xFF444444),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
