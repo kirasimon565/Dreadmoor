@@ -33,6 +33,7 @@ class ProfileScreen extends ConsumerWidget {
           return const Scaffold(body: Center(child: Text('File not found.')));
         }
         return _PlayerProfileBody(
+          characterId: effectiveId,
           profile: profile,
           isOwnProfile: isOwnProfile,
           onAddPhoto: isOwnProfile
@@ -63,11 +64,14 @@ class ProfileScreen extends ConsumerWidget {
 // ── PLAYER PROFILE BODY ────────────────────────────────────────────────────────
 
 class _PlayerProfileBody extends StatelessWidget {
+  final String? characterId;
   final dynamic profile;
   final bool isOwnProfile;
   final VoidCallback? onAddPhoto;
 
   const _PlayerProfileBody({
+    super.key,
+    this.characterId,
     required this.profile,
     required this.isOwnProfile,
     this.onAddPhoto,

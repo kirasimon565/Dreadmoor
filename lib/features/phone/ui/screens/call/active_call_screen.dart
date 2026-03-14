@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/ui/widgets/audio_waveform_glitch.dart';
 
 class ActiveCallScreen extends ConsumerStatefulWidget {
   final String callerName;
@@ -27,10 +29,13 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
   Timer? _timer;
   bool _isMuted = false;
   bool _isSpeaker = false;
+  final AudioPlayer _ringtonePlayer = AudioPlayer();
 
   @override
   void initState() {
     super.initState();
+    _playBackgroundGlitches();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -40,9 +45,16 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
     });
   }
 
+  Future<void> _playBackgroundGlitches() async {
+    await _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
+    await _ringtonePlayer.setVolume(0.3);
+    await _ringtonePlayer.play(AssetSource('audio/phone_ringtone_glitch.mp3'));
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
+    _ringtonePlayer.dispose();
     super.dispose();
   }
 
@@ -62,7 +74,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
           // 1. CINEMATIC BACKGROUND (Matches your Profile/Call redesign)
           Positioned.fill(
             child: Image.asset(
-              'assets/backgrounds/tower_moon.jpg',
+              'assets/images/moon_tower_hero.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -124,6 +136,14 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
                     fontWeight: FontWeight.bold,
                     letterSpacing: 3,
                   ),
+                ),
+
+                const Spacer(),
+
+                // ── ANIMATED WAVEFORM GLITCH ────────────────────────────
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.0),
+                  child: AudioWaveformGlitch(),
                 ),
 
                 const Spacer(),

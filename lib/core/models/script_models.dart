@@ -48,6 +48,11 @@ class DreadmoorNode {
     final List<dynamic> options = metadata['options'];
     return options.map((o) => DreadmoorChoice.fromMap(o)).toList();
   }
+
+  /// Helper to get decline actions for Phone_Call_Event
+  Map<String, dynamic>? get nextOnDecline {
+    return metadata['next_on_decline'] as Map<String, dynamic>?;
+  }
 }
 
 /// ------------------------------------------------------------

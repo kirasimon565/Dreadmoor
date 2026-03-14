@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import '../scripting/script_loader.dart';
 import '../scheduler/global_scheduler.dart';
@@ -72,6 +74,41 @@ class DreadmoorNavNotifier extends StateNotifier<String> {
   void navigateToNews(String nodeId) => state = '/browser';
   void navigateToChat() => state = '/messenger';
   void navigateToPhone() => state = '/phone';
+}
+
+// ---------------------------
+// THEME PREFERENCES
+// ---------------------------
+
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  return ThemeModeNotifier(ref);
+});
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  final Ref _ref;
+
+  ThemeModeNotifier(this._ref) : super(ThemeMode.dark) {
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final db = _ref.read(databaseProvider);
+    final row = await (db.select(db.storyState)..where((t) => t.key.equals('theme_mode'))).getSingleOrNull();
+    if (row != null && row.stringValue != null) {
+      state = row.stringValue == 'light' ? ThemeMode.light : ThemeMode.dark;
+    }
+  }
+
+  Future<void> setTheme(ThemeMode mode) async {
+    state = mode;
+    final db = _ref.read(databaseProvider);
+    await db.into(db.storyState).insertOnConflictUpdate(
+      StoryStateCompanion(
+        key: const drift.Value('theme_mode'),
+        stringValue: drift.Value(mode == ThemeMode.light ? 'light' : 'dark'),
+      ),
+    );
+  }
 }
 
 // ---------------------------

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/state/player_state.dart';
 import 'package:dreadmoor/core/models/script_models.dart';
+import 'package:dreadmoor/ui/theme/colors.dart';
 
 class ChoiceOverlay extends ConsumerStatefulWidget {
   const ChoiceOverlay({super.key});
@@ -25,13 +26,13 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
     super.initState();
     _sheetAnim = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 380),
+      duration: Duration.zero, // Zero duration ensures it paints immediately upon layout
     );
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _sheetAnim, curve: Curves.easeOutQuart));
-    _fadeAnim = CurvedAnimation(parent: _sheetAnim, curve: Curves.easeIn);
+    ).animate(CurvedAnimation(parent: _sheetAnim, curve: Curves.linear));
+    _fadeAnim = CurvedAnimation(parent: _sheetAnim, curve: Curves.linear);
   }
 
   @override
@@ -88,13 +89,14 @@ class _InputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPad = MediaQuery.of(context).padding.bottom;
+    final brightness = Theme.of(context).brightness;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad + 16),
       child: Container(
         height: 58,
         decoration: BoxDecoration(
-          color: const Color(0xFF4E6470),
+          color: DreadmoorColors.surface(brightness),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
@@ -111,7 +113,7 @@ class _InputBar extends StatelessWidget {
               child: Text(
                 'Say something...',
                 style: GoogleFonts.spectral(
-                  color: Colors.white.withOpacity(0.60),
+                  color: DreadmoorColors.text(brightness).withOpacity(0.60),
                   fontSize: 18,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w400,
@@ -120,21 +122,47 @@ class _InputBar extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.only(right: 12),
-              child: GestureDetector(
-                onTap: () => HapticFeedback.lightImpact(),
-                child: SizedBox(
-                  width: 42,
-                  height: 42,
-                  child: Image.asset(
-                    'assets/ui/quill_red.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.edit,
-                      color: Color(0xFFCC2A2A),
-                      size: 26,
+              child: Consumer(
+                builder: (context, ref, child) {
+                  return GestureDetector(
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      final scheduler = ref.read(globalSchedulerProvider);
+                      final activeNodeId = ref.read(activeNodeIdProvider);
+
+                      if (activeNodeId != null) {
+                        final db = ref.read(databaseProvider);
+                        final nodeData = await db.getNextNode(activeNodeId);
+                        if (nodeData != null) {
+                          final node = DreadmoorNode.fromDb(nodeData);
+                          if (node.choices.isNotEmpty) {
+                            // Automatically submit the first choice if tapped while choices exist
+                            // (Though usually this bar is hidden if waitingForChoice is true)
+                            final choice = node.choices.first;
+                            scheduler.submitChoice(choice.target, choice.text);
+                            return;
+                          }
+                        }
+                      }
+
+                      // Advance current non-branching node if one is pending
+                      scheduler.resume();
+                    },
+                    child: SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: Image.asset(
+                        'assets/ui/quill_red.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.edit,
+                          color: DreadmoorColors.evidenceRed,
+                          size: 26,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -155,6 +183,7 @@ class _ChoiceSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bottomPad = MediaQuery.of(context).padding.bottom;
+    final brightness = Theme.of(context).brightness;
     final scheduler = ref.read(globalSchedulerProvider);
     final activeNodeId = ref.watch(activeNodeIdProvider);
 
@@ -165,9 +194,9 @@ class _ChoiceSheet extends ConsumerWidget {
         Container(
           width: double.infinity,
           padding: EdgeInsets.fromLTRB(20, 28, 20, bottomPad + 20),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF0EEEA),
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: DreadmoorColors.surface(brightness),
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(28),
               topRight: Radius.circular(28),
             ),
@@ -209,7 +238,7 @@ class _ChoiceSheet extends ConsumerWidget {
             height: 112,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFF0EEEA), width: 4),
+              border: Border.all(color: DreadmoorColors.surface(brightness), width: 4),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.22),
@@ -223,10 +252,10 @@ class _ChoiceSheet extends ConsumerWidget {
                 player?.profilePath ?? 'assets/characters/player_default.png',
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFFD4B896),
-                  child: const Icon(
+                  color: DreadmoorColors.background(brightness),
+                  child: Icon(
                     Icons.person,
-                    color: Colors.white54,
+                    color: DreadmoorColors.text(brightness).withOpacity(0.54),
                     size: 52,
                   ),
                 ),
@@ -249,6 +278,8 @@ class _ChoiceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return GestureDetector(
       onTap: onTap,
       child: Row(
@@ -258,8 +289,8 @@ class _ChoiceRow extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.black, width: 1.5),
+                color: DreadmoorColors.background(brightness),
+                border: Border.all(color: DreadmoorColors.divider(brightness), width: 1.5),
               ),
               alignment: Alignment.centerLeft,
               child: Text(
@@ -267,7 +298,7 @@ class _ChoiceRow extends StatelessWidget {
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                  color: DreadmoorColors.text(brightness),
                   letterSpacing: 0.6,
                 ),
               ),
@@ -278,11 +309,11 @@ class _ChoiceRow extends StatelessWidget {
             width: 44,
             height: 44,
             child: Image.asset(
-              'assets/ui/quill_red.png',
+              brightness == Brightness.light ? 'assets/ui/quill_red.png' : 'assets/ui/quill_black.png',
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (_, __, ___) => Icon(
                 Icons.edit,
-                color: Colors.black87,
+                color: DreadmoorColors.text(brightness),
                 size: 26,
               ),
             ),

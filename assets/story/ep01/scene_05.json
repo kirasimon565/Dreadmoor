@@ -1,8 +1,8 @@
 {
   "scenes": [
     {
-      "id": "SCENE_5_START",
-      "type": "Chat_Event",
+      "id": "s4_intercept",
+      "type": "Secret_Hacked",
       "chat": "Secret_Intercept_Amelia_Michael",
       "theme": "Secret_Hacked",
       "sender": "amelia",
@@ -113,12 +113,12 @@
       "next": "S5_CONNECTION_GLITCH"
     },
     {
-      "id": "S5_CONNECTION_GLITCH",
-      "type": "System_Event",
+      "id": "s5_glitch",
+      "type": "S5_CONNECTION_GLITCH",
       "action": "Glitch_Effect",
       "duration": 1000,
       "text": "[SIGNAL LOST... ENCRYPTION BREACHED...]",
-      "next": "SCENE_6_START"
+      "next": "s6_ring_1"
     }
   ]
 }

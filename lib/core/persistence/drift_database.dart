@@ -13,6 +13,7 @@ part 'drift_database.g.dart';
   Characters, 
   CharacterPhotos, // Added for gallery support
   Threads, 
+  ThreadMembers,
   Messages, 
   Notifications, 
   StoryState, 
@@ -30,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8; // Incremented for CharacterPhotos table
+  int get schemaVersion => 9; // Incremented for ThreadMembers table
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -40,6 +41,9 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 8) {
         await m.createTable(characterPhotos);
+      }
+      if (from < 9) {
+        await m.createTable(threadMembers);
       }
     },
   );

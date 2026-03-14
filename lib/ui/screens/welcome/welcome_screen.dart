@@ -19,9 +19,9 @@ bool get isDebugMode {
   return inDebug;
 }
 
-// âœ… Checks for actual game progress (threads exist), not just player setup.
+// ✅ Checks for actual game progress (threads exist), not just player setup.
 // Player existing = setup complete.
-// Threads existing = game actually started â†’ show CONTINUE.
+// Threads existing = game actually started -> show CONTINUE.
 final hasActiveGameProvider = FutureProvider<bool>((ref) async {
   final db = ref.read(databaseProvider);
   final threads = await db.select(db.threads).get();
@@ -41,7 +41,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
 
-  // â”€â”€ Music â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Music ─────────────────────────────────────────────────────────────
   final _musicPlayer = AudioPlayer();
   bool _musicReady = false;
 
@@ -74,7 +74,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await _musicPlayer.setReleaseMode(ReleaseMode.loop);
       await _musicPlayer.setVolume(0.55);
 
-      // âœ… AudioFocus.none = don't steal focus from the video player.
+      // ✅ AudioFocus.none = don't steal focus from the video player.
       // Without this, audioplayers requests GAIN focus and the OS
       // pauses the video. Android-only app so no iOS context needed.
       await _musicPlayer.setAudioContext(
@@ -139,11 +139,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           .getSingleOrNull();
 
       if (flag != null && flag.value) {
-        // Already seen, skip straight to OS
-        // Also ensure episode is actually running if there's no active game yet
-        // Wait, if hasActiveGame is false here, it means we have no threads,
-        // so we need to start the episode
         _stopMusicAndNavigate(() {
+          // Cold launch entry point since there's no active game yet
           ref.read(globalSchedulerProvider).processNode('s1_start');
           context.go(Routes.messenger);
         });
@@ -156,7 +153,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           ),
           mode: InsertMode.insertOrReplace,
         );
-        _stopMusicAndNavigate(() => context.go(Routes.introTrailer));
+        _stopMusicAndNavigate(() {
+          // It will redirect to OS after intro cinematic and then we process s1_start there,
+          // or we can just process it now so it's ready.
+          ref.read(globalSchedulerProvider).processNode('s1_start');
+          context.go(Routes.introTrailer);
+        });
       }
     }
   }
@@ -169,6 +171,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       } else {
         context.go(Routes.messenger);
       }
+
+      // Let the scheduler pick up where it left off based on activeNodeIdProvider or game flag states
+      // by simply resuming. We don't want to reset to s1_start here.
+      ref.read(globalSchedulerProvider).resume();
     });
   }
 
@@ -182,7 +188,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
-    // âœ… Watch thread-based game state, not just player existence
+    // ✅ Watch thread-based game state, not just player existence
     final hasActiveGameAsync = ref.watch(hasActiveGameProvider);
     final hasActiveGame = hasActiveGameAsync.value ?? false;
 
@@ -190,7 +196,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
       body: Stack(
         children: [
-          // â”€â”€ Video background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          // ── Video background ─────────────────────────────────────────
           const Positioned.fill(
             child: FogVideoBackground(
               assetPath: 'assets/backgrounds/welcome_fog_loop.mp4',
@@ -198,7 +204,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             ),
           ),
 
-          // â”€â”€ Glitch overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          // ── Glitch overlay ───────────────────────────────────────────
           IgnorePointer(
             child: Opacity(
               opacity: 0.04,
@@ -212,13 +218,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             ),
           ),
 
-          // â”€â”€ Main content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          // ── Main content ─────────────────────────────────────────────
           SafeArea(
             child: Column(
               children: [
                 const Spacer(flex: 2),
 
-                // â”€â”€ Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── Logo ───────────────────────────────────────────────────
                 Center(
                   child: AnimatedBuilder(
                     animation: _scaleAnimation,
@@ -245,11 +251,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
                 const Spacer(flex: 2),
 
-                // â”€â”€ Hero action button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── Hero action button ─────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: _HeroButton(
-                    // âœ… Label based on threads, not player existence
+                    // ✅ Label based on threads, not player existence
                     label: hasActiveGame ? "CONTINUE" : "START GAME",
                     onTap: () => _onMainAction(hasActiveGame),
                     reduceMotion: reduceMotion,
@@ -258,7 +264,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
                 const Spacer(flex: 3),
 
-                // â”€â”€ Bottom bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── Bottom bar ─────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 28,
@@ -300,7 +306,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   }
 }
 
-// â”€â”€ Music indicator â€” three tiny animated bars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Music indicator — three tiny animated bars ─────────────────────────
 
 class _MusicIndicator extends StatefulWidget {
   final bool playing;
@@ -394,7 +400,7 @@ class _MusicIndicatorState extends State<_MusicIndicator>
   }
 }
 
-// â”€â”€ Hero glass button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Hero glass button ──────────────────────────────────────────────────
 
 class _HeroButton extends StatefulWidget {
   final String label;

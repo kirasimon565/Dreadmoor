@@ -5,9 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 
-class IncomingCallScreen extends ConsumerWidget {
+import 'package:audioplayers/audioplayers.dart';
+
+class IncomingCallScreen extends ConsumerStatefulWidget {
   final String callerName;
   final String callerNumber;
+  final bool canDecline;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
 
@@ -15,12 +18,37 @@ class IncomingCallScreen extends ConsumerWidget {
     super.key,
     required this.callerName,
     required this.callerNumber,
+    this.canDecline = true,
     required this.onAccept,
     required this.onDecline,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<IncomingCallScreen> createState() => _IncomingCallScreenState();
+}
+
+class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _playRingtone();
+  }
+
+  Future<void> _playRingtone() async {
+    await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+    await _audioPlayer.play(AssetSource('audio/phone_ringtone_glitch.mp3'));
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
 
     return Scaffold(
@@ -29,7 +57,7 @@ class IncomingCallScreen extends ConsumerWidget {
           // 1. THE CINEMATIC BACKGROUND (Tower/Moon Hero)
           Positioned.fill(
             child: Image.asset(
-              'assets/backgrounds/tower_moon.jpg', 
+              'assets/images/moon_tower_hero.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -116,18 +144,24 @@ class IncomingCallScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildCallButton(
-                        icon: Icons.call_end,
-                        color: DreadmoorColors.evidenceRed,
-                        label: "DECLINE",
-                        onTap: onDecline,
+                      Opacity(
+                        opacity: widget.canDecline ? 1.0 : 0.3,
+                        child: IgnorePointer(
+                          ignoring: !widget.canDecline,
+                          child: _buildCallButton(
+                            icon: Icons.call_end,
+                            color: DreadmoorColors.evidenceRed,
+                            label: "DECLINE",
+                            onTap: widget.onDecline,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 64),
                       _buildCallButton(
                         icon: Icons.call,
                         color: DreadmoorColors.investigatorCyan,
                         label: "ACCEPT",
-                        onTap: onAccept,
+                        onTap: widget.onAccept,
                       ),
                     ],
                   ),

@@ -1539,6 +1539,210 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
   }
 }
 
+class $ThreadMembersTable extends ThreadMembers
+    with TableInfo<$ThreadMembersTable, ThreadMember> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ThreadMembersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _threadIdMeta =
+      const VerificationMeta('threadId');
+  @override
+  late final GeneratedColumn<String> threadId = GeneratedColumn<String>(
+      'thread_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES threads (id)'));
+  static const VerificationMeta _characterIdMeta =
+      const VerificationMeta('characterId');
+  @override
+  late final GeneratedColumn<String> characterId = GeneratedColumn<String>(
+      'character_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES characters (id)'));
+  @override
+  List<GeneratedColumn> get $columns => [threadId, characterId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'thread_members';
+  @override
+  VerificationContext validateIntegrity(Insertable<ThreadMember> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('thread_id')) {
+      context.handle(_threadIdMeta,
+          threadId.isAcceptableOrUnknown(data['thread_id']!, _threadIdMeta));
+    } else if (isInserting) {
+      context.missing(_threadIdMeta);
+    }
+    if (data.containsKey('character_id')) {
+      context.handle(
+          _characterIdMeta,
+          characterId.isAcceptableOrUnknown(
+              data['character_id']!, _characterIdMeta));
+    } else if (isInserting) {
+      context.missing(_characterIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {threadId, characterId};
+  @override
+  ThreadMember map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ThreadMember(
+      threadId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
+      characterId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}character_id'])!,
+    );
+  }
+
+  @override
+  $ThreadMembersTable createAlias(String alias) {
+    return $ThreadMembersTable(attachedDatabase, alias);
+  }
+}
+
+class ThreadMember extends DataClass implements Insertable<ThreadMember> {
+  final String threadId;
+  final String characterId;
+  const ThreadMember({required this.threadId, required this.characterId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['thread_id'] = Variable<String>(threadId);
+    map['character_id'] = Variable<String>(characterId);
+    return map;
+  }
+
+  ThreadMembersCompanion toCompanion(bool nullToAbsent) {
+    return ThreadMembersCompanion(
+      threadId: Value(threadId),
+      characterId: Value(characterId),
+    );
+  }
+
+  factory ThreadMember.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ThreadMember(
+      threadId: serializer.fromJson<String>(json['threadId']),
+      characterId: serializer.fromJson<String>(json['characterId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'threadId': serializer.toJson<String>(threadId),
+      'characterId': serializer.toJson<String>(characterId),
+    };
+  }
+
+  ThreadMember copyWith({String? threadId, String? characterId}) =>
+      ThreadMember(
+        threadId: threadId ?? this.threadId,
+        characterId: characterId ?? this.characterId,
+      );
+  ThreadMember copyWithCompanion(ThreadMembersCompanion data) {
+    return ThreadMember(
+      threadId: data.threadId.present ? data.threadId.value : this.threadId,
+      characterId:
+          data.characterId.present ? data.characterId.value : this.characterId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ThreadMember(')
+          ..write('threadId: $threadId, ')
+          ..write('characterId: $characterId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(threadId, characterId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ThreadMember &&
+          other.threadId == this.threadId &&
+          other.characterId == this.characterId);
+}
+
+class ThreadMembersCompanion extends UpdateCompanion<ThreadMember> {
+  final Value<String> threadId;
+  final Value<String> characterId;
+  final Value<int> rowid;
+  const ThreadMembersCompanion({
+    this.threadId = const Value.absent(),
+    this.characterId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ThreadMembersCompanion.insert({
+    required String threadId,
+    required String characterId,
+    this.rowid = const Value.absent(),
+  })  : threadId = Value(threadId),
+        characterId = Value(characterId);
+  static Insertable<ThreadMember> custom({
+    Expression<String>? threadId,
+    Expression<String>? characterId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (threadId != null) 'thread_id': threadId,
+      if (characterId != null) 'character_id': characterId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ThreadMembersCompanion copyWith(
+      {Value<String>? threadId,
+      Value<String>? characterId,
+      Value<int>? rowid}) {
+    return ThreadMembersCompanion(
+      threadId: threadId ?? this.threadId,
+      characterId: characterId ?? this.characterId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (threadId.present) {
+      map['thread_id'] = Variable<String>(threadId.value);
+    }
+    if (characterId.present) {
+      map['character_id'] = Variable<String>(characterId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ThreadMembersCompanion(')
+          ..write('threadId: $threadId, ')
+          ..write('characterId: $characterId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StoryNodesTable extends StoryNodes
     with TableInfo<$StoryNodesTable, StoryNode> {
   @override
@@ -3487,6 +3691,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CharacterPhotosTable characterPhotos =
       $CharacterPhotosTable(this);
   late final $ThreadsTable threads = $ThreadsTable(this);
+  late final $ThreadMembersTable threadMembers = $ThreadMembersTable(this);
   late final $StoryNodesTable storyNodes = $StoryNodesTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
@@ -3501,6 +3706,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         characters,
         characterPhotos,
         threads,
+        threadMembers,
         storyNodes,
         messages,
         notifications,
@@ -3746,6 +3952,21 @@ final class $$CharactersTableReferences
         manager.$state.copyWith(prefetchedData: cache));
   }
 
+  static MultiTypedResultKey<$ThreadMembersTable, List<ThreadMember>>
+      _threadMembersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.threadMembers,
+              aliasName: $_aliasNameGenerator(
+                  db.characters.id, db.threadMembers.characterId));
+
+  $$ThreadMembersTableProcessedTableManager get threadMembersRefs {
+    final manager = $$ThreadMembersTableTableManager($_db, $_db.threadMembers)
+        .filter((f) => f.characterId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_threadMembersRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
   static MultiTypedResultKey<$StoryNodesTable, List<StoryNode>>
       _storyNodesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
           db.storyNodes,
@@ -3809,6 +4030,27 @@ class $$CharactersTableFilterComposer
             $$CharacterPhotosTableFilterComposer(
               $db: $db,
               $table: $db.characterPhotos,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> threadMembersRefs(
+      Expression<bool> Function($$ThreadMembersTableFilterComposer f) f) {
+    final $$ThreadMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.threadMembers,
+        getReferencedColumn: (t) => t.characterId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.threadMembers,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -3928,6 +4170,27 @@ class $$CharactersTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> threadMembersRefs<T extends Object>(
+      Expression<T> Function($$ThreadMembersTableAnnotationComposer a) f) {
+    final $$ThreadMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.threadMembers,
+        getReferencedColumn: (t) => t.characterId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.threadMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
   Expression<T> storyNodesRefs<T extends Object>(
       Expression<T> Function($$StoryNodesTableAnnotationComposer a) f) {
     final $$StoryNodesTableAnnotationComposer composer = $composerBuilder(
@@ -3961,7 +4224,10 @@ class $$CharactersTableTableManager extends RootTableManager<
     $$CharactersTableUpdateCompanionBuilder,
     (Character, $$CharactersTableReferences),
     Character,
-    PrefetchHooks Function({bool characterPhotosRefs, bool storyNodesRefs})> {
+    PrefetchHooks Function(
+        {bool characterPhotosRefs,
+        bool threadMembersRefs,
+        bool storyNodesRefs})> {
   $$CharactersTableTableManager(_$AppDatabase db, $CharactersTable table)
       : super(TableManagerState(
           db: db,
@@ -4023,11 +4289,14 @@ class $$CharactersTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {characterPhotosRefs = false, storyNodesRefs = false}) {
+              {characterPhotosRefs = false,
+              threadMembersRefs = false,
+              storyNodesRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (characterPhotosRefs) db.characterPhotos,
+                if (threadMembersRefs) db.threadMembers,
                 if (storyNodesRefs) db.storyNodes
               ],
               addJoins: null,
@@ -4042,6 +4311,19 @@ class $$CharactersTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$CharactersTableReferences(db, table, p0)
                                 .characterPhotosRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.characterId == item.id),
+                        typedResults: items),
+                  if (threadMembersRefs)
+                    await $_getPrefetchedData<Character, $CharactersTable,
+                            ThreadMember>(
+                        currentTable: table,
+                        referencedTable: $$CharactersTableReferences
+                            ._threadMembersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CharactersTableReferences(db, table, p0)
+                                .threadMembersRefs,
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.characterId == item.id),
@@ -4077,7 +4359,10 @@ typedef $$CharactersTableProcessedTableManager = ProcessedTableManager<
     $$CharactersTableUpdateCompanionBuilder,
     (Character, $$CharactersTableReferences),
     Character,
-    PrefetchHooks Function({bool characterPhotosRefs, bool storyNodesRefs})>;
+    PrefetchHooks Function(
+        {bool characterPhotosRefs,
+        bool threadMembersRefs,
+        bool storyNodesRefs})>;
 typedef $$CharacterPhotosTableCreateCompanionBuilder = CharacterPhotosCompanion
     Function({
   Value<int> id,
@@ -4377,6 +4662,21 @@ final class $$ThreadsTableReferences
     extends BaseReferences<_$AppDatabase, $ThreadsTable, Thread> {
   $$ThreadsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
+  static MultiTypedResultKey<$ThreadMembersTable, List<ThreadMember>>
+      _threadMembersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.threadMembers,
+              aliasName: $_aliasNameGenerator(
+                  db.threads.id, db.threadMembers.threadId));
+
+  $$ThreadMembersTableProcessedTableManager get threadMembersRefs {
+    final manager = $$ThreadMembersTableTableManager($_db, $_db.threadMembers)
+        .filter((f) => f.threadId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_threadMembersRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
   static MultiTypedResultKey<$MessagesTable, List<Message>> _messagesRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.messages,
@@ -4424,6 +4724,27 @@ class $$ThreadsTableFilterComposer
 
   ColumnFilters<String> get participants => $composableBuilder(
       column: $table.participants, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> threadMembersRefs(
+      Expression<bool> Function($$ThreadMembersTableFilterComposer f) f) {
+    final $$ThreadMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.threadMembers,
+        getReferencedColumn: (t) => t.threadId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.threadMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 
   Expression<bool> messagesRefs(
       Expression<bool> Function($$MessagesTableFilterComposer f) f) {
@@ -4516,6 +4837,27 @@ class $$ThreadsTableAnnotationComposer
   GeneratedColumn<String> get participants => $composableBuilder(
       column: $table.participants, builder: (column) => column);
 
+  Expression<T> threadMembersRefs<T extends Object>(
+      Expression<T> Function($$ThreadMembersTableAnnotationComposer a) f) {
+    final $$ThreadMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.threadMembers,
+        getReferencedColumn: (t) => t.threadId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.threadMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
   Expression<T> messagesRefs<T extends Object>(
       Expression<T> Function($$MessagesTableAnnotationComposer a) f) {
     final $$MessagesTableAnnotationComposer composer = $composerBuilder(
@@ -4549,7 +4891,7 @@ class $$ThreadsTableTableManager extends RootTableManager<
     $$ThreadsTableUpdateCompanionBuilder,
     (Thread, $$ThreadsTableReferences),
     Thread,
-    PrefetchHooks Function({bool messagesRefs})> {
+    PrefetchHooks Function({bool threadMembersRefs, bool messagesRefs})> {
   $$ThreadsTableTableManager(_$AppDatabase db, $ThreadsTable table)
       : super(TableManagerState(
           db: db,
@@ -4608,13 +4950,30 @@ class $$ThreadsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$ThreadsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({messagesRefs = false}) {
+          prefetchHooksCallback: (
+              {threadMembersRefs = false, messagesRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (messagesRefs) db.messages],
+              explicitlyWatchedTables: [
+                if (threadMembersRefs) db.threadMembers,
+                if (messagesRefs) db.messages
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
+                  if (threadMembersRefs)
+                    await $_getPrefetchedData<Thread, $ThreadsTable,
+                            ThreadMember>(
+                        currentTable: table,
+                        referencedTable: $$ThreadsTableReferences
+                            ._threadMembersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ThreadsTableReferences(db, table, p0)
+                                .threadMembersRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.threadId == item.id),
+                        typedResults: items),
                   if (messagesRefs)
                     await $_getPrefetchedData<Thread, $ThreadsTable, Message>(
                         currentTable: table,
@@ -4645,7 +5004,314 @@ typedef $$ThreadsTableProcessedTableManager = ProcessedTableManager<
     $$ThreadsTableUpdateCompanionBuilder,
     (Thread, $$ThreadsTableReferences),
     Thread,
-    PrefetchHooks Function({bool messagesRefs})>;
+    PrefetchHooks Function({bool threadMembersRefs, bool messagesRefs})>;
+typedef $$ThreadMembersTableCreateCompanionBuilder = ThreadMembersCompanion
+    Function({
+  required String threadId,
+  required String characterId,
+  Value<int> rowid,
+});
+typedef $$ThreadMembersTableUpdateCompanionBuilder = ThreadMembersCompanion
+    Function({
+  Value<String> threadId,
+  Value<String> characterId,
+  Value<int> rowid,
+});
+
+final class $$ThreadMembersTableReferences
+    extends BaseReferences<_$AppDatabase, $ThreadMembersTable, ThreadMember> {
+  $$ThreadMembersTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $ThreadsTable _threadIdTable(_$AppDatabase db) =>
+      db.threads.createAlias(
+          $_aliasNameGenerator(db.threadMembers.threadId, db.threads.id));
+
+  $$ThreadsTableProcessedTableManager get threadId {
+    final $_column = $_itemColumn<String>('thread_id')!;
+
+    final manager = $$ThreadsTableTableManager($_db, $_db.threads)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_threadIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $CharactersTable _characterIdTable(_$AppDatabase db) =>
+      db.characters.createAlias(
+          $_aliasNameGenerator(db.threadMembers.characterId, db.characters.id));
+
+  $$CharactersTableProcessedTableManager get characterId {
+    final $_column = $_itemColumn<String>('character_id')!;
+
+    final manager = $$CharactersTableTableManager($_db, $_db.characters)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_characterIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ThreadMembersTableFilterComposer
+    extends Composer<_$AppDatabase, $ThreadMembersTable> {
+  $$ThreadMembersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$ThreadsTableFilterComposer get threadId {
+    final $$ThreadsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.threadId,
+        referencedTable: $db.threads,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadsTableFilterComposer(
+              $db: $db,
+              $table: $db.threads,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CharactersTableFilterComposer get characterId {
+    final $$CharactersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.characterId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableFilterComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ThreadMembersTableOrderingComposer
+    extends Composer<_$AppDatabase, $ThreadMembersTable> {
+  $$ThreadMembersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$ThreadsTableOrderingComposer get threadId {
+    final $$ThreadsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.threadId,
+        referencedTable: $db.threads,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadsTableOrderingComposer(
+              $db: $db,
+              $table: $db.threads,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CharactersTableOrderingComposer get characterId {
+    final $$CharactersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.characterId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableOrderingComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ThreadMembersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ThreadMembersTable> {
+  $$ThreadMembersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$ThreadsTableAnnotationComposer get threadId {
+    final $$ThreadsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.threadId,
+        referencedTable: $db.threads,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ThreadsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.threads,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CharactersTableAnnotationComposer get characterId {
+    final $$CharactersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.characterId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ThreadMembersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ThreadMembersTable,
+    ThreadMember,
+    $$ThreadMembersTableFilterComposer,
+    $$ThreadMembersTableOrderingComposer,
+    $$ThreadMembersTableAnnotationComposer,
+    $$ThreadMembersTableCreateCompanionBuilder,
+    $$ThreadMembersTableUpdateCompanionBuilder,
+    (ThreadMember, $$ThreadMembersTableReferences),
+    ThreadMember,
+    PrefetchHooks Function({bool threadId, bool characterId})> {
+  $$ThreadMembersTableTableManager(_$AppDatabase db, $ThreadMembersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ThreadMembersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ThreadMembersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ThreadMembersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> threadId = const Value.absent(),
+            Value<String> characterId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ThreadMembersCompanion(
+            threadId: threadId,
+            characterId: characterId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String threadId,
+            required String characterId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ThreadMembersCompanion.insert(
+            threadId: threadId,
+            characterId: characterId,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ThreadMembersTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({threadId = false, characterId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (threadId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.threadId,
+                    referencedTable:
+                        $$ThreadMembersTableReferences._threadIdTable(db),
+                    referencedColumn:
+                        $$ThreadMembersTableReferences._threadIdTable(db).id,
+                  ) as T;
+                }
+                if (characterId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.characterId,
+                    referencedTable:
+                        $$ThreadMembersTableReferences._characterIdTable(db),
+                    referencedColumn:
+                        $$ThreadMembersTableReferences._characterIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ThreadMembersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ThreadMembersTable,
+    ThreadMember,
+    $$ThreadMembersTableFilterComposer,
+    $$ThreadMembersTableOrderingComposer,
+    $$ThreadMembersTableAnnotationComposer,
+    $$ThreadMembersTableCreateCompanionBuilder,
+    $$ThreadMembersTableUpdateCompanionBuilder,
+    (ThreadMember, $$ThreadMembersTableReferences),
+    ThreadMember,
+    PrefetchHooks Function({bool threadId, bool characterId})>;
 typedef $$StoryNodesTableCreateCompanionBuilder = StoryNodesCompanion Function({
   required String id,
   required String type,
@@ -6003,6 +6669,8 @@ class $AppDatabaseManager {
       $$CharacterPhotosTableTableManager(_db, _db.characterPhotos);
   $$ThreadsTableTableManager get threads =>
       $$ThreadsTableTableManager(_db, _db.threads);
+  $$ThreadMembersTableTableManager get threadMembers =>
+      $$ThreadMembersTableTableManager(_db, _db.threadMembers);
   $$StoryNodesTableTableManager get storyNodes =>
       $$StoryNodesTableTableManager(_db, _db.storyNodes);
   $$MessagesTableTableManager get messages =>

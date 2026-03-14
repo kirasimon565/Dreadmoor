@@ -21,7 +21,10 @@ class AppsScreen extends ConsumerWidget {
 
     // Browser logic
     final flagsAsync = ref.watch(gameFlagsProvider);
-    final browserUnlocked = flagsAsync.value?['article_read'] == true;
+    final globalScheduler = ref.watch(globalSchedulerProvider);
+
+    final browserUnlocked = flagsAsync.value?['article_read'] == true ||
+        globalScheduler.hasProcessed('SCENE_1_NOTIFICATION_TRIGGER');
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -89,33 +92,33 @@ class AppsScreen extends ConsumerWidget {
                     children: [
                       _buildAppIcon(
                         ref,
-                        icon: Icons.chat_bubble_outline_rounded,
-                        label: "MESSENGER",
-                        app: PhoneApp.messenger,
-                        b: b,
-                      ),
-                      _buildAppIcon(
-                        ref,
                         icon: Icons.phone_outlined,
                         label: "DIALER",
                         app: PhoneApp.phone,
                         b: b,
                       ),
                       if (browserUnlocked)
-                        _buildAppIcon(
-                          ref,
-                          icon: Icons.language_outlined,
-                          label: "BROWSER",
-                          app: PhoneApp.browser,
-                          b: b,
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeOutBack,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value.clamp(0.0, 1.0),
+                              child: Transform.scale(
+                                scale: 0.8 + (0.2 * value),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: _buildAppIcon(
+                            ref,
+                            icon: Icons.language_outlined,
+                            label: "BROWSER",
+                            app: PhoneApp.browser,
+                            b: b,
+                          ),
                         ),
-                      _buildAppIcon(
-                        ref,
-                        icon: Icons.folder_open_outlined,
-                        label: "FILES",
-                        app: PhoneApp.store, // Assuming store handles files/dlc
-                        b: b,
-                      ),
                     ],
                   ),
                 ),

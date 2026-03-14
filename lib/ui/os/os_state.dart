@@ -19,3 +19,8 @@ final activeAppProvider = StateProvider<PhoneApp>((ref) {
 final isHackedProvider = StateProvider<bool>((ref) {
   return false;
 });
+
+/// Controls whether the bottom navigation bar is visible
+final showNavigationBarProvider = StateProvider<bool>((ref) {
+  return true;
+});

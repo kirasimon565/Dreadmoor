@@ -37,7 +37,8 @@ class DreadmoorOS extends ConsumerWidget {
                   const Expanded(
                     child: DreadmoorAppContainer(),
                   ),
-                  const DreadmoorNavigationBar(),
+                  if (ref.watch(showNavigationBarProvider))
+                    const DreadmoorNavigationBar(),
                 ],
               ),
             ),
@@ -52,17 +53,14 @@ class DreadmoorOS extends ConsumerWidget {
               child: IncomingCallScreen(
                 callerName: phoneState.callerName,
                 callerNumber: phoneState.callerNumber,
+                canDecline: phoneState.canDecline,
                 onAccept: () {
                   ref.read(phoneProvider.notifier).acceptIncomingCall(ref.read(gameClockProvider));
+                  if (phoneState.onAccept != null) phoneState.onAccept!();
                 },
                 onDecline: () {
-                  // Scene 6 Persistence Logic:
-                  // We update the DB count, then let the GlobalScheduler handle the 2s/3s pause
-                  final db = ref.read(databaseProvider);
-                  db.updateStoryFlag('call_decline_count', iVal: 1); // Increment logic in Scheduler
-                  
                   ref.read(phoneProvider.notifier).declineIncomingCall(ref.read(gameClockProvider));
-                  ref.read(globalSchedulerProvider).resume();
+                  if (phoneState.onDecline != null) phoneState.onDecline!();
                 },
               ),
             ),

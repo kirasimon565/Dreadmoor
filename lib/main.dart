@@ -95,10 +95,13 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'Dreadmoor',
-      theme: DreadmoorTheme.darkTheme,
+      theme: DreadmoorTheme.lightTheme,
+      darkTheme: DreadmoorTheme.darkTheme,
+      themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
 

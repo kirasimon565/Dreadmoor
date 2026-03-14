@@ -99,16 +99,32 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          OSHeader(
-            title: "INBOX",
-            subtitle: "SECURE ARCHIVE",
-            leading: IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: () => Navigator.of(context).pushNamed(MessengerRoutes.settings),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.person_add_outlined),
-              onPressed: () => _showAddContactDialog(context),
+          SizedBox(
+            height: 64, // Standard header height
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.settings_outlined),
+                    onPressed: () => Navigator.of(context).pushNamed(MessengerRoutes.settings),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    "MESSENGER",
+                    style: DreadmoorTheme.headingStyle(brightness).copyWith(fontSize: 18),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.person_add_outlined),
+                    onPressed: () => _showAddContactDialog(context),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(

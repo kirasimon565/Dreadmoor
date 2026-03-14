@@ -1,8 +1,8 @@
 {
   "scenes": [
     {
-      "id": "SCENE_2_START",
-      "type": "Chat_Event",
+      "id": "s2_private_msg",
+      "type": "Private_Unknown",
       "chat": "Private_Unknown",
       "sender": "Unknown",
       "action": "Notification",
@@ -385,10 +385,10 @@
       "next": "S2_SYSTEM_ADD"
     },
     {
-      "id": "S2_SYSTEM_ADD",
-      "type": "System_Notification",
-      "text": "You were added to DREADMOOR'S NEWS",
-      "next": "SCENE_3_START"
+      "id": "s2_system_add",
+      "type": "S2_SYSTEM_ADD",
+      "text": "You were added to Dreadmoor News.",
+      "next": "s3_group_chat"
     }
   ]
 }
