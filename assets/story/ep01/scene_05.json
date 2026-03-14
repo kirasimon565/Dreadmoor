@@ -110,7 +110,7 @@
       "sender": "michael",
       "action": "Typing",
       "text": "If we change a single detail now, we're both finished.",
-      "next": "S5_CONNECTION_GLITCH"
+      "next": "s5_glitch"
     },
     {
       "id": "s5_glitch",
