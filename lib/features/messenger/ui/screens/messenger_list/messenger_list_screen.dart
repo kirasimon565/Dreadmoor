@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -107,7 +108,8 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
                   alignment: Alignment.centerLeft,
                   child: IconButton(
                     icon: const Icon(Icons.settings_outlined),
-                    onPressed: () => Navigator.of(context).pushNamed(MessengerRoutes.settings),
+                    // Route to the global GoRouter settings screen
+                    onPressed: () => context.push('/settings'),
                   ),
                 ),
                 Align(

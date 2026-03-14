@@ -138,6 +138,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             ..where((t) => t.key.equals('intro_cinematic_seen')))
           .getSingleOrNull();
 
+      // START GAME - Ensure defaults exist
+      await ref.read(databaseProvider).initializeDefaultData();
+
       if (flag != null && flag.value) {
         _stopMusicAndNavigate(() {
           // Cold launch entry point since there's no active game yet
