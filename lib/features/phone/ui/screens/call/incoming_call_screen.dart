@@ -38,7 +38,8 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
 
   Future<void> _playRingtone() async {
     await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-    await _audioPlayer.play(AssetSource('audio/phone_ringtone_glitch.mp3'));
+    // AssetSource expects path relative to 'assets/'
+    await _audioPlayer.play(AssetSource('media/sfx/phone_ringtone_glitch.mp3'));
   }
 
   @override
@@ -57,7 +58,7 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
           // 1. THE CINEMATIC BACKGROUND (Tower/Moon Hero)
           Positioned.fill(
             child: Image.asset(
-              'assets/images/moon_tower_hero.png',
+              'assets/media/images/moon_tower_hero.png',
               fit: BoxFit.cover,
             ),
           ),

@@ -81,21 +81,13 @@ flutter:
     - assets/map/locations/
     - assets/icon/
     - assets/music/
-    - assets/images/
-    - assets/images/forest_bg.png
-    - assets/images/group_chat_bg.png
-    - assets/images/moon_tower_hero.png
-    - assets/headers/
-    - assets/headers/default_case.jpg
 
     # Media
-    - assets/video/
-    - assets/video/party_clip.mp4
-    - assets/audio/
-    - assets/audio/phone_ringtone_glitch.mp3
+    - assets/media/images/
     - assets/media/videos/
     - assets/media/audio/
     - assets/media/sfx/
+    - assets/media/headers/
 
     # Episodes (auto-load all episode json files)
     - assets/story/ep01/

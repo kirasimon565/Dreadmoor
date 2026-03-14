@@ -105,7 +105,7 @@ class _PlayerProfileBody extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       Image.asset(
-                        profile.headerImage ?? 'assets/headers/default_header.jpg',
+                        profile.headerImage ?? 'assets/media/headers/default_header.jpg',
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
                             Container(color: const Color(0xFF1A2535)),

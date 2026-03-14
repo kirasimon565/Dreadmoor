@@ -5,7 +5,7 @@
       "type": "IncomingCall",
       "caller_id": "Unknown_Number",
       "status": "Ringing",
-      "audio_loop": "assets/audio/phone_ringtone_glitch.mp3",
+      "audio_loop": "assets/media/sfx/phone_ringtone_glitch.mp3",
       "next_on_decline": { "delay_seconds": 2, "target": "s6_ring_2" },
       "next": "s6_accept"
     },
@@ -14,7 +14,7 @@
       "type": "IncomingCall",
       "caller_id": "Unknown_Number",
       "status": "Ringing",
-      "audio_loop": "assets/audio/phone_ringtone_glitch.mp3",
+      "audio_loop": "assets/media/sfx/phone_ringtone_glitch.mp3",
       "next_on_decline": { "delay_seconds": 3, "target": "s6_ring_final" },
       "next": "s6_accept"
     },

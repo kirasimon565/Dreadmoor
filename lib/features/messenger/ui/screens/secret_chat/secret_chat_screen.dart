@@ -84,7 +84,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
               // ── ASSET BACKGROUND ──────────────────────────────────────────────
               Positioned.fill(
                 child: Image.asset(
-                  'assets/images/forest_bg.png', // Assuming this is used instead of a specific hacked bg as none was listed in the directive checklist, but I will tint it navy.
+                  'assets/media/images/forest_bg.png', // Assuming this is used instead of a specific hacked bg as none was listed in the directive checklist, but I will tint it navy.
                   fit: BoxFit.cover,
                   color: navyBackground.withOpacity(0.9),
                   colorBlendMode: BlendMode.srcATop,
