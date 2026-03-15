@@ -10,15 +10,16 @@ class DreadmoorNavigationBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeApp = ref.watch(activeAppProvider);
+    final activeApp  = ref.watch(activeAppProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Container(
       height: 64,
       decoration: BoxDecoration(
-        color: DreadmoorColors.surface(Theme.of(context).brightness),
+        color: DreadmoorColors.surface(brightness),
         border: Border(
           top: BorderSide(
-            color: DreadmoorColors.divider(Theme.of(context).brightness),
+            color: DreadmoorColors.divider(brightness),
             width: 1.0,
           ),
         ),
@@ -27,34 +28,28 @@ class DreadmoorNavigationBar extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _NavItem(
-            icon: Icons.chat_bubble_outline,
-            label: 'Messenger',
-            app: PhoneApp.messenger,
+            icon:     Icons.chat_bubble_outline,
+            label:    'Messenger',
+            app:      PhoneApp.messenger,
             isActive: activeApp == PhoneApp.messenger,
           ),
           _NavItem(
-            icon: Icons.extension,
-            label: 'Puzzle',
-            app: PhoneApp.puzzle,
+            icon:     Icons.extension,
+            label:    'Puzzle',
+            app:      PhoneApp.puzzle,
             isActive: activeApp == PhoneApp.puzzle,
           ),
           _NavItem(
-            icon: Icons.person_outline,
-            label: 'Profile',
-            app: PhoneApp.profile,
+            icon:     Icons.person_outline,
+            label:    'Profile',
+            app:      PhoneApp.profile,
             isActive: activeApp == PhoneApp.profile,
           ),
           _NavItem(
-            icon: Icons.apps,
-            label: 'Apps',
-            app: PhoneApp.apps,
+            icon:     Icons.apps,
+            label:    'Apps',
+            app:      PhoneApp.apps,
             isActive: activeApp == PhoneApp.apps,
-          ),
-          _NavItem(
-            icon: Icons.storefront,
-            label: 'Store',
-            app: PhoneApp.store,
-            isActive: activeApp == PhoneApp.store,
           ),
         ],
       ),
@@ -64,9 +59,9 @@ class DreadmoorNavigationBar extends ConsumerWidget {
 
 class _NavItem extends ConsumerWidget {
   final IconData icon;
-  final String label;
+  final String   label;
   final PhoneApp app;
-  final bool isActive;
+  final bool     isActive;
 
   const _NavItem({
     super.key,
@@ -78,14 +73,15 @@ class _NavItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final color = isActive ? DreadmoorColors.investigatorCyan : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7);
+    final brightness = Theme.of(context).brightness;
+    final color = isActive
+        ? DreadmoorColors.investigatorCyan
+        : DreadmoorColors.text(brightness).withOpacity(0.7);
 
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          ref.read(activeAppProvider.notifier).state = app;
-        },
+        onTap: () => ref.read(activeAppProvider.notifier).state = app,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -93,10 +89,12 @@ class _NavItem extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: DreadmoorTheme.bodyStyle(Theme.of(context).brightness).copyWith(
+              style: DreadmoorTheme.bodyStyle(brightness).copyWith(
                 fontSize: 10,
-                color: color,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                color:      color,
+                fontWeight: isActive
+                    ? FontWeight.w600
+                    : FontWeight.normal,
               ),
             ),
           ],
