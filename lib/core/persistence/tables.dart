@@ -13,10 +13,10 @@ class Players extends Table {
 }
 
 // --------------------------------------------------
-// CHARACTERS: NPC Registry
+// CHARACTERS: NPC Registry + Player Profile
 // --------------------------------------------------
 class Characters extends Table {
-  TextColumn get id => text()(); 
+  TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get phoneNumber => text()();
   TextColumn get avatarPath => text().nullable()(); // Main profile pic
@@ -30,21 +30,38 @@ class Characters extends Table {
 }
 
 // --------------------------------------------------
+// CHARACTER_NOTES: Player's personal notes about characters / case
+// --------------------------------------------------
+class CharacterNotes extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get characterId =>
+      text().references(Characters, #id, onDelete: KeyAction.cascade)();
+  TextColumn get noteText => text()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE',
+      ];
+}
+
+// --------------------------------------------------
 // CHARACTER_PHOTOS: The Gallery System
 // --------------------------------------------------
 class CharacterPhotos extends Table {
   IntColumn get id => integer().autoIncrement()();
-  
+
   /// Link to the character who owns this photo
-  TextColumn get characterId => 
+  TextColumn get characterId =>
       text().references(Characters, #id, onDelete: KeyAction.cascade)();
-  
+
   /// The path to the image in assets or local storage
   TextColumn get photoPath => text()();
-  
+
   /// Optional caption for the photo
   TextColumn get caption => text().nullable()();
-  
+
   /// Date added/found
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -53,8 +70,8 @@ class CharacterPhotos extends Table {
 // STORY_NODES: The "Brain" (Imported from Obsidian)
 // --------------------------------------------------
 class StoryNodes extends Table {
-  TextColumn get id => text()(); 
-  TextColumn get type => text()(); 
+  TextColumn get id => text()();
+  TextColumn get type => text()();
   TextColumn get senderId => text().nullable().references(Characters, #id)();
   TextColumn get content => text().nullable()();
   TextColumn get nextNodeId => text().nullable()();
@@ -86,7 +103,7 @@ class Threads extends Table {
   BoolColumn get isTyping => boolean().withDefault(const Constant(false))();
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
-  TextColumn get participants => text()(); 
+  TextColumn get participants => text()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -98,7 +115,8 @@ class Threads extends Table {
 class Messages extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get nodeId => text().references(StoryNodes, #id).nullable()();
-  TextColumn get threadId => text().references(Threads, #id, onDelete: KeyAction.cascade)();
+  TextColumn get threadId =>
+      text().references(Threads, #id, onDelete: KeyAction.cascade)();
   TextColumn get senderId => text()();
   TextColumn get content => text().nullable()();
   TextColumn get type => text().withDefault(const Constant('text'))();
@@ -112,9 +130,11 @@ class Messages extends Table {
 
   @override
   List<Index> get indexes => [
-    Index('messages_thread_idx', 'CREATE INDEX messages_thread_idx ON messages (thread_id)'),
-    Index('messages_sequence_idx', 'CREATE INDEX messages_sequence_idx ON messages (sequence)'),
-  ];
+        Index('messages_thread_idx',
+            'CREATE INDEX messages_thread_idx ON messages (thread_id)'),
+        Index('messages_sequence_idx',
+            'CREATE INDEX messages_sequence_idx ON messages (sequence)'),
+      ];
 }
 
 // --------------------------------------------------
@@ -122,11 +142,11 @@ class Messages extends Table {
 // --------------------------------------------------
 class Notifications extends Table {
   TextColumn get id => text()();
-  TextColumn get type => text()(); 
+  TextColumn get type => text()();
   TextColumn get title => text()();
   TextColumn get message => text()();
   IntColumn get createdAtMinutes => integer()();
-  TextColumn get payload => text().nullable()(); 
+  TextColumn get payload => text().nullable()();
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
 
   @override
