@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
 
@@ -43,46 +41,32 @@ class CharacterProfileScreen extends ConsumerWidget {
   }
 }
 
-// ── PROFILE BODY ──────────────────────────────────────────────────────────────
-// Exact mockup design:
-//   - Full-bleed header image
-//   - White rounded overlay creates the curve
-//   - Circular avatar overlaps header/card seam
-//   - Avatar is OUTSIDE the scroll — fixed to viewport
-//   - Name centred in grey, red Media badge, 2-col grid
-
 class _ProfileBody extends StatelessWidget {
   final dynamic profile;
 
   const _ProfileBody({required this.profile});
 
-  // From mockup
-  static const double _headerHeight  = 320.0;
-  static const double _avatarRadius  = 80.0;
-  static const double _curveHeight   = 64.0;
-  // Where the avatar centre sits relative to viewport top
-  static const double _avatarCentreY =
-      _headerHeight - _curveHeight / 2;
+  static const double _headerHeight = 320;
+  static const double _avatarRadius = 80;
 
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
-    final screenW = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── SCROLL CONTENT ──────────────────────────────────────────
+
+          /// ───────────────────────── HEADER + CARD SCROLL
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // Header image via SliverAppBar so it collapses naturally
+
               SliverAppBar(
                 automaticallyImplyLeading: false,
                 expandedHeight: _headerHeight,
-                pinned: false,
-                floating: false,
+                pinned: true,
                 backgroundColor: const Color(0xFF1A2535),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.asset(
@@ -95,98 +79,100 @@ class _ProfileBody extends StatelessWidget {
                 ),
               ),
 
-              // White rounded card — starts with space for avatar
               SliverToBoxAdapter(
-                child: Transform.translate(
-                  // Pull up to overlap the header image
-                  offset: const Offset(0, -_curveHeight),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(48),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          // Space to clear the overlapping avatar
-                          const SizedBox(
-                              height: _avatarRadius + 16),
+                child: Container(
+                  /// pushes card below header so avatar overlaps seam
+                  margin: const EdgeInsets.only(top: _avatarRadius),
 
-                          // Name — centred, grey, from mockup
-                          Center(
-                            child: Text(
-                              (profile.name as String?) ?? '',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0.5,
-                                color: Color(0xFF333333),
-                              ),
-                            ),
+                  /// space for avatar inside card
+                  padding: const EdgeInsets.fromLTRB(
+                      24,
+                      _avatarRadius + 16,
+                      24,
+                      80),
+
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(64),
+                    ),
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      /// NAME
+                      Center(
+                        child: Text(
+                          (profile.name as String?) ?? '',
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.5,
+                            color: Color(0xFF333333),
                           ),
-
-                          const SizedBox(height: 48),
-
-                          // Red Media badge
-                          _SectionBadge(text: 'Media'),
-
-                          const SizedBox(height: 24),
-
-                          // Photo grid
-                          if ((profile.gallery as List?)
-                                  ?.isEmpty ??
-                              true)
-                            _EmptyMedia()
-                          else
-                            _PhotoGrid(
-                                gallery:
-                                    profile.gallery as List),
-
-                          const SizedBox(height: 64),
-                        ],
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(height: 48),
+
+                      /// MEDIA BADGE
+                      const _SectionBadge(text: 'Media'),
+
+                      const SizedBox(height: 24),
+
+                      /// GRID
+                      if ((profile.gallery as List?)?.isEmpty ?? true)
+                        _EmptyMedia()
+                      else
+                        _PhotoGrid(
+                          gallery: profile.gallery as List,
+                        ),
+
+                      const SizedBox(height: 64),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
 
-          // ── BACK BUTTON — fixed to viewport ───────────────────────
+          /// ───────────────────────── BACK BUTTON
           Positioned(
             top: topPad + 8,
             left: 8,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new,
-                  color: Colors.white, size: 22),
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 22,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
 
-          // ── AVATAR — fixed to viewport, never scrolls ──────────────
-          // Centred horizontally, sits at the header/card seam
+          /// ───────────────────────── AVATAR
           Positioned(
-            top: _avatarCentreY - _avatarRadius,
-            left: screenW / 2 - _avatarRadius,
-            child: Container(
-              width: _avatarRadius * 2,
-              height: _avatarRadius * 2,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                // White ring border (from mockup)
-                border: Border.all(
-                    color: Colors.white, width: 4),
-              ),
-              child: ClipOval(
-                child: _resolveImage(
-                    profile.avatar as String?),
+            top: _headerHeight - _avatarRadius,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: _avatarRadius * 2,
+                height: _avatarRadius * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 4,
+                  ),
+                ),
+                child: ClipOval(
+                  child: _resolveImage(
+                    profile.avatar as String?,
+                  ),
+                ),
               ),
             ),
           ),
@@ -199,27 +185,38 @@ class _ProfileBody extends StatelessWidget {
     if (path == null || path.isEmpty) {
       return Container(
         color: Colors.grey.shade200,
-        child: const Icon(Icons.person,
-            color: Colors.grey, size: 60),
+        child: const Icon(
+          Icons.person,
+          color: Colors.grey,
+          size: 60,
+        ),
       );
     }
+
     if (path.startsWith('assets/')) {
-      return Image.asset(path,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.person,
-                    color: Colors.grey, size: 60),
-              ));
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey.shade200,
+          child: const Icon(
+            Icons.person,
+            color: Colors.grey,
+            size: 60,
+          ),
+        ),
+      );
     }
+
     return Image.file(File(path), fit: BoxFit.cover);
   }
 }
 
-// ── SECTION BADGE ─────────────────────────────────────────────────────────────
+/// SECTION BADGE
 
 class _SectionBadge extends StatelessWidget {
   final String text;
+
   const _SectionBadge({required this.text});
 
   @override
@@ -233,7 +230,7 @@ class _SectionBadge extends StatelessWidget {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          letterSpacing: 1.0,
+          letterSpacing: 1,
           color: Colors.white,
         ),
       ),
@@ -241,10 +238,11 @@ class _SectionBadge extends StatelessWidget {
   }
 }
 
-// ── PHOTO GRID ────────────────────────────────────────────────────────────────
+/// PHOTO GRID
 
 class _PhotoGrid extends StatelessWidget {
   final List<dynamic> gallery;
+
   const _PhotoGrid({required this.gallery});
 
   @override
@@ -257,7 +255,8 @@ class _PhotoGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
@@ -265,25 +264,23 @@ class _PhotoGrid extends StatelessWidget {
       ),
       itemCount: gallery.length,
       itemBuilder: (context, i) {
-        final photo   = gallery[i];
+        final photo = gallery[i];
+        final path = photo.photoPath as String;
         final isVideo = items[i].isVideo;
-        final path    = photo.photoPath as String;
 
         return GestureDetector(
-          onTap: () =>
-              MediaViewer.open(context, items: items, initialIndex: i),
+          onTap: () => MediaViewer.open(
+            context,
+            items: items,
+            initialIndex: i,
+          ),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Container(
-                color: Colors.grey.shade200,
-                child: path.startsWith('assets/')
-                    ? Image.asset(path,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            Container(color: Colors.grey.shade200))
-                    : Image.file(File(path), fit: BoxFit.cover),
-              ),
+              path.startsWith('assets/')
+                  ? Image.asset(path, fit: BoxFit.cover)
+                  : Image.file(File(path), fit: BoxFit.cover),
+
               if (isVideo)
                 Positioned(
                   bottom: 8,
@@ -291,11 +288,15 @@ class _PhotoGrid extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(4),
+                      color: Colors.black.withOpacity(.6),
+                      borderRadius:
+                          BorderRadius.circular(4),
                     ),
-                    child: const Icon(Icons.play_arrow,
-                        color: Colors.white, size: 16),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                   ),
                 ),
             ],
@@ -306,16 +307,14 @@ class _PhotoGrid extends StatelessWidget {
   }
 }
 
-// ── EMPTY MEDIA ───────────────────────────────────────────────────────────────
+/// EMPTY MEDIA
 
 class _EmptyMedia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 100,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-      ),
+      color: Colors.grey.shade100,
       alignment: Alignment.center,
       child: const Text(
         'NO MEDIA RECOVERED',
