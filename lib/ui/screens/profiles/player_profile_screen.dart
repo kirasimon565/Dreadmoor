@@ -15,28 +15,30 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final effectiveId  = characterId ?? 'player';
-    final isOwnProfile = effectiveId == 'player';
-    final profileAsync = ref.watch(characterProvider(effectiveId));
+    final id           = characterId ?? 'player';
+    final isOwnProfile = id == 'player';
+    final profileAsync = ref.watch(characterProvider(id));
 
     return profileAsync.when(
       loading: () => const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-            child: CircularProgressIndicator(color: Color(0xFF0B1220))),
+            child: CircularProgressIndicator(
+                color: Color(0xFFC62828))),
       ),
-      error: (err, _) => Scaffold(
+      error: (e, _) => Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: Text('Data error: $err')),
+        body: Center(child: Text('Error: $e')),
       ),
       data: (profile) {
         if (profile == null) {
-          // Force-insert player row and re-watch
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
+          // Force-insert and retry
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) async {
             final db = ref.read(databaseProvider);
             await db.into(db.characters).insertOnConflictUpdate(
               CharactersCompanion.insert(
-                id:          effectiveId,
+                id:          id,
                 name:        'Investigator',
                 bio:         const drift.Value('Active Case Lead'),
                 avatarPath:  const drift.Value(
@@ -44,22 +46,21 @@ class ProfileScreen extends ConsumerWidget {
                 phoneNumber: '+1 (555) 000-0000',
               ),
             );
-            ref.invalidate(characterProvider(effectiveId));
+            ref.invalidate(characterProvider(id));
           });
-
           return const Scaffold(
             backgroundColor: Colors.white,
             body: Center(
                 child: CircularProgressIndicator(
-                    color: Color(0xFF0B1220))),
+                    color: Color(0xFFC62828))),
           );
         }
 
         return _PlayerProfileBody(
           profile:      profile,
           isOwnProfile: isOwnProfile,
-          onAddPhoto:   isOwnProfile
-              ? () => _uploadPhoto(ref, effectiveId)
+          onAddPhoto: isOwnProfile
+              ? () => _uploadPhoto(ref, id)
               : null,
         );
       },
@@ -68,14 +69,15 @@ class ProfileScreen extends ConsumerWidget {
 
   Future<void> _uploadPhoto(WidgetRef ref, String id) async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
     final db = ref.read(databaseProvider);
     await db.into(db.characterPhotos).insert(
       CharacterPhotosCompanion.insert(
         characterId: id,
         photoPath:   picked.path,
-        caption:     const drift.Value('Uploaded by Investigator'),
+        caption: const drift.Value('Uploaded by Investigator'),
       ),
     );
     ref.invalidate(characterProvider(id));
@@ -83,11 +85,11 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 // ── PLAYER PROFILE BODY ────────────────────────────────────────────────────────
-// Same avatar-scroll fix as CharacterProfileScreen.
+// Same design as CharacterProfileScreen + Notes section after Media.
 
 class _PlayerProfileBody extends StatelessWidget {
-  final dynamic profile;
-  final bool isOwnProfile;
+  final dynamic    profile;
+  final bool       isOwnProfile;
   final VoidCallback? onAddPhoto;
 
   const _PlayerProfileBody({
@@ -96,22 +98,25 @@ class _PlayerProfileBody extends StatelessWidget {
     this.onAddPhoto,
   });
 
-  static const double _headerHeight = 300.0;
-  static const double _cardOverlap  = 40.0;
-  static const double _avatarRadius = 65.0;
-  static const double _avatarTop =
-      _headerHeight - _cardOverlap - _avatarRadius;
+  static const double _headerHeight = 320.0;
+  static const double _avatarRadius = 80.0;
+  static const double _curveHeight  = 64.0;
+  static const double _avatarCentreY =
+      _headerHeight - _curveHeight / 2;
+
+  String? get _characterId => null;
 
   @override
   Widget build(BuildContext context) {
-    final topPad     = MediaQuery.of(context).padding.top;
-    final gameNumber = profile.gameNumber as String?;
+    final topPad  = MediaQuery.of(context).padding.top;
+    final screenW = MediaQuery.of(context).size.width;
+    final notes   = (profile.notes as List?)?.cast<String>() ?? [];
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── SCROLL CONTENT ───────────────────────────────────────────────
+          // ── SCROLL ────────────────────────────────────────────────
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -123,124 +128,124 @@ class _PlayerProfileBody extends StatelessWidget {
                 backgroundColor: const Color(0xFF1A2535),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.asset(
-                    profile.headerImage
-                        ?? 'assets/headers/default_header.jpg',
+                    (profile.headerImage as String?) ??
+                        'assets/headers/default_header.jpg',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                        Container(color: const Color(0xFF1A2535)),
+                    errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF1A2535)),
                   ),
                 ),
               ),
 
               SliverToBoxAdapter(
                 child: Transform.translate(
-                  offset: const Offset(0, -_cardOverlap),
+                  offset: const Offset(0, -_curveHeight),
                   child: Container(
-                    width: double.infinity,
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft:  Radius.circular(36),
-                        topRight: Radius.circular(36),
-                      ),
+                      borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(48)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: _avatarRadius + 16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                              height: _avatarRadius + 16),
 
-                        // NAME
-                        Center(
-                          child: Text(
-                            (profile.name as String?) ?? 'Investigator',
-                            style: GoogleFonts.spectral(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF555555),
-                            ),
-                          ),
-                        ),
-
-                        // GAME NUMBER
-                        if (gameNumber != null && gameNumber.isNotEmpty) ...[
-                          const SizedBox(height: 6),
+                          // Name
                           Center(
                             child: Text(
-                              gameNumber,
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 12,
-                                color: Colors.grey.shade400,
-                                letterSpacing: 2.0,
-                                fontWeight: FontWeight.w500,
+                              (profile.name as String?) ??
+                                  'Investigator',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.5,
+                                color: Color(0xFF333333),
                               ),
                             ),
                           ),
-                        ],
 
-                        const SizedBox(height: 28),
+                          const SizedBox(height: 48),
 
-                        Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          // Media section header
+                          Row(
                             children: [
-                              // Media header
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 7),
-                                    color: const Color(0xFFB71C1C),
-                                    child: Text(
-                                      'Media',
-                                      style: GoogleFonts.spaceGrotesk(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                              _SectionBadge(text: 'Media'),
+                              if (isOwnProfile &&
+                                  onAddPhoto != null) ...[
+                                const SizedBox(width: 12),
+                                GestureDetector(
+                                  onTap: onAddPhoto,
+                                  child: Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 20,
+                                    color: Colors.grey.shade500,
                                   ),
-                                  if (isOwnProfile &&
-                                      onAddPhoto != null) ...[
-                                    const SizedBox(width: 12),
-                                    GestureDetector(
-                                      onTap: onAddPhoto,
-                                      child: Icon(
-                                          Icons.add_a_photo_outlined,
-                                          size: 20,
-                                          color: Colors.grey.shade500),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 18),
-
-                              if ((profile.gallery as List?)?.isEmpty ??
-                                  true)
-                                _EmptyMedia()
-                              else
-                                _PhotoGrid(
-                                    gallery: profile.gallery as List),
-
-                              const SizedBox(height: 36),
-                              _SectionDivider(
-                                  label: 'INVESTIGATION NOTES'),
-                              const SizedBox(height: 14),
-
-                              if ((profile.notes as List?)?.isEmpty ??
-                                  true)
-                                _EmptyNotes()
-                              else
-                                _NotesList(
-                                    notes: (profile.notes as List)
-                                        .cast<String>()),
-
-                              const SizedBox(height: 80),
+                                ),
+                              ],
                             ],
                           ),
-                        ),
-                      ],
+
+                          const SizedBox(height: 24),
+
+                          if ((profile.gallery as List?)
+                                  ?.isEmpty ??
+                              true)
+                            _EmptyMedia()
+                          else
+                            _PhotoGrid(
+                                gallery:
+                                    profile.gallery as List),
+
+                          // ── NOTES — player only ──────────────────
+                          const SizedBox(height: 40),
+
+                          _SectionBadge(text: 'Notes'),
+
+                          const SizedBox(height: 20),
+
+                          if (notes.isEmpty)
+                            Container(
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'NO NOTES RECORDED',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                  letterSpacing: 1.6,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          else
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: notes.map((n) => Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 16),
+                                child: Text(
+                                  n,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    height: 1.6,
+                                    color: Color(0xFF444444),
+                                  ),
+                                ),
+                              )).toList(),
+                            ),
+
+                          const SizedBox(height: 80),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -248,35 +253,36 @@ class _PlayerProfileBody extends StatelessWidget {
             ],
           ),
 
-          // ── BACK BUTTON (only when viewing another profile) ──────────────
-          if (characterId != null)
+          // ── BACK BUTTON (only when viewing someone else) ───────────
+          if (_characterId != null)
             Positioned(
               top: topPad + 8,
               left: 8,
               child: IconButton(
-                icon: const Icon(
-                    Icons.chevron_left, color: Colors.white, size: 32),
+                icon: const Icon(Icons.arrow_back_ios_new,
+                    color: Colors.white, size: 22),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
 
-          // ── AVATAR — fixed to viewport ───────────────────────────────────
+          // ── AVATAR — fixed to viewport ─────────────────────────────
           Positioned(
-            top: _avatarTop,
-            left:
-                MediaQuery.of(context).size.width / 2 - _avatarRadius,
+            top: _avatarCentreY - _avatarRadius,
+            left: screenW / 2 - _avatarRadius,
             child: GestureDetector(
               onTap: isOwnProfile ? onAddPhoto : null,
               child: Container(
-                padding: const EdgeInsets.all(4),
+                width: _avatarRadius * 2,
+                height: _avatarRadius * 2,
                 decoration: const BoxDecoration(
-                  color: Colors.white,
                   shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.fromBorderSide(
+                      BorderSide(color: Colors.white, width: 4)),
                 ),
-                child: CircleAvatar(
-                  radius: _avatarRadius,
-                  backgroundColor: const Color(0xFFDDDDDD),
-                  backgroundImage: _resolveImage(profile.avatar as String?),
+                child: ClipOval(
+                  child: _resolveImage(
+                      profile.avatar as String?),
                 ),
               ),
             ),
@@ -286,18 +292,51 @@ class _PlayerProfileBody extends StatelessWidget {
     );
   }
 
-  // Expose for back button visibility check
-  String? get characterId => null;
-
-  ImageProvider _resolveImage(String? path) {
-    if (path == null || path.isEmpty)
-      return const AssetImage('assets/characters/player_default.png');
-    if (path.startsWith('assets/')) return AssetImage(path);
-    return FileImage(File(path));
+  Widget _resolveImage(String? path) {
+    if (path == null || path.isEmpty) {
+      return Container(
+        color: Colors.grey.shade200,
+        child: const Icon(Icons.person,
+            color: Colors.grey, size: 60),
+      );
+    }
+    if (path.startsWith('assets/')) {
+      return Image.asset(path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.person,
+                    color: Colors.grey, size: 60),
+              ));
+    }
+    return Image.file(File(path), fit: BoxFit.cover);
   }
 }
 
 // ── SHARED WIDGETS ────────────────────────────────────────────────────────────
+
+class _SectionBadge extends StatelessWidget {
+  final String text;
+  const _SectionBadge({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: const Color(0xFFC62828),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 1.0,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
 
 class _PhotoGrid extends StatelessWidget {
   final List<dynamic> gallery;
@@ -311,20 +350,21 @@ class _PhotoGrid extends StatelessWidget {
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 0.88,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.8,
       ),
       itemCount: gallery.length,
       itemBuilder: (context, i) {
-        final photo = gallery[i];
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: (photo.photoPath as String).startsWith('assets/')
-              ? Image.asset(photo.photoPath as String,
-                  fit: BoxFit.cover)
-              : Image.file(File(photo.photoPath as String),
-                  fit: BoxFit.cover),
+        final path = gallery[i].photoPath as String;
+        return Container(
+          color: Colors.grey.shade200,
+          child: path.startsWith('assets/')
+              ? Image.asset(path,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: Colors.grey.shade200))
+              : Image.file(File(path), fit: BoxFit.cover),
         );
       },
     );
@@ -335,83 +375,18 @@ class _EmptyMedia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 90,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Center(
-        child: Text(
-          'NO MEDIA RECOVERED',
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 11,
-            color: Colors.grey,
-            letterSpacing: 1.6,
-            fontWeight: FontWeight.w600,
-          ),
+      height: 100,
+      color: Colors.grey.shade100,
+      alignment: Alignment.center,
+      child: const Text(
+        'NO MEDIA RECOVERED',
+        style: TextStyle(
+          fontSize: 11,
+          color: Colors.grey,
+          letterSpacing: 1.6,
+          fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-}
-
-class _EmptyNotes extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'No investigation notes recorded yet.',
-      style: GoogleFonts.spectral(
-        fontSize: 14,
-        color: Colors.grey.shade400,
-        height: 1.6,
-        fontStyle: FontStyle.italic,
-      ),
-    );
-  }
-}
-
-class _SectionDivider extends StatelessWidget {
-  final String label;
-  const _SectionDivider({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Text(label,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: Colors.grey.shade400,
-            letterSpacing: 1.8,
-          )),
-      const SizedBox(width: 12),
-      Expanded(
-          child:
-              Divider(thickness: 1, color: Colors.grey.shade200)),
-    ]);
-  }
-}
-
-class _NotesList extends StatelessWidget {
-  final List<String> notes;
-  const _NotesList({required this.notes});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: notes
-          .map((n) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(n,
-                    style: GoogleFonts.spectral(
-                      fontSize: 14,
-                      height: 1.65,
-                      color: const Color(0xFF444444),
-                    )),
-              ))
-          .toList(),
     );
   }
 }
