@@ -59,7 +59,7 @@ class AppDatabase extends _$AppDatabase {
         name: 'New Player',                        // plain string – no Value()
         bio: const Value('Active Case Lead'),
         avatarPath: const Value('assets/characters/player_default.png'),
-        phoneNumber: '+1 (555) 000-0000',          // required field
+        phoneNumber: const Value('+1 (555) 000-0000'),          // required field
       ),
     );
   }
@@ -72,7 +72,7 @@ class AppDatabase extends _$AppDatabase {
       await into(players).insert(PlayersCompanion.insert(
         name: 'New Player',                        // plain string
         gender: 'Unknown',                         // plain string
-        phoneNumber: '+1 (555) 000-0000',
+        phoneNumber: const Value('+1 (555) 000-0000'),
       ));
     }
 
