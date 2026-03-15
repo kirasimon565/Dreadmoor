@@ -39,8 +39,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .join([
-          leftOuterJoin(
-              db.characters, db.characters.id.equalsExp(db.messages.senderId)),
+          leftOuterJoin(db.characters,
+              db.characters.id.equalsExp(db.messages.senderId)),
         ]).watch();
 
     _membersStream = (db.select(db.threadMembers)
@@ -49,7 +49,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(activeThreadIdProvider.notifier).state = widget.threadId;
+        ref.read(activeThreadIdProvider.notifier).state =
+            widget.threadId;
       }
     });
   }
@@ -65,18 +66,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final max = _scrollController.position.maxScrollExtent;
     if (animated) {
       _scrollController.animateTo(max,
-          duration: const Duration(milliseconds: 320), curve: Curves.easeOut);
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOut);
     } else {
       _scrollController.jumpTo(max);
     }
   }
 
   String? _resolveProfileId(List<ThreadMember> members) {
-    final nonPlayer = members
+    return members
         .where((m) => m.characterId != 'player')
         .map((m) => m.characterId)
-        .toList();
-    return nonPlayer.isNotEmpty ? nonPlayer.first : null;
+        .firstOrNull;
   }
 
   @override
@@ -86,21 +87,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: StreamBuilder<List<ThreadMember>>(
         stream: _membersStream,
         builder: (context, membersSnap) {
-          final members = membersSnap.data ?? [];
-          final isGroup = members.length > 1;
+          final members   = membersSnap.data ?? [];
+          final isGroup   = members.length > 1;
           final profileId = _resolveProfileId(members);
 
-          // Build avatar paths from actual character IDs.
-          // Tries assets/characters/{id}.png — falls back to default icon.
           final avatarPaths = members
               .where((m) => m.characterId != 'player')
-              .map((m) => 'assets/characters/${m.characterId}.png')
+              .map((m) =>
+                  'assets/characters/${m.characterId}.png')
               .toList();
 
           return Stack(
             fit: StackFit.expand,
             children: [
-              // ── BACKGROUND ──────────────────────────────────────────────
+              // Background
               Positioned.fill(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 600),
@@ -116,7 +116,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
 
-              // ── TOP GRADIENT (keeps header readable) ────────────────────
+              // Top gradient
               Positioned(
                 top: 0, left: 0, right: 0, height: 180,
                 child: DecoratedBox(
@@ -125,7 +125,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.50),
+                        Colors.black.withOpacity(0.45),
                         Colors.transparent,
                       ],
                     ),
@@ -133,54 +133,63 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
 
-              // ── LAYOUT ──────────────────────────────────────────────────
+              // Layout
               Column(
                 children: [
-                  // HEADER
+                  // Header
                   StreamBuilder<Thread?>(
                     stream: _threadStream,
                     builder: (context, snap) {
-                      final thread = snap.data;
                       return ChatHeaderNeonGroup(
-                        title: thread?.title ?? 'Unknown',
-                        onBackPressed: () => Navigator.pop(context),
+                        title: snap.data?.title ?? 'Unknown',
+                        onBackPressed: () =>
+                            Navigator.pop(context),
                         avatarPaths: avatarPaths,
                         isOnline: true,
-                        // Tap pill → open character profile screen
+                        // FIX: rootNavigator: true so the pushed screen
+                        // covers DreadmoorOS entirely (nav bar + status bar).
+                        // Without this the push stays inside MessengerNavigator
+                        // and the OS chrome shows through.
                         onAvatarTap: profileId != null
                             ? () {
                                 HapticFeedback.selectionClick();
-                                Navigator.push(
+                                Navigator.of(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => CharacterProfileScreen(
-                                      characterId: profileId,
-                                    ),
+                                  rootNavigator: true, // ← KEY FIX
+                                ).push(MaterialPageRoute(
+                                  builder: (_) =>
+                                      CharacterProfileScreen(
+                                    characterId: profileId,
                                   ),
-                                );
+                                ));
                               }
                             : null,
                       );
                     },
                   ),
 
-                  // MESSAGES
+                  // Messages
                   Expanded(
                     child: StreamBuilder<List<TypedResult>>(
                       stream: _messagesStream,
                       builder: (context, snapshot) {
                         final messages = snapshot.data ?? [];
 
-                        if (messages.length != _lastMessageCount) {
+                        if (messages.length !=
+                            _lastMessageCount) {
                           _lastMessageCount = messages.length;
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _scrollToBottom(animated: _lastMessageCount > 1);
+                          WidgetsBinding.instance
+                              .addPostFrameCallback((_) {
+                            _scrollToBottom(
+                                animated:
+                                    _lastMessageCount > 1);
                           });
                         }
 
                         return ListView.builder(
                           controller: _scrollController,
-                          physics: const BouncingScrollPhysics(),
+                          physics:
+                              const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           itemCount: messages.length + 1,
@@ -188,19 +197,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             if (index == messages.length) {
                               return _buildTypingIndicator();
                             }
+                            final db =
+                                ref.read(databaseProvider);
                             final row = messages[index];
-                            final db = ref.read(databaseProvider);
-                            final msg = row.readTable(db.messages);
-                            final character =
-                                row.readTableOrNull(db.characters);
+                            final msg =
+                                row.readTable(db.messages);
+                            final character = row
+                                .readTableOrNull(db.characters);
 
                             return ChatBubble(
-                              text: msg.content ?? '',
-                              isMe: msg.isPlayerMessage,
-                              senderId: msg.senderId,
+                              text:       msg.content ?? '',
+                              isMe:       msg.isPlayerMessage,
+                              senderId:   msg.senderId,
                               senderName: character?.name,
-                              timestamp: msg.timestamp,
-                              isSecret: msg.isSecret,
+                              timestamp:  msg.timestamp,
+                              isSecret:   msg.isSecret,
                             );
                           },
                         );
@@ -212,7 +223,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
 
-              // ── CHOICE OVERLAY / INPUT BAR ───────────────────────────────
+              // Choice overlay / input bar
               const ChoiceOverlay(),
             ],
           );
