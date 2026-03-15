@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:drift/drift.dart' as drift;
 
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
 
