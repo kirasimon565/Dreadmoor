@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
-import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
 
@@ -21,133 +20,123 @@ class CharacterProfileScreen extends ConsumerWidget {
 
     return profileAsync.when(
       loading: () => const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.white54)),
+        backgroundColor: Colors.white,
+        body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF0B1220))),
       ),
       error: (err, _) => Scaffold(
+        backgroundColor: Colors.white,
         body: Center(child: Text('Load error: $err')),
       ),
       data: (profile) {
         if (profile == null) {
-          return const Scaffold(body: Center(child: Text('Profile not found.')));
+          return const Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(child: Text('Profile not found.')),
+          );
         }
-        return _ProfileBody(profile: profile, isPlayer: false);
+        return _CharacterProfileBody(profile: profile);
       },
     );
   }
 }
 
-// ── SHARED BODY ───────────────────────────────────────────────────────────────
+// ── PROFILE BODY ──────────────────────────────────────────────────────────────
+//
+// FIX: Avatar scroll bug.
+// Old structure:
+//   Stack → SingleChildScrollView → Column → Positioned(avatar)
+// Problem: Stack sizes to the scroll content height (not viewport).
+//          Positioned(top: N) was measured from content top → scrolled.
+//
+// New structure:
+//   Scaffold → Stack (viewport-bounded by Scaffold)
+//     ├── CustomScrollView (SliverAppBar header + SliverToBoxAdapter card)
+//     ├── Positioned(avatar)   ← OUTSIDE scroll, fixed at viewport top
+//     └── Positioned(back btn) ← OUTSIDE scroll, fixed at viewport top
+//
+// The Scaffold gives Stack tight constraints = viewport size.
+// Positioned children are now anchored to the viewport, never scroll.
 
-class _ProfileBody extends StatelessWidget {
-  final dynamic profile;   // your CharacterProfile model
-  final bool isPlayer;
-  final VoidCallback? onAddPhoto;
+class _CharacterProfileBody extends StatelessWidget {
+  final dynamic profile;
 
-  const _ProfileBody({
-    required this.profile,
-    required this.isPlayer,
-    this.onAddPhoto,
-  });
+  const _CharacterProfileBody({required this.profile});
+
+  static const double _headerHeight  = 300.0;
+  static const double _cardOverlap   = 40.0;
+  static const double _avatarRadius  = 65.0;
+  // Distance from top of viewport to avatar centre
+  static const double _avatarTop =
+      _headerHeight - _cardOverlap - _avatarRadius;
 
   @override
   Widget build(BuildContext context) {
-    // How tall the background image section is
-    const double headerHeight = 300.0;
-    // How much the white card overlaps the image
-    const double cardOverlap = 40.0;
-    // Avatar radius
-    const double avatarRadius = 65.0;
-    // Avatar sits centred on the card's top edge
-    const double avatarTop = headerHeight - cardOverlap - avatarRadius;
+    final topPad = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── SCROLLABLE CONTENT ──────────────────────────────────────────
-          SingleChildScrollView(
+          // ── SCROLL CONTENT ─────────────────────────────────────────────
+          CustomScrollView(
             physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── HEADER IMAGE ──────────────────────────────────────────
-                SizedBox(
-                  height: headerHeight,
-                  width: double.infinity,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                    profile.headerImage ?? 'assets/media/headers/default_header.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: const Color(0xFF1A2535),
-                        ),
-                      ),
-                      // Subtle bottom fade so card edge blends
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 80,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.15),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+            slivers: [
+              // Header image — collapses as user scrolls up
+              SliverAppBar(
+                automaticallyImplyLeading: false,
+                expandedHeight: _headerHeight,
+                pinned: false,
+                floating: false,
+                backgroundColor: const Color(0xFF1A2535),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Image.asset(
+                    profile.headerImage
+                        ?? 'assets/media/headers/default_header.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: const Color(0xFF1A2535)),
                   ),
                 ),
+              ),
 
-                // ── WHITE CARD ────────────────────────────────────────────
-                Transform.translate(
-                  offset: const Offset(0, -cardOverlap),
+              // White card
+              SliverToBoxAdapter(
+                child: Transform.translate(
+                  offset: const Offset(0, -_cardOverlap),
                   child: Container(
-                    width: double.infinity,
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(36),
+                        topLeft:  Radius.circular(36),
                         topRight: Radius.circular(36),
                       ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Space for avatar that floats above
-                        const SizedBox(height: avatarRadius + 16),
+                        // Space for floating avatar
+                        const SizedBox(height: _avatarRadius + 16),
 
-                        // ── NAME ────────────────────────────────────────
                         Center(
                           child: Text(
-                            profile.name,
+                            profile.name as String? ?? '',
                             style: GoogleFonts.spectral(
                               fontSize: 36,
                               fontWeight: FontWeight.w400,
                               color: const Color(0xFF555555),
-                              letterSpacing: 0.2,
                             ),
                           ),
                         ),
 
                         const SizedBox(height: 28),
 
-                        // ── MEDIA SECTION ──────────────────────────────
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Red "Media" tag
+                              // Red Media tag
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 7),
@@ -158,46 +147,43 @@ class _ProfileBody extends StatelessWidget {
                                     color: Colors.white,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.4,
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 18),
 
-                              // ── PHOTO GRID ───────────────────────────
-                              if (profile.gallery.isEmpty)
+                              if ((profile.gallery as List?)?.isEmpty ?? true)
                                 _EmptyMedia()
                               else
-                                _PhotoGrid(gallery: profile.gallery),
+                                _PhotoGrid(
+                                    gallery: profile.gallery as List),
                             ],
                           ),
                         ),
-
-                        // Notes section intentionally omitted for characters
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 80),
                       ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
-          // ── BACK BUTTON ─────────────────────────────────────────────────
+          // ── BACK BUTTON — fixed to viewport ─────────────────────────────
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
+            top: topPad + 8,
             left: 8,
             child: IconButton(
-              icon: const Icon(Icons.chevron_left, color: Colors.white, size: 32),
+              icon: const Icon(
+                  Icons.chevron_left, color: Colors.white, size: 32),
               onPressed: () => Navigator.pop(context),
             ),
           ),
 
-          // ── FLOATING CIRCULAR AVATAR ─────────────────────────────────────
+          // ── AVATAR — fixed to viewport, never scrolls ────────────────────
           Positioned(
-            top: avatarTop,
-            left: MediaQuery.of(context).size.width / 2 - avatarRadius,
+            top: _avatarTop,
+            left: MediaQuery.of(context).size.width / 2 - _avatarRadius,
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: const BoxDecoration(
@@ -205,9 +191,9 @@ class _ProfileBody extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: CircleAvatar(
-                radius: avatarRadius,
+                radius: _avatarRadius,
                 backgroundColor: const Color(0xFFDDDDDD),
-                backgroundImage: _resolveImage(profile.avatar),
+                backgroundImage: _resolveImage(profile.avatar as String?),
               ),
             ),
           ),
@@ -217,22 +203,21 @@ class _ProfileBody extends StatelessWidget {
   }
 
   ImageProvider _resolveImage(String? path) {
-    if (path == null) return const AssetImage('assets/characters/unknown.png');
+    if (path == null || path.isEmpty)
+      return const AssetImage('assets/characters/unknown.png');
     if (path.startsWith('assets/')) return AssetImage(path);
     return FileImage(File(path));
   }
 }
 
-// ── PHOTO GRID ─────────────────────────────────────────────────────────────────
+// ── PHOTO GRID ────────────────────────────────────────────────────────────────
 
 class _PhotoGrid extends StatelessWidget {
-  final List<dynamic> gallery; // List<CharacterPhoto>
-
+  final List<dynamic> gallery;
   const _PhotoGrid({required this.gallery});
 
   @override
   Widget build(BuildContext context) {
-    // Build MediaItem list once so we can pass the full list + index to viewer
     final items = gallery
         .map<MediaItem>((p) => MediaItem.fromPhoto(p))
         .toList();
@@ -249,26 +234,26 @@ class _PhotoGrid extends StatelessWidget {
       ),
       itemCount: gallery.length,
       itemBuilder: (context, i) {
-        final photo = gallery[i];
+        final photo   = gallery[i];
         final isVideo = items[i].isVideo;
 
         return GestureDetector(
-          onTap: () => MediaViewer.open(context, items: items, initialIndex: i),
+          onTap: () =>
+              MediaViewer.open(context, items: items, initialIndex: i),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Thumbnail
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: photo.photoPath.startsWith('assets/')
-                    ? Image.asset(photo.photoPath, fit: BoxFit.cover)
-                    : Image.file(File(photo.photoPath), fit: BoxFit.cover),
+                child: (photo.photoPath as String).startsWith('assets/')
+                    ? Image.asset(photo.photoPath as String,
+                        fit: BoxFit.cover)
+                    : Image.file(File(photo.photoPath as String),
+                        fit: BoxFit.cover),
               ),
-              // Video badge
               if (isVideo)
                 Positioned(
-                  bottom: 8,
-                  right: 8,
+                  bottom: 8, right: 8,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 7, vertical: 4),
@@ -276,11 +261,8 @@ class _PhotoGrid extends StatelessWidget {
                       color: Colors.black.withOpacity(0.65),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    child: const Icon(Icons.play_arrow,
+                        color: Colors.white, size: 16),
                   ),
                 ),
             ],
@@ -290,8 +272,6 @@ class _PhotoGrid extends StatelessWidget {
     );
   }
 }
-
-// ── EMPTY MEDIA ────────────────────────────────────────────────────────────────
 
 class _EmptyMedia extends StatelessWidget {
   @override
