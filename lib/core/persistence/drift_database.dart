@@ -20,7 +20,7 @@ part 'drift_database.g.dart';
   StoryState,
   Episodes,
   StoryNodes,
-  CharacterNotes,           // ← ADDED
+  CharacterNotes,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
@@ -32,19 +32,19 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 10;  // ← increased because we added a new table
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (m) async {
-      await m.createAll();
-    },
-    onUpgrade: (m, from, to) async {
-      if (from < 8) await m.createTable(characterPhotos);
-      if (from < 9) await m.createTable(threadMembers);
-      if (from < 10) await m.createTable(characterNotes);  // ← added
-    },
-  );
+        onCreate: (m) async {
+          await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 8) await m.createTable(characterPhotos);
+          if (from < 9) await m.createTable(threadMembers);
+          if (from < 10) await m.createTable(characterNotes);
+        },
+      );
 
   // ── INIT ──────────────────────────────────────────────────────────────────
   static Future<void> init() async {
@@ -55,28 +55,28 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _ensurePlayerCharacter() async {
     await into(characters).insertOnConflictUpdate(
       CharactersCompanion.insert(
-        id:          'player',
-        name:        'New Player',           // ← safer temporary fallback
-        bio:         const Value('Active Case Lead'),
-        avatarPath:  const Value('assets/characters/player_default.png'),
-        phoneNumber: '+1 (555) 000-0000',
+        id: 'player',
+        name: 'New Player',                        // plain string – no Value()
+        bio: const Value('Active Case Lead'),
+        avatarPath: const Value('assets/characters/player_default.png'),
+        phoneNumber: '+1 (555) 000-0000',          // required field
       ),
     );
   }
 
   // ── DATA INITIALIZATION ────────────────────────────────────────────────────
   Future<void> initializeDefaultData() async {
-    // Player system row
+    // Player system row (in players table)
     final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
     if (existingPlayer == null) {
       await into(players).insert(PlayersCompanion.insert(
-        name:        const Value('New Player'),           // ← changed
-        gender:      const Value('Unknown'),
-        phoneNumber: const Value('+1 (555) 000-0000'),
+        name: 'New Player',                        // plain string
+        gender: 'Unknown',                         // plain string
+        phoneNumber: '+1 (555) 000-0000',
       ));
     }
 
-    // Player character row
+    // Player character row (in characters table)
     await _ensurePlayerCharacter();
 
     // Import pending episodes
@@ -102,15 +102,19 @@ class AppDatabase extends _$AppDatabase {
         .watch();
   }
 
-  Future<void> updateStoryFlag(String key,
-      {bool? bVal, int? iVal, String? sVal}) async {
+  Future<void> updateStoryFlag(
+    String key, {
+    bool? bVal,
+    int? iVal,
+    String? sVal,
+  }) async {
     await into(storyState).insertOnConflictUpdate(
       StoryStateCompanion(
-        key:         Value(key),
-        value:       Value(bVal ?? false),
-        intValue:    Value(iVal ?? 0),
+        key: Value(key),
+        value: Value(bVal ?? false),
+        intValue: Value(iVal ?? 0),
         stringValue: Value(sVal),
-        updatedAt:   Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -126,7 +130,7 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(episodes);
       b.deleteAll(storyNodes);
       b.deleteAll(characterPhotos);
-      // Note: characterNotes is NOT deleted here — player notes survive reset
+      // characterNotes intentionally kept — player notes survive reset
       // characters table intentionally NOT wiped — player profile survives
     });
   }
