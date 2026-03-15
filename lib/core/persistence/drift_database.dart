@@ -56,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
     await into(characters).insertOnConflictUpdate(
       CharactersCompanion.insert(
         id:          'player',
-        name:        const Value('New Player'),           // ← safer temporary fallback
+        name:        'New Player',           // ← safer temporary fallback
         bio:         const Value('Active Case Lead'),
         avatarPath:  const Value('assets/characters/player_default.png'),
         phoneNumber: '+1 (555) 000-0000',
