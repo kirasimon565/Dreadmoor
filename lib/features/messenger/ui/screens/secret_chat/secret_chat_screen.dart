@@ -1,27 +1,29 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
-import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
+import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
+import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 
 class SecretChatScreen extends ConsumerStatefulWidget {
   final String threadId;
   const SecretChatScreen({super.key, required this.threadId});
 
   @override
-  ConsumerState<SecretChatScreen> createState() => _SecretChatScreenState();
+  ConsumerState<SecretChatScreen> createState() =>
+      _SecretChatScreenState();
 }
 
-class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
+class _SecretChatScreenState
+    extends ConsumerState<SecretChatScreen> {
   final _scrollController = ScrollController();
   late final Stream<Thread?> _threadStream;
   late final Stream<List<Message>> _messagesStream;
-  int _lastMessageCount = 0;
+  int _lastCount = 0;
 
   @override
   void initState() {
@@ -39,18 +41,14 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(showNavigationBarProvider.notifier).state = false;
+        ref.read(activeThreadIdProvider.notifier).state =
+            widget.threadId;
       }
     });
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(showNavigationBarProvider.notifier).state = true;
-      }
-    });
     _scrollController.dispose();
     super.dispose();
   }
@@ -59,11 +57,9 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
     if (!_scrollController.hasClients) return;
     final max = _scrollController.position.maxScrollExtent;
     if (animated) {
-      _scrollController.animateTo(
-        max,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOut,
-      );
+      _scrollController.animateTo(max,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOut);
     } else {
       _scrollController.jumpTo(max);
     }
@@ -71,95 +67,197 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const navyBackground = Color(0xFF0B1220);
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: PopScope(
-        canPop: false,
-        child: Scaffold(
-          backgroundColor: navyBackground,
-          body: Stack(
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        // From mockup: radial gradient, black centre → deep navy edges
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.2,
+            colors: [
+              Color(0xFF000000),
+              Color(0xFF0D1B2A),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
             children: [
-              // ── ASSET BACKGROUND ──────────────────────────────────────────────
-              Positioned.fill(
-                child: Image.asset(
-                  'assets/media/images/forest_bg.png', // Assuming this is used instead of a specific hacked bg as none was listed in the directive checklist, but I will tint it navy.
-                  fit: BoxFit.cover,
-                  color: navyBackground.withOpacity(0.9),
-                  colorBlendMode: BlendMode.srcATop,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // ── HEADER ────────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    child: StreamBuilder<Thread?>(
+                      stream: _threadStream,
+                      builder: (context, snap) {
+                        final title =
+                            snap.data?.title ?? 'Unknown';
+                        return Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Back arrow
+                            GestureDetector(
+                              onTap: () =>
+                                  Navigator.pop(context),
+                              child: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  color: Colors.white,
+                                  size: 24),
+                            ),
 
-              // ── RADIAL VIGNETTE ───────────────────────────────────────────────
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.center,
-                      radius: 0.75,
-                      colors: [
-                        Colors.black.withOpacity(0.55),
-                        Colors.transparent,
-                      ],
+                            // Centre pill — bottom-rounded corners only
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.white
+                                      .withOpacity(0.8),
+                                  width: 1.5,
+                                ),
+                                borderRadius:
+                                    const BorderRadius.only(
+                                  bottomLeft:
+                                      Radius.circular(20),
+                                  bottomRight:
+                                      Radius.circular(20),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight:
+                                          FontWeight.w400,
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisSize:
+                                        MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'Online',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight:
+                                              FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration:
+                                            const BoxDecoration(
+                                          color: Colors.green,
+                                          shape:
+                                              BoxShape.circle,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Live icon
+                            const Icon(Icons.live_tv,
+                                color: Colors.white, size: 24),
+                          ],
+                        );
+                      },
                     ),
                   ),
-                ),
+
+                  // ── MESSAGES ──────────────────────────────────────
+                  Expanded(
+                    child: StreamBuilder<List<Message>>(
+                      stream: _messagesStream,
+                      builder: (context, snap) {
+                        final messages = snap.data ?? [];
+
+                        if (messages.length != _lastCount) {
+                          _lastCount = messages.length;
+                          WidgetsBinding.instance
+                              .addPostFrameCallback((_) =>
+                                  _scrollToBottom(
+                                      animated:
+                                          _lastCount > 1));
+                        }
+
+                        if (messages.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return ListView.builder(
+                          controller: _scrollController,
+                          physics:
+                              const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          itemCount: messages.length + 1,
+                          itemBuilder: (context, i) {
+                            if (i == messages.length) {
+                              return _buildTypingIndicator();
+                            }
+                            final msg = messages[i];
+                            return ChatBubble(
+                              text:    msg.content ?? '',
+                              isMe:    msg.isPlayerMessage,
+                              senderId: msg.senderId,
+                              timestamp: msg.timestamp,
+                              isSecret: true,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Space for bottom status bar + choice overlay
+                  const SizedBox(height: 50),
+                ],
               ),
 
-              // ── MAIN LAYOUT ───────────────────────────────────────────────────
-              Column(
-                children: [
-                // ── HEADER ────────────────────────────────────────────────────
-                _SecretHeader(
-                  threadStream: _threadStream,
-                  onClose: () => Navigator.pop(context),
-                ),
+              // ── CHOICE OVERLAY / INPUT BAR ─────────────────────────
+              const ChoiceOverlay(),
 
-                // ── MESSAGES ──────────────────────────────────────────────────
-                Expanded(
-                  child: StreamBuilder<List<Message>>(
-                    stream: _messagesStream,
-                    builder: (context, snapshot) {
-                      final messages = snapshot.data ?? [];
-
-                      if (messages.length != _lastMessageCount) {
-                        _lastMessageCount = messages.length;
-                        WidgetsBinding.instance.addPostFrameCallback(
-                          (_) => _scrollToBottom(),
-                        );
-                      }
-
-                      if (messages.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 20,
-                        ),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = messages[index];
-                          return ChatBubble(
-                            text: msg.content ?? '',
-                            isMe: false,
-                            senderId: msg.senderId,
-                            timestamp: msg.timestamp,
-                            isSecret: true,
-                          );
-                        },
-                      );
-                    },
+              // ── STATUS BAR — fixed at bottom ───────────────────────
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10),
+                  color: Colors.black.withOpacity(0.3),
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceAround,
+                    children: const [
+                      _StatusText(
+                          label: 'VPN', value: 'ACTIVE'),
+                      _StatusText(
+                          label: 'ENCRYPTION', value: 'HIGH'),
+                      _StatusText(
+                          label: 'IDENTITY',
+                          value: 'HIDDEN'),
+                    ],
                   ),
                 ),
-
-                  // ── STATUS BAR ────────────────────────────────────────────────
-                  const _SpyStatusBar(),
-                ],
               ),
             ],
           ),
@@ -167,239 +265,43 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
       ),
     );
   }
-}
 
-// ── HEADER ────────────────────────────────────────────────────────────────────
-
-class _SecretHeader extends StatelessWidget {
-  final Stream<Thread?> threadStream;
-  final VoidCallback onClose;
-
-  const _SecretHeader({required this.threadStream, required this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        top: topPadding + 8,
-        bottom: 12,
-        left: 12,
-        right: 12,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // ── PILL ────────────────────────────────────────────────────────────
-          StreamBuilder<Thread?>(
-            stream: threadStream,
-            builder: (context, snapshot) {
-              final name = snapshot.data?.title ?? 'Amelia & Michael';
-
-              return Container(
-                width: MediaQuery.of(context).size.width * 0.62,
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white, width: 1.4),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      name,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.spaceGrotesk(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Online',
-                          style: GoogleFonts.spaceGrotesk(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.1,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF3DDB5E),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          // ── BACK ARROW ──────────────────────────────────────────────────────
-          // Intentionally removed per directive "Player cannot navigate away manually"
-
-          // ── LIVE BADGE ──────────────────────────────────────────────────────
-          Positioned(
-            right: 0,
-            child: _LiveBadge(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── LIVE BADGE ────────────────────────────────────────────────────────────────
-
-class _LiveBadge extends StatefulWidget {
-  @override
-  State<_LiveBadge> createState() => _LiveBadgeState();
-}
-
-class _LiveBadgeState extends State<_LiveBadge>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _blink;
-
-  @override
-  void initState() {
-    super.initState();
-    _blink = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _blink.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white70, width: 1.2),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.videocam, color: Colors.white, size: 14),
-          const SizedBox(width: 4),
-          Text(
-            'LIVE',
-            style: GoogleFonts.spaceGrotesk(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
+  Widget _buildTypingIndicator() {
+    return StreamBuilder<Thread?>(
+      stream: _threadStream,
+      builder: (context, snap) {
+        if (snap.data?.isTyping == true) {
+          return const Padding(
+            padding: EdgeInsets.only(left: 20, bottom: 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: GunTypingIndicator(),
             ),
-          ),
-          const SizedBox(width: 3),
-          FadeTransition(
-            opacity: _blink,
-            child: Container(
-              width: 5,
-              height: 5,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
-      ),
+          );
+        }
+        return const SizedBox(height: 8);
+      },
     );
   }
 }
 
-// ── SPY STATUS BAR ────────────────────────────────────────────────────────────
+// ── STATUS TEXT ───────────────────────────────────────────────────────────────
 
-class _SpyStatusBar extends StatefulWidget {
-  const _SpyStatusBar();
+class _StatusText extends StatelessWidget {
+  final String label;
+  final String value;
 
-  @override
-  State<_SpyStatusBar> createState() => _SpyStatusBarState();
-}
-
-class _SpyStatusBarState extends State<_SpyStatusBar>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _blink;
-
-  @override
-  void initState() {
-    super.initState();
-    _blink = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _blink.dispose();
-    super.dispose();
-  }
+  const _StatusText({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 14,
-        bottom: MediaQuery.of(context).padding.bottom + 14,
-        left: 20,
-        right: 20,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              FadeTransition(
-                opacity: _blink,
-                child: Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              _statusText('VPN: ACTIVE'),
-            ],
-          ),
-          _statusText('ENCRYPTION: HIGH'),
-          _statusText('IDENTITY: HIDDEN'),
-        ],
-      ),
-    );
-  }
-
-  Widget _statusText(String text) {
     return Text(
-      text,
-      style: GoogleFonts.spaceGrotesk(
-        fontSize: 10,
-        color: Colors.white.withOpacity(0.75),
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.8,
+      '$label: $value',
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 11,
+        fontWeight: FontWeight.w300,
+        letterSpacing: 0.5,
       ),
     );
   }
