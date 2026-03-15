@@ -34,6 +34,7 @@ class ProfileScreen extends ConsumerWidget {
             await db.into(db.characters).insertOnConflictUpdate(
               CharactersCompanion.insert(
                 id: id,
+                phoneNumber: '+1 (555) 000-0000',
                 name: 'New Investigator', // should be replaced by game-start name
                 avatarPath: const drift.Value('assets/characters/player_default.png'),
               ),
