@@ -8,7 +8,6 @@ import 'package:drift/drift.dart' as drift;
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
-import 'package:dreadmoor/core/state/player_state.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final String? characterId;
@@ -16,55 +15,23 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final effectiveId = characterId ?? 'player';
-    final profileAsync = ref.watch(characterProvider(effectiveId));
+    final effectiveId  = characterId ?? 'player';
     final isOwnProfile = effectiveId == 'player';
+    final profileAsync = ref.watch(characterProvider(effectiveId));
 
-    // ── LOADING ──────────────────────────────────────────────────────────
-    // FIX: explicitly set backgroundColor so it matches the app theme
-    // instead of inheriting Material's default grey.
     return profileAsync.when(
-      loading: () => Scaffold(
+      loading: () => const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: Color(0xFF0B1220)),
-              const SizedBox(height: 16),
-              Text(
-                'Loading profile...',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 12,
-                  color: Colors.grey,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ],
-          ),
-        ),
+            child: CircularProgressIndicator(color: Color(0xFF0B1220))),
       ),
-
       error: (err, _) => Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(
-              'Could not load profile.\n$err',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.spaceGrotesk(
-                  fontSize: 13, color: Colors.grey.shade500),
-            ),
-          ),
-        ),
+        body: Center(child: Text('Data error: $err')),
       ),
-
       data: (profile) {
-        // ── FIX: if profile is still null after init(), force-insert and
-        // invalidate so the provider re-fires. This handles the edge case
-        // where init() ran but the stream hadn't emitted yet.
         if (profile == null) {
+          // Force-insert player row and re-watch
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             final db = ref.read(databaseProvider);
             await db.into(db.characters).insertOnConflictUpdate(
@@ -72,39 +39,26 @@ class ProfileScreen extends ConsumerWidget {
                 id:          effectiveId,
                 name:        'Investigator',
                 bio:         const drift.Value('Active Case Lead'),
-                avatarPath:  const drift.Value('assets/characters/player_default.png'),
+                avatarPath:  const drift.Value(
+                    'assets/characters/player_default.png'),
                 phoneNumber: '+1 (555) 000-0000',
               ),
             );
             ref.invalidate(characterProvider(effectiveId));
           });
 
-          return Scaffold(
+          return const Scaffold(
             backgroundColor: Colors.white,
             body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(color: Color(0xFF0B1220)),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Initialising profile...',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 12,
-                      color: Colors.grey,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                child: CircularProgressIndicator(
+                    color: Color(0xFF0B1220))),
           );
         }
 
         return _PlayerProfileBody(
-          profile: profile,
+          profile:      profile,
           isOwnProfile: isOwnProfile,
-          onAddPhoto: isOwnProfile
+          onAddPhoto:   isOwnProfile
               ? () => _uploadPhoto(ref, effectiveId)
               : null,
         );
@@ -128,7 +82,8 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-// ── PROFILE BODY ──────────────────────────────────────────────────────────────
+// ── PLAYER PROFILE BODY ────────────────────────────────────────────────────────
+// Same avatar-scroll fix as CharacterProfileScreen.
 
 class _PlayerProfileBody extends StatelessWidget {
   final dynamic profile;
@@ -141,77 +96,63 @@ class _PlayerProfileBody extends StatelessWidget {
     this.onAddPhoto,
   });
 
+  static const double _headerHeight = 300.0;
+  static const double _cardOverlap  = 40.0;
+  static const double _avatarRadius = 65.0;
+  static const double _avatarTop =
+      _headerHeight - _cardOverlap - _avatarRadius;
+
   @override
   Widget build(BuildContext context) {
-    const double headerHeight = 300.0;
-    const double cardOverlap = 40.0;
-    const double avatarRadius = 65.0;
-    const double avatarTop = headerHeight - cardOverlap - avatarRadius;
-
-    final String? gameNumber = profile.gameNumber as String?;
+    final topPad     = MediaQuery.of(context).padding.top;
+    final gameNumber = profile.gameNumber as String?;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          SingleChildScrollView(
+          // ── SCROLL CONTENT ───────────────────────────────────────────────
+          CustomScrollView(
             physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── HEADER IMAGE ─────────────────────────────────────────
-                SizedBox(
-                  height: headerHeight,
-                  width: double.infinity,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        profile.headerImage ?? 'assets/headers/default_header.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            Container(color: const Color(0xFF1A2535)),
-                      ),
-                      Positioned(
-                        bottom: 0, left: 0, right: 0, height: 80,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.15),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+            slivers: [
+              SliverAppBar(
+                automaticallyImplyLeading: false,
+                expandedHeight: _headerHeight,
+                pinned: false,
+                floating: false,
+                backgroundColor: const Color(0xFF1A2535),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Image.asset(
+                    profile.headerImage
+                        ?? 'assets/headers/default_header.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: const Color(0xFF1A2535)),
                   ),
                 ),
+              ),
 
-                // ── WHITE CARD ───────────────────────────────────────────
-                Transform.translate(
-                  offset: const Offset(0, -cardOverlap),
+              SliverToBoxAdapter(
+                child: Transform.translate(
+                  offset: const Offset(0, -_cardOverlap),
                   child: Container(
                     width: double.infinity,
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(36),
+                        topLeft:  Radius.circular(36),
                         topRight: Radius.circular(36),
                       ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: avatarRadius + 16),
+                        const SizedBox(height: _avatarRadius + 16),
 
                         // NAME
                         Center(
                           child: Text(
-                            profile.name as String? ?? 'Investigator',
+                            (profile.name as String?) ?? 'Investigator',
                             style: GoogleFonts.spectral(
                               fontSize: 36,
                               fontWeight: FontWeight.w400,
@@ -220,7 +161,7 @@ class _PlayerProfileBody extends StatelessWidget {
                           ),
                         ),
 
-                        // GAME NUMBER (only if present)
+                        // GAME NUMBER
                         if (gameNumber != null && gameNumber.isNotEmpty) ...[
                           const SizedBox(height: 6),
                           Center(
@@ -239,11 +180,12 @@ class _PlayerProfileBody extends StatelessWidget {
                         const SizedBox(height: 28),
 
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // MEDIA HEADER
+                              // Media header
                               Row(
                                 children: [
                                   Container(
@@ -259,38 +201,39 @@ class _PlayerProfileBody extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  if (isOwnProfile && onAddPhoto != null) ...[
+                                  if (isOwnProfile &&
+                                      onAddPhoto != null) ...[
                                     const SizedBox(width: 12),
                                     GestureDetector(
                                       onTap: onAddPhoto,
-                                      child: Icon(Icons.add_a_photo_outlined,
+                                      child: Icon(
+                                          Icons.add_a_photo_outlined,
                                           size: 20,
                                           color: Colors.grey.shade500),
                                     ),
                                   ],
                                 ],
                               ),
-
                               const SizedBox(height: 18),
 
-                              // PHOTO GRID
-                              if ((profile.gallery as List?)?.isEmpty ?? true)
+                              if ((profile.gallery as List?)?.isEmpty ??
+                                  true)
                                 _EmptyMedia()
                               else
                                 _PhotoGrid(
-                                    gallery: profile.gallery as List<dynamic>),
+                                    gallery: profile.gallery as List),
 
                               const SizedBox(height: 36),
-
-                              // NOTES (player only)
-                              _SectionDivider(label: 'INVESTIGATION NOTES'),
+                              _SectionDivider(
+                                  label: 'INVESTIGATION NOTES'),
                               const SizedBox(height: 14),
 
-                              if ((profile.notes as List?)?.isEmpty ?? true)
+                              if ((profile.notes as List?)?.isEmpty ??
+                                  true)
                                 _EmptyNotes()
                               else
                                 _NotesList(
-                                    notes: (profile.notes as List<dynamic>)
+                                    notes: (profile.notes as List)
                                         .cast<String>()),
 
                               const SizedBox(height: 80),
@@ -301,34 +244,37 @@ class _PlayerProfileBody extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
-          // ── BACK BUTTON ──────────────────────────────────────────────────
+          // ── BACK BUTTON (only when viewing another profile) ──────────────
           if (characterId != null)
             Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
+              top: topPad + 8,
               left: 8,
               child: IconButton(
-                icon: const Icon(Icons.chevron_left,
-                    color: Colors.white, size: 32),
+                icon: const Icon(
+                    Icons.chevron_left, color: Colors.white, size: 32),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
 
-          // ── FLOATING AVATAR ──────────────────────────────────────────────
+          // ── AVATAR — fixed to viewport ───────────────────────────────────
           Positioned(
-            top: avatarTop,
-            left: MediaQuery.of(context).size.width / 2 - avatarRadius,
+            top: _avatarTop,
+            left:
+                MediaQuery.of(context).size.width / 2 - _avatarRadius,
             child: GestureDetector(
               onTap: isOwnProfile ? onAddPhoto : null,
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
-                    color: Colors.white, shape: BoxShape.circle),
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
                 child: CircleAvatar(
-                  radius: avatarRadius,
+                  radius: _avatarRadius,
                   backgroundColor: const Color(0xFFDDDDDD),
                   backgroundImage: _resolveImage(profile.avatar as String?),
                 ),
@@ -340,7 +286,7 @@ class _PlayerProfileBody extends StatelessWidget {
     );
   }
 
-  // Expose characterId so the back button knows whether to show
+  // Expose for back button visibility check
   String? get characterId => null;
 
   ImageProvider _resolveImage(String? path) {
@@ -351,7 +297,7 @@ class _PlayerProfileBody extends StatelessWidget {
   }
 }
 
-// ── REUSABLE WIDGETS ──────────────────────────────────────────────────────────
+// ── SHARED WIDGETS ────────────────────────────────────────────────────────────
 
 class _PhotoGrid extends StatelessWidget {
   final List<dynamic> gallery;
@@ -364,8 +310,10 @@ class _PhotoGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, crossAxisSpacing: 14,
-        mainAxisSpacing: 14, childAspectRatio: 0.88,
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.88,
       ),
       itemCount: gallery.length,
       itemBuilder: (context, i) {
@@ -373,8 +321,10 @@ class _PhotoGrid extends StatelessWidget {
         return ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: (photo.photoPath as String).startsWith('assets/')
-              ? Image.asset(photo.photoPath as String, fit: BoxFit.cover)
-              : Image.file(File(photo.photoPath as String), fit: BoxFit.cover),
+              ? Image.asset(photo.photoPath as String,
+                  fit: BoxFit.cover)
+              : Image.file(File(photo.photoPath as String),
+                  fit: BoxFit.cover),
         );
       },
     );
@@ -385,14 +335,22 @@ class _EmptyMedia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 90, width: double.infinity,
+      height: 90,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100, borderRadius: BorderRadius.circular(6)),
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(6),
+      ),
       child: Center(
-        child: Text('NO MEDIA RECOVERED',
-            style: GoogleFonts.spaceGrotesk(
-                fontSize: 11, color: Colors.grey,
-                letterSpacing: 1.6, fontWeight: FontWeight.w600)),
+        child: Text(
+          'NO MEDIA RECOVERED',
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 11,
+            color: Colors.grey,
+            letterSpacing: 1.6,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -401,10 +359,15 @@ class _EmptyMedia extends StatelessWidget {
 class _EmptyNotes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Text('No investigation notes recorded yet.',
-        style: GoogleFonts.spectral(
-            fontSize: 14, color: Colors.grey.shade400,
-            height: 1.6, fontStyle: FontStyle.italic));
+    return Text(
+      'No investigation notes recorded yet.',
+      style: GoogleFonts.spectral(
+        fontSize: 14,
+        color: Colors.grey.shade400,
+        height: 1.6,
+        fontStyle: FontStyle.italic,
+      ),
+    );
   }
 }
 
@@ -417,10 +380,15 @@ class _SectionDivider extends StatelessWidget {
     return Row(children: [
       Text(label,
           style: GoogleFonts.spaceGrotesk(
-              fontSize: 11, fontWeight: FontWeight.w700,
-              color: Colors.grey.shade400, letterSpacing: 1.8)),
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey.shade400,
+            letterSpacing: 1.8,
+          )),
       const SizedBox(width: 12),
-      Expanded(child: Divider(thickness: 1, color: Colors.grey.shade200)),
+      Expanded(
+          child:
+              Divider(thickness: 1, color: Colors.grey.shade200)),
     ]);
   }
 }
@@ -433,13 +401,17 @@ class _NotesList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: notes.map((n) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Text(n,
-            style: GoogleFonts.spectral(
-                fontSize: 14, height: 1.65,
-                color: const Color(0xFF444444))),
-      )).toList(),
+      children: notes
+          .map((n) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(n,
+                    style: GoogleFonts.spectral(
+                      fontSize: 14,
+                      height: 1.65,
+                      color: const Color(0xFF444444),
+                    )),
+              ))
+          .toList(),
     );
   }
 }
