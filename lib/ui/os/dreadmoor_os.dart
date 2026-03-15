@@ -13,30 +13,34 @@ import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/widgets/notification_overlay.dart';
 
-// Component for Scene 5
-// import 'package:dreadmoor/ui/os/widgets/glitch_overlay.dart';
-
 class DreadmoorOS extends ConsumerWidget {
   const DreadmoorOS({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final phoneState = ref.watch(phoneProvider);
-    final isHacked = ref.watch(isHackedProvider); // New state for Scene 5
+    final brightness = Theme.of(context).brightness;
+    final topPad     = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
+      backgroundColor: DreadmoorColors.background(brightness),
       body: Stack(
         children: [
-          // MAIN OS LAYER
+          // ── MAIN OS LAYER ────────────────────────────────────────────────
+          // Content fills the full body (including status bar area).
+          // The bottom nav sits at the bottom; status bar overlays the top.
           SafeArea(
+            // Don't add top padding here — status bar overlays content.
+            top: false,
             child: NotificationOverlay(
               child: Column(
                 children: [
-                  const DreadmoorStatusBar(),
-                  const Expanded(
-                    child: DreadmoorAppContainer(),
-                  ),
+                  // Reserve space for the transparent status bar so
+                  // content starts below it, not behind it.
+                  SizedBox(height: topPad + 32),
+
+                  const Expanded(child: DreadmoorAppContainer()),
+
                   if (ref.watch(showNavigationBarProvider))
                     const DreadmoorNavigationBar(),
                 ],
@@ -44,35 +48,45 @@ class DreadmoorOS extends ConsumerWidget {
             ),
           ),
 
-          // SCENE 5: HACKER OVERLAY
-          // if (isHacked) const GlitchOverlay(),
+          // ── STATUS BAR — floats over everything, transparent ─────────────
+          // Positioned at the very top, renders over whatever screen is active.
+          // On chat/secret screens the header image shows through it.
+          Positioned(
+            top: topPad,
+            left: 0,
+            right: 0,
+            child: const DreadmoorStatusBar(),
+          ),
 
-          // SCENE 6: INCOMING CALL OVERLAY
+          // ── INCOMING CALL OVERLAY ────────────────────────────────────────
           if (phoneState.callState == CallState.incoming)
             Positioned.fill(
               child: IncomingCallScreen(
-                callerName: phoneState.callerName,
+                callerName:   phoneState.callerName,
                 callerNumber: phoneState.callerNumber,
-                canDecline: phoneState.canDecline,
+                canDecline:   phoneState.canDecline,
                 onAccept: () {
-                  ref.read(phoneProvider.notifier).acceptIncomingCall(ref.read(gameClockProvider));
+                  ref.read(phoneProvider.notifier)
+                      .acceptIncomingCall(ref.read(gameClockProvider));
                   if (phoneState.onAccept != null) phoneState.onAccept!();
                 },
                 onDecline: () {
-                  ref.read(phoneProvider.notifier).declineIncomingCall(ref.read(gameClockProvider));
+                  ref.read(phoneProvider.notifier)
+                      .declineIncomingCall(ref.read(gameClockProvider));
                   if (phoneState.onDecline != null) phoneState.onDecline!();
                 },
               ),
             ),
 
-          // ACTIVE CALL OVERLAY
+          // ── ACTIVE CALL OVERLAY ──────────────────────────────────────────
           if (phoneState.callState == CallState.active)
             Positioned.fill(
               child: ActiveCallScreen(
-                callerName: phoneState.callerName,
+                callerName:   phoneState.callerName,
                 callerNumber: phoneState.callerNumber,
                 onEnd: (durationSeconds) {
-                  ref.read(phoneProvider.notifier).endActiveCall(durationSeconds);
+                  ref.read(phoneProvider.notifier)
+                      .endActiveCall(durationSeconds);
                   ref.read(globalSchedulerProvider).resume();
                 },
               ),
