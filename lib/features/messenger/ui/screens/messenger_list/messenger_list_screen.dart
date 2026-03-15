@@ -8,11 +8,12 @@ import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/features/messenger/ui/messenger_navigator.dart';
 
-// ── COLOURS (extracted from screenshot) ──────────────────────────────────────
-const _kBg       = Color(0xFF4A6D7C); // muted teal-slate — whole screen
-const _kCard     = Color(0xFF3D5D6B); // slightly darker for tile
-const _kTextPri  = Colors.white;
-const _kTextSec  = Color(0xFFBDD0D8); // lighter teal-white for preview
+// ── PALETTE (from mockup) ─────────────────────────────────────────────────────
+const _kBg      = Color(0xFF6D8693); // body background
+const _kHeader  = Color(0xFF5B7A8A); // header card
+const _kTile    = Color(0xFF7BA1AF); // message tile
+const _kPri     = Color(0xFFDFEBF4); // primary text
+const _kSec     = Color(0xFFBAD5E0); // secondary / preview text
 
 class MessengerListScreen extends ConsumerStatefulWidget {
   const MessengerListScreen({super.key});
@@ -30,24 +31,24 @@ class _MessengerListScreenState
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: _kCard,
+        backgroundColor: _kHeader,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
+            borderRadius: BorderRadius.circular(16)),
         title: Text('NEW CONNECTION',
-            style: GoogleFonts.spaceGrotesk(
-                color: _kTextPri,
+            style: GoogleFonts.oxygen(
+                color: _kPri,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.5)),
         content: TextField(
-          style: const TextStyle(color: _kTextPri),
+          style: const TextStyle(color: _kPri),
           keyboardType: TextInputType.phone,
           decoration: InputDecoration(
             hintText: 'Enter frequency / number',
-            hintStyle: TextStyle(color: _kTextSec.withOpacity(0.6)),
+            hintStyle: TextStyle(color: _kSec.withOpacity(0.7)),
             enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: _kTextSec)),
+                borderSide: BorderSide(color: _kSec)),
             focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white)),
+                borderSide: BorderSide(color: _kPri)),
           ),
           onChanged: (v) => phoneNumber = v,
         ),
@@ -55,17 +56,16 @@ class _MessengerListScreenState
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('CANCEL',
-                style: TextStyle(color: _kTextSec.withOpacity(0.7))),
+                style: TextStyle(color: _kSec.withOpacity(0.8))),
           ),
           TextButton(
             onPressed: () async {
               if (phoneNumber.isEmpty) return;
               final db = ref.read(databaseProvider);
               final character = await (db.select(db.characters)
-                    ..where(
-                        (c) => c.phoneNumber.equals(phoneNumber)))
+                    ..where((c) =>
+                        c.phoneNumber.equals(phoneNumber)))
                   .getSingleOrNull();
-
               if (!ctx.mounted) return;
               if (character == null) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
@@ -73,33 +73,28 @@ class _MessengerListScreenState
                         content: Text('Frequency not found.')));
                 return;
               }
-
-              final threadId = character.id;
               final existing = await (db.select(db.threads)
-                    ..where((t) => t.id.equals(threadId)))
+                    ..where((t) => t.id.equals(character.id)))
                   .getSingleOrNull();
-
               if (existing == null) {
                 await db.into(db.threads).insert(
                   ThreadsCompanion.insert(
-                    id:           threadId,
-                    title:        character.name,
+                    id: character.id,
+                    title: character.name,
                     participants: character.id,
                   ),
                 );
               }
-
               if (ctx.mounted) {
                 Navigator.pop(ctx);
                 Navigator.of(ctx).pushNamed(
                     MessengerRoutes.chat,
-                    arguments: threadId);
+                    arguments: character.id);
               }
             },
             child: Text('ESTABLISH',
-                style: GoogleFonts.spaceGrotesk(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700)),
+                style: GoogleFonts.oxygen(
+                    color: _kPri, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -108,8 +103,7 @@ class _MessengerListScreenState
 
   @override
   Widget build(BuildContext context) {
-    final db  = ref.watch(databaseProvider);
-    final top = MediaQuery.of(context).padding.top;
+    final db = ref.watch(databaseProvider);
 
     final threadsStream = (db.select(db.threads)
           ..orderBy([(t) => OrderingTerm(
@@ -123,56 +117,57 @@ class _MessengerListScreenState
         ]).watch();
 
     return Scaffold(
-      // Full-screen teal-slate — no separate header colour
       backgroundColor: _kBg,
       body: Column(
         children: [
-          // ── HEADER ────────────────────────────────────────────────────
-          // Same background as body — no border, no divider.
-          SizedBox(
-            height: top + 64,
-            child: Padding(
-              padding: EdgeInsets.only(top: top),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Settings — left
-                  Positioned(
-                    left: 4,
-                    child: IconButton(
-                      icon: const Icon(Icons.settings_outlined,
-                          color: _kTextPri, size: 22),
-                      onPressed: () => context.push('/settings'),
-                    ),
-                  ),
-
-                  // Title — centred
-                  Text(
-                    'MESSENGER',
-                    style: GoogleFonts.spaceGrotesk(
-                      color: _kTextPri,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2.5,
-                    ),
-                  ),
-
-                  // Add contact — right
-                  Positioned(
-                    right: 4,
-                    child: IconButton(
-                      icon: const Icon(Icons.person_add_outlined,
-                          color: _kTextPri, size: 22),
-                      onPressed: () =>
-                          _showAddContactDialog(context),
-                    ),
-                  ),
-                ],
+          // ── HEADER — rounded bottom corners, from mockup ─────────────
+          Container(
+            height: 70,
+            decoration: const BoxDecoration(
+              color: _kHeader,
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(30),
               ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Settings — left
+                Positioned(
+                  left: 0,
+                  child: GestureDetector(
+                    onTap: () => context.push('/settings'),
+                    child: const Icon(Icons.settings_outlined,
+                        color: _kPri, size: 28),
+                  ),
+                ),
+
+                // MESSENGER — centred, thin weight
+                Text(
+                  'MESSENGER',
+                  style: GoogleFonts.oxygen(
+                    fontSize: 22,
+                    color: _kPri,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+
+                // Add contact — right
+                Positioned(
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => _showAddContactDialog(context),
+                    child: const Icon(Icons.person_add_outlined,
+                        color: _kPri, size: 28),
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // ── THREAD LIST ───────────────────────────────────────────────
+          // ── THREAD LIST ──────────────────────────────────────────────
           Expanded(
             child: StreamBuilder(
               stream: threadsStream,
@@ -180,33 +175,28 @@ class _MessengerListScreenState
                 if (!snapshot.hasData) {
                   return const Center(
                       child: CircularProgressIndicator(
-                          color: _kTextPri));
+                          color: _kPri));
                 }
-
                 final rows = snapshot.data!;
                 if (rows.isEmpty) {
                   return Center(
-                    child: Text(
-                      'No connections found.',
-                      style: GoogleFonts.spectral(
-                          color: _kTextSec, fontSize: 15),
-                    ),
+                    child: Text('No connections found.',
+                        style: GoogleFonts.oxygen(
+                            color: _kSec, fontSize: 15)),
                   );
                 }
-
                 return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.only(
+                      top: 20, left: 20, right: 20, bottom: 24),
                   itemCount: rows.length,
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: 12),
                   itemBuilder: (context, i) {
-                    final thread =
-                        rows[i].readTable(db.threads);
+                    final thread = rows[i].readTable(db.threads);
                     final message =
                         rows[i].readTableOrNull(db.messages);
                     final character =
                         rows[i].readTableOrNull(db.characters);
-
                     return _ThreadTile(
                       thread:    thread,
                       message:   message,
@@ -226,20 +216,15 @@ class _MessengerListScreenState
 // ── THREAD TILE ───────────────────────────────────────────────────────────────
 
 class _ThreadTile extends ConsumerWidget {
-  final Thread    thread;
-  final Message?  message;
+  final Thread     thread;
+  final Message?   message;
   final Character? character;
 
-  const _ThreadTile({
-    required this.thread,
-    this.message,
-    this.character,
-  });
+  const _ThreadTile(
+      {required this.thread, this.message, this.character});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasUnread = thread.unreadCount > 0;
-
     return GestureDetector(
       onTap: () {
         ref.read(activeThreadIdProvider.notifier).state = thread.id;
@@ -251,87 +236,77 @@ class _ThreadTile extends ConsumerWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _kCard,
-          borderRadius: BorderRadius.circular(14),
-          // Subtle unread accent border
-          border: hasUnread
-              ? Border.all(color: Colors.white.withOpacity(0.5), width: 1.2)
-              : null,
+          color: _kTile,
+          borderRadius: BorderRadius.circular(20),
         ),
+        padding: const EdgeInsets.all(15),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── CIRCULAR AVATAR ──────────────────────────────────────────
+            // Circular avatar — 55px as in mockup
             Container(
-              width: 58,
-              height: 58,
+              width: 55,
+              height: 55,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF2A4A5A),
+                color: Colors.black12,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.25),
-                  width: 1.5,
-                ),
+                    color: Colors.white24, width: 2),
               ),
               child: ClipOval(
-                child: thread.isSecret
-                    ? const Icon(Icons.security,
-                        color: Color(0xFF9B2222), size: 28)
-                    : (character?.avatarPath != null
-                        ? Image.asset(
-                            character!.avatarPath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(Icons.person,
-                                    color: _kTextSec, size: 28),
-                          )
-                        : const Icon(Icons.person,
-                            color: _kTextSec, size: 28)),
+                child: character?.avatarPath != null
+                    ? Image.asset(
+                        character!.avatarPath!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.person,
+                                size: 30,
+                                color: Colors.black26),
+                      )
+                    : const Icon(Icons.person,
+                        size: 30, color: Colors.black26),
               ),
             ),
 
-            const SizedBox(width: 14),
+            const SizedBox(width: 15),
 
-            // ── TEXT CONTENT ─────────────────────────────────────────────
+            // Text
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     thread.title.toUpperCase(),
-                    style: GoogleFonts.spaceGrotesk(
-                      color: _kTextPri,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
+                    style: GoogleFonts.oxygen(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _kPri,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     message?.content ?? 'No messages yet.',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.spectral(
-                      color: _kTextSec,
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
+                    style: GoogleFonts.oxygen(
+                      fontSize: 14,
+                      color: _kSec,
+                      fontWeight: FontWeight.w300,
                     ),
                   ),
                 ],
               ),
             ),
 
-            // ── UNREAD DOT ────────────────────────────────────────────────
-            if (hasUnread) ...[
+            // Unread dot
+            if (thread.unreadCount > 0) ...[
               const SizedBox(width: 8),
               Container(
-                width: 10,
-                height: 10,
+                width: 9,
+                height: 9,
                 decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
+                    shape: BoxShape.circle, color: _kPri),
               ),
             ],
           ],
