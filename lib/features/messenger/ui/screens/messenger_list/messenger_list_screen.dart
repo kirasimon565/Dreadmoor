@@ -121,51 +121,56 @@ class _MessengerListScreenState
       body: Column(
         children: [
           // ── HEADER — rounded bottom corners, from mockup ─────────────
-          Container(
-            height: 70,
-            decoration: const BoxDecoration(
-              color: _kHeader,
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(30),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Settings — left
-                Positioned(
-                  left: 0,
-                  child: GestureDetector(
-                    onTap: () => context.push('/settings'),
-                    child: const Icon(Icons.settings_outlined,
-                        color: _kPri, size: 28),
-                  ),
-                ),
+          // ── HEADER — rounded bottom corners, from mockup ─────────────
+Container(
+  height: 70,
+  decoration: const BoxDecoration(
+    color: _kHeader,
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(30),
+    ),
+  ),
+  padding: const EdgeInsets.symmetric(horizontal: 20),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // Left: Settings icon
+      GestureDetector(
+        onTap: () => context.push('/settings'),
+        child: const Icon(
+          Icons.settings_outlined,
+          color: _kPri,
+          size: 28,
+        ),
+      ),
 
-                // MESSENGER — centred, thin weight
-                Text(
-                  'MESSENGER',
-                  style: GoogleFonts.oxygen(
-                    fontSize: 22,
-                    color: _kPri,
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 2.0,
-                  ),
-                ),
-
-                // Add contact — right
-                Positioned(
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () => _showAddContactDialog(context),
-                    child: const Icon(Icons.person_add_outlined,
-                        color: _kPri, size: 28),
-                  ),
-                ),
-              ],
+      // Center: Title (takes remaining space)
+      Expanded(
+        child: Center(
+          child: Text(
+            'MESSENGER',
+            style: GoogleFonts.oxygen(
+              fontSize: 22,
+              color: _kPri,
+              fontWeight: FontWeight.w300,
+              letterSpacing: 2.0,
             ),
           ),
+        ),
+      ),
+
+      // Right: Add contact icon
+      GestureDetector(
+        onTap: () => _showAddContactDialog(context),
+        child: const Icon(
+          Icons.person_add_outlined,
+          color: _kPri,
+          size: 28,
+        ),
+      ),
+    ],
+  ),
+),
 
           // ── THREAD LIST ──────────────────────────────────────────────
           Expanded(
