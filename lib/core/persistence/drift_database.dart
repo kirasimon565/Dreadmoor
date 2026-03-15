@@ -46,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
         },
       );
 
-  // ── INIT ──────────────────────────────────────────────────────────────────
+  // ── INIT ─────────────────────────────────────────────────────────────
   static Future<void> init() async {
     await instance.customSelect('SELECT 1').get();
     await instance._ensurePlayerCharacter();
@@ -56,43 +56,51 @@ class AppDatabase extends _$AppDatabase {
     await into(characters).insertOnConflictUpdate(
       CharactersCompanion.insert(
         id: 'player',
-        name: 'New Player',                        // plain string – no Value()
+        name: 'New Player',
+        phoneNumber: '+1 (555) 000-0000', // REQUIRED → plain string
         bio: const Value('Active Case Lead'),
         avatarPath: const Value('assets/characters/player_default.png'),
-        phoneNumber: const Value('+1 (555) 000-0000'),          // required field
       ),
     );
   }
 
-  // ── DATA INITIALIZATION ────────────────────────────────────────────────────
+  // ── DATA INITIALIZATION ───────────────────────────────────────────────
   Future<void> initializeDefaultData() async {
-    // Player system row (in players table)
+    // Player system row
     final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
+
     if (existingPlayer == null) {
-      await into(players).insert(PlayersCompanion.insert(
-        name: 'New Player',                        // plain string
-        gender: 'Unknown',                         // plain string
-        phoneNumber: const Value('+1 (555) 000-0000'),
-      ));
+      await into(players).insert(
+        PlayersCompanion.insert(
+          name: 'New Player',
+          gender: 'Unknown',
+          phoneNumber: const Value('+1 (555) 000-0000'),
+        ),
+      );
     }
 
-    // Player character row (in characters table)
+    // Ensure player character exists
     await _ensurePlayerCharacter();
 
-    // Import pending episodes
+    // Import episode scripts
     final loader = ScriptLoader(this);
     await loader.importPendingEpisodes();
   }
 
-  // ── DAOs ──────────────────────────────────────────────────────────────────
+  // ── DAOs ─────────────────────────────────────────────────────────────
 
   Future<List<CharacterPhoto>> getCharacterGallery(String charId) {
-    return (select(characterPhotos)..where((t) => t.characterId.equals(charId))).get();
+    return (select(characterPhotos)
+          ..where((t) => t.characterId.equals(charId)))
+        .get();
   }
 
   Future<StoryNode?> getNextNode(String? nodeId) async {
     if (nodeId == null || nodeId.isEmpty) return null;
-    return (select(storyNodes)..where((t) => t.id.equals(nodeId))).getSingleOrNull();
+
+    return (select(storyNodes)
+          ..where((t) => t.id.equals(nodeId)))
+        .getSingleOrNull();
   }
 
   Stream<List<Message>> watchChatMessages(String threadId) {
@@ -119,7 +127,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  // ── RESET ─────────────────────────────────────────────────────────────────
+  // ── RESET ────────────────────────────────────────────────────────────
   Future<void> resetAllProgress() async {
     await batch((b) {
       b.deleteAll(players);
@@ -130,8 +138,9 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(episodes);
       b.deleteAll(storyNodes);
       b.deleteAll(characterPhotos);
-      // characterNotes intentionally kept — player notes survive reset
-      // characters table intentionally NOT wiped — player profile survives
+
+      // Notes intentionally kept
+      // Characters intentionally kept
     });
   }
 }
@@ -139,7 +148,10 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'dreadmoor_v8.sqlite'));
+    final file = File(
+      p.join(dbFolder.path, 'dreadmoor_v8.sqlite'),
+    );
+
     return NativeDatabase(file, logStatements: false);
   });
 }
