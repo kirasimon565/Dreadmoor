@@ -1,83 +1,105 @@
-import 'dart:ui';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
-import 'package:dreadmoor/ui/theme/colors.dart';
-import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/features/messenger/ui/messenger_navigator.dart';
-import 'package:dreadmoor/ui/os/components/os_header.dart';
+
+// ── COLOURS (extracted from screenshot) ──────────────────────────────────────
+const _kBg       = Color(0xFF4A6D7C); // muted teal-slate — whole screen
+const _kCard     = Color(0xFF3D5D6B); // slightly darker for tile
+const _kTextPri  = Colors.white;
+const _kTextSec  = Color(0xFFBDD0D8); // lighter teal-white for preview
 
 class MessengerListScreen extends ConsumerStatefulWidget {
   const MessengerListScreen({super.key});
 
   @override
-  ConsumerState<MessengerListScreen> createState() => _MessengerListScreenState();
+  ConsumerState<MessengerListScreen> createState() =>
+      _MessengerListScreenState();
 }
 
-class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
+class _MessengerListScreenState
+    extends ConsumerState<MessengerListScreen> {
 
-  // --- ADD CONTACT DIALOG (Updated with Redesign Colors) ---
   void _showAddContactDialog(BuildContext context) {
-    String phoneNumber = "";
-    final brightness = Theme.of(context).brightness;
-    
+    String phoneNumber = '';
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: DreadmoorColors.surface(Theme.of(context).brightness),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // Sharper
-        title: Text(
-          "NEW CONNECTION",
-          style: DreadmoorTheme.headingStyle(brightness).copyWith(fontSize: 18),
-        ),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _kCard,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)),
+        title: Text('NEW CONNECTION',
+            style: GoogleFonts.spaceGrotesk(
+                color: _kTextPri,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5)),
         content: TextField(
-          style: TextStyle(color: DreadmoorColors.text(brightness)),
+          style: const TextStyle(color: _kTextPri),
           keyboardType: TextInputType.phone,
           decoration: InputDecoration(
-            hintText: "Enter frequency/number",
-            hintStyle: TextStyle(color: DreadmoorColors.text(brightness).withOpacity(0.4)),
+            hintText: 'Enter frequency / number',
+            hintStyle: TextStyle(color: _kTextSec.withOpacity(0.6)),
+            enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: _kTextSec)),
+            focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white)),
           ),
-          onChanged: (value) => phoneNumber = value,
+          onChanged: (v) => phoneNumber = v,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("CANCEL", style: TextStyle(color: DreadmoorColors.text(brightness).withOpacity(0.5))),
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('CANCEL',
+                style: TextStyle(color: _kTextSec.withOpacity(0.7))),
           ),
           TextButton(
             onPressed: () async {
-              if (phoneNumber.isNotEmpty) {
-                final db = ref.read(databaseProvider);
-                final character = await (db.select(db.characters)..where((c) => c.phoneNumber.equals(phoneNumber))).getSingleOrNull();
+              if (phoneNumber.isEmpty) return;
+              final db = ref.read(databaseProvider);
+              final character = await (db.select(db.characters)
+                    ..where(
+                        (c) => c.phoneNumber.equals(phoneNumber)))
+                  .getSingleOrNull();
 
-                if (!context.mounted) return;
-                if (character == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Frequency not found.')));
-                  return;
-                }
+              if (!ctx.mounted) return;
+              if (character == null) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                        content: Text('Frequency not found.')));
+                return;
+              }
 
-                final threadId = character.id;
-                final existingThread = await (db.select(db.threads)..where((t) => t.id.equals(threadId))).getSingleOrNull();
+              final threadId = character.id;
+              final existing = await (db.select(db.threads)
+                    ..where((t) => t.id.equals(threadId)))
+                  .getSingleOrNull();
 
-                if (existingThread == null) {
-                  await db.into(db.threads).insert(ThreadsCompanion.insert(
-                    id: threadId,
-                    title: character.name,
+              if (existing == null) {
+                await db.into(db.threads).insert(
+                  ThreadsCompanion.insert(
+                    id:           threadId,
+                    title:        character.name,
                     participants: character.id,
-                  ));
-                }
+                  ),
+                );
+              }
 
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  Navigator.of(context).pushNamed(MessengerRoutes.chat, arguments: threadId);
-                }
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+                Navigator.of(ctx).pushNamed(
+                    MessengerRoutes.chat,
+                    arguments: threadId);
               }
             },
-            child: Text("ESTABLISH", style: TextStyle(color: DreadmoorColors.investigatorCyan)),
+            child: Text('ESTABLISH',
+                style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -86,74 +108,108 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final db = ref.watch(databaseProvider);
-    final brightness = Theme.of(context).brightness;
+    final db  = ref.watch(databaseProvider);
+    final top = MediaQuery.of(context).padding.top;
 
-    final threadsStream = (db.select(db.threads)..orderBy([
-      (t) => OrderingTerm(expression: t.lastMessageId, mode: OrderingMode.desc)
-    ])).join([
-      leftOuterJoin(db.messages, db.messages.id.equalsExp(db.threads.lastMessageId)),
-      leftOuterJoin(db.characters, db.characters.id.equalsExp(db.threads.id)),
-    ]).watch();
+    final threadsStream = (db.select(db.threads)
+          ..orderBy([(t) => OrderingTerm(
+              expression: t.lastMessageId,
+              mode: OrderingMode.desc)]))
+        .join([
+          leftOuterJoin(db.messages,
+              db.messages.id.equalsExp(db.threads.lastMessageId)),
+          leftOuterJoin(db.characters,
+              db.characters.id.equalsExp(db.threads.id)),
+        ]).watch();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      // Full-screen teal-slate — no separate header colour
+      backgroundColor: _kBg,
       body: Column(
         children: [
+          // ── HEADER ────────────────────────────────────────────────────
+          // Same background as body — no border, no divider.
           SizedBox(
-            height: 64, // Standard header height
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.settings_outlined),
-                    // Route to the global GoRouter settings screen
-                    onPressed: () => context.push('/settings'),
+            height: top + 64,
+            child: Padding(
+              padding: EdgeInsets.only(top: top),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Settings — left
+                  Positioned(
+                    left: 4,
+                    child: IconButton(
+                      icon: const Icon(Icons.settings_outlined,
+                          color: _kTextPri, size: 22),
+                      onPressed: () => context.push('/settings'),
+                    ),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    "MESSENGER",
-                    style: DreadmoorTheme.headingStyle(brightness).copyWith(fontSize: 18),
+
+                  // Title — centred
+                  Text(
+                    'MESSENGER',
+                    style: GoogleFonts.spaceGrotesk(
+                      color: _kTextPri,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 2.5,
+                    ),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.person_add_outlined),
-                    onPressed: () => _showAddContactDialog(context),
+
+                  // Add contact — right
+                  Positioned(
+                    right: 4,
+                    child: IconButton(
+                      icon: const Icon(Icons.person_add_outlined,
+                          color: _kTextPri, size: 22),
+                      onPressed: () =>
+                          _showAddContactDialog(context),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+
+          // ── THREAD LIST ───────────────────────────────────────────────
           Expanded(
             child: StreamBuilder(
               stream: threadsStream,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                final rows = snapshot.data!;
+                if (!snapshot.hasData) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: _kTextPri));
+                }
 
+                final rows = snapshot.data!;
                 if (rows.isEmpty) {
                   return Center(
-                    child: Text("No connections found.", style: DreadmoorTheme.bodyStyle(brightness)),
+                    child: Text(
+                      'No connections found.',
+                      style: GoogleFonts.spectral(
+                          color: _kTextSec, fontSize: 15),
+                    ),
                   );
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   itemCount: rows.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final thread = rows[index].readTable(db.threads);
-                    final message = rows[index].readTableOrNull(db.messages);
-                    final character = rows[index].readTableOrNull(db.characters);
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, i) {
+                    final thread =
+                        rows[i].readTable(db.threads);
+                    final message =
+                        rows[i].readTableOrNull(db.messages);
+                    final character =
+                        rows[i].readTableOrNull(db.characters);
 
                     return _ThreadTile(
-                      thread: thread,
-                      message: message,
+                      thread:    thread,
+                      message:   message,
                       character: character,
                     );
                   },
@@ -167,84 +223,117 @@ class _MessengerListScreenState extends ConsumerState<MessengerListScreen> {
   }
 }
 
+// ── THREAD TILE ───────────────────────────────────────────────────────────────
+
 class _ThreadTile extends ConsumerWidget {
-  final Thread thread;
-  final Message? message;
+  final Thread    thread;
+  final Message?  message;
   final Character? character;
 
-  const _ThreadTile({required this.thread, this.message, this.character});
+  const _ThreadTile({
+    required this.thread,
+    this.message,
+    this.character,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final brightness = Theme.of(context).brightness;
     final hasUnread = thread.unreadCount > 0;
-    final accent = brightness == Brightness.light ? DreadmoorColors.evidenceRed : DreadmoorColors.investigatorCyan;
 
     return GestureDetector(
       onTap: () {
         ref.read(activeThreadIdProvider.notifier).state = thread.id;
         Navigator.of(context).pushNamed(
-          thread.isSecret ? MessengerRoutes.secret : MessengerRoutes.chat, 
-          arguments: thread.id
+          thread.isSecret
+              ? MessengerRoutes.secret
+              : MessengerRoutes.chat,
+          arguments: thread.id,
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(4), // Sharp corners like Case File
-          border: Border.all(
-            color: hasUnread ? accent : DreadmoorColors.divider(brightness),
-            width: hasUnread ? 1.5 : 0.5,
-          ),
+          color: _kCard,
+          borderRadius: BorderRadius.circular(14),
+          // Subtle unread accent border
+          border: hasUnread
+              ? Border.all(color: Colors.white.withOpacity(0.5), width: 1.2)
+              : null,
         ),
         child: Row(
           children: [
-            // Avatar with Sharp Border
+            // ── CIRCULAR AVATAR ──────────────────────────────────────────
             Container(
-              width: 54,
-              height: 54,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
-                border: Border.all(color: hasUnread ? accent : Colors.black12),
+                shape: BoxShape.circle,
+                color: const Color(0xFF2A4A5A),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.25),
+                  width: 1.5,
+                ),
               ),
-              child: thread.isSecret 
-                ? Icon(Icons.security, color: DreadmoorColors.evidenceRed)
-                : (character?.avatarPath != null 
-                    ? Image.asset(character!.avatarPath!, fit: BoxFit.cover)
-                    : const Icon(Icons.person)),
+              child: ClipOval(
+                child: thread.isSecret
+                    ? const Icon(Icons.security,
+                        color: Color(0xFF9B2222), size: 28)
+                    : (character?.avatarPath != null
+                        ? Image.asset(
+                            character!.avatarPath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.person,
+                                    color: _kTextSec, size: 28),
+                          )
+                        : const Icon(Icons.person,
+                            color: _kTextSec, size: 28)),
+              ),
             ),
-            const SizedBox(width: 16),
-            // Content
+
+            const SizedBox(width: 14),
+
+            // ── TEXT CONTENT ─────────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     thread.title.toUpperCase(),
-                    style: DreadmoorTheme.headingStyle(brightness).copyWith(
-                      fontSize: 14,
-                      fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                    style: GoogleFonts.spaceGrotesk(
+                      color: _kTextPri,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    message?.content ?? "No messages yet.",
+                    message?.content ?? 'No messages yet.',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: DreadmoorTheme.bodyStyle(brightness).copyWith(
+                    style: GoogleFonts.spectral(
+                      color: _kTextSec,
                       fontSize: 13,
-                      color: DreadmoorColors.text(brightness).withOpacity(0.7),
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
             ),
-            if (hasUnread)
+
+            // ── UNREAD DOT ────────────────────────────────────────────────
+            if (hasUnread) ...[
+              const SizedBox(width: 8),
               Container(
                 width: 10,
                 height: 10,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
               ),
+            ],
           ],
         ),
       ),
