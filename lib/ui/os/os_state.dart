@@ -5,22 +5,18 @@ enum PhoneApp {
   browser,
   phone,
   apps,
-  store,
   puzzle,
   profile,
+  // store removed — not needed
 }
 
-/// Controls which app is currently visible in the IndexedStack
+/// Controls which app is currently visible in the IndexedStack.
 final activeAppProvider = StateProvider<PhoneApp>((ref) {
   return PhoneApp.messenger;
 });
 
-/// Controls the Glitch/Secret Intercept UI (Used in Scene 5)
-final isHackedProvider = StateProvider<bool>((ref) {
-  return false;
-});
+/// Controls the Glitch/Secret Intercept UI (Scene 5).
+final isHackedProvider = StateProvider<bool>((ref) => false);
 
-/// Controls whether the bottom navigation bar is visible
-final showNavigationBarProvider = StateProvider<bool>((ref) {
-  return true;
-});
+/// Controls whether the bottom navigation bar is visible.
+final showNavigationBarProvider = StateProvider<bool>((ref) => true);
