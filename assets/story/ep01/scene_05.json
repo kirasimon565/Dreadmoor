@@ -3,16 +3,22 @@
     {
       "id": "s4_intercept",
       "type": "Secret_Hacked",
-      "chat": "Secret_Intercept_Amelia_Michael",
-      "theme": "Secret_Hacked",
+      "chat": "intercept_amelia_michael",
+      "thread_id": "intercept_amelia_michael",
+      "thread_title": "Amelia & Michael",
+      "thread_members": [
+        "amelia",
+        "michael"
+      ],
+      "thread_secret": true,
       "sender": "amelia",
-      "action": "Notification",
       "text": "[VPN: ACTIVE | ENCRYPTION: HIGH | IDENTITY: HIDDEN]",
       "next": "S5_Amelia_Panic"
     },
     {
       "id": "S5_Amelia_Panic",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Typing",
       "text": "Did you tell them? Anything at all?",
@@ -21,6 +27,7 @@
     {
       "id": "S5_Michael_Cold",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "text": "No. I'm not that stupid, Amelia.",
       "next": "S5_Amelia_Relief"
@@ -28,6 +35,7 @@
     {
       "id": "S5_Amelia_Relief",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Typing",
       "text": "Good. Thank god.",
@@ -36,15 +44,17 @@
     {
       "id": "S5_Amelia_Relief_2",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Pause",
       "duration": 3000,
-      "text": "Because if that gets out… if they find out what we were actually doing at that factory…",
+      "text": "Because if that gets out\u2026 if they find out what we were actually doing at that factory\u2026",
       "next": "S5_Michael_ShutDown"
     },
     {
       "id": "S5_Michael_ShutDown",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "action": "Typing",
       "text": "It won't get out. Not unless you keep spiraling like this.",
@@ -53,6 +63,7 @@
     {
       "id": "S5_Michael_ShutDown_2",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "text": "Relax. Breathe. The police are looking for a missing person, not a motive.",
       "next": "S5_Amelia_Doubt"
@@ -60,14 +71,16 @@
     {
       "id": "S5_Amelia_Doubt",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Typing",
-      "text": "But that 'stranger' in the group… they knew about the timeline. They knew she didn't leave at midnight.",
+      "text": "But that 'stranger' in the group\u2026 they knew about the timeline. They knew she didn't leave at midnight.",
       "next": "S5_Michael_Dismissive"
     },
     {
       "id": "S5_Michael_Dismissive",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "action": "Typing",
       "text": "A lucky guess. Or someone's idea of a sick joke.",
@@ -76,6 +89,7 @@
     {
       "id": "S5_Michael_Dismissive_2",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "text": "I'm handling the press. You just keep Chris and Abigail quiet.",
       "next": "S5_Amelia_Guilt"
@@ -83,6 +97,7 @@
     {
       "id": "S5_Amelia_Guilt",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Pause",
       "duration": 2000,
@@ -92,6 +107,7 @@
     {
       "id": "S5_Michael_Final_Warning",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "action": "Typing",
       "text": "Stop. Don't type another word about that.",
@@ -100,6 +116,7 @@
     {
       "id": "S5_Michael_Final_Warning_2",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "text": "We stick to the story. She left at midnight. We didn't see anything.",
       "next": "S5_Michael_Final_Warning_3"
@@ -107,6 +124,7 @@
     {
       "id": "S5_Michael_Final_Warning_3",
       "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
       "sender": "michael",
       "action": "Typing",
       "text": "If we change a single detail now, we're both finished.",
@@ -114,9 +132,9 @@
     },
     {
       "id": "s5_glitch",
-      "type": "S5_CONNECTION_GLITCH",
-      "action": "Glitch_Effect",
+      "type": "Glitch_Effect",
       "duration": 1000,
+      "next_screen": "phone",
       "text": "[SIGNAL LOST... ENCRYPTION BREACHED...]",
       "next": "s6_ring_1"
     }

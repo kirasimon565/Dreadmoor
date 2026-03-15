@@ -3,15 +3,20 @@
     {
       "id": "s2_private_msg",
       "type": "Private_Unknown",
-      "chat": "Private_Unknown",
+      "chat": "unknown",
+      "thread_title": "Unknown",
+      "thread_members": [
+        "unknown"
+      ],
       "sender": "Unknown",
       "action": "Notification",
-      "text": "Well… that's convenient.",
+      "text": "Well\u2026 that's convenient.",
       "next": "S2_Player_Intro"
     },
     {
       "id": "S2_Player_Intro",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "Who the hell are you? How did you get my number?",
@@ -22,7 +27,7 @@
     {
       "id": "S2_Unknown_Rebuttal",
       "type": "Chat_Event",
-      "chat": "Private_Unknown",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Relax. My identity is the least of your concerns right now.",
@@ -31,7 +36,7 @@
     {
       "id": "S2_Unknown_Hook",
       "type": "Chat_Event",
-      "chat": "Private_Unknown",
+      "chat": "unknown",
       "sender": "Unknown",
       "text": "You should be asking about Rebecca Stone.",
       "next": "S2_Choice_HowKnow"
@@ -39,6 +44,7 @@
     {
       "id": "S2_Choice_HowKnow",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "How do you know her?",
@@ -57,6 +63,7 @@
     {
       "id": "S2_Branch_A",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Because she actually trusted me. Unlike the people she was with.",
@@ -65,6 +72,7 @@
     {
       "id": "S2_Branch_B",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Look at the news, [PlayerName]. Does any of this look like a joke to you?",
@@ -73,6 +81,7 @@
     {
       "id": "S2_Branch_C",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Straight to the point. I like that. Pay attention.",
@@ -81,6 +90,7 @@
     {
       "id": "S2_The_Factory_Lead",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Rebecca didn't just vanish into thin air. She went to that factory for a reason.",
@@ -89,6 +99,7 @@
     {
       "id": "S2_Player_PartyQuery",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "The article said it was just a party.",
@@ -99,6 +110,7 @@
     {
       "id": "S2_The_Sister_Reveal",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "A party? Sure. But the press missed the best part: who organized it.",
@@ -107,6 +119,7 @@
     {
       "id": "S2_Player_WhatMean",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "What are you implying?",
@@ -117,6 +130,7 @@
     {
       "id": "S2_Amelia_Accusation",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Her sister. Amelia. She hand-picked that derelict hellhole.",
@@ -125,6 +139,7 @@
     {
       "id": "S2_Choice_AmeliaLogic",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "That doesn't make sense. Why would she?",
@@ -139,6 +154,7 @@
     {
       "id": "S2_Amelia_Reasoning",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Because she handled the invites. She chose the isolation. No neighbors, no witnesses.",
@@ -147,6 +163,7 @@
     {
       "id": "S2_Amelia_Scare",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "It was supposed to be a 'scare.' A dramatic stunt for attention.",
@@ -155,6 +172,7 @@
     {
       "id": "S2_Player_ScareGoal",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "You think she staged the whole disappearance?",
@@ -165,6 +183,7 @@
     {
       "id": "S2_The_Phone_Call",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "That's what Rebecca told me herself.",
@@ -173,6 +192,7 @@
     {
       "id": "S2_Choice_WhenTalk",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "She talked to you right before she vanished?",
@@ -187,6 +207,7 @@
     {
       "id": "S2_Timeline_Details",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "11:30 PM. She stepped outside to find a signal and called me.",
@@ -195,6 +216,7 @@
     {
       "id": "S2_Something_Off",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "She was playing it cool, but her voice was shaking. She was in a hurry.",
@@ -203,6 +225,7 @@
     {
       "id": "S2_The_Hangup",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "She didn't even answer my question before hanging up. That was the last time I heard her.",
@@ -211,6 +234,7 @@
     {
       "id": "S2_Player_Question",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "What did you ask her?",
@@ -221,6 +245,7 @@
     {
       "id": "S2_The_Last_Words",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "I asked if she was okay. She lied and said yes.",
@@ -229,6 +254,7 @@
     {
       "id": "S2_The_Last_Words_2",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
       "duration": 2000,
@@ -238,6 +264,7 @@
     {
       "id": "S2_The_Last_Words_3",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "She never did.",
@@ -246,6 +273,7 @@
     {
       "id": "S2_Choice_WhatSaying",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "So what are you getting at?",
@@ -260,6 +288,7 @@
     {
       "id": "S2_The_Mismatch",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "I'm saying the 'official' timeline is garbage.",
@@ -268,6 +297,7 @@
     {
       "id": "S2_The_Coordination",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "The group is already aligning their stories. Coordinating what to feed the police.",
@@ -276,6 +306,7 @@
     {
       "id": "S2_Player_HowKnow",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "How can you possibly know that?",
@@ -286,6 +317,7 @@
     {
       "id": "S2_The_Intercept",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "Because I'm watching their private group chat right now.",
@@ -294,6 +326,7 @@
     {
       "id": "S2_The_Intercept_2",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
       "duration": 1500,
@@ -303,6 +336,7 @@
     {
       "id": "S2_Choice_WhatSayingGroup",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "What is Amelia saying?",
@@ -321,6 +355,7 @@
     {
       "id": "S2_Group_Intel_A",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "text": "Amelia claims Rebecca left at midnight. Says she didn't see which way she went.",
       "next": "S2_The_Invitation"
@@ -328,6 +363,7 @@
     {
       "id": "S2_Group_Intel_B",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "text": "It's a mess. Chris didn't see her leave. Abigail thought she went for air. Michael is staying silent.",
       "next": "S2_The_Invitation"
@@ -335,6 +371,7 @@
     {
       "id": "S2_Group_Intel_C",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "text": "Amelia: Midnight. Chris: Didn't see her. Abigail: Guessed she went outside. Michael: Non-committal.",
       "next": "S2_The_Invitation"
@@ -342,6 +379,7 @@
     {
       "id": "S2_The_Invitation",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
       "text": "They're careful, but I've found a way in. I'm adding you to the group.",
@@ -350,6 +388,7 @@
     {
       "id": "S2_The_Warning",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
       "duration": 1000,
@@ -359,6 +398,7 @@
     {
       "id": "S2_Choice_FinalReady",
       "type": "Player_Choice",
+      "chat": "unknown",
       "options": [
         {
           "text": "Do it. Get me in.",
@@ -373,6 +413,7 @@
     {
       "id": "S2_Add_Success",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "text": "Good. Don't say anything stupid.",
       "next": "s2_system_add"
@@ -380,13 +421,25 @@
     {
       "id": "S2_Add_Forced",
       "type": "Chat_Event",
+      "chat": "unknown",
       "sender": "Unknown",
       "text": "Hesitating won't save her. Every second you wait, they perfect the lie.",
       "next": "s2_system_add"
     },
     {
       "id": "s2_system_add",
-      "type": "S2_SYSTEM_ADD",
+      "type": "System_Event",
+      "action": "Add_To_Group",
+      "chat": "unknown",
+      "thread_id": "group_dreadmoor_news",
+      "thread_title": "Dreadmoor News",
+      "thread_members": [
+        "amelia",
+        "chris",
+        "abigail",
+        "michael"
+      ],
+      "thread_secret": false,
       "text": "You were added to Dreadmoor News.",
       "next": "s3_group_chat"
     }

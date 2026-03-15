@@ -3,33 +3,40 @@
     {
       "id": "s6_ring_1",
       "type": "IncomingCall",
-      "caller_id": "Unknown_Number",
-      "status": "Ringing",
+      "caller_name": "Unknown",
+      "caller_id": "Unknown Number",
       "audio_loop": "assets/media/sfx/phone_ringtone_glitch.mp3",
-      "next_on_decline": { "delay_seconds": 2, "target": "s6_ring_2" },
+      "next_on_decline": {
+        "delay_seconds": 2,
+        "target": "s6_ring_2"
+      },
       "next": "s6_accept"
     },
     {
       "id": "s6_ring_2",
       "type": "IncomingCall",
-      "caller_id": "Unknown_Number",
-      "status": "Ringing",
+      "caller_name": "Unknown",
+      "caller_id": "Unknown Number",
       "audio_loop": "assets/media/sfx/phone_ringtone_glitch.mp3",
-      "next_on_decline": { "delay_seconds": 3, "target": "s6_ring_final" },
+      "next_on_decline": {
+        "delay_seconds": 3,
+        "target": "s6_ring_final"
+      },
       "next": "s6_accept"
     },
     {
       "id": "s6_ring_final",
-      "type": "S6_Ringing_Final",
-      "caller_id": "Unknown_Number",
-      "status": "Force_Ringing",
-      "action": "Disable_Decline_Button",
+      "type": "Force_Ringing",
+      "caller_name": "Unknown",
+      "caller_id": "Unknown Number",
+      "disable_decline": true,
       "next": "s6_accept"
     },
     {
       "id": "s6_accept",
-      "type": "S6_Accept_Call",
-      "status": "Connected",
+      "type": "Accept_Call",
+      "caller_name": "Unknown",
+      "caller_id": "Unknown Number",
       "audio_asset": "assets/audio/threatening_call_01.mp3",
       "visual_effect": "Audio_Waveform_Glitch",
       "next": "EPISODE_1_END"
@@ -38,6 +45,7 @@
       "id": "EPISODE_1_END",
       "type": "System_Event",
       "action": "Trigger_Credits",
+      "flag_name": "ep01_complete",
       "text": "TO BE CONTINUED IN EPISODE 2"
     }
   ]
