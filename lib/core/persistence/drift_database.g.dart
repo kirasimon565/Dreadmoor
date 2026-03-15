@@ -37,10 +37,8 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
       const VerificationMeta('phoneNumber');
   @override
   late final GeneratedColumn<String> phoneNumber = GeneratedColumn<String>(
-      'phone_number', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('+1 (555) 000-0000'));
+      'phone_number', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -111,7 +109,7 @@ class $PlayersTable extends Players with TableInfo<$PlayersTable, Player> {
       profilePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}profile_path']),
       phoneNumber: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}phone_number'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}phone_number']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -128,14 +126,14 @@ class Player extends DataClass implements Insertable<Player> {
   final String name;
   final String gender;
   final String? profilePath;
-  final String phoneNumber;
+  final String? phoneNumber;
   final DateTime createdAt;
   const Player(
       {required this.id,
       required this.name,
       required this.gender,
       this.profilePath,
-      required this.phoneNumber,
+      this.phoneNumber,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -146,7 +144,9 @@ class Player extends DataClass implements Insertable<Player> {
     if (!nullToAbsent || profilePath != null) {
       map['profile_path'] = Variable<String>(profilePath);
     }
-    map['phone_number'] = Variable<String>(phoneNumber);
+    if (!nullToAbsent || phoneNumber != null) {
+      map['phone_number'] = Variable<String>(phoneNumber);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -159,7 +159,9 @@ class Player extends DataClass implements Insertable<Player> {
       profilePath: profilePath == null && nullToAbsent
           ? const Value.absent()
           : Value(profilePath),
-      phoneNumber: Value(phoneNumber),
+      phoneNumber: phoneNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phoneNumber),
       createdAt: Value(createdAt),
     );
   }
@@ -172,7 +174,7 @@ class Player extends DataClass implements Insertable<Player> {
       name: serializer.fromJson<String>(json['name']),
       gender: serializer.fromJson<String>(json['gender']),
       profilePath: serializer.fromJson<String?>(json['profilePath']),
-      phoneNumber: serializer.fromJson<String>(json['phoneNumber']),
+      phoneNumber: serializer.fromJson<String?>(json['phoneNumber']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -184,7 +186,7 @@ class Player extends DataClass implements Insertable<Player> {
       'name': serializer.toJson<String>(name),
       'gender': serializer.toJson<String>(gender),
       'profilePath': serializer.toJson<String?>(profilePath),
-      'phoneNumber': serializer.toJson<String>(phoneNumber),
+      'phoneNumber': serializer.toJson<String?>(phoneNumber),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -194,14 +196,14 @@ class Player extends DataClass implements Insertable<Player> {
           String? name,
           String? gender,
           Value<String?> profilePath = const Value.absent(),
-          String? phoneNumber,
+          Value<String?> phoneNumber = const Value.absent(),
           DateTime? createdAt}) =>
       Player(
         id: id ?? this.id,
         name: name ?? this.name,
         gender: gender ?? this.gender,
         profilePath: profilePath.present ? profilePath.value : this.profilePath,
-        phoneNumber: phoneNumber ?? this.phoneNumber,
+        phoneNumber: phoneNumber.present ? phoneNumber.value : this.phoneNumber,
         createdAt: createdAt ?? this.createdAt,
       );
   Player copyWithCompanion(PlayersCompanion data) {
@@ -250,7 +252,7 @@ class PlayersCompanion extends UpdateCompanion<Player> {
   final Value<String> name;
   final Value<String> gender;
   final Value<String?> profilePath;
-  final Value<String> phoneNumber;
+  final Value<String?> phoneNumber;
   final Value<DateTime> createdAt;
   const PlayersCompanion({
     this.id = const Value.absent(),
@@ -292,7 +294,7 @@ class PlayersCompanion extends UpdateCompanion<Player> {
       Value<String>? name,
       Value<String>? gender,
       Value<String?>? profilePath,
-      Value<String>? phoneNumber,
+      Value<String?>? phoneNumber,
       Value<DateTime>? createdAt}) {
     return PlayersCompanion(
       id: id ?? this.id,
@@ -3739,7 +3741,7 @@ typedef $$PlayersTableCreateCompanionBuilder = PlayersCompanion Function({
   required String name,
   required String gender,
   Value<String?> profilePath,
-  Value<String> phoneNumber,
+  Value<String?> phoneNumber,
   Value<DateTime> createdAt,
 });
 typedef $$PlayersTableUpdateCompanionBuilder = PlayersCompanion Function({
@@ -3747,7 +3749,7 @@ typedef $$PlayersTableUpdateCompanionBuilder = PlayersCompanion Function({
   Value<String> name,
   Value<String> gender,
   Value<String?> profilePath,
-  Value<String> phoneNumber,
+  Value<String?> phoneNumber,
   Value<DateTime> createdAt,
 });
 
@@ -3862,7 +3864,7 @@ class $$PlayersTableTableManager extends RootTableManager<
             Value<String> name = const Value.absent(),
             Value<String> gender = const Value.absent(),
             Value<String?> profilePath = const Value.absent(),
-            Value<String> phoneNumber = const Value.absent(),
+            Value<String?> phoneNumber = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               PlayersCompanion(
@@ -3878,7 +3880,7 @@ class $$PlayersTableTableManager extends RootTableManager<
             required String name,
             required String gender,
             Value<String?> profilePath = const Value.absent(),
-            Value<String> phoneNumber = const Value.absent(),
+            Value<String?> phoneNumber = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               PlayersCompanion.insert(
