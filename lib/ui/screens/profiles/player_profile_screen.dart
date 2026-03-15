@@ -4,13 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:drift/drift.dart' as drift;
 
-import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final String? characterId;
-
   const ProfileScreen({super.key, this.characterId});
 
   @override
@@ -22,251 +20,342 @@ class ProfileScreen extends ConsumerWidget {
     return profileAsync.when(
       loading: () => const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFC62828)),
-        ),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFFC62828))),
       ),
       error: (e, _) => Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: Text("Error: $e")),
+        body: Center(child: Text('Error: $e')),
       ),
       data: (profile) {
         if (profile == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final db = ref.read(databaseProvider);
+            await db.into(db.characters).insertOnConflictUpdate(
+              CharactersCompanion.insert(
+                id: id,
+                name: 'New Investigator', // should be replaced by game-start name
+                avatarPath: const drift.Value('assets/characters/player_default.png'),
+              ),
+            );
+            ref.invalidate(characterProvider(id));
+          });
           return const Scaffold(
-            body: Center(child: Text("Profile not found")),
+            backgroundColor: Colors.white,
+            body: Center(child: CircularProgressIndicator(color: Color(0xFFC62828))),
           );
         }
 
         return _PlayerProfileBody(
           profile: profile,
           isOwnProfile: isOwnProfile,
-          onAddPhoto: isOwnProfile
-              ? () => _uploadPhoto(ref, id)
-              : null,
+          onAddGalleryPhoto: isOwnProfile ? () => _pickAndAddGalleryPhoto(ref, id) : null,
+          onChangeAvatar: isOwnProfile ? () => _pickAndUpdateAvatar(context, ref, id) : null,
+          onAddNote: isOwnProfile ? () => _showAddNoteSheet(context, ref, id) : null,
         );
       },
     );
   }
 
-  Future<void> _uploadPhoto(WidgetRef ref, String id) async {
+  Future<void> _pickAndAddGalleryPhoto(WidgetRef ref, String id) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
 
     final db = ref.read(databaseProvider);
-
     await db.into(db.characterPhotos).insert(
       CharacterPhotosCompanion.insert(
         characterId: id,
         photoPath: picked.path,
-        caption: const drift.Value("Uploaded"),
+        caption: const drift.Value('Added from device'),
       ),
     );
-
     ref.invalidate(characterProvider(id));
+  }
+
+  Future<void> _pickAndUpdateAvatar(BuildContext context, WidgetRef ref, String id) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    try {
+      final db = ref.read(databaseProvider);
+      await (db.update(db.characters)..where((c) => c.id.equals(id))).write(
+        CharactersCompanion(avatarPath: drift.Value(picked.path)),
+      );
+      ref.invalidate(characterProvider(id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Avatar updated')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update avatar: $e')),
+      );
+    }
+  }
+
+  void _showAddNoteSheet(BuildContext context, WidgetRef ref, String characterId) {
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          left: 24,
+          right: 24,
+          top: 32,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('New Note', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              maxLines: 6,
+              minLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Your observations, clues, thoughts...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.save, size: 18),
+                label: const Text('Save'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFC62828),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                ),
+                onPressed: () async {
+                  final text = controller.text.trim();
+                  if (text.isEmpty) {
+                    Navigator.pop(context);
+                    return;
+                  }
+                  final db = ref.read(databaseProvider);
+                  await db.into(db.characterNotes).insert(
+                    CharacterNotesCompanion.insert(
+                      characterId: characterId,
+                      noteText: text,
+                      createdAt: drift.Value(DateTime.now()),
+                    ),
+                  );
+                  ref.invalidate(characterProvider(characterId));
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 }
 
-class _PlayerProfileBody extends ConsumerWidget {
+// ──────────────────────────────────────────────────────────────────────────────
+
+class _PlayerProfileBody extends StatelessWidget {
   final dynamic profile;
   final bool isOwnProfile;
-  final VoidCallback? onAddPhoto;
+  final VoidCallback? onAddGalleryPhoto;
+  final VoidCallback? onChangeAvatar;
+  final VoidCallback? onAddNote;
 
   const _PlayerProfileBody({
     required this.profile,
     required this.isOwnProfile,
-    this.onAddPhoto,
+    this.onAddGalleryPhoto,
+    this.onChangeAvatar,
+    this.onAddNote,
   });
 
-  static const double headerHeight = 320;
-  static const double avatarRadius = 80;
+  static const double headerHeight = 340.0;
+  static const double avatarRadius = 78.0;
+  static const double curveRadius  = 64.0;
+  static const double avatarCenterY = headerHeight - curveRadius / 2;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
-    final notes = (profile.notes as List?)?.cast<String>() ?? [];
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final notesRaw = (profile.notes as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final noteTexts = notesRaw
+        .map((n) => n['noteText'] as String?)
+        .whereType<String>()
+        .where((t) => t.trim().isNotEmpty)
+        .toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-
-          /// SCROLL AREA
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-
-              /// HEADER
               SliverAppBar(
-                expandedHeight: headerHeight,
-                pinned: true,
-                backgroundColor: const Color(0xFF1A2535),
                 automaticallyImplyLeading: false,
+                expandedHeight: headerHeight,
+                pinned: false,
+                floating: false,
+                backgroundColor: const Color(0xFF0F141A),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.asset(
-                    profile.headerImage ??
-                        "assets/media/headers/default_header.jpg",
+                    profile.headerImage as String? ?? 'assets/headers/dark-forest.jpg',
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0F141A)),
                   ),
                 ),
               ),
 
-              /// CARD
               SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.only(top: avatarRadius),
-                  padding: const EdgeInsets.fromLTRB(
-                      24,
-                      avatarRadius + 16,
-                      24,
-                      80),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(64),
+                child: Transform.translate(
+                  offset: Offset(0, -curveRadius),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(72)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.07),
+                          blurRadius: 20,
+                          offset: const Offset(0, -6),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      /// PLAYER NAME
-                      Center(
-                        child: Text(
-                          profile.name ?? "Player",
-                          style: const TextStyle(
-                            fontSize: 32,
-                            color: Color(0xFF333333),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      /// MEDIA
-                      Row(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
                         children: [
-                          const _SectionBadge(text: "Media"),
-                          if (isOwnProfile && onAddPhoto != null) ...[
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: onAddPhoto,
-                              child: Icon(
-                                Icons.add_a_photo_outlined,
-                                size: 20,
-                                color: Colors.grey.shade600,
-                              ),
-                            )
-                          ]
+                          SizedBox(height: avatarRadius + 28),
+
+                          Text(
+                            profile.name as String? ?? 'Investigator',
+                            style: const TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF111111),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+
+                          const SizedBox(height: 40),
+
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _SectionBadge(text: 'Media'),
+                                if (isOwnProfile && onAddGalleryPhoto != null) ...[
+                                  const SizedBox(width: 14),
+                                  GestureDetector(
+                                    onTap: onAddGalleryPhoto,
+                                    child: Icon(
+                                      Icons.add_a_photo_outlined,
+                                      size: 22,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          if ((profile.gallery as List?)?.isEmpty ?? true)
+                            const _EmptyMedia()
+                          else
+                            _PhotoGrid(gallery: profile.gallery as List),
+
+                          const SizedBox(height: 56),
+
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _SectionBadge(text: 'Notes'),
+                                if (isOwnProfile && onAddNote != null) ...[
+                                  const SizedBox(width: 14),
+                                  GestureDetector(
+                                    onTap: onAddNote,
+                                    child: Icon(
+                                      Icons.edit_outlined, // ← feather-like edit icon
+                                      size: 22,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          if (noteTexts.isEmpty)
+                            const _EmptyNotes()
+                          else
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: noteTexts.map((text) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 18),
+                                  child: Text(
+                                    text,
+                                    style: const TextStyle(
+                                      fontSize: 15.5,
+                                      height: 1.58,
+                                      color: Color(0xFF2C2C2C),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+
+                          const SizedBox(height: 100),
                         ],
                       ),
-
-                      const SizedBox(height: 24),
-
-                      if ((profile.gallery as List?)?.isEmpty ?? true)
-                        const _EmptyMedia()
-                      else
-                        _PhotoGrid(gallery: profile.gallery),
-
-                      const SizedBox(height: 40),
-
-                      /// NOTES
-                      Row(
-                        children: [
-                          const _SectionBadge(text: "Notes"),
-                          const SizedBox(width: 12),
-
-                          /// FEATHER ICON
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                barrierColor: Colors.black54,
-                                builder: (_) => _NotebookDialog(
-                                  existingNotes: notes,
-                                  characterId: "player",
-                                ),
-                              );
-                            },
-                            child: const Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      if (notes.isEmpty)
-                        Container(
-                          height: 80,
-                          color: Colors.grey.shade100,
-                          alignment: Alignment.center,
-                          child: const Text(
-                            "NO NOTES RECORDED",
-                            style: TextStyle(
-                              fontSize: 11,
-                              letterSpacing: 1.6,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        )
-                      else
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: notes.map((n) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Text(
-                              n,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                height: 1.6,
-                              ),
-                            ),
-                          )).toList(),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ],
           ),
 
-          /// BACK BUTTON
+          // Fixed avatar – tappable on own profile
           Positioned(
-            top: topPad + 8,
-            left: 8,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new,
-                  color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-
-          /// AVATAR
-          Positioned(
-            top: headerHeight - avatarRadius,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: GestureDetector(
-                onTap: isOwnProfile ? onAddPhoto : null,
-                child: Container(
-                  width: avatarRadius * 2,
-                  height: avatarRadius * 2,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 4,
+            top: avatarCenterY - avatarRadius,
+            left: screenWidth / 2 - avatarRadius,
+            child: GestureDetector(
+              onTap: onChangeAvatar,
+              child: Container(
+                width: avatarRadius * 2,
+                height: avatarRadius * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.20),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
                     ),
-                  ),
-                  child: ClipOval(
-                    child: _resolveImage(profile.avatar),
-                  ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: _resolveImage(profile.avatar as String?),
                 ),
               ),
             ),
@@ -279,99 +368,18 @@ class _PlayerProfileBody extends ConsumerWidget {
   Widget _resolveImage(String? path) {
     if (path == null || path.isEmpty) {
       return Container(
-        color: Colors.grey.shade200,
-        child: const Icon(Icons.person, size: 60),
+        color: Colors.grey.shade300,
+        child: const Icon(Icons.person, color: Colors.grey, size: 72),
       );
     }
-
-    if (path.startsWith("assets/")) {
+    if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
     }
-
     return Image.file(File(path), fit: BoxFit.cover);
   }
 }
 
-class _NotebookDialog extends ConsumerStatefulWidget {
-  final List<String> existingNotes;
-  final String characterId;
-
-  const _NotebookDialog({
-    required this.existingNotes,
-    required this.characterId,
-  });
-
-  @override
-  ConsumerState<_NotebookDialog> createState() => _NotebookDialogState();
-}
-
-class _NotebookDialogState extends ConsumerState<_NotebookDialog> {
-
-  late TextEditingController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = TextEditingController(
-      text: widget.existingNotes.join("\n\n"),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/ui/notebook_paper.jpg"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          children: [
-
-            const Text(
-              "Investigation Notes",
-              style: TextStyle(fontSize: 20),
-            ),
-
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: TextField(
-                controller: controller,
-                maxLines: null,
-                expands: true,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-
-            ElevatedButton(
-              onPressed: () async {
-                final db = ref.read(databaseProvider);
-
-                await db.update(db.characters)
-                  ..where((tbl) => tbl.id.equals(widget.characterId))
-                  ..write(
-                    CharactersCompanion(
-                      bio: drift.Value(controller.text),
-                    ),
-                  );
-
-                Navigator.pop(context);
-              },
-              child: const Text("Save"),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
+// ── Reusable small widgets ────────────────────────────────────────────────────
 
 class _SectionBadge extends StatelessWidget {
   final String text;
@@ -380,14 +388,18 @@ class _SectionBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: const Color(0xFFC62828),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFFC62828),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Text(
-        text,
+        text.toUpperCase(),
         style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.0,
           color: Colors.white,
-          letterSpacing: 1,
         ),
       ),
     );
@@ -395,7 +407,7 @@ class _SectionBadge extends StatelessWidget {
 }
 
 class _PhotoGrid extends StatelessWidget {
-  final List gallery;
+  final List<dynamic> gallery;
   const _PhotoGrid({required this.gallery});
 
   @override
@@ -403,22 +415,24 @@ class _PhotoGrid extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate:
-      const SliverGridDelegateWithFixedCrossAxisCount(
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: .8,
+        childAspectRatio: 0.82,
       ),
       itemCount: gallery.length,
       itemBuilder: (context, i) {
         final path = gallery[i].photoPath as String;
-
-        return Container(
-          color: Colors.grey.shade200,
-          child: path.startsWith("assets/")
-              ? Image.asset(path, fit: BoxFit.cover)
-              : Image.file(File(path), fit: BoxFit.cover),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            color: Colors.grey.shade200,
+            child: path.startsWith('assets/')
+                ? Image.asset(path, fit: BoxFit.cover)
+                : Image.file(File(path), fit: BoxFit.cover),
+          ),
         );
       },
     );
@@ -431,16 +445,44 @@ class _EmptyMedia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
-      color: Colors.grey.shade100,
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(14),
+      ),
       alignment: Alignment.center,
       child: const Text(
-        "NO MEDIA RECOVERED",
+        'NO MEDIA ADDED',
         style: TextStyle(
-          fontSize: 11,
-          letterSpacing: 1.6,
-          fontWeight: FontWeight.w600,
+          fontSize: 13,
           color: Colors.grey,
+          letterSpacing: 1.3,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyNotes extends StatelessWidget {
+  const _EmptyNotes();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      alignment: Alignment.center,
+      child: const Text(
+        'NO NOTES RECORDED',
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.grey,
+          letterSpacing: 1.3,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
