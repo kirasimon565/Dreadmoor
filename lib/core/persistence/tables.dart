@@ -8,7 +8,7 @@ class Players extends Table {
   TextColumn get name => text()();
   TextColumn get gender => text()();
   TextColumn get profilePath => text().nullable()();
-  TextColumn get phoneNumber => text().withDefault(const Constant('+1 (555) 000-0000'))();
+  TextColumn get phoneNumber => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
