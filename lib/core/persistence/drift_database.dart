@@ -10,8 +10,17 @@ import 'tables.dart';
 part 'drift_database.g.dart';
 
 @DriftDatabase(tables: [
-  Players, Characters, CharacterPhotos, Threads, ThreadMembers,
-  Messages, Notifications, StoryState, Episodes, StoryNodes
+  Players,
+  Characters,
+  CharacterPhotos,
+  Threads,
+  ThreadMembers,
+  Messages,
+  Notifications,
+  StoryState,
+  Episodes,
+  StoryNodes,
+  CharacterNotes,           // ← ADDED
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
@@ -23,20 +32,21 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;  // ← increased because we added a new table
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (m) async { await m.createAll(); },
+    onCreate: (m) async {
+      await m.createAll();
+    },
     onUpgrade: (m, from, to) async {
       if (from < 8) await m.createTable(characterPhotos);
       if (from < 9) await m.createTable(threadMembers);
+      if (from < 10) await m.createTable(characterNotes);  // ← added
     },
   );
 
   // ── INIT ──────────────────────────────────────────────────────────────────
-  // Called once in main.dart before runApp().
-  // Guarantees the player character row exists before any widget reads it.
   static Future<void> init() async {
     await instance.customSelect('SELECT 1').get();
     await instance._ensurePlayerCharacter();
@@ -46,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
     await into(characters).insertOnConflictUpdate(
       CharactersCompanion.insert(
         id:          'player',
-        name:        'Investigator',
+        name:        const Value('New Player'),           // ← safer temporary fallback
         bio:         const Value('Active Case Lead'),
         avatarPath:  const Value('assets/characters/player_default.png'),
         phoneNumber: '+1 (555) 000-0000',
@@ -55,33 +65,21 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ── DATA INITIALIZATION ────────────────────────────────────────────────────
-  // Called when the player taps "Start Game".
-  //
-  // FIX: now calls importPendingEpisodes() instead of importEpisode('ep01').
-  // importPendingEpisodes checks the Episodes table for each entry in
-  // EpisodeManifest.all and only runs the importer for episodes that haven't
-  // been imported yet.
-  //
-  // This means:
-  //   - ep01: imported on first Start Game, skipped on every subsequent launch.
-  //   - ep02+: imported automatically on the first launch after you ship them.
-  //   - resetAllProgress() wipes the Episodes table rows, so the next
-  //     Start Game re-imports everything cleanly.
   Future<void> initializeDefaultData() async {
     // Player system row
     final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
     if (existingPlayer == null) {
       await into(players).insert(PlayersCompanion.insert(
-        name:        'Investigator',
-        gender:      'Unknown',
+        name:        const Value('New Player'),           // ← changed
+        gender:      const Value('Unknown'),
         phoneNumber: const Value('+1 (555) 000-0000'),
       ));
     }
 
-    // Player character row (also handled by init(), belt-and-suspenders)
+    // Player character row
     await _ensurePlayerCharacter();
 
-    // Import any episodes that haven't been imported yet.
+    // Import pending episodes
     final loader = ScriptLoader(this);
     await loader.importPendingEpisodes();
   }
@@ -118,7 +116,6 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ── RESET ─────────────────────────────────────────────────────────────────
-  // Wipes episodes table so the next Start Game re-imports everything.
   Future<void> resetAllProgress() async {
     await batch((b) {
       b.deleteAll(players);
@@ -126,10 +123,11 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(threads);
       b.deleteAll(threadMembers);
       b.deleteAll(storyState);
-      b.deleteAll(episodes);    // ← cleared so next launch re-imports
+      b.deleteAll(episodes);
       b.deleteAll(storyNodes);
       b.deleteAll(characterPhotos);
-      // characters table intentionally NOT wiped — player profile survives reset
+      // Note: characterNotes is NOT deleted here — player notes survive reset
+      // characters table intentionally NOT wiped — player profile survives
     });
   }
 }
