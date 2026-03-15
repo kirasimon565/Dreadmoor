@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/state/player_state.dart';
 import 'package:dreadmoor/core/models/script_models.dart';
-import 'package:dreadmoor/ui/theme/colors.dart';
 
 class ChoiceOverlay extends ConsumerStatefulWidget {
   const ChoiceOverlay({super.key});
@@ -26,13 +25,14 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
     super.initState();
     _sheetAnim = AnimationController(
       vsync: this,
-      duration: Duration.zero, // Zero duration ensures it paints immediately upon layout
+      duration: const Duration(milliseconds: 320),
     );
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _sheetAnim, curve: Curves.linear));
-    _fadeAnim = CurvedAnimation(parent: _sheetAnim, curve: Curves.linear);
+    ).animate(CurvedAnimation(parent: _sheetAnim, curve: Curves.easeOutQuart));
+    _fadeAnim =
+        CurvedAnimation(parent: _sheetAnim, curve: Curves.easeIn);
   }
 
   @override
@@ -44,7 +44,7 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
   @override
   Widget build(BuildContext context) {
     final waiting = ref.watch(waitingForChoiceProvider);
-    final player = ref.watch(playerStateProvider);
+    final player  = ref.watch(playerStateProvider);
 
     if (waiting) {
       _sheetAnim.forward();
@@ -54,12 +54,10 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
 
     return Stack(
       children: [
-        // ── CHOICE SHEET (slides up when waiting) ─────────────────────────
+        // ── CHOICE SHEET ────────────────────────────────────────────────
         if (waiting)
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: 0, right: 0, bottom: 0,
             child: SlideTransition(
               position: _slideAnim,
               child: FadeTransition(
@@ -69,12 +67,10 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
             ),
           ),
 
-        // ── INPUT BAR (visible when NOT waiting) ─────────────────────────
+        // ── INPUT BAR ───────────────────────────────────────────────────
         if (!waiting)
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: 0, right: 0, bottom: 0,
             child: _InputBar(),
           ),
       ],
@@ -83,20 +79,18 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
 }
 
 // ── INPUT BAR ─────────────────────────────────────────────────────────────────
-// Bluish-grey pill, "Say something..." italic, red quill right.
 
 class _InputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPad = MediaQuery.of(context).padding.bottom;
-    final brightness = Theme.of(context).brightness;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad + 16),
       child: Container(
         height: 58,
         decoration: BoxDecoration(
-          color: DreadmoorColors.surface(brightness),
+          color: const Color(0xFF4E6470),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
@@ -113,7 +107,7 @@ class _InputBar extends StatelessWidget {
               child: Text(
                 'Say something...',
                 style: GoogleFonts.spectral(
-                  color: DreadmoorColors.text(brightness).withOpacity(0.60),
+                  color: Colors.white.withOpacity(0.60),
                   fontSize: 18,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w400,
@@ -123,42 +117,19 @@ class _InputBar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Consumer(
-                builder: (context, ref, child) {
+                builder: (context, ref, _) {
                   return GestureDetector(
-                    onTap: () async {
+                    onTap: () {
                       HapticFeedback.lightImpact();
-                      final scheduler = ref.read(globalSchedulerProvider);
-                      final activeNodeId = ref.read(activeNodeIdProvider);
-
-                      if (activeNodeId != null) {
-                        final db = ref.read(databaseProvider);
-                        final nodeData = await db.getNextNode(activeNodeId);
-                        if (nodeData != null) {
-                          final node = DreadmoorNode.fromDb(nodeData);
-                          if (node.choices.isNotEmpty) {
-                            // Automatically submit the first choice if tapped while choices exist
-                            // (Though usually this bar is hidden if waitingForChoice is true)
-                            final choice = node.choices.first;
-                            scheduler.submitChoice(choice.target, choice.text);
-                            return;
-                          }
-                        }
-                      }
-
-                      // Advance current non-branching node if one is pending
-                      scheduler.resume();
+                      ref.read(globalSchedulerProvider).resume();
                     },
                     child: SizedBox(
-                      width: 42,
-                      height: 42,
+                      width: 42, height: 42,
                       child: Image.asset(
                         'assets/ui/quill_red.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.edit,
-                          color: DreadmoorColors.evidenceRed,
-                          size: 26,
-                        ),
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.edit, color: Color(0xFFCC2A2A), size: 26),
                       ),
                     ),
                   );
@@ -173,42 +144,54 @@ class _InputBar extends StatelessWidget {
 }
 
 // ── CHOICE SHEET ──────────────────────────────────────────────────────────────
-// Warm off-white bottom sheet + floating player avatar overlapping top-right.
 
-class _ChoiceSheet extends ConsumerWidget {
+class _ChoiceSheet extends ConsumerStatefulWidget {
   final dynamic player;
-
   const _ChoiceSheet({required this.player});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final bottomPad = MediaQuery.of(context).padding.bottom;
-    final brightness = Theme.of(context).brightness;
-    final scheduler = ref.read(globalSchedulerProvider);
+  ConsumerState<_ChoiceSheet> createState() => _ChoiceSheetState();
+}
+
+class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
+  /// FIX: local tapped guard per sheet render.
+  /// Once tapped, the buttons dim and ignore further input until
+  /// the scheduler advances to the next node (which rebuilds the sheet).
+  /// This prevents duplicates even when the story stalls.
+  bool _tapped = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPad    = MediaQuery.of(context).padding.bottom;
+    final scheduler    = ref.read(globalSchedulerProvider);
     final activeNodeId = ref.watch(activeNodeIdProvider);
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // ── SHEET ─────────────────────────────────────────────────────────
+        // ── SHEET ──────────────────────────────────────────────────────
         Container(
           width: double.infinity,
           padding: EdgeInsets.fromLTRB(20, 28, 20, bottomPad + 20),
-          decoration: BoxDecoration(
-            color: DreadmoorColors.surface(brightness),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(28),
+          decoration: const BoxDecoration(
+            color: Color(0xFFF0EEEA),
+            borderRadius: BorderRadius.only(
+              topLeft:  Radius.circular(28),
               topRight: Radius.circular(28),
             ),
           ),
           child: FutureBuilder(
-            future: ref
-                .read(databaseProvider)
-                .getNextNode(activeNodeId ?? ''),
+            future: ref.read(databaseProvider).getNextNode(activeNodeId ?? ''),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) return const SizedBox(height: 60);
-              final choices =
-                  DreadmoorNode.fromDb(snapshot.data!).choices;
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const SizedBox(height: 60);
+              }
+
+              final choices = DreadmoorNode.fromDb(snapshot.data!).choices;
+
+              if (choices.isEmpty) {
+                return const SizedBox(height: 60);
+              }
 
               return Column(
                 mainAxisSize: MainAxisSize.min,
@@ -216,8 +199,11 @@ class _ChoiceSheet extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: _ChoiceRow(
-                      text: choice.text,
+                      text:     choice.text,
+                      disabled: _tapped,
                       onTap: () {
+                        if (_tapped) return;
+                        setState(() => _tapped = true);
                         HapticFeedback.lightImpact();
                         scheduler.submitChoice(choice.target, choice.text);
                       },
@@ -229,16 +215,15 @@ class _ChoiceSheet extends ConsumerWidget {
           ),
         ),
 
-        // ── FLOATING PLAYER AVATAR ─────────────────────────────────────────
+        // ── FLOATING PLAYER AVATAR ─────────────────────────────────────
         Positioned(
-          top: -56,
-          right: 16,
+          top: -56, right: 16,
           child: Container(
-            width: 112,
-            height: 112,
+            width: 112, height: 112,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: DreadmoorColors.surface(brightness), width: 4),
+              border: Border.all(
+                  color: const Color(0xFFF0EEEA), width: 4),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.22),
@@ -249,15 +234,13 @@ class _ChoiceSheet extends ConsumerWidget {
             ),
             child: ClipOval(
               child: Image.asset(
-                player?.profilePath ?? 'assets/characters/player_default.png',
+                widget.player?.profilePath
+                    ?? 'assets/characters/player_default.png',
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
-                  color: DreadmoorColors.background(brightness),
-                  child: Icon(
-                    Icons.person,
-                    color: DreadmoorColors.text(brightness).withOpacity(0.54),
-                    size: 52,
-                  ),
+                  color: const Color(0xFFD4B896),
+                  child: const Icon(
+                      Icons.person, color: Colors.white54, size: 52),
                 ),
               ),
             ),
@@ -273,52 +256,55 @@ class _ChoiceSheet extends ConsumerWidget {
 class _ChoiceRow extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
+  final bool disabled;
 
-  const _ChoiceRow({required this.text, required this.onTap});
+  const _ChoiceRow({
+    required this.text,
+    required this.onTap,
+    this.disabled = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-              decoration: BoxDecoration(
-                color: DreadmoorColors.background(brightness),
-                border: Border.all(color: DreadmoorColors.divider(brightness), width: 1.5),
-              ),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                text.toUpperCase(),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: DreadmoorColors.text(brightness),
-                  letterSpacing: 0.6,
+    return Opacity(
+      opacity: disabled ? 0.4 : 1.0,
+      child: GestureDetector(
+        onTap: disabled ? null : onTap,
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 13, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border:
+                      Border.all(color: Colors.black, width: 1.5),
+                ),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  text.toUpperCase(),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          SizedBox(
-            width: 44,
-            height: 44,
-            child: Image.asset(
-              brightness == Brightness.light ? 'assets/ui/quill_red.png' : 'assets/ui/quill_black.png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.edit,
-                color: DreadmoorColors.text(brightness),
-                size: 26,
+            const SizedBox(width: 14),
+            SizedBox(
+              width: 44, height: 44,
+              child: Image.asset(
+                'assets/ui/quill_black.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                    Icons.edit, color: Colors.black87, size: 26),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
