@@ -10,22 +10,13 @@ import 'tables.dart';
 part 'drift_database.g.dart';
 
 @DriftDatabase(tables: [
-  Players,
-  Characters,
-  CharacterPhotos,
-  Threads,
-  ThreadMembers,
-  Messages,
-  Notifications,
-  StoryState,
-  Episodes,
-  StoryNodes
+  Players, Characters, CharacterPhotos, Threads, ThreadMembers,
+  Messages, Notifications, StoryState, Episodes, StoryNodes
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
   static AppDatabase? _instance;
-
   static AppDatabase get instance {
     _instance ??= AppDatabase._();
     return _instance!;
@@ -36,87 +27,74 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-        },
-        onUpgrade: (m, from, to) async {
-          if (from < 8) await m.createTable(characterPhotos);
-          if (from < 9) await m.createTable(threadMembers);
-        },
-      );
+    onCreate: (m) async { await m.createAll(); },
+    onUpgrade: (m, from, to) async {
+      if (from < 8) await m.createTable(characterPhotos);
+      if (from < 9) await m.createTable(threadMembers);
+    },
+  );
 
-  // ── INIT ─────────────────────────────────────────────────────────────────
-  // Called once from main.dart before runApp().
-  // Always ensures the 'player' character row exists so the Profile screen
-  // never hits "File not found" regardless of game-start state.
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  // Called once in main.dart before runApp().
+  // Guarantees the player character row exists before any widget reads it.
   static Future<void> init() async {
     await instance.customSelect('SELECT 1').get();
-    await instance._ensurePlayerCharacter(); // ← FIX: always seed on cold start
+    await instance._ensurePlayerCharacter();
   }
 
-  /// Guarantees a 'player' Character row exists. Safe to call on every launch
-  /// because insertOnConflictUpdate is a no-op when the row already exists.
   Future<void> _ensurePlayerCharacter() async {
     await into(characters).insertOnConflictUpdate(
       CharactersCompanion.insert(
-        id: 'player',
-        name: 'Investigator',
-        bio: const Value('Active Case Lead'),
-        avatarPath: const Value('assets/characters/player_default.png'),
+        id:          'player',
+        name:        'Investigator',
+        bio:         const Value('Active Case Lead'),
+        avatarPath:  const Value('assets/characters/player_default.png'),
         phoneNumber: '+1 (555) 000-0000',
       ),
     );
   }
 
-  // ── DATA INITIALIZATION ───────────────────────────────────────────────────
-  // Called from WelcomeScreen when the player taps "Start Game".
-  // Guards on storyNodes count (not player existence) so that a
-  // resetAllProgress() → restart correctly re-imports the JSON scenes.
+  // ── DATA INITIALIZATION ────────────────────────────────────────────────────
+  // Called when the player taps "Start Game".
+  //
+  // FIX: now calls importPendingEpisodes() instead of importEpisode('ep01').
+  // importPendingEpisodes checks the Episodes table for each entry in
+  // EpisodeManifest.all and only runs the importer for episodes that haven't
+  // been imported yet.
+  //
+  // This means:
+  //   - ep01: imported on first Start Game, skipped on every subsequent launch.
+  //   - ep02+: imported automatically on the first launch after you ship them.
+  //   - resetAllProgress() wipes the Episodes table rows, so the next
+  //     Start Game re-imports everything cleanly.
   Future<void> initializeDefaultData() async {
-    // 1. Player row (system state)
+    // Player system row
     final existingPlayer = await (select(players)..limit(1)).getSingleOrNull();
     if (existingPlayer == null) {
-      await into(players).insert(
-        PlayersCompanion.insert(
-          name: 'Investigator',
-          gender: 'Unknown',
-          phoneNumber: const Value('+1 (555) 000-0000'),
-        ),
-      );
+      await into(players).insert(PlayersCompanion.insert(
+        name:        'Investigator',
+        gender:      'Unknown',
+        phoneNumber: const Value('+1 (555) 000-0000'),
+      ));
     }
 
-    // 2. Player character row — also handled by _ensurePlayerCharacter() on
-    //    init(), but repeated here with insertOnConflictUpdate so it is a
-    //    guaranteed no-op when already present.
+    // Player character row (also handled by init(), belt-and-suspenders)
     await _ensurePlayerCharacter();
 
-    // 3. Import JSON scenes.
-    //    ← FIX: guard on storyNodes count, NOT on player existence.
-    //    This means resetAllProgress() + Start Game always re-imports.
-    final nodeCount =
-        await (select(storyNodes)..limit(1)).getSingleOrNull();
-    if (nodeCount == null) {
-      try {
-        final loader = ScriptLoader(this);
-        await loader.importEpisode('ep01');
-      } catch (e) {
-        print('Dreadmoor Engine Error: Failed to import JSON scenes: $e');
-      }
-    }
+    // Import any episodes that haven't been imported yet.
+    final loader = ScriptLoader(this);
+    await loader.importPendingEpisodes();
   }
 
-  // ── NARRATIVE & GALLERY DAOs ──────────────────────────────────────────────
+  // ── DAOs ──────────────────────────────────────────────────────────────────
 
   Future<List<CharacterPhoto>> getCharacterGallery(String charId) {
-    return (select(characterPhotos)
-          ..where((t) => t.characterId.equals(charId)))
-        .get();
+    return (select(characterPhotos)..where((t) => t.characterId.equals(charId))).get();
   }
 
   Future<StoryNode?> getNextNode(String? nodeId) async {
     if (nodeId == null || nodeId.isEmpty) return null;
-    return (select(storyNodes)..where((t) => t.id.equals(nodeId)))
-        .getSingleOrNull();
+    return (select(storyNodes)..where((t) => t.id.equals(nodeId))).getSingleOrNull();
   }
 
   Stream<List<Message>> watchChatMessages(String threadId) {
@@ -130,17 +108,17 @@ class AppDatabase extends _$AppDatabase {
       {bool? bVal, int? iVal, String? sVal}) async {
     await into(storyState).insertOnConflictUpdate(
       StoryStateCompanion(
-        key: Value(key),
-        value: Value(bVal ?? false),
-        intValue: Value(iVal ?? 0),
+        key:         Value(key),
+        value:       Value(bVal ?? false),
+        intValue:    Value(iVal ?? 0),
         stringValue: Value(sVal),
-        updatedAt: Value(DateTime.now()),
+        updatedAt:   Value(DateTime.now()),
       ),
     );
   }
 
   // ── RESET ─────────────────────────────────────────────────────────────────
-
+  // Wipes episodes table so the next Start Game re-imports everything.
   Future<void> resetAllProgress() async {
     await batch((b) {
       b.deleteAll(players);
@@ -148,11 +126,10 @@ class AppDatabase extends _$AppDatabase {
       b.deleteAll(threads);
       b.deleteAll(threadMembers);
       b.deleteAll(storyState);
-      b.deleteAll(episodes);
-      b.deleteAll(storyNodes);   // ← cleared here, re-imported on next Start Game
+      b.deleteAll(episodes);    // ← cleared so next launch re-imports
+      b.deleteAll(storyNodes);
       b.deleteAll(characterPhotos);
-      // Note: characters table is NOT wiped so the player profile survives reset.
-      // _ensurePlayerCharacter() also re-seeds it on the next cold start.
+      // characters table intentionally NOT wiped — player profile survives reset
     });
   }
 }
