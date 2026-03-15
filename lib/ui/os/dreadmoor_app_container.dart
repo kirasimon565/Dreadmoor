@@ -3,53 +3,47 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/ui/os/os_state.dart';
 
-// Import navigators
 import 'package:dreadmoor/features/messenger/ui/messenger_navigator.dart';
 import 'package:dreadmoor/features/browser/ui/browser_navigator.dart';
 import 'package:dreadmoor/features/phone/ui/phone_navigator.dart';
 import 'package:dreadmoor/features/profile/ui/profile_navigator.dart';
-
-// Import flat screens that do not require deep internal navigation
 import 'package:dreadmoor/features/apps/ui/screens/apps/apps_screen.dart';
-import 'package:dreadmoor/features/store/ui/screens/store/store_screen.dart';
 import 'package:dreadmoor/features/puzzle/ui/screens/puzzle/puzzle_screen.dart';
 
 class DreadmoorAppContainer extends ConsumerStatefulWidget {
   const DreadmoorAppContainer({super.key});
 
   @override
-  ConsumerState<DreadmoorAppContainer> createState() => _DreadmoorAppContainerState();
+  ConsumerState<DreadmoorAppContainer> createState() =>
+      _DreadmoorAppContainerState();
 }
 
-class _DreadmoorAppContainerState extends ConsumerState<DreadmoorAppContainer> {
-  // Define a stable order for the IndexedStack
+class _DreadmoorAppContainerState
+    extends ConsumerState<DreadmoorAppContainer> {
+  // Order must match the PhoneApp enum (minus store).
   final List<PhoneApp> _appOrder = [
     PhoneApp.messenger,
     PhoneApp.browser,
     PhoneApp.phone,
     PhoneApp.apps,
-    PhoneApp.store,
     PhoneApp.puzzle,
     PhoneApp.profile,
   ];
 
   @override
   Widget build(BuildContext context) {
-    final activeApp = ref.watch(activeAppProvider);
+    final activeApp   = ref.watch(activeAppProvider);
     final activeIndex = _appOrder.indexOf(activeApp);
 
-    // Use IndexedStack to preserve the state and scroll positions of all apps.
-    // The IndexedStack keeps all children mounted but only paints the one at 'index'.
     return IndexedStack(
       index: activeIndex,
-      children: [
-        const MessengerNavigator(),
-        const BrowserNavigator(),
-        const PhoneNavigator(),
-        const AppsScreen(),
-        const StoreScreen(),
-        const PuzzleScreen(),
-        const ProfileNavigator(),
+      children: const [
+        MessengerNavigator(),
+        BrowserNavigator(),
+        PhoneNavigator(),
+        AppsScreen(),
+        PuzzleScreen(),
+        ProfileNavigator(),
       ],
     );
   }
