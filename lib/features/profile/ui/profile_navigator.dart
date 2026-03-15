@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:dreadmoor/ui/screens/profiles/player_profile_screen.dart';
 
-/// Renders ProfileScreen directly — no Navigator wrapper.
+/// FIX: The old ProfileNavigator wrapped ProfileScreen inside a
+/// Navigator + PageRouteBuilder. That inserted a Material widget
+/// with the default grey canvas colour ON TOP of ProfileScreen's
+/// white Scaffold — hence the permanently grey profile tab.
 ///
-/// The old version used a PageRouteBuilder which inserted its own
-/// Material widget with the default grey background, painting over
-/// ProfileScreen's white Scaffold. Removing the Navigator fixes
-/// the permanently grey profile tab.
+/// This version renders ProfileScreen directly. No Navigator, no
+/// PageRouteBuilder, no grey Material in between.
 class ProfileNavigator extends StatelessWidget {
   const ProfileNavigator({super.key});
 
