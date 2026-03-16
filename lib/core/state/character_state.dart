@@ -12,7 +12,8 @@ class CharacterProfile {
   final List<CharacterPhoto> gallery;
   final String? bio;
   final Map<String, String> info;
-  final List<String> notes;
+  final List<String> notes; // ← plain strings, from CharacterNotes table
+  final String? gameNumber;
 
   const CharacterProfile({
     required this.id,
@@ -24,17 +25,18 @@ class CharacterProfile {
     this.bio,
     required this.info,
     required this.notes,
+    this.gameNumber,
   });
 }
 
-// FIX: was FutureProvider — ran once, cached null forever if the row didn't
-// exist at that exact millisecond, and NEVER retried.
-// Now StreamProvider using watchSingleOrNull(). Re-emits the moment
-// _ensurePlayerCharacter() or seedCharacters() inserts/updates the row.
+/// StreamProvider so profile rebuilds automatically whenever
+/// the character row, gallery, or notes change.
 final characterProvider =
-    StreamProvider.family<CharacterProfile?, String>((ref, characterId) async* {
+    StreamProvider.family<CharacterProfile?, String>(
+        (ref, characterId) async* {
   final db = ref.watch(databaseProvider);
 
+  // Watch the character row — re-emits on any insert/update/delete
   final charStream = (db.select(db.characters)
         ..where((c) => c.id.equals(characterId)))
       .watchSingleOrNull();
@@ -45,20 +47,24 @@ final characterProvider =
       continue;
     }
 
+    // Gallery photos
     final photos = await db.getCharacterGallery(characterId);
+
+    // FIX: fetch notes from CharacterNotes table.
+    // Previously characterProvider only read investigationNotes from
+    // the Characters row (a single text column). Notes saved via the
+    // bottom sheet write to the CharacterNotes table, which was never
+    // queried here — so saved notes never appeared on the profile.
+    final noteRows = await db.getCharacterNotes(characterId);
+    final noteTexts = noteRows
+        .map((n) => n.noteText.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
 
     final info = <String, String>{
       if (charRow.id == 'michael') 'Occupation': 'Journalist',
       'Status': 'Active',
     };
-
-    final notes = <String>[
-      if (charRow.investigationNotes != null &&
-          charRow.investigationNotes!.isNotEmpty)
-        charRow.investigationNotes!
-      else
-        'No notes collected yet.',
-    ];
 
     yield CharacterProfile(
       id:          charRow.id,
@@ -71,11 +77,12 @@ final characterProvider =
       gallery:     photos,
       bio:         charRow.bio,
       info:        info,
-      notes:       notes,
+      notes:       noteTexts,  // ← from CharacterNotes, not Characters.investigationNotes
     );
   }
 });
 
+/// All discovered characters (Contacts App).
 final charactersProvider =
     StreamProvider<List<CharacterProfile>>((ref) async* {
   final db = ref.watch(databaseProvider);
@@ -87,6 +94,12 @@ final charactersProvider =
     for (final row in rows) {
       if (row.id == 'system') continue;
       final photos = await db.getCharacterGallery(row.id);
+      final noteRows = await db.getCharacterNotes(row.id);
+      final notes = noteRows
+          .map((n) => n.noteText.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+
       profiles.add(CharacterProfile(
         id:          row.id,
         name:        row.name,
@@ -98,7 +111,7 @@ final charactersProvider =
         gallery:     photos,
         bio:         row.bio,
         info:        {},
-        notes:       [row.investigationNotes ?? 'No notes collected yet.'],
+        notes:       notes,
       ));
     }
 
