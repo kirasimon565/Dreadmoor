@@ -88,6 +88,7 @@ class _ProfileBody extends StatelessWidget {
             // are always anchored to the viewport, never to content height)
             Positioned.fill(
               child: SingleChildScrollView(
+                padding: EdgeInsets.only(top: _avatarRadius),
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
