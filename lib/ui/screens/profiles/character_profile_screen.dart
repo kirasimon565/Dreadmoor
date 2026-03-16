@@ -53,7 +53,7 @@ class _ProfileBody extends StatelessWidget {
   static const double _headerHeight = 320.0;
   static const double _cardOverlap  = 56.0;
   static const double _avatarRadius = 78.0;
-  static const double _avatarTop    = _headerHeight - _cardOverlap - _avatarRadius;
+  static const double _avatarTop    = _headerHeight - _cardOverlap - _avatarRadius - 10;
 
   @override
   Widget build(BuildContext context) {
