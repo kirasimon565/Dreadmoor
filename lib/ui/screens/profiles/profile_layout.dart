@@ -64,7 +64,7 @@ class ProfileLayout extends StatelessWidget {
       );
     },
   ),
-)
+),
 
             // ── LAYER 1: white card — FIXED to viewport ────────────────
             // Anchored by top/left/right/bottom — never participates in
