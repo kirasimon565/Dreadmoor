@@ -120,12 +120,13 @@ class ProfileLayout extends StatelessWidget {
                       shape:  BoxShape.circle,
                       color:  Colors.white,
                       border: Border.all(
-                          color: Colors.white, width: 5),
+                          color: Colors.white, width: 4),
                       boxShadow: [
                         BoxShadow(
-                          color:      Colors.black.withOpacity(0.18),
-                          blurRadius: 16,
-                          offset:     const Offset(0, 8),
+                          color:      Colors.black.withOpacity(0.25),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset:     const Offset(0, 10),
                         ),
                       ],
                     ),
