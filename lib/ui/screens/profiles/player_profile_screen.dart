@@ -251,7 +251,8 @@ class _PlayerProfileBody extends StatelessWidget {
             ),
 
             // Layer 1 — scrollable content
-            SingleChildScrollView(
+            Positioned.fill(
+              child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -404,7 +405,8 @@ class _PlayerProfileBody extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ), // SingleChildScrollView
+            ), // Positioned.fill
 
             // Layer 2 — avatar fixed to viewport
             Positioned(
