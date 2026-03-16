@@ -403,6 +403,7 @@ class _PlayerProfileBody extends StatelessWidget {
               ],
             ),
           ),
+        ),
 
           // ── AVATAR — fixed, never scrolls ───────────────────────────
           Positioned(
