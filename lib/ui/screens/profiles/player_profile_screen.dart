@@ -253,6 +253,7 @@ class _PlayerProfileBody extends StatelessWidget {
             // Layer 1 — scrollable content
             Positioned.fill(
               child: SingleChildScrollView(
+                padding: EdgeInsets.only(top: _avatarRadius),
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
