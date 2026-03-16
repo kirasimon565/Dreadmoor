@@ -20,8 +20,8 @@ class ProfileLayout extends StatelessWidget {
 
   // ── Layout constants ─────────────────────────────────────────────────
   static const double headerHeight = 320.0;
-  static const double cardOverlap  = 56.0;
-  static const double avatarRadius = 78.0;
+  static const double cardOverlap  = 115.0;
+  static const double avatarRadius = 80.0;
 
   // Top of the card in viewport coordinates
   static const double _cardTop = headerHeight - cardOverlap;
