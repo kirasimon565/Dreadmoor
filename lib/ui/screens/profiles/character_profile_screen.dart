@@ -102,8 +102,9 @@ class _ProfileBody extends StatelessWidget {
           ),
 
           // ── LAYER 1: scrollable content ────────────────────────────────
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+          Positioned.fill(
+          child: SingleChildScrollView(
+         physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
