@@ -242,11 +242,10 @@ class _PlayerProfileBody extends StatelessWidget {
 
           // ── SCROLL CONTENT ──────────────────────────────────────────
           Positioned.fill(
-            child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+  child: SingleChildScrollView(
+    physics: const BouncingScrollPhysics(),
+    child: Column(
+      children: [
 
                 // Transparent spacer
                 SizedBox(height: _headerHeight - _cardOverlap),
