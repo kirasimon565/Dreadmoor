@@ -225,7 +225,8 @@ class _PlayerProfileBody extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F141A),
-      body: Stack(
+      body: SizedBox.expand(
+  child: Stack(
         children: [
 
           // ── BACKGROUND ─────────────────────────────────────────────
