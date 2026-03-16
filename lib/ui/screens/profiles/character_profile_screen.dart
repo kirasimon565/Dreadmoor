@@ -171,6 +171,7 @@ class _ProfileBody extends StatelessWidget {
               ],
             ),
           ),
+        ),  
 
           // ── LAYER 2: avatar — fixed to viewport, never scrolls ─────────
           Positioned(
