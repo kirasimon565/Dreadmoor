@@ -52,15 +52,19 @@ class ProfileLayout extends StatelessWidget {
 
             // ── LAYER 0: background image ──────────────────────────────
             Positioned.fill(
-              child: Image.asset(
-                headerImage ??
-                    'assets/media/headers/default_header.jpg',
-                fit:       BoxFit.cover,
-                alignment: Alignment.topCenter,
-                errorBuilder: (_, __, ___) =>
-                    Container(color: const Color(0xFF0F141A)),
-              ),
-            ),
+  child: Image.asset(
+    headerImage ?? 'assets/media/headers/default_header.jpg',
+    fit: BoxFit.cover,
+    alignment: Alignment.topCenter,
+    errorBuilder: (_, __, ___) {
+      return Image.asset(
+        'assets/media/headers/default_header.jpg',
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
+    },
+  ),
+)
 
             // ── LAYER 1: white card — FIXED to viewport ────────────────
             // Anchored by top/left/right/bottom — never participates in
