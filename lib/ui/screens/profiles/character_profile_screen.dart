@@ -102,11 +102,11 @@ class _ProfileBody extends StatelessWidget {
           ),
 
           // ── LAYER 1: scrollable content ────────────────────────────────
-          Positioned.fill(
-  child: SingleChildScrollView(
-    physics: const BouncingScrollPhysics(),
-    child: Column(
-      children: [
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
 
                 // Transparent spacer — lets background show through
                 SizedBox(height: _headerHeight - _cardOverlap),
