@@ -83,8 +83,11 @@ class _ProfileBody extends StatelessWidget {
               ),
             ),
 
-            // Layer 1 — scrollable content
-            SingleChildScrollView(
+            // Layer 1 — scrollable content (Positioned.fill constrains it
+            // to viewport size so Positioned avatar/back-button siblings
+            // are always anchored to the viewport, never to content height)
+            Positioned.fill(
+              child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -144,7 +147,8 @@ class _ProfileBody extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ), // SingleChildScrollView
+            ), // Positioned.fill
 
             // Layer 2 — avatar fixed to viewport
             Positioned(
