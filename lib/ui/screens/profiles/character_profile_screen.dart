@@ -86,7 +86,8 @@ class _ProfileBody extends StatelessWidget {
     return Scaffold(
       // Scaffold gives Stack tight viewport constraints — key to fixing scroll
       backgroundColor: const Color(0xFF0F141A),
-      body: Stack(
+      body: SizedBox.expand(
+    child: Stack(
         children: [
 
           // ── LAYER 0: background image ──────────────────────────────────
