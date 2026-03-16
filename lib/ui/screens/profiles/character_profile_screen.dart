@@ -170,8 +170,7 @@ class _ProfileBody extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),  
+          ),  
 
           // ── LAYER 2: avatar — fixed to viewport, never scrolls ─────────
           Positioned(
@@ -212,11 +211,11 @@ class _ProfileBody extends StatelessWidget {
                   color: Colors.white, size: 22),
               onPressed: () => Navigator.pop(context),
             ),
-          ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _resolveImage(String? path) {
     if (path == null || path.isEmpty) {
