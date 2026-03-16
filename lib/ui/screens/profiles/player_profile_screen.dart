@@ -403,7 +403,6 @@ class _PlayerProfileBody extends StatelessWidget {
               ],
             ),
           ),
-        ),
 
           // ── AVATAR — fixed, never scrolls ───────────────────────────
           Positioned(
@@ -448,12 +447,12 @@ class _PlayerProfileBody extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back_ios_new,
                     color: Colors.white, size: 22),
                 onPressed: () => Navigator.pop(context),
-              ),
-            ),
+           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _resolveImage(String? path) {
     if (path == null || path.isEmpty) {
