@@ -32,11 +32,18 @@ class ProfileScreen extends ConsumerWidget {
         if (profile == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             final db = ref.read(databaseProvider);
+
+            // Read the name the player chose at setup
+            final player =
+                await (db.select(db.players)..limit(1)).getSingleOrNull();
+            final playerName  = player?.name  ?? 'Investigator';
+            final playerPhone = player?.phoneNumber ?? '+1 (555) 000-0000';
+
             await db.into(db.characters).insertOnConflictUpdate(
               CharactersCompanion.insert(
                 id:          id,
-                name:        'Investigator',
-                phoneNumber: '+1 (555) 000-0000',
+                name:        playerName,   // ← from Players table
+                phoneNumber: playerPhone,
                 avatarPath:  const drift.Value(
                     'assets/characters/player_default.png'),
               ),
