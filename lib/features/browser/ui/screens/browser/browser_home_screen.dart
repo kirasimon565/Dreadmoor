@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/features/browser/article_model.dart';
@@ -41,23 +42,46 @@ class BrowserHomeScreen extends ConsumerWidget {
         color: Theme.of(context).cardColor,
         border: Border(bottom: BorderSide(color: DreadmoorColors.divider(b))),
       ),
-      child: Container(
-        height: 40,
-        decoration: BoxDecoration(
-          color: isDark ? Colors.black26 : Colors.black.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.lock, size: 14, color: isDark ? DreadmoorColors.investigatorCyan : DreadmoorColors.evidenceRed),
-            const SizedBox(width: 8),
-            Text(
-              "dreadmoor-daily.local",
-              style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.w500),
+      child: Row(
+        children: [
+          Consumer(
+            builder: (context, ref, _) {
+              return IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Icon(Icons.arrow_back_ios_new, color: DreadmoorColors.text(b), size: 20),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
+                  }
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.black26 : Colors.black.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock, size: 14, color: isDark ? DreadmoorColors.investigatorCyan : DreadmoorColors.evidenceRed),
+                  const SizedBox(width: 8),
+                  Text(
+                    "dreadmoor-daily.local",
+                    style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.w500, color: DreadmoorColors.text(b).withOpacity(0.6)),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
