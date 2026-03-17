@@ -297,6 +297,22 @@ class _RecapScreenState extends ConsumerState<RecapScreen>
                   }).value ??
                   const SizedBox.shrink(),
             ),
+
+          // ── Back Button ──────────────────────────────────
+          Positioned(
+            top: 40,
+            left: 10,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white.withOpacity(0.7)),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/os'); // Fallback route
+                }
+              },
+            ),
+          ),
         ],
       ),
     );
