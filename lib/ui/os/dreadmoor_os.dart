@@ -47,8 +47,8 @@ class DreadmoorOS extends ConsumerWidget {
               child: Column(
                 children: [
 
-                  /// Space for the transparent status bar
-                  SizedBox(height: topPad + 32),
+                  /// Removed top padding so apps render directly under the transparent status bar.
+                  /// Users want the status bar to float on top transparently.
 
                   const Expanded(
                     child: DreadmoorAppContainer(),
@@ -66,10 +66,13 @@ class DreadmoorOS extends ConsumerWidget {
           /// STATUS BAR
           /// ─────────────────────────────────────────────
           Positioned(
-            top: topPad,
+            top: 0, // Anchor strictly to top of screen so padding handles device notch natively
             left: 0,
             right: 0,
-            child: const DreadmoorStatusBar(),
+            child: SafeArea(
+              bottom: false,
+              child: const DreadmoorStatusBar(),
+            ),
           ),
 
           /// ─────────────────────────────────────────────
