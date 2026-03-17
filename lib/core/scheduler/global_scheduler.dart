@@ -93,7 +93,7 @@ class GlobalScheduler {
   Future<void> processNode(String nodeId) async {
     _timer?.cancel();
     await seedCharacters(ref.read(databaseProvider));
-    ref.read(isSchedulerPausedProvider.notifier).state = false;
+    ref.read(isSchedulerPausedProvider.notifier).setPaused(false);
     ref.read(waitingForChoiceProvider.notifier).state  = false;
     await _executeNode(nodeId);
   }
@@ -289,7 +289,7 @@ class GlobalScheduler {
         // target: the thread ID to switch to
         final target = meta['target'] as String?;
         if (target != null) {
-          ref.read(activeThreadIdProvider.notifier).state = target;
+          ref.read(activeThreadIdProvider.notifier).setId(target);
         }
         _advance(node.nextNodeId);
         return;
@@ -317,7 +317,7 @@ class GlobalScheduler {
       case 'Trigger_Credits':
         // End of episode — handle as needed by your credits screen
         print("DreadmoorOS ✓ Episode complete — ${node.content}");
-        ref.read(activeNodeIdProvider.notifier).state = null;
+        ref.read(activeNodeIdProvider.notifier).setId(null);
         return;
 
       default:
@@ -363,7 +363,7 @@ class GlobalScheduler {
     final flag = (meta['flag_name'] as String?) ?? 'article_read';
     db.updateStoryFlag(flag, bVal: true);
 
-    ref.read(activeAppProvider.notifier).state = PhoneApp.browser;
+    ref.read(activeAppProvider.notifier).setApp(PhoneApp.browser);
     ref.read(appRouterProvider).go(Routes.messenger);
 
     _advance(node.nextNodeId);
@@ -408,7 +408,7 @@ class GlobalScheduler {
         ?? _resolveThreadId(node, meta);
 
     await _ensureThread(threadId, meta);
-    ref.read(activeThreadIdProvider.notifier).state = threadId;
+    ref.read(activeThreadIdProvider.notifier).setId(threadId);
     ref.read(appRouterProvider).go(Routes.secret(threadId));
     _advance(node.nextNodeId);
   }
@@ -427,7 +427,7 @@ class GlobalScheduler {
         .routerDelegate.navigatorKey.currentContext;
     if (ctx == null) { _advance(node.nextNodeId); return; }
 
-    ref.read(activeNodeIdProvider.notifier).state = node.nextNodeId;
+    ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
     // Requires media_viewer.dart: void open → Future<void> open
     MediaViewer.open(ctx, items: [MediaItem(path: assetPath, isVideo: true)])
         .then((_) => _advance(node.nextNodeId));
@@ -452,7 +452,7 @@ class GlobalScheduler {
         onComplete: () {
           entry.remove();
           if (nextScreen == 'phone') {
-            ref.read(activeAppProvider.notifier).state = PhoneApp.phone;
+            ref.read(activeAppProvider.notifier).setApp(PhoneApp.phone);
           }
           ref.read(appRouterProvider).go(Routes.messenger);
           _advance(node.nextNodeId);
@@ -469,15 +469,15 @@ class GlobalScheduler {
 
     ref.read(phoneProvider.notifier).startCall(
         callerName, callerId, ref.read(gameClockProvider));
-    ref.read(activeNodeIdProvider.notifier).state = node.nextNodeId;
+    ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
     pause();
   }
 
   // ── Choice Required ──────────────────────────────────────────────────────
   void _handleChoiceRequired(StoryNode node) {
     _isSubmittingChoice = false;
-    ref.read(waitingForChoiceProvider.notifier).state = true;
-    ref.read(activeNodeIdProvider.notifier).state = node.id;
+    ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
+    ref.read(activeNodeIdProvider.notifier).setId(node.id);
   }
 
   // --------------------------------------------------
@@ -606,7 +606,7 @@ class GlobalScheduler {
         isPlayerMessage: const Value(true),
       ),
     ).then((_) {
-      ref.read(waitingForChoiceProvider.notifier).state = false;
+      ref.read(waitingForChoiceProvider.notifier).setWaiting(false);
       _executeNode(targetNodeId);
     }).catchError((e) {
       print("DreadmoorOS ✗ submitChoice failed: $e");
@@ -618,18 +618,18 @@ class GlobalScheduler {
 
   void pause() {
     _timer?.cancel();
-    ref.read(isSchedulerPausedProvider.notifier).state = true;
+    ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
   }
 
   void resume() {
-    ref.read(isSchedulerPausedProvider.notifier).state = false;
+    ref.read(isSchedulerPausedProvider.notifier).setPaused(false);
     final nextId = ref.read(activeNodeIdProvider);
     if (nextId != null) _executeNode(nextId);
   }
 
   void _advance(String? nextId) {
     if (nextId != null && nextId.isNotEmpty) {
-      ref.read(activeNodeIdProvider.notifier).state = nextId;
+      ref.read(activeNodeIdProvider.notifier).setId(nextId);
       _executeNode(nextId);
     }
   }

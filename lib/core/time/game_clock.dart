@@ -11,16 +11,16 @@ import 'package:dreadmoor/core/state/game_state.dart';
 const int _initialGameTimeMinutes = 1422;
 const String _gameClockKey = 'game_clock_minutes';
 
-class GameClockNotifier extends StateNotifier<int> {
-  final Ref _ref;
-
-  GameClockNotifier(this._ref) : super(_initialGameTimeMinutes) {
+class GameClockNotifier extends Notifier<int> {
+  @override
+  int build() {
     _loadFromDb();
+    return _initialGameTimeMinutes;
   }
 
   /// Syncs the clock with the Drift database on boot
   Future<void> _loadFromDb() async {
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     
     // Using the refactored intValue column for better performance
     final row = await (db.select(db.storyState)
@@ -37,7 +37,7 @@ class GameClockNotifier extends StateNotifier<int> {
 
   /// Persists time to the StoryState table
   Future<void> _saveToDb(int time) async {
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
         key: const Value(_gameClockKey),
@@ -67,9 +67,7 @@ class GameClockNotifier extends StateNotifier<int> {
 // PROVIDERS
 // --------------------------------------------------
 
-final gameClockProvider = StateNotifierProvider<GameClockNotifier, int>((ref) {
-  return GameClockNotifier(ref);
-});
+final gameClockProvider = NotifierProvider<GameClockNotifier, int>(GameClockNotifier.new);
 
 final gameClockStringProvider = Provider<String>((ref) {
   final totalMinutes = ref.watch(gameClockProvider);

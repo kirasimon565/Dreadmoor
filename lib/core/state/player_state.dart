@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'game_state.dart';
@@ -16,10 +17,9 @@ final playerExistsProvider = FutureProvider<bool>((ref) async {
   return player != null;
 });
 
-class PlayerController extends StateNotifier<AsyncValue<void>> {
-  final Ref ref;
-
-  PlayerController(this.ref) : super(const AsyncValue.data(null));
+class PlayerController extends AsyncNotifier<void> {
+  @override
+  FutureOr<void> build() {}
 
   Future<void> createPlayer(String name, String gender) async {
     state = const AsyncValue.loading();
@@ -56,6 +56,4 @@ class PlayerController extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final playerControllerProvider = StateNotifierProvider<PlayerController, AsyncValue<void>>((ref) {
-  return PlayerController(ref);
-});
+final playerControllerProvider = AsyncNotifierProvider<PlayerController, void>(PlayerController.new);

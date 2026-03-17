@@ -49,12 +49,12 @@ class NotificationBanner extends ConsumerWidget {
                       ),
                       mode: InsertMode.insertOrReplace,
                     );
-                ref.read(activeAppProvider.notifier).state = PhoneApp.browser;
+                ref.read(activeAppProvider.notifier).setApp(PhoneApp.browser);
 
                 // The Browser HomeScreen will automatically display the article
                 // based on the story flag we just set. No need for fragile pushNamed routing.
               } else if (route == '/chat') {
-                ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
+                ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
                 // The messenger navigator handles pushing the chat screen internally.
                 // Usually we'd use a deep link mechanism here, but changing the tab gets them to the app.
               } else {
