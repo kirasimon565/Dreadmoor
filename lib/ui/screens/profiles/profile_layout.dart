@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 
 /// Shared profile layout — used by both CharacterProfileScreen
 /// and PlayerProfileScreen.
@@ -142,13 +144,23 @@ class ProfileLayout extends StatelessWidget {
               Positioned(
                 top:  topPad + 8,
                 left: 8,
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Colors.white,
-                    size:  22,
-                  ),
-                  onPressed: () => Navigator.pop(context),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    return IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size:  22,
+                      ),
+                      onPressed: () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
+                        }
+                      },
+                    );
+                  },
                 ),
               ),
 

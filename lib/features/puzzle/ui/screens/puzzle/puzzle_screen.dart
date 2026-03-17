@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/os/components/os_header.dart';
 import 'package:dreadmoor/features/puzzle/puzzle_state.dart';
 import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
@@ -50,7 +51,17 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> with SingleTickerPr
           SafeArea(
             child: Column(
               children: [
-                const OSHeader(title: "RESTRICTED", subtitle: "SIGNAL_DECRYPT_V.4"),
+                OSHeader(
+                  title: "RESTRICTED",
+                  subtitle: "SIGNAL_DECRYPT_V.4",
+                  onBackPressed: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
+                    }
+                  },
+                ),
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 400),
