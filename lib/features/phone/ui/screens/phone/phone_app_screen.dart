@@ -9,6 +9,7 @@ import 'package:dreadmoor/ui/os/os_state.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/features/phone/phone_state.dart';
 import 'package:dreadmoor/ui/os/components/os_header.dart';
@@ -81,6 +82,7 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
                   OSHeader(
                     title: "SIGNAL LOG",
                     subtitle: "CALL HISTORY",
+                    onBackPressed: () => ref.read(navigationProvider.notifier).navigateToChat(),
                     trailing: Icon(Icons.history_toggle_off, color: DreadmoorColors.text(b).withOpacity(0.5)),
                   ),
                   Expanded(
