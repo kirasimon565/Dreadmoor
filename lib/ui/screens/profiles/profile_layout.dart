@@ -36,7 +36,7 @@ class ProfileLayout extends StatelessWidget {
     required this.heroTag,
     required this.cardContent,
     this.onAvatarTap,
-    this.showBackButton = false,
+    this.showBackButton = true,
   });
 
   @override
