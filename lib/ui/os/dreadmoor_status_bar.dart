@@ -31,17 +31,27 @@ class DreadmoorStatusBar extends ConsumerWidget {
             ),
     );
 
-    // Removing the explicit height binding so SafeArea can handle the sizing
-    // or just leaving a fixed minimal padding
-    return Container(
-      height: 32, // Fixed height since safe area handles the notch above it
-      color: Colors.transparent, // Ensure it's perfectly transparent
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+    // As per user request: Make the status bar transparent and place it at the top of the screen.
+    // Do not make it visible so that it appears transparent and colorless on all screens,
+    // thus avoiding spoiling the appearance of other screens.
+    // We wrap the functional taps in Opacity(0) so it's completely invisible but still
+    // takes up space and allows users to tap to open the notification center.
 
-          /// Clock (tap opens notification center)
+    // We wrap in SafeArea(bottom: false) here because it is now inside a regular Column
+    // in DreadmoorOS, so we still need to respect the top notch while retaining height padding.
+    return SafeArea(
+      bottom: false,
+      child: Opacity(
+        opacity: 0.0,
+        child: Container(
+          height: 24, // Minimal height to push content down slightly, keeping taps accessible
+        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+
+            /// Clock (tap opens notification center)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
@@ -59,37 +69,39 @@ class DreadmoorStatusBar extends ConsumerWidget {
               ),
             ),
 
-          /// Signal / WiFi / Battery
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const d_nc.NotificationCenterScreen(),
+            /// Signal / WiFi / Battery
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const d_nc.NotificationCenterScreen(),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.signal_cellular_4_bar,
+                    size: 14,
+                    color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.wifi,
+                    size: 14,
+                    color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.battery_full,
+                    size: 14,
+                    color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.signal_cellular_4_bar,
-                  size: 14,
-                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
-                ),
-                const SizedBox(width: 6),
-                Icon(
-                  Icons.wifi,
-                  size: 14,
-                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
-                ),
-                const SizedBox(width: 6),
-                Icon(
-                  Icons.battery_full,
-                  size: 14,
-                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
-                ),
-              ],
-            ),
+          ],
           ),
-        ],
+        ),
       ),
     );
   }
