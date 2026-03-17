@@ -32,19 +32,13 @@ class DreadmoorStatusBar extends ConsumerWidget {
     );
 
     // As per user request: Make the status bar transparent and place it at the top of the screen.
-    // Do not make it visible so that it appears transparent and colorless on all screens,
-    // thus avoiding spoiling the appearance of other screens.
-    // We wrap the functional taps in Opacity(0) so it's completely invisible but still
-    // takes up space and allows users to tap to open the notification center.
-
+    // The background should be transparent, but the text/icons MUST remain visible!
     // We wrap in SafeArea(bottom: false) here because it is now inside a regular Column
     // in DreadmoorOS, so we still need to respect the top notch while retaining height padding.
     return SafeArea(
       bottom: false,
-      child: Opacity(
-        opacity: 0.0,
-        child: Container(
-          height: 24, // Minimal height to push content down slightly, keeping taps accessible
+      child: Container(
+        height: 24, // Minimal height to push content down slightly, keeping taps accessible
         color: Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
@@ -100,7 +94,6 @@ class DreadmoorStatusBar extends ConsumerWidget {
               ),
             ),
           ],
-          ),
         ),
       ),
     );
