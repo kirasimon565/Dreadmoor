@@ -82,7 +82,13 @@ class _PhoneAppScreenState extends ConsumerState<PhoneAppScreen> {
                   OSHeader(
                     title: "SIGNAL LOG",
                     subtitle: "CALL HISTORY",
-                    onBackPressed: () => ref.read(navigationProvider.notifier).navigateToChat(),
+                    onBackPressed: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
+                      }
+                    },
                     trailing: Icon(Icons.history_toggle_off, color: DreadmoorColors.text(b).withOpacity(0.5)),
                   ),
                   Expanded(

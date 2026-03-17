@@ -49,7 +49,7 @@ class BrowserHomeScreen extends ConsumerWidget {
               return IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                icon: Icon(Icons.arrow_back_ios_new, color: DreadmoorColors.text(b), size: 20),
+                icon: Icon(Icons.arrow_back_ios_new, color: DreadmoorColors.text(b), size: 16),
                 onPressed: () {
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);

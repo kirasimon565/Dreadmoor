@@ -37,13 +37,18 @@ class OSHeader extends StatelessWidget {
       child: Row(
         children: [
           if (onBackPressed != null) ...[
-            IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, size: 20, color: DreadmoorColors.text(Theme.of(context).brightness)),
-              onPressed: onBackPressed,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onBackPressed,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0, top: 4.0, bottom: 4.0),
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 20,
+                  color: DreadmoorColors.text(Theme.of(context).brightness),
+                ),
+              ),
             ),
-            const SizedBox(width: 16),
           ],
           if (leading != null) ...[
             leading!,
