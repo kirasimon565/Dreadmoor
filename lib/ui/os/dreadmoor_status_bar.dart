@@ -31,17 +31,17 @@ class DreadmoorStatusBar extends ConsumerWidget {
             ),
     );
 
-    final statusBarHeight = MediaQuery.of(context).padding.top;
+    // Removing the explicit height binding so SafeArea can handle the sizing
+    // or just leaving a fixed minimal padding
+    return Container(
+      height: 32, // Fixed height since safe area handles the notch above it
+      color: Colors.transparent, // Ensure it's perfectly transparent
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
 
-    return SizedBox(
-      height: statusBarHeight,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-
-            /// Clock (tap opens notification center)
+          /// Clock (tap opens notification center)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
@@ -59,38 +59,37 @@ class DreadmoorStatusBar extends ConsumerWidget {
               ),
             ),
 
-            /// Signal / WiFi / Battery
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const d_nc.NotificationCenterScreen(),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.signal_cellular_4_bar,
-                    size: 14,
-                    color: DreadmoorColors.text(brightness).withOpacity(0.75),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.wifi,
-                    size: 14,
-                    color: DreadmoorColors.text(brightness).withOpacity(0.75),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.battery_full,
-                    size: 14,
-                    color: DreadmoorColors.text(brightness).withOpacity(0.75),
-                  ),
-                ],
+          /// Signal / WiFi / Battery
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const d_nc.NotificationCenterScreen(),
               ),
             ),
-          ],
-        ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.signal_cellular_4_bar,
+                  size: 14,
+                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.wifi,
+                  size: 14,
+                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.battery_full,
+                  size: 14,
+                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
