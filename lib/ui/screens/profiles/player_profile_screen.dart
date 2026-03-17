@@ -76,7 +76,7 @@ class ProfileScreen extends ConsumerWidget {
           avatarPath:     profile.avatar     as String?,
           headerImage:    profile.headerImage as String?,
           heroTag:        'profile_pic_player',
-          showBackButton: characterId != null,
+          showBackButton: true,
           // Own profile → tap avatar to change it
           onAvatarTap:    isOwnProfile
               ? () => _changeAvatar(context, ref, id)

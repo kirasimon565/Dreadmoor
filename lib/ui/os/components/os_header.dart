@@ -9,6 +9,7 @@ class OSHeader extends StatelessWidget {
   final Widget? trailing;
   final String? subtitle;
   final VoidCallback? onTitleTap;
+  final VoidCallback? onBackPressed;
 
   const OSHeader({
     super.key,
@@ -17,6 +18,7 @@ class OSHeader extends StatelessWidget {
     this.trailing,
     this.subtitle,
     this.onTitleTap,
+    this.onBackPressed,
   });
 
   @override
@@ -34,6 +36,15 @@ class OSHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (onBackPressed != null) ...[
+            IconButton(
+              icon: Icon(Icons.arrow_back_ios_new, size: 20, color: DreadmoorColors.text(Theme.of(context).brightness)),
+              onPressed: onBackPressed,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 16),
+          ],
           if (leading != null) ...[
             leading!,
             const SizedBox(width: 16),
