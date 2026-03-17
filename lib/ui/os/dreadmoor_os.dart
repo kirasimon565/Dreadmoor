@@ -25,38 +25,36 @@ class DreadmoorOS extends ConsumerWidget {
     final brightness = Theme.of(context).brightness;
     final topPad = MediaQuery.of(context).padding.top;
 
-    // Determine which app is currently active
     final activeApp = ref.watch(activeAppProvider);
 
-    // Decide if the navigation bar should be visible
+    /// Nav bar visible ONLY on main OS apps
     final showNavBar =
         activeApp == PhoneApp.messenger ||
         activeApp == PhoneApp.apps ||
-        activeApp == PhoneApp.puzzle ||
-        activeApp == PhoneApp.profile;
+        activeApp == PhoneApp.puzzle;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background(brightness),
       body: Stack(
         children: [
 
-          /// ─────────────────────────────────────────────────────────
+          /// ─────────────────────────────────────────────
           /// MAIN OS LAYER
-          /// ─────────────────────────────────────────────────────────
+          /// ─────────────────────────────────────────────
           SafeArea(
             top: false,
             child: NotificationOverlay(
               child: Column(
                 children: [
 
-                  // Reserve space for transparent status bar
+                  /// Space for the transparent status bar
                   SizedBox(height: topPad + 32),
 
                   const Expanded(
                     child: DreadmoorAppContainer(),
                   ),
 
-                  // Navigation bar controlled by OS
+                  /// Bottom navigation bar
                   if (showNavBar)
                     const DreadmoorNavigationBar(),
                 ],
@@ -64,9 +62,9 @@ class DreadmoorOS extends ConsumerWidget {
             ),
           ),
 
-          /// ─────────────────────────────────────────────────────────
+          /// ─────────────────────────────────────────────
           /// STATUS BAR
-          /// ─────────────────────────────────────────────────────────
+          /// ─────────────────────────────────────────────
           Positioned(
             top: topPad,
             left: 0,
@@ -74,9 +72,9 @@ class DreadmoorOS extends ConsumerWidget {
             child: const DreadmoorStatusBar(),
           ),
 
-          /// ─────────────────────────────────────────────────────────
-          /// INCOMING CALL OVERLAY
-          /// ─────────────────────────────────────────────────────────
+          /// ─────────────────────────────────────────────
+          /// INCOMING CALL
+          /// ─────────────────────────────────────────────
           if (phoneState.callState == CallState.incoming)
             Positioned.fill(
               child: IncomingCallScreen(
@@ -102,9 +100,9 @@ class DreadmoorOS extends ConsumerWidget {
               ),
             ),
 
-          /// ─────────────────────────────────────────────────────────
-          /// ACTIVE CALL OVERLAY
-          /// ─────────────────────────────────────────────────────────
+          /// ─────────────────────────────────────────────
+          /// ACTIVE CALL
+          /// ─────────────────────────────────────────────
           if (phoneState.callState == CallState.active)
             Positioned.fill(
               child: ActiveCallScreen(
