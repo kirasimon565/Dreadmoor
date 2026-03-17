@@ -20,8 +20,9 @@ class NotificationCenterState {
   }
 }
 
-class NotificationController extends StateNotifier<NotificationCenterState> {
-  NotificationController() : super(NotificationCenterState());
+class NotificationController extends Notifier<NotificationCenterState> {
+  @override
+  NotificationCenterState build() => NotificationCenterState();
 
   Timer? _timer;
 

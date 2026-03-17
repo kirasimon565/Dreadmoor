@@ -13,10 +13,20 @@ enum PhoneApp {
 
 /// Controls which main phone app is currently visible.
 /// The OS uses this to switch the IndexedStack screen.
-final activeAppProvider = StateProvider<PhoneApp>((ref) {
-  return PhoneApp.messenger;
-});
+class ActiveAppNotifier extends Notifier<PhoneApp> {
+  @override
+  PhoneApp build() => PhoneApp.messenger;
+
+  void setApp(PhoneApp app) => state = app;
+}
+final activeAppProvider = NotifierProvider<ActiveAppNotifier, PhoneApp>(ActiveAppNotifier.new);
 
 /// Controls the Glitch / Secret Intercept UI used in story events
 /// such as Scene 5 when the phone is hacked.
-final isHackedProvider = StateProvider<bool>((ref) => false);
+class IsHackedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setHacked(bool hacked) => state = hacked;
+}
+final isHackedProvider = NotifierProvider<IsHackedNotifier, bool>(IsHackedNotifier.new);

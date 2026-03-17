@@ -45,8 +45,9 @@ class PuzzleState {
   }
 }
 
-class PuzzleNotifier extends StateNotifier<PuzzleState> {
-  PuzzleNotifier() : super(_generateInitialState(3, level: 1));
+class PuzzleNotifier extends Notifier<PuzzleState> {
+  @override
+  PuzzleState build() => _generateInitialState(3, level: 1);
 
   static PuzzleState _generateInitialState(int size, {int level = 1}) {
     final target = List.generate(size * size, (index) => index);
@@ -116,4 +117,4 @@ class PuzzleNotifier extends StateNotifier<PuzzleState> {
   }
 }
 
-final puzzleProvider = StateNotifierProvider<PuzzleNotifier, PuzzleState>((ref) => PuzzleNotifier());
+final puzzleProvider = NotifierProvider<PuzzleNotifier, PuzzleState>(PuzzleNotifier.new);

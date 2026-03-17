@@ -99,22 +99,22 @@ class PhoneState {
   }
 }
 
-class PhoneNotifier extends StateNotifier<PhoneState> {
+class PhoneNotifier extends Notifier<PhoneState> {
   static const _historyKey = 'phone_call_history';
-  final Ref _ref;
 
-  PhoneNotifier(this._ref)
-      : super(PhoneState(
-          callState: CallState.idle,
-          callerName: '',
-          callerNumber: '',
-          history: [],
-        )) {
+  @override
+  PhoneState build() {
     _loadHistory();
+    return PhoneState(
+      callState: CallState.idle,
+      callerName: '',
+      callerNumber: '',
+      history: [],
+    );
   }
 
   Future<void> _loadHistory() async {
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final row = await (db.select(db.storyState)..where((t) => t.key.equals(_historyKey))).getSingleOrNull();
 
     if (row != null && row.stringValue != null) {
@@ -131,7 +131,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
   }
 
   Future<void> _saveHistory(List<CallEntry> history) async {
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final jsonString = jsonEncode(history.map((e) => e.toJson()).toList());
 
     await db.into(db.storyState).insertOnConflictUpdate(
@@ -146,7 +146,7 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
 
   // Updated resolveName to look up from the Characters table first
   Future<String> getCallerName(String number) async {
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final character = await (db.select(db.characters)
           ..where((c) => c.phoneNumber.equals(number)))
         .getSingleOrNull();
@@ -283,6 +283,4 @@ class PhoneNotifier extends StateNotifier<PhoneState> {
   }
 }
 
-final phoneProvider = StateNotifierProvider<PhoneNotifier, PhoneState>((ref) {
-  return PhoneNotifier(ref);
-});
+final phoneProvider = NotifierProvider<PhoneNotifier, PhoneState>(PhoneNotifier.new);

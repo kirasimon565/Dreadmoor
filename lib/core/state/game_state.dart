@@ -20,7 +20,12 @@ final playerProvider = FutureProvider<Player?>((ref) async {
   return (db.select(db.players)..limit(1)).getSingleOrNull();
 });
 
-final playerStateProvider = StateProvider<Player?>((ref) => null);
+class PlayerStateNotifier extends Notifier<Player?> {
+  @override
+  Player? build() => null;
+  void setPlayer(Player? player) => state = player;
+}
+final playerStateProvider = NotifierProvider<PlayerStateNotifier, Player?>(PlayerStateNotifier.new);
 
 // ---------------------------
 // SCRIPT SYSTEM (Refactored for Obsidian)
@@ -36,15 +41,30 @@ final scriptLoaderProvider = Provider<ScriptLoader>((ref) {
 
 /// Current Node ID being executed (e.g., 'SCENE_2_START')
 /// This replaces SceneIndex and EventIndex entirely.
-final activeNodeIdProvider = StateProvider<String?>((ref) => null);
+class ActiveNodeIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void setId(String? id) => state = id;
+}
+final activeNodeIdProvider = NotifierProvider<ActiveNodeIdNotifier, String?>(ActiveNodeIdNotifier.new);
 
 /// Current episode ID
-final currentEpisodeIdProvider = StateProvider<String?>((ref) => null);
+class CurrentEpisodeIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void setId(String? id) => state = id;
+}
+final currentEpisodeIdProvider = NotifierProvider<CurrentEpisodeIdNotifier, String?>(CurrentEpisodeIdNotifier.new);
 
 // ---------------------------
 // THREAD / CHAT STATE
 // ---------------------------
-final activeThreadIdProvider = StateProvider<String?>((ref) => null);
+class ActiveThreadIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void setId(String? id) => state = id;
+}
+final activeThreadIdProvider = NotifierProvider<ActiveThreadIdNotifier, String?>(ActiveThreadIdNotifier.new);
 
 // ---------------------------
 // STORY FLAGS (Refactored for Relational State)
@@ -59,40 +79,51 @@ final gameFlagsProvider = StreamProvider<Map<String, bool>>((ref) {
 // ---------------------------
 // SCHEDULER & NAVIGATION STATE
 // ---------------------------
-final isSchedulerPausedProvider = StateProvider<bool>((ref) => false);
-final waitingForChoiceProvider = StateProvider<bool>((ref) => false);
-final waitingForPuzzleProvider = StateProvider<bool>((ref) => false);
+class IsSchedulerPausedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setPaused(bool paused) => state = paused;
+}
+final isSchedulerPausedProvider = NotifierProvider<IsSchedulerPausedNotifier, bool>(IsSchedulerPausedNotifier.new);
+
+class WaitingForChoiceNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setWaiting(bool waiting) => state = waiting;
+}
+final waitingForChoiceProvider = NotifierProvider<WaitingForChoiceNotifier, bool>(WaitingForChoiceNotifier.new);
+
+class WaitingForPuzzleNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setWaiting(bool waiting) => state = waiting;
+}
+final waitingForPuzzleProvider = NotifierProvider<WaitingForPuzzleNotifier, bool>(WaitingForPuzzleNotifier.new);
 
 /// Controls navigation between OS Apps (Messenger, Browser, Phone)
-final navigationProvider = StateNotifierProvider<DreadmoorNavNotifier, String>((ref) {
-  return DreadmoorNavNotifier();
-});
-
-class DreadmoorNavNotifier extends StateNotifier<String> {
-  DreadmoorNavNotifier() : super('/messenger');
+class DreadmoorNavNotifier extends Notifier<String> {
+  @override
+  String build() => '/messenger';
 
   void navigateToNews(String nodeId) => state = '/browser';
   void navigateToChat() => state = '/messenger';
   void navigateToPhone() => state = '/phone';
 }
+final navigationProvider = NotifierProvider<DreadmoorNavNotifier, String>(DreadmoorNavNotifier.new);
+
 
 // ---------------------------
 // THEME PREFERENCES
 // ---------------------------
-
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  return ThemeModeNotifier(ref);
-});
-
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final Ref _ref;
-
-  ThemeModeNotifier(this._ref) : super(ThemeMode.dark) {
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
     _loadTheme();
+    return ThemeMode.dark;
   }
 
   Future<void> _loadTheme() async {
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final row = await (db.select(db.storyState)..where((t) => t.key.equals('theme_mode'))).getSingleOrNull();
     if (row != null && row.stringValue != null) {
       state = row.stringValue == 'light' ? ThemeMode.light : ThemeMode.dark;
@@ -101,7 +132,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   Future<void> setTheme(ThemeMode mode) async {
     state = mode;
-    final db = _ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
         key: const drift.Value('theme_mode'),
@@ -110,6 +141,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     );
   }
 }
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
 
 // ---------------------------
 // GLOBAL SCHEDULER

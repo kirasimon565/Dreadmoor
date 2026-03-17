@@ -40,7 +40,11 @@ void main() async {
   runZonedGuarded(
     () => runApp(
       ProviderScope(
-        overrides: [playerStateProvider.overrideWith((ref) => existingPlayer)],
+        overrides: [
+          playerStateProvider.overrideWith(() {
+            return _PreloadedPlayerStateNotifier(existingPlayer);
+          }),
+        ],
         child: const DreadmoorApp(),
       ),
     ),
@@ -48,6 +52,14 @@ void main() async {
       debugPrint('🔥 Uncaught error: $error');
     },
   );
+}
+
+class _PreloadedPlayerStateNotifier extends PlayerStateNotifier {
+  final Player? _initialPlayer;
+  _PreloadedPlayerStateNotifier(this._initialPlayer);
+
+  @override
+  Player? build() => _initialPlayer;
 }
 
 class DreadmoorApp extends ConsumerStatefulWidget {
