@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Layout rules:
-///   [←]          [  Name  [avatar]  ]          [Online •]
-///   outside-left      pill (centred)          outside-right
-///
-/// [onAvatarTap] — tapping the pill navigates to the character's profile.
+/// Layout rules (updated):
+/// [←]  [ avatar  Name        ]
+///             Online •
+/// The "Online" indicator is now inside the pill, below the name.
+/// The avatar size is reduced to 32 for a compact look.
 class ChatHeaderNeonGroup extends StatelessWidget {
   final String title;
   final VoidCallback onBackPressed;
@@ -77,7 +77,7 @@ class _SingleHeader extends StatelessWidget {
               onTap: onTap,
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.62,
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(32),
@@ -87,21 +87,10 @@ class _SingleHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(
-                      child: Text(
-                        title,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.spectral(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
+                    // Avatar (smaller: 32)
                     Container(
-                      width: 42,
-                      height: 42,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: const Color(0xFF1A0A2E),
@@ -115,6 +104,48 @@ class _SingleHeader extends StatelessWidget {
                                 errorBuilder: (_, __, ___) => const _FallbackAvatar(),
                               )
                             : const _FallbackAvatar(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Name + Online indicator stacked vertically
+                    Flexible(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.spectral(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (isOnline)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Online',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    color: const Color(0xFF3DDB5E),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF3DDB5E),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
                   ],
@@ -134,10 +165,6 @@ class _SingleHeader extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ── ONLINE — outside pill, absolute right ────────────────────
-            if (isOnline)
-              Positioned(right: 0, child: _OnlineBadge()),
           ],
         ),
       ),
@@ -180,7 +207,7 @@ class _GroupHeader extends StatelessWidget {
               onTap: onTap,
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.70,
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1B3040).withOpacity(0.82),
                   borderRadius: BorderRadius.circular(32),
@@ -199,19 +226,49 @@ class _GroupHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    _StackedAvatars(avatarPaths: visible, extra: extra),
+                    const SizedBox(width: 10),
+                    // Name + Online stacked vertically
                     Flexible(
-                      child: Text(
-                        title,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.spectral(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.spectral(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (isOnline)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Online',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    color: const Color(0xFF3DDB5E),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF3DDB5E),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    _StackedAvatars(avatarPaths: visible, extra: extra),
                   ],
                 ),
               ),
@@ -229,10 +286,6 @@ class _GroupHeader extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ── ONLINE ───────────────────────────────────────────────────
-            if (isOnline)
-              Positioned(right: 0, child: _OnlineBadge()),
           ],
         ),
       ),
@@ -247,8 +300,8 @@ class _StackedAvatars extends StatelessWidget {
   final int extra;
   const _StackedAvatars({required this.avatarPaths, required this.extra});
 
-  static const double _size = 28;
-  static const double _overlap = 18;
+  static const double _size = 26;
+  static const double _overlap = 16;
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +344,7 @@ class _StackedAvatars extends StatelessWidget {
                 child: Center(
                   child: Text('+$extra',
                       style: GoogleFonts.spaceGrotesk(
-                          color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700)),
+                          color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)),
                 ),
               ),
             ),
@@ -303,28 +356,6 @@ class _StackedAvatars extends StatelessWidget {
 
 // ── SHARED ────────────────────────────────────────────────────────────────────
 
-class _OnlineBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Online',
-              style: GoogleFonts.spaceGrotesk(
-                  color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-          const SizedBox(width: 5),
-          Container(
-            width: 9, height: 9,
-            decoration: const BoxDecoration(color: Color(0xFF3DDB5E), shape: BoxShape.circle),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _FallbackAvatar extends StatelessWidget {
   const _FallbackAvatar();
 
@@ -332,7 +363,7 @@ class _FallbackAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF2A1A4A),
-      child: const Icon(Icons.person, color: Color(0xFF8B5CF6), size: 24),
+      child: const Icon(Icons.person, color: Color(0xFF8B5CF6), size: 20),
     );
   }
 }
