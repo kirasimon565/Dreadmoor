@@ -50,12 +50,24 @@ class _TitleCinematicScreenState extends ConsumerState<TitleCinematicScreen> {
     }
   }
 
-  void _goToGame() {
+  void _goToGame() async {
     final scheduler = ref.read(globalSchedulerProvider);
+    final db = ref.read(databaseProvider);
 
-    scheduler.resume();
+    final currentNodeIdRow = await (db.select(db.storyState)
+          ..where((t) => t.key.equals('current_node_id')))
+        .getSingleOrNull();
+    final currentNodeId = currentNodeIdRow?.stringValue;
 
-    context.go(Routes.os);
+    if (currentNodeId != null && currentNodeId.isNotEmpty) {
+      ref.read(activeNodeIdProvider.notifier).setId(currentNodeId);
+      scheduler.resume();
+    } else {
+      // Initial launch point after the cinematic completes
+      scheduler.processNode('SCENE_1_NEWS_ARTICLE');
+    }
+
+    context.go(Routes.messenger);
   }
 
   @override

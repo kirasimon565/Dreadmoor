@@ -47,10 +47,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId)))
         .watch();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
         ref.read(activeThreadIdProvider.notifier).state =
             widget.threadId;
+
+        // Restore choice card if active
+        final activeChoiceNodeIdRow = await (db.select(db.storyState)
+              ..where((t) => t.key.equals('active_choice_id')))
+            .getSingleOrNull();
+        if (activeChoiceNodeIdRow != null && activeChoiceNodeIdRow.stringValue != null) {
+          ref.read(activeNodeIdProvider.notifier).setId(activeChoiceNodeIdRow.stringValue!);
+          ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
+        }
       }
     });
   }
@@ -59,6 +68,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void dispose() {
     // Reset activeThreadId so the nav bar reappears after leaving chat.
     ref.read(activeThreadIdProvider.notifier).state = null;
+    ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
     _scrollController.dispose();
     super.dispose();
   }

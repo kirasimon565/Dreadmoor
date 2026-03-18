@@ -164,7 +164,7 @@ class GlobalScheduler {
 
       // ── Player makes a choice ──────────────────────────────────────────
       case 'Player_Choice':
-        _handleChoiceRequired(node);
+        _handleChoiceRequired(node, meta);
         break;
 
       // ── System actions — data-driven via metadata.action ──────────────
@@ -502,10 +502,18 @@ class GlobalScheduler {
   }
 
   // ── Choice Required ──────────────────────────────────────────────────────
-  void _handleChoiceRequired(StoryNode node) {
+  void _handleChoiceRequired(StoryNode node, Map<String, dynamic> meta) {
     _isSubmittingChoice = false;
+    final threadId = _resolveThreadId(node, meta);
+
+    // Switch to the correct thread if not already there before showing choice
+    if (threadId.isNotEmpty) {
+      ref.read(activeThreadIdProvider.notifier).setId(threadId);
+    }
+
     ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
     ref.read(activeNodeIdProvider.notifier).setId(node.id);
+    ref.read(databaseProvider).updateStoryFlag('active_choice_id', sVal: node.id);
   }
 
   // --------------------------------------------------
@@ -633,7 +641,8 @@ class GlobalScheduler {
         sequence:        0,
         isPlayerMessage: const Value(true),
       ),
-    ).then((_) {
+    ).then((_) async {
+      await (db.delete(db.storyState)..where((t) => t.key.equals('active_choice_id'))).go();
       ref.read(waitingForChoiceProvider.notifier).setWaiting(false);
       _executeNode(targetNodeId);
     }).catchError((e) {
