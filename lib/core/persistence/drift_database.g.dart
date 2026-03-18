@@ -3991,6 +3991,806 @@ class CharacterNotesCompanion extends UpdateCompanion<CharacterNote> {
   }
 }
 
+class $MediaItemsTable extends MediaItems
+    with TableInfo<$MediaItemsTable, MediaItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MediaItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _threadIdMeta =
+      const VerificationMeta('threadId');
+  @override
+  late final GeneratedColumn<String> threadId = GeneratedColumn<String>(
+      'thread_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _senderIdMeta =
+      const VerificationMeta('senderId');
+  @override
+  late final GeneratedColumn<String> senderId = GeneratedColumn<String>(
+      'sender_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mediaTypeMeta =
+      const VerificationMeta('mediaType');
+  @override
+  late final GeneratedColumn<String> mediaType = GeneratedColumn<String>(
+      'media_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _filePathMeta =
+      const VerificationMeta('filePath');
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+      'file_path', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _thumbnailPathMeta =
+      const VerificationMeta('thumbnailPath');
+  @override
+  late final GeneratedColumn<String> thumbnailPath = GeneratedColumn<String>(
+      'thumbnail_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, threadId, senderId, mediaType, filePath, thumbnailPath, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_items';
+  @override
+  VerificationContext validateIntegrity(Insertable<MediaItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('thread_id')) {
+      context.handle(_threadIdMeta,
+          threadId.isAcceptableOrUnknown(data['thread_id']!, _threadIdMeta));
+    } else if (isInserting) {
+      context.missing(_threadIdMeta);
+    }
+    if (data.containsKey('sender_id')) {
+      context.handle(_senderIdMeta,
+          senderId.isAcceptableOrUnknown(data['sender_id']!, _senderIdMeta));
+    } else if (isInserting) {
+      context.missing(_senderIdMeta);
+    }
+    if (data.containsKey('media_type')) {
+      context.handle(_mediaTypeMeta,
+          mediaType.isAcceptableOrUnknown(data['media_type']!, _mediaTypeMeta));
+    } else if (isInserting) {
+      context.missing(_mediaTypeMeta);
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(_filePathMeta,
+          filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta));
+    } else if (isInserting) {
+      context.missing(_filePathMeta);
+    }
+    if (data.containsKey('thumbnail_path')) {
+      context.handle(
+          _thumbnailPathMeta,
+          thumbnailPath.isAcceptableOrUnknown(
+              data['thumbnail_path']!, _thumbnailPathMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MediaItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      threadId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thread_id'])!,
+      senderId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sender_id'])!,
+      mediaType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}media_type'])!,
+      filePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_path'])!,
+      thumbnailPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thumbnail_path']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $MediaItemsTable createAlias(String alias) {
+    return $MediaItemsTable(attachedDatabase, alias);
+  }
+}
+
+class MediaItem extends DataClass implements Insertable<MediaItem> {
+  final String id;
+  final String threadId;
+  final String senderId;
+  final String mediaType;
+  final String filePath;
+  final String? thumbnailPath;
+  final DateTime createdAt;
+  const MediaItem(
+      {required this.id,
+      required this.threadId,
+      required this.senderId,
+      required this.mediaType,
+      required this.filePath,
+      this.thumbnailPath,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['thread_id'] = Variable<String>(threadId);
+    map['sender_id'] = Variable<String>(senderId);
+    map['media_type'] = Variable<String>(mediaType);
+    map['file_path'] = Variable<String>(filePath);
+    if (!nullToAbsent || thumbnailPath != null) {
+      map['thumbnail_path'] = Variable<String>(thumbnailPath);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  MediaItemsCompanion toCompanion(bool nullToAbsent) {
+    return MediaItemsCompanion(
+      id: Value(id),
+      threadId: Value(threadId),
+      senderId: Value(senderId),
+      mediaType: Value(mediaType),
+      filePath: Value(filePath),
+      thumbnailPath: thumbnailPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailPath),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory MediaItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaItem(
+      id: serializer.fromJson<String>(json['id']),
+      threadId: serializer.fromJson<String>(json['threadId']),
+      senderId: serializer.fromJson<String>(json['senderId']),
+      mediaType: serializer.fromJson<String>(json['mediaType']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'threadId': serializer.toJson<String>(threadId),
+      'senderId': serializer.toJson<String>(senderId),
+      'mediaType': serializer.toJson<String>(mediaType),
+      'filePath': serializer.toJson<String>(filePath),
+      'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  MediaItem copyWith(
+          {String? id,
+          String? threadId,
+          String? senderId,
+          String? mediaType,
+          String? filePath,
+          Value<String?> thumbnailPath = const Value.absent(),
+          DateTime? createdAt}) =>
+      MediaItem(
+        id: id ?? this.id,
+        threadId: threadId ?? this.threadId,
+        senderId: senderId ?? this.senderId,
+        mediaType: mediaType ?? this.mediaType,
+        filePath: filePath ?? this.filePath,
+        thumbnailPath:
+            thumbnailPath.present ? thumbnailPath.value : this.thumbnailPath,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  MediaItem copyWithCompanion(MediaItemsCompanion data) {
+    return MediaItem(
+      id: data.id.present ? data.id.value : this.id,
+      threadId: data.threadId.present ? data.threadId.value : this.threadId,
+      senderId: data.senderId.present ? data.senderId.value : this.senderId,
+      mediaType: data.mediaType.present ? data.mediaType.value : this.mediaType,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      thumbnailPath: data.thumbnailPath.present
+          ? data.thumbnailPath.value
+          : this.thumbnailPath,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaItem(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('senderId: $senderId, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('filePath: $filePath, ')
+          ..write('thumbnailPath: $thumbnailPath, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, threadId, senderId, mediaType, filePath, thumbnailPath, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaItem &&
+          other.id == this.id &&
+          other.threadId == this.threadId &&
+          other.senderId == this.senderId &&
+          other.mediaType == this.mediaType &&
+          other.filePath == this.filePath &&
+          other.thumbnailPath == this.thumbnailPath &&
+          other.createdAt == this.createdAt);
+}
+
+class MediaItemsCompanion extends UpdateCompanion<MediaItem> {
+  final Value<String> id;
+  final Value<String> threadId;
+  final Value<String> senderId;
+  final Value<String> mediaType;
+  final Value<String> filePath;
+  final Value<String?> thumbnailPath;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const MediaItemsCompanion({
+    this.id = const Value.absent(),
+    this.threadId = const Value.absent(),
+    this.senderId = const Value.absent(),
+    this.mediaType = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.thumbnailPath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MediaItemsCompanion.insert({
+    required String id,
+    required String threadId,
+    required String senderId,
+    required String mediaType,
+    required String filePath,
+    this.thumbnailPath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        threadId = Value(threadId),
+        senderId = Value(senderId),
+        mediaType = Value(mediaType),
+        filePath = Value(filePath);
+  static Insertable<MediaItem> custom({
+    Expression<String>? id,
+    Expression<String>? threadId,
+    Expression<String>? senderId,
+    Expression<String>? mediaType,
+    Expression<String>? filePath,
+    Expression<String>? thumbnailPath,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (threadId != null) 'thread_id': threadId,
+      if (senderId != null) 'sender_id': senderId,
+      if (mediaType != null) 'media_type': mediaType,
+      if (filePath != null) 'file_path': filePath,
+      if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MediaItemsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? threadId,
+      Value<String>? senderId,
+      Value<String>? mediaType,
+      Value<String>? filePath,
+      Value<String?>? thumbnailPath,
+      Value<DateTime>? createdAt,
+      Value<int>? rowid}) {
+    return MediaItemsCompanion(
+      id: id ?? this.id,
+      threadId: threadId ?? this.threadId,
+      senderId: senderId ?? this.senderId,
+      mediaType: mediaType ?? this.mediaType,
+      filePath: filePath ?? this.filePath,
+      thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (threadId.present) {
+      map['thread_id'] = Variable<String>(threadId.value);
+    }
+    if (senderId.present) {
+      map['sender_id'] = Variable<String>(senderId.value);
+    }
+    if (mediaType.present) {
+      map['media_type'] = Variable<String>(mediaType.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (thumbnailPath.present) {
+      map['thumbnail_path'] = Variable<String>(thumbnailPath.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('threadId: $threadId, ')
+          ..write('senderId: $senderId, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('filePath: $filePath, ')
+          ..write('thumbnailPath: $thumbnailPath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MinigameResultsTable extends MinigameResults
+    with TableInfo<$MinigameResultsTable, MinigameResult> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MinigameResultsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _minigameIdMeta =
+      const VerificationMeta('minigameId');
+  @override
+  late final GeneratedColumn<String> minigameId = GeneratedColumn<String>(
+      'minigame_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _completedMeta =
+      const VerificationMeta('completed');
+  @override
+  late final GeneratedColumn<bool> completed = GeneratedColumn<bool>(
+      'completed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("completed" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _attemptsCountMeta =
+      const VerificationMeta('attemptsCount');
+  @override
+  late final GeneratedColumn<int> attemptsCount = GeneratedColumn<int>(
+      'attempts_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _heartsRemainingMeta =
+      const VerificationMeta('heartsRemaining');
+  @override
+  late final GeneratedColumn<int> heartsRemaining = GeneratedColumn<int>(
+      'hearts_remaining', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(5));
+  static const VerificationMeta _cooldownUntilMeta =
+      const VerificationMeta('cooldownUntil');
+  @override
+  late final GeneratedColumn<DateTime> cooldownUntil =
+      GeneratedColumn<DateTime>('cooldown_until', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        minigameId,
+        completed,
+        attemptsCount,
+        heartsRemaining,
+        cooldownUntil,
+        completedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'minigame_results';
+  @override
+  VerificationContext validateIntegrity(Insertable<MinigameResult> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('minigame_id')) {
+      context.handle(
+          _minigameIdMeta,
+          minigameId.isAcceptableOrUnknown(
+              data['minigame_id']!, _minigameIdMeta));
+    } else if (isInserting) {
+      context.missing(_minigameIdMeta);
+    }
+    if (data.containsKey('completed')) {
+      context.handle(_completedMeta,
+          completed.isAcceptableOrUnknown(data['completed']!, _completedMeta));
+    }
+    if (data.containsKey('attempts_count')) {
+      context.handle(
+          _attemptsCountMeta,
+          attemptsCount.isAcceptableOrUnknown(
+              data['attempts_count']!, _attemptsCountMeta));
+    }
+    if (data.containsKey('hearts_remaining')) {
+      context.handle(
+          _heartsRemainingMeta,
+          heartsRemaining.isAcceptableOrUnknown(
+              data['hearts_remaining']!, _heartsRemainingMeta));
+    }
+    if (data.containsKey('cooldown_until')) {
+      context.handle(
+          _cooldownUntilMeta,
+          cooldownUntil.isAcceptableOrUnknown(
+              data['cooldown_until']!, _cooldownUntilMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MinigameResult map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MinigameResult(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      minigameId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}minigame_id'])!,
+      completed: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}completed'])!,
+      attemptsCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}attempts_count'])!,
+      heartsRemaining: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}hearts_remaining'])!,
+      cooldownUntil: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}cooldown_until']),
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+    );
+  }
+
+  @override
+  $MinigameResultsTable createAlias(String alias) {
+    return $MinigameResultsTable(attachedDatabase, alias);
+  }
+}
+
+class MinigameResult extends DataClass implements Insertable<MinigameResult> {
+  final String id;
+  final String minigameId;
+  final bool completed;
+  final int attemptsCount;
+  final int heartsRemaining;
+  final DateTime? cooldownUntil;
+  final DateTime? completedAt;
+  const MinigameResult(
+      {required this.id,
+      required this.minigameId,
+      required this.completed,
+      required this.attemptsCount,
+      required this.heartsRemaining,
+      this.cooldownUntil,
+      this.completedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['minigame_id'] = Variable<String>(minigameId);
+    map['completed'] = Variable<bool>(completed);
+    map['attempts_count'] = Variable<int>(attemptsCount);
+    map['hearts_remaining'] = Variable<int>(heartsRemaining);
+    if (!nullToAbsent || cooldownUntil != null) {
+      map['cooldown_until'] = Variable<DateTime>(cooldownUntil);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    return map;
+  }
+
+  MinigameResultsCompanion toCompanion(bool nullToAbsent) {
+    return MinigameResultsCompanion(
+      id: Value(id),
+      minigameId: Value(minigameId),
+      completed: Value(completed),
+      attemptsCount: Value(attemptsCount),
+      heartsRemaining: Value(heartsRemaining),
+      cooldownUntil: cooldownUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cooldownUntil),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory MinigameResult.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MinigameResult(
+      id: serializer.fromJson<String>(json['id']),
+      minigameId: serializer.fromJson<String>(json['minigameId']),
+      completed: serializer.fromJson<bool>(json['completed']),
+      attemptsCount: serializer.fromJson<int>(json['attemptsCount']),
+      heartsRemaining: serializer.fromJson<int>(json['heartsRemaining']),
+      cooldownUntil: serializer.fromJson<DateTime?>(json['cooldownUntil']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'minigameId': serializer.toJson<String>(minigameId),
+      'completed': serializer.toJson<bool>(completed),
+      'attemptsCount': serializer.toJson<int>(attemptsCount),
+      'heartsRemaining': serializer.toJson<int>(heartsRemaining),
+      'cooldownUntil': serializer.toJson<DateTime?>(cooldownUntil),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+    };
+  }
+
+  MinigameResult copyWith(
+          {String? id,
+          String? minigameId,
+          bool? completed,
+          int? attemptsCount,
+          int? heartsRemaining,
+          Value<DateTime?> cooldownUntil = const Value.absent(),
+          Value<DateTime?> completedAt = const Value.absent()}) =>
+      MinigameResult(
+        id: id ?? this.id,
+        minigameId: minigameId ?? this.minigameId,
+        completed: completed ?? this.completed,
+        attemptsCount: attemptsCount ?? this.attemptsCount,
+        heartsRemaining: heartsRemaining ?? this.heartsRemaining,
+        cooldownUntil:
+            cooldownUntil.present ? cooldownUntil.value : this.cooldownUntil,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+      );
+  MinigameResult copyWithCompanion(MinigameResultsCompanion data) {
+    return MinigameResult(
+      id: data.id.present ? data.id.value : this.id,
+      minigameId:
+          data.minigameId.present ? data.minigameId.value : this.minigameId,
+      completed: data.completed.present ? data.completed.value : this.completed,
+      attemptsCount: data.attemptsCount.present
+          ? data.attemptsCount.value
+          : this.attemptsCount,
+      heartsRemaining: data.heartsRemaining.present
+          ? data.heartsRemaining.value
+          : this.heartsRemaining,
+      cooldownUntil: data.cooldownUntil.present
+          ? data.cooldownUntil.value
+          : this.cooldownUntil,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MinigameResult(')
+          ..write('id: $id, ')
+          ..write('minigameId: $minigameId, ')
+          ..write('completed: $completed, ')
+          ..write('attemptsCount: $attemptsCount, ')
+          ..write('heartsRemaining: $heartsRemaining, ')
+          ..write('cooldownUntil: $cooldownUntil, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, minigameId, completed, attemptsCount,
+      heartsRemaining, cooldownUntil, completedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MinigameResult &&
+          other.id == this.id &&
+          other.minigameId == this.minigameId &&
+          other.completed == this.completed &&
+          other.attemptsCount == this.attemptsCount &&
+          other.heartsRemaining == this.heartsRemaining &&
+          other.cooldownUntil == this.cooldownUntil &&
+          other.completedAt == this.completedAt);
+}
+
+class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
+  final Value<String> id;
+  final Value<String> minigameId;
+  final Value<bool> completed;
+  final Value<int> attemptsCount;
+  final Value<int> heartsRemaining;
+  final Value<DateTime?> cooldownUntil;
+  final Value<DateTime?> completedAt;
+  final Value<int> rowid;
+  const MinigameResultsCompanion({
+    this.id = const Value.absent(),
+    this.minigameId = const Value.absent(),
+    this.completed = const Value.absent(),
+    this.attemptsCount = const Value.absent(),
+    this.heartsRemaining = const Value.absent(),
+    this.cooldownUntil = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MinigameResultsCompanion.insert({
+    required String id,
+    required String minigameId,
+    this.completed = const Value.absent(),
+    this.attemptsCount = const Value.absent(),
+    this.heartsRemaining = const Value.absent(),
+    this.cooldownUntil = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        minigameId = Value(minigameId);
+  static Insertable<MinigameResult> custom({
+    Expression<String>? id,
+    Expression<String>? minigameId,
+    Expression<bool>? completed,
+    Expression<int>? attemptsCount,
+    Expression<int>? heartsRemaining,
+    Expression<DateTime>? cooldownUntil,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (minigameId != null) 'minigame_id': minigameId,
+      if (completed != null) 'completed': completed,
+      if (attemptsCount != null) 'attempts_count': attemptsCount,
+      if (heartsRemaining != null) 'hearts_remaining': heartsRemaining,
+      if (cooldownUntil != null) 'cooldown_until': cooldownUntil,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MinigameResultsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? minigameId,
+      Value<bool>? completed,
+      Value<int>? attemptsCount,
+      Value<int>? heartsRemaining,
+      Value<DateTime?>? cooldownUntil,
+      Value<DateTime?>? completedAt,
+      Value<int>? rowid}) {
+    return MinigameResultsCompanion(
+      id: id ?? this.id,
+      minigameId: minigameId ?? this.minigameId,
+      completed: completed ?? this.completed,
+      attemptsCount: attemptsCount ?? this.attemptsCount,
+      heartsRemaining: heartsRemaining ?? this.heartsRemaining,
+      cooldownUntil: cooldownUntil ?? this.cooldownUntil,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (minigameId.present) {
+      map['minigame_id'] = Variable<String>(minigameId.value);
+    }
+    if (completed.present) {
+      map['completed'] = Variable<bool>(completed.value);
+    }
+    if (attemptsCount.present) {
+      map['attempts_count'] = Variable<int>(attemptsCount.value);
+    }
+    if (heartsRemaining.present) {
+      map['hearts_remaining'] = Variable<int>(heartsRemaining.value);
+    }
+    if (cooldownUntil.present) {
+      map['cooldown_until'] = Variable<DateTime>(cooldownUntil.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MinigameResultsCompanion(')
+          ..write('id: $id, ')
+          ..write('minigameId: $minigameId, ')
+          ..write('completed: $completed, ')
+          ..write('attemptsCount: $attemptsCount, ')
+          ..write('heartsRemaining: $heartsRemaining, ')
+          ..write('cooldownUntil: $cooldownUntil, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4006,6 +4806,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StoryStateTable storyState = $StoryStateTable(this);
   late final $EpisodesTable episodes = $EpisodesTable(this);
   late final $CharacterNotesTable characterNotes = $CharacterNotesTable(this);
+  late final $MediaItemsTable mediaItems = $MediaItemsTable(this);
+  late final $MinigameResultsTable minigameResults =
+      $MinigameResultsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4021,7 +4824,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         notifications,
         storyState,
         episodes,
-        characterNotes
+        characterNotes,
+        mediaItems,
+        minigameResults
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -7320,6 +8125,410 @@ typedef $$CharacterNotesTableProcessedTableManager = ProcessedTableManager<
     (CharacterNote, $$CharacterNotesTableReferences),
     CharacterNote,
     PrefetchHooks Function({bool characterId})>;
+typedef $$MediaItemsTableCreateCompanionBuilder = MediaItemsCompanion Function({
+  required String id,
+  required String threadId,
+  required String senderId,
+  required String mediaType,
+  required String filePath,
+  Value<String?> thumbnailPath,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+typedef $$MediaItemsTableUpdateCompanionBuilder = MediaItemsCompanion Function({
+  Value<String> id,
+  Value<String> threadId,
+  Value<String> senderId,
+  Value<String> mediaType,
+  Value<String> filePath,
+  Value<String?> thumbnailPath,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$MediaItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $MediaItemsTable> {
+  $$MediaItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get senderId => $composableBuilder(
+      column: $table.senderId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mediaType => $composableBuilder(
+      column: $table.mediaType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+      column: $table.filePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbnailPath => $composableBuilder(
+      column: $table.thumbnailPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$MediaItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MediaItemsTable> {
+  $$MediaItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get threadId => $composableBuilder(
+      column: $table.threadId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get senderId => $composableBuilder(
+      column: $table.senderId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mediaType => $composableBuilder(
+      column: $table.mediaType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+      column: $table.filePath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get thumbnailPath => $composableBuilder(
+      column: $table.thumbnailPath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MediaItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MediaItemsTable> {
+  $$MediaItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get threadId =>
+      $composableBuilder(column: $table.threadId, builder: (column) => column);
+
+  GeneratedColumn<String> get senderId =>
+      $composableBuilder(column: $table.senderId, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<String> get thumbnailPath => $composableBuilder(
+      column: $table.thumbnailPath, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$MediaItemsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MediaItemsTable,
+    MediaItem,
+    $$MediaItemsTableFilterComposer,
+    $$MediaItemsTableOrderingComposer,
+    $$MediaItemsTableAnnotationComposer,
+    $$MediaItemsTableCreateCompanionBuilder,
+    $$MediaItemsTableUpdateCompanionBuilder,
+    (MediaItem, BaseReferences<_$AppDatabase, $MediaItemsTable, MediaItem>),
+    MediaItem,
+    PrefetchHooks Function()> {
+  $$MediaItemsTableTableManager(_$AppDatabase db, $MediaItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MediaItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MediaItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MediaItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> threadId = const Value.absent(),
+            Value<String> senderId = const Value.absent(),
+            Value<String> mediaType = const Value.absent(),
+            Value<String> filePath = const Value.absent(),
+            Value<String?> thumbnailPath = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MediaItemsCompanion(
+            id: id,
+            threadId: threadId,
+            senderId: senderId,
+            mediaType: mediaType,
+            filePath: filePath,
+            thumbnailPath: thumbnailPath,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String threadId,
+            required String senderId,
+            required String mediaType,
+            required String filePath,
+            Value<String?> thumbnailPath = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MediaItemsCompanion.insert(
+            id: id,
+            threadId: threadId,
+            senderId: senderId,
+            mediaType: mediaType,
+            filePath: filePath,
+            thumbnailPath: thumbnailPath,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$MediaItemsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $MediaItemsTable,
+    MediaItem,
+    $$MediaItemsTableFilterComposer,
+    $$MediaItemsTableOrderingComposer,
+    $$MediaItemsTableAnnotationComposer,
+    $$MediaItemsTableCreateCompanionBuilder,
+    $$MediaItemsTableUpdateCompanionBuilder,
+    (MediaItem, BaseReferences<_$AppDatabase, $MediaItemsTable, MediaItem>),
+    MediaItem,
+    PrefetchHooks Function()>;
+typedef $$MinigameResultsTableCreateCompanionBuilder = MinigameResultsCompanion
+    Function({
+  required String id,
+  required String minigameId,
+  Value<bool> completed,
+  Value<int> attemptsCount,
+  Value<int> heartsRemaining,
+  Value<DateTime?> cooldownUntil,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+typedef $$MinigameResultsTableUpdateCompanionBuilder = MinigameResultsCompanion
+    Function({
+  Value<String> id,
+  Value<String> minigameId,
+  Value<bool> completed,
+  Value<int> attemptsCount,
+  Value<int> heartsRemaining,
+  Value<DateTime?> cooldownUntil,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+
+class $$MinigameResultsTableFilterComposer
+    extends Composer<_$AppDatabase, $MinigameResultsTable> {
+  $$MinigameResultsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get minigameId => $composableBuilder(
+      column: $table.minigameId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get completed => $composableBuilder(
+      column: $table.completed, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get attemptsCount => $composableBuilder(
+      column: $table.attemptsCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get heartsRemaining => $composableBuilder(
+      column: $table.heartsRemaining,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get cooldownUntil => $composableBuilder(
+      column: $table.cooldownUntil, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$MinigameResultsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MinigameResultsTable> {
+  $$MinigameResultsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get minigameId => $composableBuilder(
+      column: $table.minigameId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get completed => $composableBuilder(
+      column: $table.completed, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get attemptsCount => $composableBuilder(
+      column: $table.attemptsCount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get heartsRemaining => $composableBuilder(
+      column: $table.heartsRemaining,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get cooldownUntil => $composableBuilder(
+      column: $table.cooldownUntil,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MinigameResultsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MinigameResultsTable> {
+  $$MinigameResultsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get minigameId => $composableBuilder(
+      column: $table.minigameId, builder: (column) => column);
+
+  GeneratedColumn<bool> get completed =>
+      $composableBuilder(column: $table.completed, builder: (column) => column);
+
+  GeneratedColumn<int> get attemptsCount => $composableBuilder(
+      column: $table.attemptsCount, builder: (column) => column);
+
+  GeneratedColumn<int> get heartsRemaining => $composableBuilder(
+      column: $table.heartsRemaining, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cooldownUntil => $composableBuilder(
+      column: $table.cooldownUntil, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+}
+
+class $$MinigameResultsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MinigameResultsTable,
+    MinigameResult,
+    $$MinigameResultsTableFilterComposer,
+    $$MinigameResultsTableOrderingComposer,
+    $$MinigameResultsTableAnnotationComposer,
+    $$MinigameResultsTableCreateCompanionBuilder,
+    $$MinigameResultsTableUpdateCompanionBuilder,
+    (
+      MinigameResult,
+      BaseReferences<_$AppDatabase, $MinigameResultsTable, MinigameResult>
+    ),
+    MinigameResult,
+    PrefetchHooks Function()> {
+  $$MinigameResultsTableTableManager(
+      _$AppDatabase db, $MinigameResultsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MinigameResultsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MinigameResultsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MinigameResultsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> minigameId = const Value.absent(),
+            Value<bool> completed = const Value.absent(),
+            Value<int> attemptsCount = const Value.absent(),
+            Value<int> heartsRemaining = const Value.absent(),
+            Value<DateTime?> cooldownUntil = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MinigameResultsCompanion(
+            id: id,
+            minigameId: minigameId,
+            completed: completed,
+            attemptsCount: attemptsCount,
+            heartsRemaining: heartsRemaining,
+            cooldownUntil: cooldownUntil,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String minigameId,
+            Value<bool> completed = const Value.absent(),
+            Value<int> attemptsCount = const Value.absent(),
+            Value<int> heartsRemaining = const Value.absent(),
+            Value<DateTime?> cooldownUntil = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MinigameResultsCompanion.insert(
+            id: id,
+            minigameId: minigameId,
+            completed: completed,
+            attemptsCount: attemptsCount,
+            heartsRemaining: heartsRemaining,
+            cooldownUntil: cooldownUntil,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$MinigameResultsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $MinigameResultsTable,
+    MinigameResult,
+    $$MinigameResultsTableFilterComposer,
+    $$MinigameResultsTableOrderingComposer,
+    $$MinigameResultsTableAnnotationComposer,
+    $$MinigameResultsTableCreateCompanionBuilder,
+    $$MinigameResultsTableUpdateCompanionBuilder,
+    (
+      MinigameResult,
+      BaseReferences<_$AppDatabase, $MinigameResultsTable, MinigameResult>
+    ),
+    MinigameResult,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7346,4 +8555,8 @@ class $AppDatabaseManager {
       $$EpisodesTableTableManager(_db, _db.episodes);
   $$CharacterNotesTableTableManager get characterNotes =>
       $$CharacterNotesTableTableManager(_db, _db.characterNotes);
+  $$MediaItemsTableTableManager get mediaItems =>
+      $$MediaItemsTableTableManager(_db, _db.mediaItems);
+  $$MinigameResultsTableTableManager get minigameResults =>
+      $$MinigameResultsTableTableManager(_db, _db.minigameResults);
 }

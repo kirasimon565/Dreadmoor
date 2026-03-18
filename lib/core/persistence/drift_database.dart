@@ -21,6 +21,8 @@ part 'drift_database.g.dart';
   Episodes,
   StoryNodes,
   CharacterNotes,
+  MediaItems,
+  MinigameResults,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
@@ -32,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +45,8 @@ class AppDatabase extends _$AppDatabase {
           if (from < 8) await m.createTable(characterPhotos);
           if (from < 9) await m.createTable(threadMembers);
           if (from < 10) await m.createTable(characterNotes);
+          if (from < 11) await m.createTable(mediaItems);
+          if (from < 12) await m.createTable(minigameResults);
         },
       );
 
@@ -100,9 +104,12 @@ class AppDatabase extends _$AppDatabase {
 
   // ── DAOs ──────────────────────────────────────────────────────────────
 
-  Future<List<CharacterPhoto>> getCharacterGallery(String charId) {
-    return (select(characterPhotos)
-          ..where((t) => t.characterId.equals(charId)))
+  Future<List<MediaItem>> getCharacterGallery(String charId) {
+    // If it's the player, return all their sent media
+    // Otherwise return media sent by this character
+    return (select(mediaItems)
+          ..where((t) => t.senderId.equals(charId))
+          ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
         .get();
   }
 

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:dreadmoor/ui/theme/colors.dart';
-import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
+import 'package:dreadmoor/ui/widgets/media_viewer.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends ConsumerWidget {
   const ChatBubble({
     super.key,
     required this.text,
@@ -13,6 +14,8 @@ class ChatBubble extends StatelessWidget {
     this.senderName,
     this.timestamp,
     this.isSecret = false,
+    this.mediaType,
+    this.mediaPath,
   });
 
   final String text;
@@ -21,11 +24,11 @@ class ChatBubble extends StatelessWidget {
   final String? senderName;
   final DateTime? timestamp;
   final bool isSecret;
+  final String? mediaType;
+  final String? mediaPath;
 
   @override
-  Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
+  Widget build(BuildContext context, WidgetRef ref) {
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
 
     // ── COLOURS ───────────────────────────────────────────────────────────────
@@ -119,16 +122,57 @@ class ChatBubble extends StatelessWidget {
                     const SizedBox(height: 4),
                   ],
 
-                  // ── MESSAGE TEXT ─────────────────────────────────────────
-                  SelectableText(
-                    text,
-                    style: GoogleFonts.spectral(
-                      fontSize: 15,
-                      height: 1.45,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
+                  // ── MEDIA (IF APPLICABLE) ────────────────────────────────
+                  if (mediaType == 'video' && mediaPath != null) ...[
+                    GestureDetector(
+                      onTap: () {
+                        ref.read(globalSchedulerProvider).pause();
+                        MediaViewer.open(context, items: [
+                          GalleryMediaItem(path: mediaPath!, isVideo: true)
+                        ]);
+                      },
+                      child: Container(
+                        height: 160,
+                        width: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24, width: 1),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48),
+                        ),
+                      ),
                     ),
-                  ),
+                  ] else if (mediaType == 'image' && mediaPath != null) ...[
+                    GestureDetector(
+                      onTap: () {
+                        MediaViewer.open(context, items: [
+                          GalleryMediaItem(path: mediaPath!, isVideo: false)
+                        ]);
+                      },
+                      child: Container(
+                        constraints: const BoxConstraints(maxHeight: 200, maxWidth: 220),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: mediaPath!.startsWith('assets/')
+                              ? Image.asset(mediaPath!, fit: BoxFit.cover)
+                              : const SizedBox.shrink(), // Or Image.file for local files later
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    // ── MESSAGE TEXT ─────────────────────────────────────────
+                    SelectableText(
+                      text,
+                      style: GoogleFonts.spectral(
+                        fontSize: 15,
+                        height: 1.45,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
 
                   // ── TIMESTAMP ────────────────────────────────────────────
                   if (timestamp != null) ...[

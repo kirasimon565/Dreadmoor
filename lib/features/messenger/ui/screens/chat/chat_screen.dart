@@ -210,6 +210,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               senderName: character?.name,
                               timestamp: msg.timestamp,
                               isSecret: msg.isSecret,
+                              mediaType: msg.type,
+                              mediaPath: msg.mediaPath,
                             );
                           },
                         );

@@ -197,7 +197,8 @@ class GlobalScheduler {
       // Requires metadata: { "file_asset": "path/to/video.mp4" }
       case 'Video_Node':
       case 'S4_VIDEO_NODE':      // ep01 alias — kept for back-compat
-        _handleVideoNode(node, meta);
+        // Treat as a chat message with video attached
+        await _handleChatMessage(node, meta);
         break;
 
       // ── Screen glitch effect then navigate ───────────────────────────
@@ -243,20 +244,37 @@ class GlobalScheduler {
     // Creates thread + members from JSON metadata if not already in DB.
     await _ensureThread(threadId, meta);
 
-    final isVideo  = node.type == 'Video_Message';
+    final isVideo  = node.type == 'Video_Message' || node.type == 'Video_Node' || node.type == 'S4_VIDEO_NODE';
     final content  = node.content ?? (meta['file_asset'] as String?) ?? '';
+
+    final mediaPath = meta['file_asset'] as String?;
+    final mediaType = isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
+    final senderId = node.senderId ?? 'unknown';
 
     final id = await db.into(db.messages).insert(
       MessagesCompanion.insert(
         nodeId:    Value(node.id),
         threadId:  threadId,
-        senderId:  node.senderId ?? 'unknown',
+        senderId:  senderId,
         content:   Value(_sanitize(content)),
-        type:      Value(isVideo ? 'video' : 'text'),
-        mediaPath: Value(meta['file_asset'] as String?),
+        type:      Value(mediaType),
+        mediaPath: Value(mediaPath),
         sequence:  0,
       ),
     );
+
+    // Save media to gallery table automatically
+    if (mediaPath != null && (mediaType == 'video' || mediaType == 'image')) {
+      await db.into(db.mediaItems).insert(
+        MediaItemsCompanion.insert(
+          id:          DateTime.now().millisecondsSinceEpoch.toString(),
+          threadId:    threadId,
+          senderId:    senderId,
+          mediaType:   mediaType,
+          filePath:    mediaPath,
+        ),
+      );
+    }
 
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
         .write(ThreadsCompanion(lastMessageId: Value(id)));
@@ -292,6 +310,16 @@ class GlobalScheduler {
           ref.read(activeThreadIdProvider.notifier).setId(target);
         }
         _advance(node.nextNodeId);
+        return;
+
+      case 'Launch_Minigame':
+        // Pauses scheduler and switches app to puzzle
+        pause();
+        ref.read(activeAppProvider.notifier).setApp(PhoneApp.puzzle);
+        ref.read(appRouterProvider).go(Routes.os);
+        ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
+        // The minigame will resume the scheduler when completed
+        ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
         return;
 
       case 'Add_To_Group':
@@ -429,7 +457,7 @@ class GlobalScheduler {
 
     ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
     // Requires media_viewer.dart: void open → Future<void> open
-    MediaViewer.open(ctx, items: [MediaItem(path: assetPath, isVideo: true)])
+    MediaViewer.open(ctx, items: [GalleryMediaItem(path: assetPath, isVideo: true)])
         .then((_) => _advance(node.nextNodeId));
   }
 

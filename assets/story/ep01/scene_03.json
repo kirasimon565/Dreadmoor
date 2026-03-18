@@ -384,8 +384,8 @@
     {
       "id": "S3_TRIGGER_UNKNOWN",
       "type": "System_Event",
-      "action": "Switch_Context",
-      "target": "unknown",
+      "action": "Launch_Minigame",
+      "minigame_id": "ghost_trace_ep01",
       "next": "s4_video"
     }
   ]

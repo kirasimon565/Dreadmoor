@@ -67,6 +67,49 @@ class CharacterPhotos extends Table {
 }
 
 // --------------------------------------------------
+// MEDIA_ITEMS: The investigation gallery
+// --------------------------------------------------
+class MediaItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get threadId => text()();
+  TextColumn get senderId => text()();
+  TextColumn get mediaType => text()(); // 'image' | 'video' | 'audio'
+  TextColumn get filePath => text()();
+  TextColumn get thumbnailPath => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// --------------------------------------------------
+// MINIGAME_RESULTS: The Hacker Tracing system
+// --------------------------------------------------
+class MinigameResults extends Table {
+  TextColumn get id => text()();
+
+  TextColumn get minigameId => text()();
+
+  BoolColumn get completed =>
+      boolean().withDefault(const Constant(false))();
+
+  IntColumn get attemptsCount =>
+      integer().withDefault(const Constant(0))();
+
+  IntColumn get heartsRemaining =>
+      integer().withDefault(const Constant(5))();
+
+  DateTimeColumn get cooldownUntil =>
+      dateTime().nullable()();
+
+  DateTimeColumn get completedAt =>
+      dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// --------------------------------------------------
 // STORY_NODES: The "Brain" (Imported from Obsidian)
 // --------------------------------------------------
 class StoryNodes extends Table {

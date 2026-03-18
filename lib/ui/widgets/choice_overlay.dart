@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/state/game_state.dart';
-import 'package:dreadmoor/core/state/player_state.dart';
 import 'package:dreadmoor/core/models/script_models.dart';
 
 class ChoiceOverlay extends ConsumerStatefulWidget {
