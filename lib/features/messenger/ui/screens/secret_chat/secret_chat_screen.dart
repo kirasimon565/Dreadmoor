@@ -49,8 +49,6 @@ class _SecretChatScreenState
 
   @override
   void dispose() {
-    // Reset activeThreadId so the nav bar reappears after leaving secret chat.
-    ref.read(activeThreadIdProvider.notifier).state = null;
     _scrollController.dispose();
     super.dispose();
   }
@@ -217,8 +215,8 @@ class _SecretChatScreenState
                             }
                             final msg = messages[i];
                             return ChatBubble(
-                              text: msg.content ?? '',
-                              isMe: msg.isPlayerMessage,
+                              text:    msg.content ?? '',
+                              isMe:    msg.isPlayerMessage,
                               senderId: msg.senderId,
                               timestamp: msg.timestamp,
                               isSecret: true,
@@ -234,10 +232,10 @@ class _SecretChatScreenState
                 ],
               ),
 
-              // ── CHOICE OVERLAY / INPUT BAR ──────────────────────────
+              // ── CHOICE OVERLAY / INPUT BAR ─────────────────────────
               const ChoiceOverlay(),
 
-              // ── STATUS BAR — fixed at bottom ─────────────────────────
+              // ── STATUS BAR — fixed at bottom ───────────────────────
               Positioned(
                 left: 0,
                 right: 0,
