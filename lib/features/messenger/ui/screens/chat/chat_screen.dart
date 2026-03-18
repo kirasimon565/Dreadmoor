@@ -39,9 +39,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .join([
-          leftOuterJoin(db.characters,
-              db.characters.id.equalsExp(db.messages.senderId)),
-        ]).watch();
+      leftOuterJoin(db.characters,
+          db.characters.id.equalsExp(db.messages.senderId)),
+    ]).watch();
 
     _membersStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
@@ -57,6 +57,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    // Reset activeThreadId so the nav bar reappears after leaving chat.
+    ref.read(activeThreadIdProvider.notifier).state = null;
     _scrollController.dispose();
     super.dispose();
   }
@@ -87,8 +89,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: StreamBuilder<List<ThreadMember>>(
         stream: _membersStream,
         builder: (context, membersSnap) {
-          final members   = membersSnap.data ?? [];
-          final isGroup   = members.length > 1;
+          final members = membersSnap.data ?? [];
+          final isGroup = members.length > 1;
           final profileId = _resolveProfileId(members);
 
           final avatarPaths = members
@@ -146,16 +148,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             Navigator.pop(context),
                         avatarPaths: avatarPaths,
                         isOnline: true,
-                        // FIX: rootNavigator: true so the pushed screen
-                        // covers DreadmoorOS entirely (nav bar + status bar).
-                        // Without this the push stays inside MessengerNavigator
-                        // and the OS chrome shows through.
                         onAvatarTap: profileId != null
                             ? () {
                                 HapticFeedback.selectionClick();
                                 Navigator.of(
                                   context,
-                                  rootNavigator: true, // ← KEY FIX
+                                  rootNavigator: true,
                                 ).push(MaterialPageRoute(
                                   builder: (_) =>
                                       CharacterProfileScreen(
@@ -206,12 +204,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 .readTableOrNull(db.characters);
 
                             return ChatBubble(
-                              text:       msg.content ?? '',
-                              isMe:       msg.isPlayerMessage,
-                              senderId:   msg.senderId,
+                              text: msg.content ?? '',
+                              isMe: msg.isPlayerMessage,
+                              senderId: msg.senderId,
                               senderName: character?.name,
-                              timestamp:  msg.timestamp,
-                              isSecret:   msg.isSecret,
+                              timestamp: msg.timestamp,
+                              isSecret: msg.isSecret,
                             );
                           },
                         );
