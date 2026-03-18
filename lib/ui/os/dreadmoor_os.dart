@@ -23,15 +23,20 @@ class DreadmoorOS extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final phoneState = ref.watch(phoneProvider);
     final brightness = Theme.of(context).brightness;
-    final topPad = MediaQuery.of(context).padding.top;
 
     final activeApp = ref.watch(activeAppProvider);
 
-    /// Nav bar visible ONLY on main OS apps
-    final showNavBar =
-        activeApp == PhoneApp.messenger ||
-        activeApp == PhoneApp.apps ||
-        activeApp == PhoneApp.puzzle;
+    // activeThreadIdProvider is set to the thread ID when the player is
+    // inside a ChatScreen or SecretChatScreen, and reset to null on dispose.
+    // We use this to hide the nav bar while a chat is open.
+    final activeThreadId = ref.watch(activeThreadIdProvider);
+    final isInChat = activeThreadId != null;
+
+    /// Nav bar visible ONLY on main OS apps AND when NOT inside a chat.
+    final showNavBar = !isInChat &&
+        (activeApp == PhoneApp.messenger ||
+            activeApp == PhoneApp.apps ||
+            activeApp == PhoneApp.puzzle);
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background(brightness),
@@ -57,7 +62,7 @@ class DreadmoorOS extends ConsumerWidget {
                     child: DreadmoorAppContainer(),
                   ),
 
-                  /// Bottom navigation bar
+                  /// Bottom navigation bar — hidden inside chats and secret chats
                   if (showNavBar)
                     const DreadmoorNavigationBar(),
                 ],
@@ -104,7 +109,6 @@ class DreadmoorOS extends ConsumerWidget {
                 onEnd: (durationSeconds) {
                   ref.read(phoneProvider.notifier)
                       .endActiveCall(durationSeconds);
-
                   ref.read(globalSchedulerProvider).resume();
                 },
               ),
