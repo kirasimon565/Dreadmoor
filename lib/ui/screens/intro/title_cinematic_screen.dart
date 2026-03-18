@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/navigation/routes.dart';
 
 class TitleCinematicScreen extends ConsumerStatefulWidget {

@@ -9,7 +9,7 @@ class CharacterProfile {
   final String? phoneNumber;
   final String? avatar;
   final String? headerImage;
-  final List<CharacterPhoto> gallery;
+  final List<MediaItem> gallery;
   final String? bio;
   final Map<String, String> info;
   final List<String> notes; // ← plain strings, from CharacterNotes table

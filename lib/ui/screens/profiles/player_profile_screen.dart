@@ -176,6 +176,18 @@ class ProfileScreen extends ConsumerWidget {
         await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked == null) return;
     final db = ref.read(databaseProvider);
+
+    // Also save to MediaItems table
+    await db.into(db.mediaItems).insert(
+      MediaItemsCompanion.insert(
+        id:          DateTime.now().millisecondsSinceEpoch.toString(),
+        threadId:    'player_upload',
+        senderId:    id,
+        mediaType:   'image',
+        filePath:    picked.path,
+      ),
+    );
+
     await db.into(db.characterPhotos).insert(
       CharacterPhotosCompanion.insert(
         characterId: id,

@@ -151,7 +151,7 @@ class ProfilePhotoGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items =
-        gallery.map<MediaItem>((p) => MediaItem.fromPhoto(p)).toList();
+        gallery.map<GalleryMediaItem>((p) => GalleryMediaItem.fromPhoto(p)).toList();
 
     return GridView.builder(
       shrinkWrap: true,
@@ -165,7 +165,7 @@ class ProfilePhotoGrid extends StatelessWidget {
       ),
       itemCount: gallery.length,
       itemBuilder: (context, i) {
-        final path    = gallery[i].photoPath as String;
+        final path    = (gallery[i] as dynamic).filePath as String? ?? (gallery[i] as dynamic).photoPath as String;
         final isVideo = items[i].isVideo;
 
         return GestureDetector(

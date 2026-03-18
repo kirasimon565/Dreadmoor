@@ -46,6 +46,7 @@ dependencies:
   # JSON / Models
   json_annotation: ^4.11.0
   hooks_riverpod: ^3.3.1
+  flame: ^1.36.0
 
 dev_dependencies:
   flutter_test:

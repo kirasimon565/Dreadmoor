@@ -13,7 +13,7 @@ import 'package:dreadmoor/core/state/game_state.dart';
 /// MediaViewer.open(context, items: gallery, initialIndex: index);
 /// ```
 class MediaViewer extends StatelessWidget {
-  final List<MediaItem> items;
+  final List<GalleryMediaItem> items;
   final int initialIndex;
 
   const MediaViewer({
@@ -25,7 +25,7 @@ class MediaViewer extends StatelessWidget {
   /// Hero-animated push into full-screen viewer.
   static Future<void> open(
     BuildContext context, {
-    required List<MediaItem> items,
+    required List<GalleryMediaItem> items,
     int initialIndex = 0,
   }) {
     HapticFeedback.lightImpact();
@@ -55,7 +55,7 @@ class MediaViewer extends StatelessWidget {
 // ── FULL SCREEN PAGER ─────────────────────────────────────────────────────────
 
 class _MediaViewerPage extends StatefulWidget {
-  final List<MediaItem> items;
+  final List<GalleryMediaItem> items;
   final int initialIndex;
 
   const _MediaViewerPage({required this.items, required this.initialIndex});
@@ -223,7 +223,7 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
 // ── IMAGE PAGE ────────────────────────────────────────────────────────────────
 
 class _ImagePage extends StatelessWidget {
-  final MediaItem item;
+  final GalleryMediaItem item;
   const _ImagePage({required this.item});
 
   @override
@@ -243,7 +243,7 @@ class _ImagePage extends StatelessWidget {
 // ── VIDEO PAGE ────────────────────────────────────────────────────────────────
 
 class _VideoPage extends StatefulWidget {
-  final MediaItem item;
+  final GalleryMediaItem item;
   const _VideoPage({required this.item});
 
   @override
@@ -416,7 +416,7 @@ class _VideoScrubber extends StatelessWidget {
 // ── BOTTOM CAPTION BAR ────────────────────────────────────────────────────────
 
 class _BottomBar extends StatelessWidget {
-  final MediaItem item;
+  final GalleryMediaItem item;
   final int totalItems;
   final int currentIndex;
 
@@ -497,27 +497,37 @@ class _DotIndicator extends StatelessWidget {
 
 // ── MEDIA ITEM MODEL ──────────────────────────────────────────────────────────
 
-class MediaItem {
+class GalleryMediaItem {
   final String path;
   final String? caption;
   final bool isVideo;
 
-  const MediaItem({
+  const GalleryMediaItem({
     required this.path,
     this.caption,
     this.isVideo = false,
   });
 
-  /// Convenience factory from your CharacterPhoto DB model.
-  static MediaItem fromPhoto(dynamic photo) {
-    final path = photo.photoPath as String;
-    final isVideo = path.endsWith('.mp4') ||
-        path.endsWith('.mov') ||
-        path.endsWith('.avi');
-    return MediaItem(
-      path: path,
-      caption: photo.caption as String?,
-      isVideo: isVideo,
-    );
+  /// Convenience factory from your MediaItem DB model.
+  static GalleryMediaItem fromPhoto(dynamic photo) {
+    try {
+      final path = photo.filePath as String;
+      final type = photo.mediaType as String;
+      return GalleryMediaItem(
+        path: path,
+        caption: null,
+        isVideo: type == 'video',
+      );
+    } catch (e) {
+      final path = photo.photoPath as String;
+      final isVideo = path.endsWith('.mp4') ||
+          path.endsWith('.mov') ||
+          path.endsWith('.avi');
+      return GalleryMediaItem(
+        path: path,
+        caption: photo.caption as String?,
+        isVideo: isVideo,
+      );
+    }
   }
 }
