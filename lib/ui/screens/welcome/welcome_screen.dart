@@ -142,9 +142,21 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await ref.read(databaseProvider).initializeDefaultData();
 
       if (flag != null && flag.value) {
+        final currentNodeIdRow = await (db.select(db.storyState)
+              ..where((t) => t.key.equals('current_node_id')))
+            .getSingleOrNull();
+        final currentNodeId = currentNodeIdRow?.stringValue;
+
+        if (currentNodeId != null && currentNodeId.isNotEmpty) {
+          ref.read(activeNodeIdProvider.notifier).setId(currentNodeId);
+        }
+
         _stopMusicAndNavigate(() {
-          // Cold launch entry point since there's no active game yet
-          ref.read(globalSchedulerProvider).processNode('SCENE_1_NEWS_ARTICLE');
+          if (currentNodeId != null && currentNodeId.isNotEmpty) {
+            ref.read(globalSchedulerProvider).resume();
+          } else {
+            ref.read(globalSchedulerProvider).processNode('SCENE_1_NEWS_ARTICLE');
+          }
           context.go(Routes.messenger);
         });
       } else {
@@ -157,17 +169,28 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           mode: InsertMode.insertOrReplace,
         );
         _stopMusicAndNavigate(() {
-          // It will redirect to OS after intro cinematic and then we process SCENE_1_NEWS_ARTICLE there,
-          // or we can just process it now so it's ready.
-          ref.read(globalSchedulerProvider).processNode('SCENE_1_NEWS_ARTICLE');
+          // It will redirect to OS after intro cinematic and then we process SCENE_1_NEWS_ARTICLE there.
+          // DO NOT start the scheduler here, let the TitleCinematicScreen handle it when it's done.
           context.go(Routes.introTrailer);
         });
       }
     }
   }
 
-  void _continueGame() {
+  Future<void> _continueGame() async {
+    final db = ref.read(databaseProvider);
     final threadId = ref.read(activeThreadIdProvider);
+
+    // Load current node from StoryState
+    final currentNodeIdRow = await (db.select(db.storyState)
+          ..where((t) => t.key.equals('current_node_id')))
+        .getSingleOrNull();
+    final currentNodeId = currentNodeIdRow?.stringValue;
+
+    if (currentNodeId != null && currentNodeId.isNotEmpty) {
+      ref.read(activeNodeIdProvider.notifier).setId(currentNodeId);
+    }
+
     _stopMusicAndNavigate(() {
       if (threadId != null) {
         context.go(Routes.chat(threadId));

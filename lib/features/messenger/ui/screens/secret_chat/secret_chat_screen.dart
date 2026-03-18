@@ -49,6 +49,7 @@ class _SecretChatScreenState
 
   @override
   void dispose() {
+    ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
     _scrollController.dispose();
     super.dispose();
   }

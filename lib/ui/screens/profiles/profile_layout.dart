@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
+import 'package:dreadmoor/ui/os/dreadmoor_status_bar.dart';
 
 /// Shared profile layout — used by both CharacterProfileScreen
 /// and PlayerProfileScreen.
@@ -142,7 +143,7 @@ class ProfileLayout extends StatelessWidget {
             // ── LAYER 3: back button — fixed to viewport (optional) ─────
             if (showBackButton)
               Positioned(
-                top:  topPad + 8,
+              top:  topPad + 28, // push down for status bar
                 left: 8,
                 child: Consumer(
                   builder: (context, ref, _) {
@@ -163,6 +164,17 @@ class ProfileLayout extends StatelessWidget {
                   },
                 ),
               ),
+
+            // ── LAYER 4: Status Bar ────────────────────────────────────
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: DreadmoorStatusBar(),
+              ),
+            ),
 
           ],
         ),

@@ -35,8 +35,7 @@ class DreadmoorOS extends ConsumerWidget {
     /// Nav bar visible ONLY on main OS apps AND when NOT inside a chat.
     final showNavBar = !isInChat &&
         (activeApp == PhoneApp.messenger ||
-            activeApp == PhoneApp.apps ||
-            activeApp == PhoneApp.puzzle);
+            activeApp == PhoneApp.apps);
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background(brightness),
