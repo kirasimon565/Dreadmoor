@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -22,14 +23,13 @@ class MediaViewer extends StatelessWidget {
     this.initialIndex = 0,
   });
 
-  /// Hero-animated push into full-screen viewer.
   static Future<void> open(
     BuildContext context, {
     required List<GalleryMediaItem> items,
     int initialIndex = 0,
   }) {
     HapticFeedback.lightImpact();
-    return Navigator.of(context).push(
+    return Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black,
@@ -38,10 +38,8 @@ class MediaViewer extends StatelessWidget {
           items: items,
           initialIndex: initialIndex,
         ),
-        transitionsBuilder: (_, anim, __, child) => FadeTransition(
-          opacity: anim,
-          child: child,
-        ),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
       ),
     );
   }
@@ -58,7 +56,8 @@ class _MediaViewerPage extends StatefulWidget {
   final List<GalleryMediaItem> items;
   final int initialIndex;
 
-  const _MediaViewerPage({required this.items, required this.initialIndex});
+  const _MediaViewerPage(
+      {required this.items, required this.initialIndex});
 
   @override
   State<_MediaViewerPage> createState() => _MediaViewerPageState();
@@ -75,22 +74,23 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
+    _pageController =
+        PageController(initialPage: widget.initialIndex);
     _barsAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 220),
       value: 1.0,
     );
-    // Go edge-to-edge
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _barsAnim.dispose();
-    // Restore system UI
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
@@ -105,13 +105,13 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── SWIPEABLE PAGES ─────────────────────────────────────────────
           GestureDetector(
             onTap: _toggleBars,
             child: PageView.builder(
               controller: _pageController,
               itemCount: widget.items.length,
-              onPageChanged: (i) => setState(() => _currentIndex = i),
+              onPageChanged: (i) =>
+                  setState(() => _currentIndex = i),
               itemBuilder: (context, i) {
                 final item = widget.items[i];
                 return item.isVideo
@@ -121,11 +121,9 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
             ),
           ),
 
-          // ── TOP BAR ─────────────────────────────────────────────────────
+          // Top bar
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
+            top: 0, left: 0, right: 0,
             child: FadeTransition(
               opacity: _barsAnim,
               child: IgnorePointer(
@@ -133,9 +131,7 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
                 child: Container(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top + 4,
-                    left: 4,
-                    right: 16,
-                    bottom: 12,
+                    left: 4, right: 16, bottom: 12,
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -149,27 +145,26 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
                   ),
                   child: Row(
                     children: [
-                      // Close
                       Consumer(
-                        builder: (context, ref, _) {
-                          return IconButton(
-                            icon: const Icon(Icons.close,
-                                color: Colors.white, size: 26),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              // Resume story if it was paused waiting for video
-                              ref.read(globalSchedulerProvider).resume();
-                            },
-                          );
-                        }
+                        builder: (context, ref, _) =>
+                            IconButton(
+                          icon: const Icon(Icons.close,
+                              color: Colors.white, size: 26),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ref
+                                .read(globalSchedulerProvider)
+                                .resume();
+                          },
+                        ),
                       ),
                       const Spacer(),
-                      // Counter
                       if (widget.items.length > 1)
                         Text(
                           '${_currentIndex + 1} / ${widget.items.length}',
                           style: GoogleFonts.spaceGrotesk(
-                            color: Colors.white.withOpacity(0.85),
+                            color:
+                                Colors.white.withOpacity(0.85),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.5,
@@ -182,11 +177,9 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
             ),
           ),
 
-          // ── BOTTOM CAPTION BAR ──────────────────────────────────────────
+          // Bottom caption
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
+            bottom: 0, left: 0, right: 0,
             child: FadeTransition(
               opacity: _barsAnim,
               child: IgnorePointer(
@@ -200,12 +193,12 @@ class _MediaViewerPageState extends State<_MediaViewerPage>
             ),
           ),
 
-          // ── DOT INDICATOR ───────────────────────────────────────────────
+          // Dot indicator
           if (widget.items.length > 1)
             Positioned(
-              bottom: MediaQuery.of(context).padding.bottom + 72,
-              left: 0,
-              right: 0,
+              bottom:
+                  MediaQuery.of(context).padding.bottom + 72,
+              left: 0, right: 0,
               child: FadeTransition(
                 opacity: _barsAnim,
                 child: _DotIndicator(
@@ -241,6 +234,13 @@ class _ImagePage extends StatelessWidget {
 }
 
 // ── VIDEO PAGE ────────────────────────────────────────────────────────────────
+//
+// FIX: VideoPlayerController.asset() fails on Android because Android
+// packages Flutter assets in a compressed format that the native
+// MediaPlayer cannot open directly.
+//
+// Solution: copy the asset bytes to a temp file first, then use
+// VideoPlayerController.file() which always works.
 
 class _VideoPage extends StatefulWidget {
   final GalleryMediaItem item;
@@ -251,79 +251,132 @@ class _VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<_VideoPage> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _initialized = false;
   bool _showControls = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.item.path.startsWith('assets/')
-        ? VideoPlayerController.asset(widget.item.path)
-        : VideoPlayerController.file(File(widget.item.path));
+    _initVideo();
+  }
 
-    _controller.initialize().then((_) {
-      if (mounted) {
-        setState(() => _initialized = true);
-        _controller.play();
+  Future<void> _initVideo() async {
+    try {
+      final controller = await _buildController(widget.item.path);
+      await controller.initialize();
+      if (!mounted) {
+        controller.dispose();
+        return;
       }
-    });
+      setState(() {
+        _controller = controller;
+        _initialized = true;
+      });
+      controller.addListener(() {
+        if (mounted) setState(() {});
+      });
+      await controller.play();
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+      print("DreadmoorOS ✗ Video init failed: $e");
+    }
+  }
 
-    _controller.addListener(() {
-      if (mounted) setState(() {});
-    });
+  /// FIX: Always returns a VideoPlayerController backed by a real file.
+  ///
+  /// For asset paths: copies the asset bytes to a temp file so Android's
+  /// native MediaPlayer can open it. Uses the asset filename as the temp
+  /// file name to avoid re-extracting the same file on repeated plays.
+  ///
+  /// For file paths (local storage): uses VideoPlayerController.file()
+  /// directly — no copy needed.
+  Future<VideoPlayerController> _buildController(String path) async {
+    if (!path.startsWith('assets/')) {
+      // Already a real file path
+      return VideoPlayerController.file(File(path));
+    }
+
+    // Extract asset → temp file
+    final tempDir  = await getTemporaryDirectory();
+    final fileName = path.split('/').last;
+    final tempFile = File('${tempDir.path}/$fileName');
+
+    if (!await tempFile.exists()) {
+      // Only copy if not already there (cache between plays)
+      final data = await rootBundle.load(path);
+      await tempFile.writeAsBytes(
+        data.buffer.asUint8List(
+            data.offsetInBytes, data.lengthInBytes),
+      );
+    }
+
+    return VideoPlayerController.file(tempFile);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   void _togglePlay() {
+    final ctrl = _controller;
+    if (ctrl == null) return;
     setState(() {
-      _controller.value.isPlaying
-          ? _controller.pause()
-          : _controller.play();
+      ctrl.value.isPlaying ? ctrl.pause() : ctrl.play();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Could not play video.\n$_error',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54),
+          ),
+        ),
+      );
+    }
+
+    if (!_initialized || _controller == null) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white54),
       );
     }
 
+    final ctrl = _controller!;
     return GestureDetector(
-      onTap: () => setState(() => _showControls = !_showControls),
+      onTap: () =>
+          setState(() => _showControls = !_showControls),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Video
           Center(
             child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
+              aspectRatio: ctrl.value.aspectRatio,
+              child: VideoPlayer(ctrl),
             ),
           ),
 
-          // Play / Pause overlay
           AnimatedOpacity(
             opacity: _showControls ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: GestureDetector(
               onTap: _togglePlay,
               child: Container(
-                width: 64,
-                height: 64,
+                width: 64, height: 64,
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.55),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  _controller.value.isPlaying
+                  ctrl.value.isPlaying
                       ? Icons.pause
                       : Icons.play_arrow,
                   color: Colors.white,
@@ -333,13 +386,10 @@ class _VideoPageState extends State<_VideoPage> {
             ),
           ),
 
-          // Scrubber
           if (_showControls)
             Positioned(
-              bottom: 80,
-              left: 24,
-              right: 24,
-              child: _VideoScrubber(controller: _controller),
+              bottom: 80, left: 24, right: 24,
+              child: _VideoScrubber(controller: ctrl),
             ),
         ],
       ),
@@ -357,17 +407,19 @@ class _VideoScrubber extends StatelessWidget {
   Widget build(BuildContext context) {
     final position = controller.value.position;
     final duration = controller.value.duration;
-    final progress =
-        duration.inMilliseconds > 0 ? position.inMilliseconds / duration.inMilliseconds : 0.0;
+    final progress = duration.inMilliseconds > 0
+        ? position.inMilliseconds / duration.inMilliseconds
+        : 0.0;
 
     return Column(
       children: [
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            activeTrackColor: Colors.white,
+            activeTrackColor:   Colors.white,
             inactiveTrackColor: Colors.white24,
-            thumbColor: Colors.white,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            thumbColor:         Colors.white,
+            thumbShape: const RoundSliderThumbShape(
+                enabledThumbRadius: 6),
             overlayShape: SliderComponentShape.noOverlay,
             trackHeight: 2,
           ),
@@ -375,8 +427,8 @@ class _VideoScrubber extends StatelessWidget {
             value: progress.clamp(0.0, 1.0),
             onChanged: (v) {
               final target = Duration(
-                milliseconds: (v * duration.inMilliseconds).round(),
-              );
+                  milliseconds:
+                      (v * duration.inMilliseconds).round());
               controller.seekTo(target);
             },
           ),
@@ -384,31 +436,27 @@ class _VideoScrubber extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              _formatDuration(position),
-              style: GoogleFonts.spaceGrotesk(
-                color: Colors.white70,
-                fontSize: 10,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Text(
-              _formatDuration(duration),
-              style: GoogleFonts.spaceGrotesk(
-                color: Colors.white70,
-                fontSize: 10,
-                letterSpacing: 0.5,
-              ),
-            ),
+            Text(_fmt(position),
+                style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white70,
+                    fontSize: 10,
+                    letterSpacing: 0.5)),
+            Text(_fmt(duration),
+                style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white70,
+                    fontSize: 10,
+                    letterSpacing: 0.5)),
           ],
         ),
       ],
     );
   }
 
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+  String _fmt(Duration d) {
+    final m =
+        d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s =
+        d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$m:$s';
   }
 }
@@ -428,13 +476,11 @@ class _BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasCaption = item.caption != null && item.caption!.isNotEmpty;
-
+    final hasCaption =
+        item.caption != null && item.caption!.isNotEmpty;
     return Container(
       padding: EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
+        20, 16, 20,
         MediaQuery.of(context).padding.bottom + 16,
       ),
       decoration: BoxDecoration(
@@ -469,7 +515,6 @@ class _BottomBar extends StatelessWidget {
 class _DotIndicator extends StatelessWidget {
   final int count;
   final int current;
-
   const _DotIndicator({required this.count, required this.current});
 
   @override
@@ -508,17 +553,13 @@ class GalleryMediaItem {
     this.isVideo = false,
   });
 
-  /// Convenience factory from your MediaItem DB model.
   static GalleryMediaItem fromPhoto(dynamic photo) {
     try {
       final path = photo.filePath as String;
       final type = photo.mediaType as String;
       return GalleryMediaItem(
-        path: path,
-        caption: null,
-        isVideo: type == 'video',
-      );
-    } catch (e) {
+        path: path, caption: null, isVideo: type == 'video');
+    } catch (_) {
       final path = photo.photoPath as String;
       final isVideo = path.endsWith('.mp4') ||
           path.endsWith('.mov') ||
