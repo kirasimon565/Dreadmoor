@@ -12,9 +12,19 @@
       "id": "S4_VIDEO_NODE",
       "type": "Video_Node",
       "chat": "unknown",
+      "thread_title": "Unknown",
+      "thread_members": [
+        "unknown"
+      ],
       "sender": "Unknown",
       "file_asset": "assets/media/videos/party_clip.mp4",
-      "duration": 10,
+      "next": "S4_Switch_To_Unknown"
+    },
+    {
+      "id": "S4_Switch_To_Unknown",
+      "type": "System_Event",
+      "action": "Switch_Context",
+      "target": "unknown",
       "next": "S4_Player_Reaction"
     },
     {
@@ -213,7 +223,7 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Around 1\u2014",
+      "text": "Around 1—",
       "next": "S4_Amelia_Interruption"
     },
     {
