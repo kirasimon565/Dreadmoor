@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -10,17 +9,18 @@ import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 
+// Height of the VPN status bar at the bottom
+const double _kVpnBarHeight = 44.0;
+
 class SecretChatScreen extends ConsumerStatefulWidget {
   final String threadId;
   const SecretChatScreen({super.key, required this.threadId});
 
   @override
-  ConsumerState<SecretChatScreen> createState() =>
-      _SecretChatScreenState();
+  ConsumerState<SecretChatScreen> createState() => _SecretChatScreenState();
 }
 
-class _SecretChatScreenState
-    extends ConsumerState<SecretChatScreen> {
+class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
   final _scrollController = ScrollController();
   late final Stream<Thread?> _threadStream;
   late final Stream<List<Message>> _messagesStream;
@@ -42,15 +42,14 @@ class _SecretChatScreenState
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(activeThreadIdProvider.notifier).state =
-            widget.threadId;
+        ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
       }
     });
   }
 
   @override
   void dispose() {
-    ref.read(activeAppProvider.notifier).state = PhoneApp.messenger;
+    ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
     _scrollController.dispose();
     super.dispose();
   }
@@ -73,64 +72,52 @@ class _SecretChatScreenState
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        // From mockup: radial gradient, black centre → deep navy edges
         decoration: const BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.center,
             radius: 1.2,
-            colors: [
-              Color(0xFF000000),
-              Color(0xFF0D1B2A),
-            ],
+            colors: [Color(0xFF000000), Color(0xFF0D1B2A)],
           ),
         ),
         child: SafeArea(
           child: Stack(
             children: [
+
+              // ── MAIN COLUMN ───────────────────────────────────────────
               Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // ── HEADER ────────────────────────────────────────
+
+                  // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
                     child: StreamBuilder<Thread?>(
                       stream: _threadStream,
                       builder: (context, snap) {
-                        final title =
-                            snap.data?.title ?? 'Unknown';
+                        final title = snap.data?.title ?? 'Unknown';
                         return Row(
                           mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
                           children: [
-                            // Back arrow
                             GestureDetector(
-                              onTap: () =>
-                                  Navigator.pop(context),
+                              onTap: () => Navigator.pop(context),
                               child: const Icon(
                                   Icons.arrow_back_ios_new,
-                                  color: Colors.white,
-                                  size: 24),
+                                  color: Colors.white, size: 24),
                             ),
 
-                            // Centre pill — bottom-rounded corners only
+                            // Centre pill — bottom-rounded only
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 8),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: Colors.white
-                                      .withOpacity(0.8),
+                                  color: Colors.white.withOpacity(0.8),
                                   width: 1.5,
                                 ),
-                                borderRadius:
-                                    const BorderRadius.only(
-                                  bottomLeft:
-                                      Radius.circular(20),
-                                  bottomRight:
-                                      Radius.circular(20),
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft:  Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
                                 ),
                               ),
                               child: Column(
@@ -139,34 +126,26 @@ class _SecretChatScreenState
                                   Text(
                                     title,
                                     style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight:
-                                          FontWeight.w400,
+                                      color:      Colors.white,
+                                      fontSize:   18,
+                                      fontWeight: FontWeight.w400,
                                     ),
                                   ),
                                   Row(
-                                    mainAxisSize:
-                                        MainAxisSize.min,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Text(
-                                        'Online',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight:
-                                              FontWeight.bold,
-                                        ),
-                                      ),
+                                      const Text('Online',
+                                          style: TextStyle(
+                                            color:      Colors.white,
+                                            fontSize:   12,
+                                            fontWeight: FontWeight.bold,
+                                          )),
                                       const SizedBox(width: 4),
                                       Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration:
-                                            const BoxDecoration(
+                                        width: 8, height: 8,
+                                        decoration: const BoxDecoration(
                                           color: Colors.green,
-                                          shape:
-                                              BoxShape.circle,
+                                          shape: BoxShape.circle,
                                         ),
                                       ),
                                     ],
@@ -175,7 +154,6 @@ class _SecretChatScreenState
                               ),
                             ),
 
-                            // Live icon
                             const Icon(Icons.live_tv,
                                 color: Colors.white, size: 24),
                           ],
@@ -184,7 +162,7 @@ class _SecretChatScreenState
                     ),
                   ),
 
-                  // ── MESSAGES ──────────────────────────────────────
+                  // Messages
                   Expanded(
                     child: StreamBuilder<List<Message>>(
                       stream: _messagesStream,
@@ -194,10 +172,8 @@ class _SecretChatScreenState
                         if (messages.length != _lastCount) {
                           _lastCount = messages.length;
                           WidgetsBinding.instance
-                              .addPostFrameCallback((_) =>
-                                  _scrollToBottom(
-                                      animated:
-                                          _lastCount > 1));
+                              .addPostFrameCallback((_) => _scrollToBottom(
+                                  animated: _lastCount > 1));
                         }
 
                         if (messages.isEmpty) {
@@ -206,10 +182,14 @@ class _SecretChatScreenState
 
                         return ListView.builder(
                           controller: _scrollController,
-                          physics:
-                              const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                          physics: const BouncingScrollPhysics(),
+                          // Bottom padding clears both input bar and VPN bar
+                          padding: EdgeInsets.only(
+                            left:   16,
+                            right:  16,
+                            top:    8,
+                            bottom: _kVpnBarHeight + 80,
+                          ),
                           itemCount: messages.length + 1,
                           itemBuilder: (context, i) {
                             if (i == messages.length) {
@@ -217,46 +197,51 @@ class _SecretChatScreenState
                             }
                             final msg = messages[i];
                             return ChatBubble(
-                              text:    msg.content ?? '',
-                              isMe:    msg.isPlayerMessage,
-                              senderId: msg.senderId,
+                              text:      msg.content ?? '',
+                              isMe:      msg.isPlayerMessage,
+                              senderId:  msg.senderId,
                               timestamp: msg.timestamp,
-                              isSecret: true,
+                              isSecret:  true,
                             );
                           },
                         );
                       },
                     ),
                   ),
-
-                  // Space for bottom status bar + choice overlay
-                  const SizedBox(height: 50),
                 ],
               ),
 
-              // ── CHOICE OVERLAY / INPUT BAR ─────────────────────────
-              const ChoiceOverlay(),
+              // ── CHOICE OVERLAY / INPUT BAR ────────────────────────────
+              // FIX: MediaQuery override adds VPN bar height to bottom
+              // padding so the input bar renders ABOVE the VPN bar.
+              // ChoiceOverlay reads MediaQuery.of(context).padding.bottom
+              // to place itself — adding _kVpnBarHeight shifts it up
+              // exactly enough to clear the status bar beneath it.
+              MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  padding: MediaQuery.of(context).padding.copyWith(
+                    bottom: MediaQuery.of(context).padding.bottom +
+                        _kVpnBarHeight,
+                  ),
+                ),
+                child: const ChoiceOverlay(),
+              ),
 
-              // ── STATUS BAR — fixed at bottom ───────────────────────
+              // ── VPN STATUS BAR — always at bottom, always on top ──────
               Positioned(
-                left: 0,
-                right: 0,
+                left:   0,
+                right:  0,
                 bottom: 0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12, horizontal: 10),
-                  color: Colors.black.withOpacity(0.3),
+                  height: _kVpnBarHeight,
+                  color: Colors.black.withOpacity(0.35),
+                  alignment: Alignment.center,
                   child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: const [
-                      _StatusText(
-                          label: 'VPN', value: 'ACTIVE'),
-                      _StatusText(
-                          label: 'ENCRYPTION', value: 'HIGH'),
-                      _StatusText(
-                          label: 'IDENTITY',
-                          value: 'HIDDEN'),
+                      _StatusText(label: 'VPN',        value: 'ACTIVE'),
+                      _StatusText(label: 'ENCRYPTION',  value: 'HIGH'),
+                      _StatusText(label: 'IDENTITY',    value: 'HIDDEN'),
                     ],
                   ),
                 ),
@@ -274,7 +259,7 @@ class _SecretChatScreenState
       builder: (context, snap) {
         if (snap.data?.isTyping == true) {
           return const Padding(
-            padding: EdgeInsets.only(left: 20, bottom: 12),
+            padding: EdgeInsets.only(left: 4, bottom: 12),
             child: Align(
               alignment: Alignment.centerLeft,
               child: GunTypingIndicator(),
@@ -287,12 +272,9 @@ class _SecretChatScreenState
   }
 }
 
-// ── STATUS TEXT ───────────────────────────────────────────────────────────────
-
 class _StatusText extends StatelessWidget {
   final String label;
   final String value;
-
   const _StatusText({required this.label, required this.value});
 
   @override
@@ -300,9 +282,9 @@ class _StatusText extends StatelessWidget {
     return Text(
       '$label: $value',
       style: const TextStyle(
-        color: Colors.white,
-        fontSize: 11,
-        fontWeight: FontWeight.w300,
+        color:        Colors.white,
+        fontSize:     11,
+        fontWeight:   FontWeight.w300,
         letterSpacing: 0.5,
       ),
     );
