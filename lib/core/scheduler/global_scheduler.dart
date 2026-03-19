@@ -94,7 +94,7 @@ class GlobalScheduler {
     _timer?.cancel();
     await seedCharacters(ref.read(databaseProvider));
     ref.read(isSchedulerPausedProvider.notifier).setPaused(false);
-    ref.read(waitingForChoiceProvider.notifier).setWaiting(false); // Riverpod 3: use public method
+    ref.read(waitingForChoiceProvider.notifier).setWaiting(false);
     await _executeNode(nodeId);
   }
 
@@ -251,9 +251,7 @@ class GlobalScheduler {
     final mediaType = isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
     final senderId = node.senderId ?? 'unknown';
 
-    // FIX: deduplication — skip if this node's message was already inserted.
-    // Duplicate messages occur when _handleTyping passes the same node to
-    // _processNodeType after the timer fires and the timer ran more than once.
+    // FIX: skip if this node's message was already inserted (e.g. app restart).
     if (node.id.isNotEmpty) {
       final existing = await (db.select(db.messages)
             ..where((m) => m.nodeId.equals(node.id))
@@ -454,9 +452,9 @@ class GlobalScheduler {
     ref.read(activeThreadIdProvider.notifier).setId(threadId);
     ref.read(appRouterProvider).go(Routes.secret(threadId));
 
-    // FIX: wait one frame for GoRouter navigation to complete before
-    // advancing. Without this, the next node fires state updates while
-    // SecretChatScreen is still mounting → hits the error boundary.
+    // Wait one frame for GoRouter to complete navigation before advancing.
+    // Without this, next-node state updates hit a still-mounting widget
+    // and trigger the error boundary.
     await Future.delayed(const Duration(milliseconds: 150));
     _advance(node.nextNodeId);
   }
@@ -526,9 +524,17 @@ class GlobalScheduler {
     _isSubmittingChoice = false;
     final threadId = _resolveThreadId(node, meta);
 
-    // Switch to the correct thread if not already there before showing choice
     if (threadId.isNotEmpty) {
       ref.read(activeThreadIdProvider.notifier).setId(threadId);
+
+      // FIX: navigate to the thread the choice belongs to.
+      // Without this, ChoiceOverlay renders over whatever screen the player
+      // is currently on. If they're in group chat and the choice is for the
+      // 'unknown' private thread, the choice appears in the wrong chat.
+      final currentThread = ref.read(activeThreadIdProvider);
+      if (currentThread != threadId) {
+        ref.read(appRouterProvider).go(Routes.chat(threadId));
+      }
     }
 
     ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
@@ -695,7 +701,6 @@ class GlobalScheduler {
     try { await AudioPlayer().play(AssetSource(path)); } catch (_) {}
   }
 
-  /// Call this from globalSchedulerProvider's ref.onDispose.
   void dispose() {
     _timer?.cancel();
     _timer = null;
