@@ -9,7 +9,6 @@ import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 
-// Height of the VPN status bar at the bottom
 const double _kVpnBarHeight = 44.0;
 
 class SecretChatScreen extends ConsumerStatefulWidget {
@@ -17,13 +16,17 @@ class SecretChatScreen extends ConsumerStatefulWidget {
   const SecretChatScreen({super.key, required this.threadId});
 
   @override
-  ConsumerState<SecretChatScreen> createState() => _SecretChatScreenState();
+  ConsumerState<SecretChatScreen> createState() =>
+      _SecretChatScreenState();
 }
 
 class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
   final _scrollController = ScrollController();
-  late final Stream<Thread?> _threadStream;
-  late final Stream<List<Message>> _messagesStream;
+
+  late final Stream<Thread?>           _threadStream;
+  late final Stream<List<Message>>     _messagesStream;
+  late final Stream<List<TypedResult>> _membersWithNamesStream;
+
   int _lastCount = 0;
 
   @override
@@ -39,6 +42,14 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .watch();
+
+    // Joins ThreadMembers → Characters for typing indicator sender name
+    _membersWithNamesStream = (db.select(db.threadMembers)
+          ..where((m) => m.threadId.equals(widget.threadId)))
+        .join([
+          innerJoin(db.characters,
+              db.characters.id.equalsExp(db.threadMembers.characterId)),
+        ]).watch();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -83,10 +94,8 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
           child: Stack(
             children: [
 
-              // ── MAIN COLUMN ───────────────────────────────────────────
               Column(
                 children: [
-
                   // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -106,7 +115,6 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                                   color: Colors.white, size: 24),
                             ),
 
-                            // Centre pill — bottom-rounded only
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 8),
@@ -123,14 +131,12 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    title,
-                                    style: const TextStyle(
-                                      color:      Colors.white,
-                                      fontSize:   18,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
+                                  Text(title,
+                                      style: const TextStyle(
+                                        color:      Colors.white,
+                                        fontSize:   18,
+                                        fontWeight: FontWeight.w400,
+                                      )),
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -183,7 +189,6 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                         return ListView.builder(
                           controller: _scrollController,
                           physics: const BouncingScrollPhysics(),
-                          // Bottom padding clears both input bar and VPN bar
                           padding: EdgeInsets.only(
                             left:   16,
                             right:  16,
@@ -211,12 +216,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                 ],
               ),
 
-              // ── CHOICE OVERLAY / INPUT BAR ────────────────────────────
-              // FIX: MediaQuery override adds VPN bar height to bottom
-              // padding so the input bar renders ABOVE the VPN bar.
-              // ChoiceOverlay reads MediaQuery.of(context).padding.bottom
-              // to place itself — adding _kVpnBarHeight shifts it up
-              // exactly enough to clear the status bar beneath it.
+              // Choice overlay shifted above VPN bar
               MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   padding: MediaQuery.of(context).padding.copyWith(
@@ -227,21 +227,19 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                 child: const ChoiceOverlay(),
               ),
 
-              // ── VPN STATUS BAR — always at bottom, always on top ──────
+              // VPN status bar — always on top
               Positioned(
-                left:   0,
-                right:  0,
-                bottom: 0,
+                left: 0, right: 0, bottom: 0,
                 child: Container(
                   height: _kVpnBarHeight,
                   color: Colors.black.withOpacity(0.35),
                   alignment: Alignment.center,
-                  child: Row(
+                  child: const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: const [
-                      _StatusText(label: 'VPN',        value: 'ACTIVE'),
-                      _StatusText(label: 'ENCRYPTION',  value: 'HIGH'),
-                      _StatusText(label: 'IDENTITY',    value: 'HIDDEN'),
+                    children: [
+                      _StatusText(label: 'VPN',       value: 'ACTIVE'),
+                      _StatusText(label: 'ENCRYPTION', value: 'HIGH'),
+                      _StatusText(label: 'IDENTITY',   value: 'HIDDEN'),
                     ],
                   ),
                 ),
@@ -256,17 +254,33 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
   Widget _buildTypingIndicator() {
     return StreamBuilder<Thread?>(
       stream: _threadStream,
-      builder: (context, snap) {
-        if (snap.data?.isTyping == true) {
-          return const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: GunTypingIndicator(),
-            ),
-          );
+      builder: (context, threadSnap) {
+        if (threadSnap.data?.isTyping != true) {
+          return const SizedBox(height: 8);
         }
-        return const SizedBox(height: 8);
+
+        return StreamBuilder<List<TypedResult>>(
+          stream: _membersWithNamesStream,
+          builder: (context, membersSnap) {
+            final db = ref.read(databaseProvider);
+            String? senderName;
+
+            if (membersSnap.hasData) {
+              for (final row in membersSnap.data!) {
+                final char = row.readTableOrNull(db.characters);
+                if (char != null && char.id != 'player') {
+                  senderName = char.name;
+                  break;
+                }
+              }
+            }
+
+            return FeatherTypingIndicator(
+              senderName: senderName,
+              isSecret:   true, // dark red bubble
+            );
+          },
+        );
       },
     );
   }
