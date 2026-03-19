@@ -13,7 +13,6 @@ class ChatHeaderNeonGroup extends StatelessWidget {
   final List<String> avatarPaths;
 
   /// Character IDs in the same order as [avatarPaths].
-  /// Required for per-avatar tap in group headers.
   final List<String> memberIds;
 
   final bool isOnline;
@@ -41,20 +40,20 @@ class ChatHeaderNeonGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return _isGroup
         ? _GroupHeader(
-            title:         title,
-            avatarPaths:   avatarPaths,
-            memberIds:     memberIds,
+            title: title,
+            avatarPaths: avatarPaths,
+            memberIds: memberIds,
             onBackPressed: onBackPressed,
-            isOnline:      isOnline,
-            onTitleTap:    onAvatarTap,
-            onMemberTap:   onMemberTap,
+            isOnline: isOnline,
+            onTitleTap: onAvatarTap,
+            onMemberTap: onMemberTap,
           )
         : _SingleHeader(
-            title:         title,
-            avatarPath:    avatarPaths.isNotEmpty ? avatarPaths.first : null,
+            title: title,
+            avatarPath: avatarPaths.isNotEmpty ? avatarPaths.first : null,
             onBackPressed: onBackPressed,
-            isOnline:      isOnline,
-            onTap:         onAvatarTap,
+            isOnline: isOnline,
+            onTap: onAvatarTap,
           );
   }
 }
@@ -88,8 +87,6 @@ class _SingleHeader extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-
-            // ── PILL ──────────────────────────────────────────────────
             GestureDetector(
               onTap: onTap,
               child: Container(
@@ -105,14 +102,13 @@ class _SingleHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Avatar — 32px, left side of pill
                     Container(
-                      width: 32, height: 32,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: const Color(0xFF1A0A2E),
-                        border: Border.all(
-                            color: Colors.white24, width: 1),
+                        border: Border.all(color: Colors.white24, width: 1),
                       ),
                       child: ClipOval(
                         child: avatarPath != null
@@ -123,22 +119,18 @@ class _SingleHeader extends StatelessWidget {
                             : const _FallbackAvatar(),
                       ),
                     ),
-
                     const SizedBox(width: 8),
-
-                    // Name + Online stacked vertically
                     Flexible(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             title,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.spectral(
-                              color:      Colors.white,
-                              fontSize:   18,
+                              color: Colors.white,
+                              fontSize: 18,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -148,13 +140,14 @@ class _SingleHeader extends StatelessWidget {
                               children: [
                                 Text('Online',
                                     style: GoogleFonts.spaceGrotesk(
-                                      color:      const Color(0xFF3DDB5E),
-                                      fontSize:   11,
+                                      color: const Color(0xFF3DDB5E),
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     )),
                                 const SizedBox(width: 4),
                                 Container(
-                                  width: 7, height: 7,
+                                  width: 7,
+                                  height: 7,
                                   decoration: const BoxDecoration(
                                     color: Color(0xFF3DDB5E),
                                     shape: BoxShape.circle,
@@ -169,8 +162,6 @@ class _SingleHeader extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ── BACK ARROW ────────────────────────────────────────────
             Positioned(
               left: 0,
               child: GestureDetector(
@@ -213,10 +204,10 @@ class _GroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topPad  = MediaQuery.of(context).padding.top;
+    final topPad = MediaQuery.of(context).padding.top;
     final visible = avatarPaths.take(4).toList();
     final visibleIds = memberIds.take(4).toList();
-    final extra   = (avatarPaths.length - 4).clamp(0, 999);
+    final extra = (avatarPaths.length - 4).clamp(0, 999);
 
     return SizedBox(
       width: double.infinity,
@@ -226,8 +217,6 @@ class _GroupHeader extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-
-            // ── PILL ──────────────────────────────────────────────────
             Container(
               width: MediaQuery.of(context).size.width * 0.70,
               padding: const EdgeInsets.symmetric(
@@ -250,32 +239,26 @@ class _GroupHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-
-                  // Stacked avatars — each independently tappable
                   _StackedAvatars(
                     avatarPaths: visible,
-                    memberIds:   visibleIds,
-                    extra:       extra,
+                    memberIds: visibleIds,
+                    extra: extra,
                     onMemberTap: onMemberTap,
                   ),
-
                   const SizedBox(width: 10),
-
-                  // Name + Online — tapping name opens first member
                   Flexible(
                     child: GestureDetector(
                       onTap: onTitleTap,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             title,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.spectral(
-                              color:      Colors.white,
-                              fontSize:   17,
+                              color: Colors.white,
+                              fontSize: 17,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -285,13 +268,14 @@ class _GroupHeader extends StatelessWidget {
                               children: [
                                 Text('Online',
                                     style: GoogleFonts.spaceGrotesk(
-                                      color:      const Color(0xFF3DDB5E),
-                                      fontSize:   11,
+                                      color: const Color(0xFF3DDB5E),
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     )),
                                 const SizedBox(width: 4),
                                 Container(
-                                  width: 7, height: 7,
+                                  width: 7,
+                                  height: 7,
                                   decoration: const BoxDecoration(
                                     color: Color(0xFF3DDB5E),
                                     shape: BoxShape.circle,
@@ -306,8 +290,6 @@ class _GroupHeader extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── BACK ARROW ────────────────────────────────────────────
             Positioned(
               left: 0,
               child: GestureDetector(
@@ -342,14 +324,14 @@ class _StackedAvatars extends StatelessWidget {
     this.onMemberTap,
   });
 
-  static const double _size    = 26;
+  static const double _size = 26;
   static const double _overlap = 16;
 
   @override
   Widget build(BuildContext context) {
-    final count  = avatarPaths.length;
-    final totalW = _size + (count - 1) * _overlap +
-        (extra > 0 ? _overlap : 0);
+    final count = avatarPaths.length;
+    final totalW =
+        _size + (count - 1) * _overlap + (extra > 0 ? _overlap : 0);
 
     return SizedBox(
       width: totalW,
@@ -357,22 +339,26 @@ class _StackedAvatars extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Each avatar wrapped in its own GestureDetector
           ...List.generate(count, (i) {
-            final id       = i < memberIds.length ? memberIds[i] : null;
-            final onTap    = id != null ? onMemberTap?[id] : null;
+            // FIX: resolve tap callback without nesting two ? operators
+            // in one expression — Dart's parser confuses the null-safe
+            // index ?[key] with a ternary when both appear on the same line.
+            VoidCallback? onTap;
+            if (i < memberIds.length && onMemberTap != null) {
+              onTap = onMemberTap![memberIds[i]];
+            }
 
             return Positioned(
               left: i * _overlap,
               child: GestureDetector(
                 onTap: onTap,
                 child: Container(
-                  width: _size, height: _size,
+                  width: _size,
+                  height: _size,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF4A9EBF)
-                          .withOpacity(0.8),
+                      color: const Color(0xFF4A9EBF).withOpacity(0.8),
                       width: 1.2,
                     ),
                     color: const Color(0xFF0D1E2A),
@@ -389,27 +375,25 @@ class _StackedAvatars extends StatelessWidget {
               ),
             );
           }),
-
-          // +N overflow badge (not tappable)
           if (extra > 0)
             Positioned(
               left: count * _overlap,
               child: Container(
-                width: _size, height: _size,
+                width: _size,
+                height: _size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: const Color(0xFF2A4A5E),
                   border: Border.all(
-                    color:
-                        const Color(0xFF4A9EBF).withOpacity(0.6),
+                    color: const Color(0xFF4A9EBF).withOpacity(0.6),
                     width: 1.2,
                   ),
                 ),
                 child: Center(
                   child: Text('+$extra',
                       style: GoogleFonts.spaceGrotesk(
-                        color:      Colors.white,
-                        fontSize:   8,
+                        color: Colors.white,
+                        fontSize: 8,
                         fontWeight: FontWeight.w700,
                       )),
                 ),
@@ -430,8 +414,7 @@ class _FallbackAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF2A1A4A),
-      child: const Icon(Icons.person,
-          color: Color(0xFF8B5CF6), size: 20),
+      child: const Icon(Icons.person, color: Color(0xFF8B5CF6), size: 20),
     );
   }
 }
