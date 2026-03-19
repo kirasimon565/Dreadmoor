@@ -148,6 +148,9 @@ final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeMo
 // ---------------------------
 final globalSchedulerProvider = Provider<GlobalScheduler>((ref) {
   final scheduler = GlobalScheduler(ref);
-  // ref.onDispose(() => scheduler.dispose());
+  // FIX: wire up dispose so the timer is cancelled when the provider
+  // is torn down — prevents timer callbacks firing after disposal.
+  ref.onDispose(() => scheduler.dispose());
   return scheduler;
 });
+
