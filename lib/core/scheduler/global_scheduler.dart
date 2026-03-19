@@ -94,7 +94,7 @@ class GlobalScheduler {
     _timer?.cancel();
     await seedCharacters(ref.read(databaseProvider));
     ref.read(isSchedulerPausedProvider.notifier).setPaused(false);
-    ref.read(waitingForChoiceProvider.notifier).state  = false;
+    ref.read(waitingForChoiceProvider.notifier).setWaiting(false); // Riverpod 3: use public method
     await _executeNode(nodeId);
   }
 
@@ -250,6 +250,21 @@ class GlobalScheduler {
     final mediaPath = meta['file_asset'] as String?;
     final mediaType = isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
     final senderId = node.senderId ?? 'unknown';
+
+    // FIX: deduplication — skip if this node's message was already inserted.
+    // Duplicate messages occur when _handleTyping passes the same node to
+    // _processNodeType after the timer fires and the timer ran more than once.
+    if (node.id.isNotEmpty) {
+      final existing = await (db.select(db.messages)
+            ..where((m) => m.nodeId.equals(node.id))
+            ..limit(1))
+          .getSingleOrNull();
+      if (existing != null) {
+        print("DreadmoorOS ⚠ '${node.id}' already inserted — skipping duplicate.");
+        _advance(node.nextNodeId);
+        return;
+      }
+    }
 
     final id = await db.into(db.messages).insert(
       MessagesCompanion.insert(
@@ -438,6 +453,11 @@ class GlobalScheduler {
     await _ensureThread(threadId, meta);
     ref.read(activeThreadIdProvider.notifier).setId(threadId);
     ref.read(appRouterProvider).go(Routes.secret(threadId));
+
+    // FIX: wait one frame for GoRouter navigation to complete before
+    // advancing. Without this, the next node fires state updates while
+    // SecretChatScreen is still mounting → hits the error boundary.
+    await Future.delayed(const Duration(milliseconds: 150));
     _advance(node.nextNodeId);
   }
 
@@ -673,5 +693,11 @@ class GlobalScheduler {
 
   Future<void> _playSound(String path) async {
     try { await AudioPlayer().play(AssetSource(path)); } catch (_) {}
+  }
+
+  /// Call this from globalSchedulerProvider's ref.onDispose.
+  void dispose() {
+    _timer?.cancel();
+    _timer = null;
   }
 }
