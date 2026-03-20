@@ -25,36 +25,42 @@ class PlayerStateNotifier extends Notifier<Player?> {
   Player? build() => null;
   void setPlayer(Player? player) => state = player;
 }
-final playerStateProvider = NotifierProvider<PlayerStateNotifier, Player?>(PlayerStateNotifier.new);
+
+final playerStateProvider =
+    NotifierProvider<PlayerStateNotifier, Player?>(
+        PlayerStateNotifier.new);
 
 // ---------------------------
-// SCRIPT SYSTEM (Refactored for Obsidian)
+// SCRIPT SYSTEM
 // ---------------------------
 final scriptLoaderProvider = Provider<ScriptLoader>((ref) {
   final db = ref.watch(databaseProvider);
-  return ScriptLoader(db); // Now accepts DB for Obsidian ingestion
+  return ScriptLoader(db);
 });
 
 // ---------------------------
 // NARRATIVE STATE (Node-Based)
 // ---------------------------
 
-/// Current Node ID being executed (e.g., 'SCENE_2_START')
-/// This replaces SceneIndex and EventIndex entirely.
 class ActiveNodeIdNotifier extends Notifier<String?> {
   @override
   String? build() => null;
   void setId(String? id) => state = id;
 }
-final activeNodeIdProvider = NotifierProvider<ActiveNodeIdNotifier, String?>(ActiveNodeIdNotifier.new);
 
-/// Current episode ID
+final activeNodeIdProvider =
+    NotifierProvider<ActiveNodeIdNotifier, String?>(
+        ActiveNodeIdNotifier.new);
+
 class CurrentEpisodeIdNotifier extends Notifier<String?> {
   @override
   String? build() => null;
   void setId(String? id) => state = id;
 }
-final currentEpisodeIdProvider = NotifierProvider<CurrentEpisodeIdNotifier, String?>(CurrentEpisodeIdNotifier.new);
+
+final currentEpisodeIdProvider =
+    NotifierProvider<CurrentEpisodeIdNotifier, String?>(
+        CurrentEpisodeIdNotifier.new);
 
 // ---------------------------
 // THREAD / CHAT STATE
@@ -64,10 +70,13 @@ class ActiveThreadIdNotifier extends Notifier<String?> {
   String? build() => null;
   void setId(String? id) => state = id;
 }
-final activeThreadIdProvider = NotifierProvider<ActiveThreadIdNotifier, String?>(ActiveThreadIdNotifier.new);
+
+final activeThreadIdProvider =
+    NotifierProvider<ActiveThreadIdNotifier, String?>(
+        ActiveThreadIdNotifier.new);
 
 // ---------------------------
-// STORY FLAGS (Refactored for Relational State)
+// STORY FLAGS
 // ---------------------------
 final gameFlagsProvider = StreamProvider<Map<String, bool>>((ref) {
   final db = ref.watch(databaseProvider);
@@ -84,23 +93,63 @@ class IsSchedulerPausedNotifier extends Notifier<bool> {
   bool build() => false;
   void setPaused(bool paused) => state = paused;
 }
-final isSchedulerPausedProvider = NotifierProvider<IsSchedulerPausedNotifier, bool>(IsSchedulerPausedNotifier.new);
+
+final isSchedulerPausedProvider =
+    NotifierProvider<IsSchedulerPausedNotifier, bool>(
+        IsSchedulerPausedNotifier.new);
 
 class WaitingForChoiceNotifier extends Notifier<bool> {
   @override
   bool build() => false;
   void setWaiting(bool waiting) => state = waiting;
 }
-final waitingForChoiceProvider = NotifierProvider<WaitingForChoiceNotifier, bool>(WaitingForChoiceNotifier.new);
+
+final waitingForChoiceProvider =
+    NotifierProvider<WaitingForChoiceNotifier, bool>(
+        WaitingForChoiceNotifier.new);
 
 class WaitingForPuzzleNotifier extends Notifier<bool> {
   @override
   bool build() => false;
   void setWaiting(bool waiting) => state = waiting;
 }
-final waitingForPuzzleProvider = NotifierProvider<WaitingForPuzzleNotifier, bool>(WaitingForPuzzleNotifier.new);
 
-/// Controls navigation between OS Apps (Messenger, Browser, Phone)
+final waitingForPuzzleProvider =
+    NotifierProvider<WaitingForPuzzleNotifier, bool>(
+        WaitingForPuzzleNotifier.new);
+
+// ---------------------------
+// MINIGAME ROUTING
+// Stores which minigame the scheduler launched so DreadmoorAppContainer
+// can render the correct screen in the PhoneApp.puzzle slot.
+// ---------------------------
+
+/// The minigame_id string from the JSON node metadata.
+/// e.g. "ghost_trace_ep01"
+class ActiveMinigameIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void setId(String? id) => state = id;
+}
+
+final activeMinigameIdProvider =
+    NotifierProvider<ActiveMinigameIdNotifier, String?>(
+        ActiveMinigameIdNotifier.new);
+
+/// Difficulty level (1–3) from the JSON node metadata.
+class ActiveMinigameDifficultyNotifier extends Notifier<int> {
+  @override
+  int build() => 1;
+  void setDifficulty(int d) => state = d;
+}
+
+final activeMinigameDifficultyProvider =
+    NotifierProvider<ActiveMinigameDifficultyNotifier, int>(
+        ActiveMinigameDifficultyNotifier.new);
+
+// ---------------------------
+// NAVIGATION
+// ---------------------------
 class DreadmoorNavNotifier extends Notifier<String> {
   @override
   String build() => '/messenger';
@@ -109,8 +158,10 @@ class DreadmoorNavNotifier extends Notifier<String> {
   void navigateToChat() => state = '/messenger';
   void navigateToPhone() => state = '/phone';
 }
-final navigationProvider = NotifierProvider<DreadmoorNavNotifier, String>(DreadmoorNavNotifier.new);
 
+final navigationProvider =
+    NotifierProvider<DreadmoorNavNotifier, String>(
+        DreadmoorNavNotifier.new);
 
 // ---------------------------
 // THEME PREFERENCES
@@ -124,9 +175,12 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 
   Future<void> _loadTheme() async {
     final db = ref.read(databaseProvider);
-    final row = await (db.select(db.storyState)..where((t) => t.key.equals('theme_mode'))).getSingleOrNull();
-    if (row != null && row.stringValue != null) {
-      state = row.stringValue == 'light' ? ThemeMode.light : ThemeMode.dark;
+    final row = await (db.select(db.storyState)
+          ..where((t) => t.key.equals('theme_mode')))
+        .getSingleOrNull();
+    if (row?.stringValue != null) {
+      state =
+          row!.stringValue == 'light' ? ThemeMode.light : ThemeMode.dark;
     }
   }
 
@@ -136,21 +190,22 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
         key: const drift.Value('theme_mode'),
-        stringValue: drift.Value(mode == ThemeMode.light ? 'light' : 'dark'),
+        stringValue:
+            drift.Value(mode == ThemeMode.light ? 'light' : 'dark'),
       ),
     );
   }
 }
-final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+
+final themeModeProvider =
+    NotifierProvider<ThemeModeNotifier, ThemeMode>(
+        ThemeModeNotifier.new);
 
 // ---------------------------
 // GLOBAL SCHEDULER
 // ---------------------------
 final globalSchedulerProvider = Provider<GlobalScheduler>((ref) {
   final scheduler = GlobalScheduler(ref);
-  // FIX: wire up dispose so the timer is cancelled when the provider
-  // is torn down — prevents timer callbacks firing after disposal.
   ref.onDispose(() => scheduler.dispose());
   return scheduler;
 });
-
