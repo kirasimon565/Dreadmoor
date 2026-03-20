@@ -23,45 +23,38 @@ class DreadmoorOS extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final phoneState = ref.watch(phoneProvider);
     final brightness = Theme.of(context).brightness;
+    final activeApp  = ref.watch(activeAppProvider);
 
-    final activeApp = ref.watch(activeAppProvider);
-
-    // activeThreadIdProvider is set to the thread ID when the player is
-    // inside a ChatScreen or SecretChatScreen, and reset to null on dispose.
-    // We use this to hide the nav bar while a chat is open.
-    final activeThreadId = ref.watch(activeThreadIdProvider);
-    final isInChat = activeThreadId != null;
-
-    /// Nav bar visible ONLY on main OS apps AND when NOT inside a chat.
-    final showNavBar = !isInChat &&
-        (activeApp == PhoneApp.messenger ||
-            activeApp == PhoneApp.apps);
+    // FIX: previously used `activeThreadId != null` to decide whether to
+    // hide the nav bar. This caused a permanent disappearance because when
+    // the scheduler navigates away from a chat (e.g. switches to browser),
+    // the chat screen stays alive in MessengerNavigator's stack — dispose()
+    // is never called, activeThreadId is never cleared, isInChat stays true.
+    //
+    // The correct rule: show the nav bar for all four tab apps.
+    // Hide it only for browser and phone which are immersive full-screen.
+    // The chat screen is itself full-screen inside MessengerNavigator so
+    // the nav bar underneath it doesn't matter — it's covered by the chat UI.
+    final showNavBar = activeApp != PhoneApp.browser &&
+                       activeApp != PhoneApp.phone;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background(brightness),
       body: Stack(
         children: [
 
-          /// ─────────────────────────────────────────────
-          /// MAIN OS LAYER
-          /// ─────────────────────────────────────────────
+          // ── MAIN OS LAYER ─────────────────────────────────────────────
           SafeArea(
             top: false,
             child: NotificationOverlay(
               child: Column(
                 children: [
-
-                  /// Status Bar renders first in the column so it pushes the
-                  /// rest of the app content down, avoiding overlaps with UI headers.
-                  /// As requested, it is completely invisible (transparent/colorless)
-                  /// so it does not spoil the appearance of other screens.
                   const DreadmoorStatusBar(),
 
                   const Expanded(
                     child: DreadmoorAppContainer(),
                   ),
 
-                  /// Bottom navigation bar — hidden inside chats and secret chats
                   if (showNavBar)
                     const DreadmoorNavigationBar(),
                 ],
@@ -69,19 +62,16 @@ class DreadmoorOS extends ConsumerWidget {
             ),
           ),
 
-          /// ─────────────────────────────────────────────
-          /// INCOMING CALL
-          /// ─────────────────────────────────────────────
+          // ── INCOMING CALL ─────────────────────────────────────────────
           if (phoneState.callState == CallState.incoming)
             Positioned.fill(
               child: IncomingCallScreen(
-                callerName: phoneState.callerName,
+                callerName:   phoneState.callerName,
                 callerNumber: phoneState.callerNumber,
-                canDecline: phoneState.canDecline,
+                canDecline:   phoneState.canDecline,
                 onAccept: () {
                   ref.read(phoneProvider.notifier)
                       .acceptIncomingCall(ref.read(gameClockProvider));
-
                   if (phoneState.onAccept != null) {
                     phoneState.onAccept!();
                   }
@@ -89,7 +79,6 @@ class DreadmoorOS extends ConsumerWidget {
                 onDecline: () {
                   ref.read(phoneProvider.notifier)
                       .declineIncomingCall(ref.read(gameClockProvider));
-
                   if (phoneState.onDecline != null) {
                     phoneState.onDecline!();
                   }
@@ -97,13 +86,11 @@ class DreadmoorOS extends ConsumerWidget {
               ),
             ),
 
-          /// ─────────────────────────────────────────────
-          /// ACTIVE CALL
-          /// ─────────────────────────────────────────────
+          // ── ACTIVE CALL ───────────────────────────────────────────────
           if (phoneState.callState == CallState.active)
             Positioned.fill(
               child: ActiveCallScreen(
-                callerName: phoneState.callerName,
+                callerName:   phoneState.callerName,
                 callerNumber: phoneState.callerNumber,
                 onEnd: (durationSeconds) {
                   ref.read(phoneProvider.notifier)
