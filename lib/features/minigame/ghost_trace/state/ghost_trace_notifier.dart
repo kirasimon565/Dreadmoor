@@ -19,20 +19,20 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
   static final _rng = Random();
   Timer? _timer;
 
-  // Set externally before the screen opens
   String minigameId = 'ghost_trace_ep01';
   int    difficulty  = 1;
 
   @override
   GhostTraceState build() {
-    ref.onDispose(_timer?.cancel);
+    // FIX: wrap in a lambda so the type is void Function(), not void Function()?
+    // _timer?.cancel is nullable because _timer is Timer? — ref.onDispose
+    // requires a non-null callback.
+    ref.onDispose(() => _timer?.cancel());
     return GhostTraceState(
       phase:  GhostTracePhase.scan,
       config: DifficultyConfig.forLevel(1),
     );
   }
-
-  // ── PUBLIC API ───────────────────────────────────────────────────────────
 
   Future<void> initialise(List<String> nodeIds) async {
     _timer?.cancel();
@@ -41,20 +41,19 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
     final dao    = MinigameDao(db);
     final config = DifficultyConfig.forLevel(difficulty);
 
-    // Check cooldown / restore hearts
-    final saved = await dao.getResult(minigameId);
+    final saved     = await dao.getResult(minigameId);
     final isCooling = await dao.isCoolingDown(minigameId);
     if (isCooling) {
       state = state.copyWith(
-        config:       config,
-        isLocked:     true,
+        config:        config,
+        isLocked:      true,
         cooldownUntil: saved?.cooldownUntil,
       );
       return;
     }
 
-    final hearts  = saved?.heartsRemaining ?? 5;
-    final target  = TargetGenerator.generate(
+    final hearts     = saved?.heartsRemaining ?? 5;
+    final target     = TargetGenerator.generate(
       allNodeIds: nodeIds,
       relayHops:  config.relayHops,
     );
@@ -69,14 +68,13 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
       secondsLeft:       config.timerSeconds,
       scrambledIpTiles:  scrambledIp,
       scrambledTagTiles: scrambledTag,
-      ipSlots:           List.filled(target.ip.split('.').length,  null),
+      ipSlots:           List.filled(target.ip.split('.').length, null),
       tagSlots:          List.filled(target.tag.length, null),
     );
 
     _startTimer();
   }
 
-  /// Player taps a node during scan phase
   void tapNode(String nodeId) {
     if (state.phase != GhostTracePhase.scan) return;
     final isAttacker = nodeId == state.target?.nodeId;
@@ -91,12 +89,10 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
         confidence:         0.0,
       );
     } else {
-      // Wrong node — lose a heart
       _loseHeart('wrong_node');
     }
   }
 
-  /// Player taps a relay hop node during trace phase
   void tapHop(String nodeId) {
     if (state.phase != GhostTracePhase.trace) return;
     final chain = state.target?.relayChain ?? [];
@@ -109,7 +105,6 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
       final confidence = nextIdx / chain.length;
 
       if (nextIdx >= chain.length) {
-        // Trace complete — move to reconstruct
         state = state.copyWith(
           correctHops:   newHops,
           currentHopIdx: nextIdx,
@@ -124,7 +119,6 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
         );
       }
     } else {
-      // Wrong hop — reset chain, lose heart
       state = state.copyWith(
         currentHopIdx: 0,
         correctHops:   [],
@@ -134,7 +128,6 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
     }
   }
 
-  /// Player drops a tile into a slot
   void placeIpTile(int slotIndex, String tile) {
     if (state.phase != GhostTracePhase.reconstruct) return;
     final slots = List<String?>.from(state.ipSlots);
@@ -154,22 +147,19 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
     final target = state.target;
     if (target == null) return;
 
-    final ipCorrect = state.ipSlots.join('.') == target.ip;
-    final tagCorrect = state.tagSlots.join() == target.tag;
+    final ipCorrect  = state.ipSlots.join('.')  == target.ip;
+    final tagCorrect = state.tagSlots.join()     == target.tag;
 
     if (ipCorrect && tagCorrect) {
       _win();
     } else {
       _loseHeart('wrong_submission');
-      // Reset slots but stay in reconstruct
       state = state.copyWith(
-        ipSlots:  List.filled(state.ipSlots.length, null),
+        ipSlots:  List.filled(state.ipSlots.length,  null),
         tagSlots: List.filled(state.tagSlots.length, null),
       );
     }
   }
-
-  // ── INTERNAL ─────────────────────────────────────────────────────────────
 
   void _startTimer() {
     _timer?.cancel();
@@ -209,8 +199,6 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
       won:   true,
     );
     _persist(won: true, hearts: state.hearts);
-
-    // Resume story scheduler
     ref.read(globalSchedulerProvider).completePuzzle();
   }
 
