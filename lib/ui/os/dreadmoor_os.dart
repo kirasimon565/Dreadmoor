@@ -25,18 +25,12 @@ class DreadmoorOS extends ConsumerWidget {
     final brightness = Theme.of(context).brightness;
     final activeApp  = ref.watch(activeAppProvider);
 
-    // FIX: previously used `activeThreadId != null` to decide whether to
-    // hide the nav bar. This caused a permanent disappearance because when
-    // the scheduler navigates away from a chat (e.g. switches to browser),
-    // the chat screen stays alive in MessengerNavigator's stack — dispose()
-    // is never called, activeThreadId is never cleared, isInChat stays true.
-    //
-    // The correct rule: show the nav bar for all four tab apps.
-    // Hide it only for browser and phone which are immersive full-screen.
-    // The chat screen is itself full-screen inside MessengerNavigator so
-    // the nav bar underneath it doesn't matter — it's covered by the chat UI.
-    final showNavBar = activeApp != PhoneApp.browser &&
-                       activeApp != PhoneApp.phone;
+    // FIX (Bug 1): nav bar visibility depends ONLY on activeAppProvider.
+    // Previously also checked activeThreadIdProvider, which caused the bar
+    // to stay hidden when returning from chat if the thread ID wasn't
+    // cleared before the widget rebuilt.
+    final showNavBar =
+        activeApp == PhoneApp.messenger || activeApp == PhoneApp.apps;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background(brightness),
@@ -50,11 +44,9 @@ class DreadmoorOS extends ConsumerWidget {
               child: Column(
                 children: [
                   const DreadmoorStatusBar(),
-
                   const Expanded(
                     child: DreadmoorAppContainer(),
                   ),
-
                   if (showNavBar)
                     const DreadmoorNavigationBar(),
                 ],
@@ -72,16 +64,12 @@ class DreadmoorOS extends ConsumerWidget {
                 onAccept: () {
                   ref.read(phoneProvider.notifier)
                       .acceptIncomingCall(ref.read(gameClockProvider));
-                  if (phoneState.onAccept != null) {
-                    phoneState.onAccept!();
-                  }
+                  if (phoneState.onAccept != null) phoneState.onAccept!();
                 },
                 onDecline: () {
                   ref.read(phoneProvider.notifier)
                       .declineIncomingCall(ref.read(gameClockProvider));
-                  if (phoneState.onDecline != null) {
-                    phoneState.onDecline!();
-                  }
+                  if (phoneState.onDecline != null) phoneState.onDecline!();
                 },
               ),
             ),
