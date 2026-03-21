@@ -23,7 +23,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _scrollController = ScrollController();
 
-  late final Stream<Thread?>           _threadStream;
+  late final Stream<Thread?> _threadStream;
   late final Stream<List<TypedResult>> _messagesStream;
   late final Stream<List<TypedResult>> _membersWithNamesStream;
   late final Stream<List<ThreadMember>> _membersStream;
@@ -60,11 +60,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+
       ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
 
       final activeChoiceRow = await (db.select(db.storyState)
             ..where((t) => t.key.equals('active_choice_id')))
           .getSingleOrNull();
+
       if (activeChoiceRow?.stringValue != null) {
         ref.read(activeNodeIdProvider.notifier)
             .setId(activeChoiceRow!.stringValue!);
@@ -84,10 +86,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _scrollToBottom({bool animated = true}) {
     if (!_scrollController.hasClients) return;
     final max = _scrollController.position.maxScrollExtent;
+
     if (animated) {
-      _scrollController.animateTo(max,
-          duration: const Duration(milliseconds: 320),
-          curve: Curves.easeOut);
+      _scrollController.animateTo(
+        max,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOut,
+      );
     } else {
       _scrollController.jumpTo(max);
     }
@@ -98,8 +103,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       for (final m in members.where((m) => m.characterId != 'player'))
         m.characterId: () {
           HapticFeedback.selectionClick();
-          // BUG 2 FIX: removed rootNavigator: true so CharacterProfileScreen
-          // renders inside DreadmoorOS and receives the global status bar.
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) =>
@@ -117,17 +120,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: StreamBuilder<List<ThreadMember>>(
         stream: _membersStream,
         builder: (context, membersSnap) {
-          final members   = membersSnap.data ?? [];
-          final isGroup   = members.length > 1;
-          final nonPlayer = members
-              .where((m) => m.characterId != 'player')
-              .toList();
+          final members = membersSnap.data ?? [];
+          final isGroup = members.length > 1;
+
+          final nonPlayer =
+              members.where((m) => m.characterId != 'player').toList();
 
           final avatarPaths = nonPlayer
               .map((m) => 'assets/characters/${m.characterId}.png')
               .toList();
+
           final memberIds = nonPlayer.map((m) => m.characterId).toList();
+
           final memberTapMap = _buildMemberTapMap(members);
+
           final singleProfileId =
               nonPlayer.isNotEmpty ? nonPlayer.first.characterId : null;
 
@@ -152,12 +158,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
               // Top gradient
               Positioned(
-                top: 0, left: 0, right: 0, height: 180,
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 180,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
-                      end:   Alignment.bottomCenter,
+                      end: Alignment.bottomCenter,
                       colors: [
                         Colors.black.withOpacity(0.45),
                         Colors.transparent,
@@ -174,20 +183,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     stream: _threadStream,
                     builder: (context, snap) {
                       return ChatHeaderNeonGroup(
-                        title:        snap.data?.title ?? 'Unknown',
-                        onBackPressed: () => Navigator.pop(context),
-                        avatarPaths:  avatarPaths,
-                        memberIds:    memberIds,
-                        isOnline:     true,
+                        title: snap.data?.title ?? 'Unknown',
+
+                        // ✅ FIXED HERE
+                        onBackPressed: () {
+                          ref
+                              .read(activeThreadIdProvider.notifier)
+                              .setId(null);
+                          ref
+                              .read(activeAppProvider.notifier)
+                              .setApp(PhoneApp.messenger);
+                          Navigator.pop(context);
+                        },
+
+                        avatarPaths: avatarPaths,
+                        memberIds: memberIds,
+                        isOnline: true,
                         onAvatarTap: isGroup
                             ? null
                             : singleProfileId != null
                                 ? () {
                                     HapticFeedback.selectionClick();
-                                    // BUG 2 FIX: removed rootNavigator: true
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (_) => CharacterProfileScreen(
+                                        builder: (_) =>
+                                            CharacterProfileScreen(
                                           characterId: singleProfileId,
                                         ),
                                       ),
@@ -207,36 +227,41 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                         if (messages.length != _lastMessageCount) {
                           _lastMessageCount = messages.length;
-                          WidgetsBinding.instance
-                              .addPostFrameCallback((_) => _scrollToBottom(
-                                  animated: _lastMessageCount > 1));
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) => _scrollToBottom(
+                              animated: _lastMessageCount > 1,
+                            ),
+                          );
                         }
 
                         return ListView.builder(
                           controller: _scrollController,
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           itemCount: messages.length + 1,
                           itemBuilder: (context, index) {
                             if (index == messages.length) {
                               return _buildTypingIndicator();
                             }
-                            final db  = ref.read(databaseProvider);
+
+                            final db = ref.read(databaseProvider);
                             final row = messages[index];
                             final msg = row.readTable(db.messages);
                             final character =
                                 row.readTableOrNull(db.characters);
 
                             return ChatBubble(
-                              text:       msg.content ?? '',
-                              isMe:       msg.isPlayerMessage,
-                              senderId:   msg.senderId,
+                              text: msg.content ?? '',
+                              isMe: msg.isPlayerMessage,
+                              senderId: msg.senderId,
                               senderName: character?.name,
-                              timestamp:  msg.timestamp,
-                              isSecret:   msg.isSecret,
-                              mediaType:  msg.type,
-                              mediaPath:  msg.mediaPath,
+                              timestamp: msg.timestamp,
+                              isSecret: msg.isSecret,
+                              mediaType: msg.type,
+                              mediaPath: msg.mediaPath,
                             );
                           },
                         );
@@ -263,11 +288,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         if (threadSnap.data?.isTyping != true) {
           return const SizedBox(height: 20);
         }
+
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
             final db = ref.read(databaseProvider);
+
             String? senderName;
+
             if (membersSnap.hasData) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
@@ -277,9 +305,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 }
               }
             }
+
             return FeatherTypingIndicator(
               senderName: senderName,
-              isSecret:   false,
+              isSecret: false,
             );
           },
         );
