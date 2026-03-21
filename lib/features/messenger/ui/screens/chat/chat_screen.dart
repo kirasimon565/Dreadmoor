@@ -26,8 +26,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   late final Stream<Thread?>           _threadStream;
   late final Stream<List<TypedResult>> _messagesStream;
   late final Stream<List<TypedResult>> _membersWithNamesStream;
-
-  // Raw member stream kept for header avatar paths + IDs
   late final Stream<List<ThreadMember>> _membersStream;
 
   int _lastMessageCount = 0;
@@ -53,7 +51,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId)))
         .watch();
 
-    // Joins ThreadMembers → Characters for typing indicator sender name
     _membersWithNamesStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
         .join([
@@ -65,7 +62,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (!mounted) return;
       ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
 
-      // Restore choice card if scheduler was paused mid-choice
       final activeChoiceRow = await (db.select(db.storyState)
             ..where((t) => t.key.equals('active_choice_id')))
           .getSingleOrNull();
@@ -97,14 +93,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  // Build a map of { characterId → VoidCallback } for group header taps
-  Map<String, VoidCallback> _buildMemberTapMap(
-      List<ThreadMember> members) {
+  Map<String, VoidCallback> _buildMemberTapMap(List<ThreadMember> members) {
     return {
       for (final m in members.where((m) => m.characterId != 'player'))
         m.characterId: () {
           HapticFeedback.selectionClick();
-          Navigator.of(context, rootNavigator: true).push(
+          // BUG 2 FIX: removed rootNavigator: true so CharacterProfileScreen
+          // renders inside DreadmoorOS and receives the global status bar.
+          Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) =>
                   CharacterProfileScreen(characterId: m.characterId),
@@ -131,11 +127,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               .map((m) => 'assets/characters/${m.characterId}.png')
               .toList();
           final memberIds = nonPlayer.map((m) => m.characterId).toList();
-
-          // Per-member tap map for the group header
           final memberTapMap = _buildMemberTapMap(members);
-
-          // Single-thread tap (first non-player member)
           final singleProfileId =
               nonPlayer.isNotEmpty ? nonPlayer.first.characterId : null;
 
@@ -178,7 +170,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               // Main layout
               Column(
                 children: [
-                  // Header
                   StreamBuilder<Thread?>(
                     stream: _threadStream,
                     builder: (context, snap) {
@@ -188,29 +179,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         avatarPaths:  avatarPaths,
                         memberIds:    memberIds,
                         isOnline:     true,
-                        // Single thread: tap pill → open profile
                         onAvatarTap: isGroup
                             ? null
                             : singleProfileId != null
                                 ? () {
                                     HapticFeedback.selectionClick();
-                                    Navigator.of(context,
-                                            rootNavigator: true)
-                                        .push(MaterialPageRoute(
-                                      builder: (_) =>
-                                          CharacterProfileScreen(
-                                        characterId: singleProfileId,
+                                    // BUG 2 FIX: removed rootNavigator: true
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => CharacterProfileScreen(
+                                          characterId: singleProfileId,
+                                        ),
                                       ),
-                                    ));
+                                    );
                                   }
                                 : null,
-                        // Group: each avatar has its own tap
                         onMemberTap: isGroup ? memberTapMap : null,
                       );
                     },
                   ),
 
-                  // Messages
                   Expanded(
                     child: StreamBuilder<List<TypedResult>>(
                       stream: _messagesStream,
@@ -241,14 +229,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 row.readTableOrNull(db.characters);
 
                             return ChatBubble(
-                              text:      msg.content ?? '',
-                              isMe:      msg.isPlayerMessage,
-                              senderId:  msg.senderId,
+                              text:       msg.content ?? '',
+                              isMe:       msg.isPlayerMessage,
+                              senderId:   msg.senderId,
                               senderName: character?.name,
-                              timestamp: msg.timestamp,
-                              isSecret:  msg.isSecret,
-                              mediaType: msg.type,
-                              mediaPath: msg.mediaPath,
+                              timestamp:  msg.timestamp,
+                              isSecret:   msg.isSecret,
+                              mediaType:  msg.type,
+                              mediaPath:  msg.mediaPath,
                             );
                           },
                         );
@@ -260,7 +248,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
 
-              // Choice overlay
               const ChoiceOverlay(),
             ],
           );
@@ -276,14 +263,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         if (threadSnap.data?.isTyping != true) {
           return const SizedBox(height: 20);
         }
-
-        // Resolve typing sender name from members stream
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
             final db = ref.read(databaseProvider);
             String? senderName;
-
             if (membersSnap.hasData) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
@@ -293,7 +277,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 }
               }
             }
-
             return FeatherTypingIndicator(
               senderName: senderName,
               isSecret:   false,
