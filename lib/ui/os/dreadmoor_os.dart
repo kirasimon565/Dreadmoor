@@ -23,14 +23,16 @@ class DreadmoorOS extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final phoneState = ref.watch(phoneProvider);
     final brightness = Theme.of(context).brightness;
-    final activeApp  = ref.watch(activeAppProvider);
 
-    // FIX (Bug 1): nav bar visibility depends ONLY on activeAppProvider.
-    // Previously also checked activeThreadIdProvider, which caused the bar
-    // to stay hidden when returning from chat if the thread ID wasn't
-    // cleared before the widget rebuilt.
+    final activeApp = ref.watch(activeAppProvider);
+
+    // ✅ REINTRODUCED — used ONLY to detect chat state
+    final activeThreadId = ref.watch(activeThreadIdProvider);
+
+    // ✅ FINAL CORRECT LOGIC
     final showNavBar =
-        activeApp == PhoneApp.messenger || activeApp == PhoneApp.apps;
+        (activeApp == PhoneApp.messenger && activeThreadId == null) ||
+        activeApp == PhoneApp.apps;
 
     return Scaffold(
       backgroundColor: DreadmoorColors.background(brightness),
@@ -44,9 +46,11 @@ class DreadmoorOS extends ConsumerWidget {
               child: Column(
                 children: [
                   const DreadmoorStatusBar(),
+
                   const Expanded(
                     child: DreadmoorAppContainer(),
                   ),
+
                   if (showNavBar)
                     const DreadmoorNavigationBar(),
                 ],
