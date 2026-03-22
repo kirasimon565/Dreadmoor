@@ -203,61 +203,91 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
                   // Messages
                   Expanded(
-                    child: StreamBuilder<List<Message>>(
-                      stream: _messagesStream,
-                      builder: (context, snap) {
-                        final messages = snap.data ?? [];
+                    // Outer builder: resolves senderId → displayName map ONCE.
+                    // Built here so it is not recomputed inside ListView.builder.
+                    child: StreamBuilder<List<TypedResult>>(
+                      stream: _membersWithNamesStream,
+                      builder: (context, membersSnap) {
+                        final db = ref.read(databaseProvider);
 
-                        if (messages.length != _lastCount) {
-                          _lastCount = messages.length;
-                          WidgetsBinding.instance
-                              .addPostFrameCallback((_) => _scrollToBottom(
-                                  animated: _lastCount > 1));
-                        }
-
-                        if (messages.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-
-                        // Collect unique non-system senderIds in
-                        // order of first appearance — stable across rebuilds.
-                        final seenIds  = <String>{};
-                        final senderIds = <String>[];
-                        for (final m in messages) {
-                          if (m.senderId != 'system' &&
-                              seenIds.add(m.senderId)) {
-                            senderIds.add(m.senderId);
+                        // Build nameMap once from the members snapshot
+                        final nameMap = <String, String>{};
+                        if (membersSnap.hasData) {
+                          for (final row in membersSnap.data!) {
+                            final char = row.readTableOrNull(db.characters);
+                            if (char != null) {
+                              nameMap[char.id] = char.name;
+                            }
                           }
                         }
-                        // First sender seen → right side
-                        // Second sender seen → left side
-                        final rightSenderId =
-                            senderIds.isNotEmpty ? senderIds.first : null;
 
-                        return ListView.builder(
-                          controller: _scrollController,
-                          physics: const BouncingScrollPhysics(),
-                          padding: EdgeInsets.only(
-                            left:   16,
-                            right:  16,
-                            top:    8,
-                            bottom: _kVpnBarHeight + 16,
-                          ),
-                          itemCount: messages.length + 1,
-                          itemBuilder: (context, i) {
-                            if (i == messages.length) {
-                              return _buildTypingIndicator();
+                        return StreamBuilder<List<Message>>(
+                          stream: _messagesStream,
+                          builder: (context, snap) {
+                            final messages = snap.data ?? [];
+
+                            if (messages.length != _lastCount) {
+                              _lastCount = messages.length;
+                              WidgetsBinding.instance
+                                  .addPostFrameCallback((_) => _scrollToBottom(
+                                      animated: _lastCount > 1));
                             }
-                            final msg = messages[i];
-                            return ChatBubble(
-                              text:      msg.content ?? '',
-                              // FIX: alignment driven by senderId, not
-                              // isPlayerMessage — the player is not in
-                              // this thread.
-                              isMe:      msg.senderId == rightSenderId,
-                              senderId:  msg.senderId,
-                              timestamp: msg.timestamp,
-                              isSecret:  true,
+
+                            if (messages.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+
+                            // Collect unique non-system senderIds, sort
+                            // alphabetically for deterministic alignment.
+                            final seenIds   = <String>{};
+                            final senderIds = <String>[];
+                            for (final m in messages) {
+                              if (m.senderId != 'system' &&
+                                  seenIds.add(m.senderId)) {
+                                senderIds.add(m.senderId);
+                              }
+                            }
+                            senderIds.sort();
+                            final rightSenderId = senderIds.length > 1
+                                ? senderIds[1]
+                                : (senderIds.isNotEmpty
+                                    ? senderIds.first
+                                    : null);
+
+                            return ListView.builder(
+                              controller: _scrollController,
+                              physics: const BouncingScrollPhysics(),
+                              padding: EdgeInsets.only(
+                                left:   16,
+                                right:  16,
+                                top:    8,
+                                bottom: _kVpnBarHeight + 16,
+                              ),
+                              itemCount: messages.length + 1,
+                              itemBuilder: (context, i) {
+                                if (i == messages.length) {
+                                  return _buildTypingIndicator();
+                                }
+                                final msg = messages[i];
+
+                                // Build display text with sender name prefix.
+                                // nameMap built once in outer StreamBuilder —
+                                // not recomputed per item.
+                                final senderName =
+                                    nameMap[msg.senderId] ?? msg.senderId;
+                                final displayText = msg.senderId != 'system'
+                                    ? '${senderName.toUpperCase()}
+${msg.content ?? ''}'
+                                    : msg.content ?? '';
+
+                                return ChatBubble(
+                                  text:      displayText,
+                                  isMe:      msg.senderId == rightSenderId,
+                                  senderId:  msg.senderId,
+                                  timestamp: msg.timestamp,
+                                  isSecret:  true,
+                                );
+                              },
                             );
                           },
                         );
