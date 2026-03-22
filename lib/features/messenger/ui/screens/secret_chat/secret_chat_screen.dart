@@ -282,7 +282,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                                 return ChatBubble(
                                   text:      displayText,
                                   isMe:      msg.senderId == rightSenderId,
-                                  senderId:  msg.senderId,
+                                  senderId:  null, // suppress ChatBubble name — displayText already contains it
                                   timestamp: msg.timestamp,
                                   isSecret:  true,
                                 );
