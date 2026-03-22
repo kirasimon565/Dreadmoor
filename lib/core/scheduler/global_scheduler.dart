@@ -449,22 +449,24 @@ class GlobalScheduler {
     pause();
   }
 
-  // ── Secret Hacked — force SecretChatScreen ───────────────────────────────
-  // Requires metadata: { "thread_id": "some_thread_id" }
-  // Falls back to 'intercept_unknown' if not specified.
+  // ── Secret Hacked — switch context to secret thread ─────────────────────
+  // Requires metadata: { "thread_id": "...", "thread_title": "...",
+  //                      "thread_members": [...], "thread_secret": true }
+  // Behaves like Switch_Context: ensures thread exists, sets activeThreadId,
+  // then immediately advances. No navigation, no delays.
   Future<void> _handleSecretHacked(
       StoryNode node, Map<String, dynamic> meta) async {
     final threadId = (meta['thread_id'] as String?)
         ?? _resolveThreadId(node, meta);
 
-    await _ensureThread(threadId, meta);
-    ref.read(activeThreadIdProvider.notifier).setId(threadId);
-    ref.read(appRouterProvider).go(Routes.secret(threadId));
+    // Force thread_secret = true regardless of what meta says
+    final enrichedMeta = {
+      ...meta,
+      'thread_secret': true,
+    };
 
-    // Wait one frame for GoRouter to complete navigation before advancing.
-    // Without this, next-node state updates hit a still-mounting widget
-    // and trigger the error boundary.
-    await Future.delayed(const Duration(milliseconds: 150));
+    await _ensureThread(threadId, enrichedMeta);
+    ref.read(activeThreadIdProvider.notifier).setId(threadId);
     _advance(node.nextNodeId);
   }
 
