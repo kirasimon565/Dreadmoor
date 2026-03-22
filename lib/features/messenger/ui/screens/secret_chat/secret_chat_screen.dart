@@ -276,8 +276,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                                 final senderName =
                                     nameMap[msg.senderId] ?? msg.senderId;
                                 final displayText = msg.senderId != 'system'
-                                    ? '${senderName.toUpperCase()}
-${msg.content ?? ''}'
+                                    ? '${senderName.toUpperCase()}\n${msg.content ?? ''}'
                                     : msg.content ?? '';
 
                                 return ChatBubble(
