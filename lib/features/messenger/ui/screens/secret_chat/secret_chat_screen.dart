@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,28 +8,39 @@ import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
-import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 
 const double _kVpnBarHeight = 44.0;
+
+// ── VPN label variant pools ───────────────────────────────────────────────────
+const _vpnVariants  = ['VPN: ACTIVE',       'VPN: STABLE',      'VPN: SECURED'];
+const _encVariants  = ['ENCRYPTION: HIGH',  'ENCRYPTION: LOCKED','ENCRYPTION: AES-256'];
+const _idVariants   = ['IDENTITY: HIDDEN',  'IDENTITY: MASKED',  'IDENTITY: ANON'];
 
 class SecretChatScreen extends ConsumerStatefulWidget {
   final String threadId;
   const SecretChatScreen({super.key, required this.threadId});
 
   @override
-  ConsumerState<SecretChatScreen> createState() =>
-      _SecretChatScreenState();
+  ConsumerState<SecretChatScreen> createState() => _SecretChatScreenState();
 }
 
 class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
   final _scrollController = ScrollController();
+  final _rng = Random();
 
   late final Stream<Thread?>           _threadStream;
   late final Stream<List<Message>>     _messagesStream;
   late final Stream<List<TypedResult>> _membersWithNamesStream;
 
   int _lastCount = 0;
+
+  // ── VPN bar animation state ───────────────────────────────────────────────
+  Timer?  _vpnTimer;
+  double  _vpnOpacity  = 1.0;
+  String  _vpnStatus   = _vpnVariants[0];
+  String  _encStatus   = _encVariants[0];
+  String  _idStatus    = _idVariants[0];
 
   @override
   void initState() {
@@ -43,7 +56,6 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .watch();
 
-    // Joins ThreadMembers → Characters for typing indicator sender name
     _membersWithNamesStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
         .join([
@@ -56,10 +68,35 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
         ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
       }
     });
+
+    _startVpnCycle();
+  }
+
+  void _startVpnCycle() {
+    // Pick a random interval between 2–4 seconds, then cycle one label
+    // and schedule the next tick. Subtle opacity flicker accompanies each change.
+    final delay = Duration(milliseconds: 2000 + _rng.nextInt(2000));
+    _vpnTimer = Timer(delay, () {
+      if (!mounted) return;
+      setState(() {
+        _vpnOpacity = 0.5; // brief dim
+        // Randomly pick which field to update
+        final field = _rng.nextInt(3);
+        if (field == 0) _vpnStatus = _vpnVariants[_rng.nextInt(_vpnVariants.length)];
+        if (field == 1) _encStatus = _encVariants[_rng.nextInt(_encVariants.length)];
+        if (field == 2) _idStatus  = _idVariants[_rng.nextInt(_idVariants.length)];
+      });
+      // Restore opacity after 200ms
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) setState(() => _vpnOpacity = 1.0);
+      });
+      _startVpnCycle(); // reschedule
+    });
   }
 
   @override
   void dispose() {
+    _vpnTimer?.cancel();
     ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
     _scrollController.dispose();
     super.dispose();
@@ -105,16 +142,13 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                       builder: (context, snap) {
                         final title = snap.data?.title ?? 'Unknown';
                         return Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
                               onTap: () => Navigator.pop(context),
-                              child: const Icon(
-                                  Icons.arrow_back_ios_new,
+                              child: const Icon(Icons.arrow_back_ios_new,
                                   color: Colors.white, size: 24),
                             ),
-
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 8),
@@ -159,7 +193,6 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                                 ],
                               ),
                             ),
-
                             const Icon(Icons.live_tv,
                                 color: Colors.white, size: 24),
                           ],
@@ -186,6 +219,21 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                           return const SizedBox.shrink();
                         }
 
+                        // Collect unique non-system senderIds in
+                        // order of first appearance — stable across rebuilds.
+                        final seenIds  = <String>{};
+                        final senderIds = <String>[];
+                        for (final m in messages) {
+                          if (m.senderId != 'system' &&
+                              seenIds.add(m.senderId)) {
+                            senderIds.add(m.senderId);
+                          }
+                        }
+                        // First sender seen → right side
+                        // Second sender seen → left side
+                        final rightSenderId =
+                            senderIds.isNotEmpty ? senderIds.first : null;
+
                         return ListView.builder(
                           controller: _scrollController,
                           physics: const BouncingScrollPhysics(),
@@ -193,7 +241,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                             left:   16,
                             right:  16,
                             top:    8,
-                            bottom: _kVpnBarHeight + 80,
+                            bottom: _kVpnBarHeight + 16,
                           ),
                           itemCount: messages.length + 1,
                           itemBuilder: (context, i) {
@@ -203,7 +251,10 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                             final msg = messages[i];
                             return ChatBubble(
                               text:      msg.content ?? '',
-                              isMe:      msg.isPlayerMessage,
+                              // FIX: alignment driven by senderId, not
+                              // isPlayerMessage — the player is not in
+                              // this thread.
+                              isMe:      msg.senderId == rightSenderId,
                               senderId:  msg.senderId,
                               timestamp: msg.timestamp,
                               isSecret:  true,
@@ -216,31 +267,27 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                 ],
               ),
 
-              // Choice overlay shifted above VPN bar
-              MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  padding: MediaQuery.of(context).padding.copyWith(
-                    bottom: MediaQuery.of(context).padding.bottom +
-                        _kVpnBarHeight,
-                  ),
-                ),
-                child: const ChoiceOverlay(),
-              ),
+              // ChoiceOverlay REMOVED — secret chat is read-only.
+              // The player cannot send messages here.
 
-              // VPN status bar — always on top
+              // VPN status bar — animated labels, subtle opacity flicker
               Positioned(
                 left: 0, right: 0, bottom: 0,
-                child: Container(
-                  height: _kVpnBarHeight,
-                  color: Colors.black.withOpacity(0.35),
-                  alignment: Alignment.center,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _StatusText(label: 'VPN',       value: 'ACTIVE'),
-                      _StatusText(label: 'ENCRYPTION', value: 'HIGH'),
-                      _StatusText(label: 'IDENTITY',   value: 'HIDDEN'),
-                    ],
+                child: AnimatedOpacity(
+                  opacity:  _vpnOpacity,
+                  duration: const Duration(milliseconds: 180),
+                  child: Container(
+                    height: _kVpnBarHeight,
+                    color:  Colors.black.withOpacity(0.35),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _StatusText(label: _vpnStatus),
+                        _StatusText(label: _encStatus),
+                        _StatusText(label: _idStatus),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -258,13 +305,11 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
         if (threadSnap.data?.isTyping != true) {
           return const SizedBox(height: 8);
         }
-
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
             final db = ref.read(databaseProvider);
             String? senderName;
-
             if (membersSnap.hasData) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
@@ -274,10 +319,9 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                 }
               }
             }
-
             return FeatherTypingIndicator(
               senderName: senderName,
-              isSecret:   true, // dark red bubble
+              isSecret:   true,
             );
           },
         );
@@ -288,13 +332,12 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
 class _StatusText extends StatelessWidget {
   final String label;
-  final String value;
-  const _StatusText({required this.label, required this.value});
+  const _StatusText({required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      '$label: $value',
+      label,
       style: const TextStyle(
         color:        Colors.white,
         fontSize:     11,
