@@ -268,23 +268,47 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                                 if (i == messages.length) {
                                   return _buildTypingIndicator();
                                 }
-                                final msg = messages[i];
+                                final msg    = messages[i];
+                                final isRight = msg.senderId == rightSenderId;
+                                final isSystem = msg.senderId == 'system';
 
-                                // Build display text with sender name prefix.
-                                // nameMap built once in outer StreamBuilder —
-                                // not recomputed per item.
-                                final senderName =
-                                    nameMap[msg.senderId] ?? msg.senderId;
-                                final displayText = msg.senderId != 'system'
-                                    ? '${senderName.toUpperCase()}\n${msg.content ?? ''}'
-                                    : msg.content ?? '';
+                                // Sender name rendered above the bubble,
+                                // not injected into message text.
+                                final senderName = isSystem
+                                    ? null
+                                    : (nameMap[msg.senderId] ?? msg.senderId)
+                                        .toUpperCase();
 
-                                return ChatBubble(
-                                  text:      displayText,
-                                  isMe:      msg.senderId == rightSenderId,
-                                  senderId:  null, // suppress ChatBubble name — displayText already contains it
-                                  timestamp: msg.timestamp,
-                                  isSecret:  true,
+                                return Column(
+                                  crossAxisAlignment: isRight
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    if (senderName != null)
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          left:  isRight ? 0 : 28,
+                                          right: isRight ? 28 : 0,
+                                          bottom: 2,
+                                        ),
+                                        child: Text(
+                                          senderName,
+                                          style: const TextStyle(
+                                            fontSize:      11,
+                                            fontWeight:    FontWeight.w600,
+                                            color:         Color(0xFF8FA8B8),
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ),
+                                    ChatBubble(
+                                      text:      msg.content ?? '',
+                                      isMe:      isRight,
+                                      senderId:  null,
+                                      timestamp: msg.timestamp,
+                                      isSecret:  true,
+                                    ),
+                                  ],
                                 );
                               },
                             );
