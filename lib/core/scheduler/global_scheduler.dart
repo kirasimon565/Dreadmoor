@@ -521,14 +521,26 @@ class GlobalScheduler {
 
   // ── Accept Call — full-screen call UI ────────────────────────────────────
   void _handleAcceptCall(StoryNode node, Map<String, dynamic> meta) {
-    final callerName = (meta['caller_name'] as String?) ?? 'Unknown';
-    final callerId   = (meta['caller_id']   as String?) ?? 'Unknown Number';
+  final callerName = (meta['caller_name'] as String?) ?? 'Unknown';
+  final callerId   = (meta['caller_id']   as String?) ?? 'Unknown Number';
 
-    ref.read(phoneProvider.notifier).startCall(
-        callerName, callerId, ref.read(gameClockProvider));
-    ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
-    pause();
+  final audioPath  = meta['audio_asset'] as String?; // ✅ NEW
+
+  ref.read(phoneProvider.notifier).startCall(
+    callerName,
+    callerId,
+    ref.read(gameClockProvider),
+  );
+
+  // ✅ Inject audio AFTER starting call
+  if (audioPath != null) {
+    ref.read(phoneProvider.notifier).state =
+        ref.read(phoneProvider).copyWith(callAudioPath: audioPath);
   }
+
+  ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+  pause();
+}
 
   // ── Choice Required ──────────────────────────────────────────────────────
   void _handleChoiceRequired(StoryNode node, Map<String, dynamic> meta) {
