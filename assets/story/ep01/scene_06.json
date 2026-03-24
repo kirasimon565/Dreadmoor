@@ -37,7 +37,7 @@
       "type": "Accept_Call",
       "caller_name": "Unknown",
       "caller_id": "Unknown Number",
-      "audio_asset": "assets/media/audio/threatening_call_01.mp3",
+      "audio_asset": "media/audio/threatening_call_01.mp3",
       "visual_effect": "Audio_Waveform_Glitch",
       "next": "EPISODE_1_END"
     },
