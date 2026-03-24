@@ -41,11 +41,11 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.setVolume(1.0);
 
-      final result = await _audioPlayer.play(
-        AssetSource('media/sfx/phone_ringtone_glitch.mp3'),
-      );
+      await _audioPlayer.play(
+  AssetSource('media/sfx/phone_ringtone_glitch.mp3'),
+);
 
-      print('RINGTONE START RESULT: $result');
+print('RINGTONE STARTED');
     } catch (e) {
       print('RINGTONE ERROR: $e');
     }
