@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/widgets/audio_waveform_glitch.dart';
@@ -29,12 +28,10 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
   Timer? _timer;
   bool _isMuted = false;
   bool _isSpeaker = false;
-  final AudioPlayer _ringtonePlayer = AudioPlayer();
 
   @override
   void initState() {
     super.initState();
-    _playBackgroundGlitches();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -45,17 +42,9 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
     });
   }
 
-  Future<void> _playBackgroundGlitches() async {
-    await _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
-    await _ringtonePlayer.setVolume(0.3);
-    // AssetSource expects path relative to 'assets/', so we pass 'media/sfx/...'
-    await _ringtonePlayer.play(AssetSource('media/sfx/phone_ringtone_glitch.mp3'));
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
-    _ringtonePlayer.dispose();
     super.dispose();
   }
 
@@ -72,14 +61,15 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. CINEMATIC BACKGROUND (Matches your Profile/Call redesign)
+          // 1. CINEMATIC BACKGROUND
           Positioned.fill(
             child: Image.asset(
               'assets/media/images/moon_tower_hero.png',
               fit: BoxFit.cover,
             ),
           ),
-          // Dark overlay for text contrast
+
+          // Overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -99,24 +89,23 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 60),
-                
-                // 2. CALLER IDENTITY (Large Portrait Circle)
+
+                // Caller avatar
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: const BoxDecoration(
                     color: Colors.white24,
                     shape: BoxShape.circle,
                   ),
-                  child: CircleAvatar(
+                  child: const CircleAvatar(
                     radius: 60,
                     backgroundColor: Colors.black54,
-                    // Use a generic mask or resolve character avatar
-                    backgroundImage: const AssetImage('assets/avatars/unknown_mask.png'),
+                    backgroundImage: AssetImage('assets/avatars/unknown_mask.png'),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 Text(
                   widget.callerName.toUpperCase(),
                   style: GoogleFonts.spectral(
@@ -126,9 +115,9 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
                     letterSpacing: 2,
                   ),
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 Text(
                   _formattedTime,
                   style: GoogleFonts.spaceGrotesk(
@@ -141,7 +130,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
 
                 const Spacer(),
 
-                // ── ANIMATED WAVEFORM GLITCH ────────────────────────────
+                // Waveform animation
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.0),
                   child: AudioWaveformGlitch(),
@@ -149,7 +138,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
 
                 const Spacer(),
 
-                // 3. MID-CALL CONTROLS
+                // Controls
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Row(
@@ -173,7 +162,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
 
                 const SizedBox(height: 60),
 
-                // 4. END CALL ACTION (The Big Red Button)
+                // End call
                 GestureDetector(
                   onTap: () => widget.onEnd(_seconds),
                   child: Container(
@@ -186,9 +175,9 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
                     child: const Icon(Icons.call_end, color: Colors.white, size: 36),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 Text(
                   "END CALL",
                   style: GoogleFonts.spaceGrotesk(
@@ -198,7 +187,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
                     letterSpacing: 2,
                   ),
                 ),
-                
+
                 const SizedBox(height: 48),
               ],
             ),
