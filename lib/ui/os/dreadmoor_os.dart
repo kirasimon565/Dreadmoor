@@ -58,7 +58,7 @@ class DreadmoorOS extends ConsumerWidget {
             ),
           ),
 
-          // ── INCOMING CALL ─────────────────────────────────────────────
+          // ── CALL OVERLAY (FIXED) ──────────────────────────────────────
           if (phoneState.callState == CallState.incoming)
             Positioned.fill(
               child: IncomingCallScreen(
@@ -76,10 +76,8 @@ class DreadmoorOS extends ConsumerWidget {
                   if (phoneState.onDecline != null) phoneState.onDecline!();
                 },
               ),
-            ),
-
-          // ── ACTIVE CALL ───────────────────────────────────────────────
-          if (phoneState.callState == CallState.active)
+            )
+          else if (phoneState.callState == CallState.active)
             Positioned.fill(
               child: ActiveCallScreen(
                 callerName:   phoneState.callerName,
