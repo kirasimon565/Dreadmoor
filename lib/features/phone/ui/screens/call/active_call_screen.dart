@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import 'package:dreadmoor/ui/theme/colors.dart';
-import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/widgets/audio_waveform_glitch.dart';
 import 'package:dreadmoor/features/phone/phone_state.dart';
 
@@ -53,12 +52,8 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
   }
 
   Future<void> _playCallAudio(String path) async {
-    try {
-      await _audioPlayer.setVolume(1.0);
-      await _audioPlayer.play(AssetSource(path));
-    } catch (e) {
-      debugPrint('CALL AUDIO ERROR: $e');
-    }
+    await _audioPlayer.setVolume(1.0);
+    await _audioPlayer.play(AssetSource(path));
   }
 
   @override
