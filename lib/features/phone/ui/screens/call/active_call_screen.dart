@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:audioplayers/audioplayers.dart';
+
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/ui/widgets/audio_waveform_glitch.dart';
+import 'package:dreadmoor/features/phone/phone_state.dart';
 
 class ActiveCallScreen extends ConsumerStatefulWidget {
   final String callerName;
@@ -29,9 +32,13 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
   bool _isMuted = false;
   bool _isSpeaker = false;
 
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   @override
   void initState() {
     super.initState();
+
+    _startCallAudio(); // ✅ dynamic audio
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -42,9 +49,27 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
     });
   }
 
+  Future<void> _startCallAudio() async {
+    try {
+      final phoneState = ref.read(phoneProvider);
+
+      if (phoneState.callAudioPath == null) return;
+
+      await _audioPlayer.setReleaseMode(ReleaseMode.stop);
+
+      await _audioPlayer.play(
+        AssetSource(phoneState.callAudioPath!),
+      );
+    } catch (e) {
+      debugPrint('CALL AUDIO ERROR: $e');
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
+    _audioPlayer.stop(); // ✅ ensure stop
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -61,7 +86,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. CINEMATIC BACKGROUND
+          // 1. BACKGROUND
           Positioned.fill(
             child: Image.asset(
               'assets/media/images/moon_tower_hero.png',
@@ -90,7 +115,7 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
               children: [
                 const SizedBox(height: 60),
 
-                // Caller avatar
+                // Avatar
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: const BoxDecoration(
@@ -130,7 +155,6 @@ class _ActiveCallScreenState extends ConsumerState<ActiveCallScreen> {
 
                 const Spacer(),
 
-                // Waveform animation
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.0),
                   child: AudioWaveformGlitch(),
