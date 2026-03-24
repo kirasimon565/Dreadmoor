@@ -68,6 +68,9 @@ class PhoneState {
   final VoidCallback? onDecline;
   final VoidCallback? onAccept;
 
+  // ✅ NEW
+  final String? callAudioPath;
+
   PhoneState({
     required this.callState,
     required this.callerName,
@@ -76,6 +79,7 @@ class PhoneState {
     this.canDecline = true,
     this.onDecline,
     this.onAccept,
+    this.callAudioPath, // ✅ NEW
   });
 
   PhoneState copyWith({
@@ -86,6 +90,7 @@ class PhoneState {
     bool? canDecline,
     VoidCallback? onDecline,
     VoidCallback? onAccept,
+    String? callAudioPath, // ✅ NEW
   }) {
     return PhoneState(
       callState: callState ?? this.callState,
@@ -95,6 +100,7 @@ class PhoneState {
       canDecline: canDecline ?? this.canDecline,
       onDecline: onDecline ?? this.onDecline,
       onAccept: onAccept ?? this.onAccept,
+      callAudioPath: callAudioPath ?? this.callAudioPath, // ✅ NEW
     );
   }
 }
@@ -110,6 +116,7 @@ class PhoneNotifier extends Notifier<PhoneState> {
       callerName: '',
       callerNumber: '',
       history: [],
+      callAudioPath: null, // ✅ NEW
     );
   }
 
@@ -122,9 +129,7 @@ class PhoneNotifier extends Notifier<PhoneState> {
         final List<dynamic> decoded = jsonDecode(row.stringValue!);
         final history = decoded.map((e) => CallEntry.fromJson(e)).toList();
         state = state.copyWith(history: history);
-      } catch (e) {
-        // Handle decoding error
-      }
+      } catch (e) {}
     } else {
       await _saveHistory([]);
     }
@@ -144,16 +149,14 @@ class PhoneNotifier extends Notifier<PhoneState> {
     );
   }
 
-  // Updated resolveName to look up from the Characters table first
   Future<String> getCallerName(String number) async {
     final db = ref.read(databaseProvider);
     final character = await (db.select(db.characters)
           ..where((c) => c.phoneNumber.equals(number)))
         .getSingleOrNull();
-    
+
     if (character != null) return character.name;
-    
-    // Fallback to hardcoded known numbers
+
     switch (number) {
       case "911":
         return "Emergency";
@@ -186,7 +189,14 @@ class PhoneNotifier extends Notifier<PhoneState> {
     _saveHistory(newHistory);
   }
 
-  void receiveIncomingCall(String name, String number, {bool canDecline = true, VoidCallback? onDecline, VoidCallback? onAccept}) {
+  void receiveIncomingCall(
+    String name,
+    String number, {
+    bool canDecline = true,
+    VoidCallback? onDecline,
+    VoidCallback? onAccept,
+    String? callAudioPath, // ✅ NEW
+  }) {
     state = state.copyWith(
       callState: CallState.incoming,
       callerName: name,
@@ -194,6 +204,7 @@ class PhoneNotifier extends Notifier<PhoneState> {
       canDecline: canDecline,
       onDecline: onDecline,
       onAccept: onAccept,
+      callAudioPath: callAudioPath, // ✅ NEW
     );
   }
 
@@ -213,6 +224,7 @@ class PhoneNotifier extends Notifier<PhoneState> {
     state = state.copyWith(
       callState: CallState.active,
       history: newHistory,
+      callAudioPath: state.callAudioPath, // ✅ KEEP
     );
     _saveHistory(newHistory);
   }
@@ -233,6 +245,7 @@ class PhoneNotifier extends Notifier<PhoneState> {
     state = state.copyWith(
       callState: CallState.idle,
       history: newHistory,
+      callAudioPath: null, // ✅ CLEAR
     );
     _saveHistory(newHistory);
   }
@@ -257,6 +270,7 @@ class PhoneNotifier extends Notifier<PhoneState> {
         callerName: '',
         callerNumber: '',
         history: newHistory,
+        callAudioPath: null, // ✅ CLEAR
       );
       _saveHistory(newHistory);
     } else {
@@ -264,17 +278,17 @@ class PhoneNotifier extends Notifier<PhoneState> {
         callState: CallState.idle,
         callerName: '',
         callerNumber: '',
+        callAudioPath: null, // ✅ CLEAR
       );
     }
   }
 
-  // Deprecated synchronous helper; UI should use getCallerName(number)
   String resolveName(String number) {
     switch (number) {
       case "911":
         return "Emergency";
       case "558169":
-        return "Ash";
+        return "???";
       case "7319":
         return "Rebecca Voicemail";
       default:
