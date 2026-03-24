@@ -37,13 +37,23 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
   }
 
   Future<void> _playRingtone() async {
-    await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-    // AssetSource expects path relative to 'assets/'
-    await _audioPlayer.play(AssetSource('media/sfx/phone_ringtone_glitch.mp3'));
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.setVolume(1.0);
+
+      final result = await _audioPlayer.play(
+        AssetSource('media/sfx/phone_ringtone_glitch.mp3'),
+      );
+
+      print('RINGTONE START RESULT: $result');
+    } catch (e) {
+      print('RINGTONE ERROR: $e');
+    }
   }
 
   @override
   void dispose() {
+    _audioPlayer.stop(); // 🔥 ensure sound stops
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -55,15 +65,15 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. THE CINEMATIC BACKGROUND (Tower/Moon Hero)
+          // 1. BACKGROUND
           Positioned.fill(
             child: Image.asset(
               'assets/media/images/moon_tower_hero.png',
               fit: BoxFit.cover,
             ),
           ),
-          
-          // Darken overlay for maximum readability
+
+          // Overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -79,30 +89,27 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
             ),
           ),
 
-          // 2. CALLER IDENTITY LAYER
+          // 2. CALL UI
           SafeArea(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // CIRCULAR PORTRAIT (Matches Profile UI)
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
                       color: Colors.white24,
                       shape: BoxShape.circle,
                     ),
-                    child: CircleAvatar(
+                    child: const CircleAvatar(
                       radius: 70,
                       backgroundColor: Colors.black54,
-                      // Fallback to the masked "Unknown" avatar from your photos
-                      backgroundImage: const AssetImage('assets/avatars/unknown_mask.png'),
+                      backgroundImage: AssetImage('assets/avatars/unknown_mask.png'),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
-                  // CALLER NAME (Spectral Serif)
+
                   Text(
                     widget.callerName.toUpperCase(),
                     textAlign: TextAlign.center,
@@ -113,10 +120,9 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                       letterSpacing: 2,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
-                  // CALLER NUMBER (Technical Sans)
+
                   Text(
                     widget.callerNumber,
                     style: GoogleFonts.spaceGrotesk(
@@ -125,10 +131,9 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                       letterSpacing: 2.0,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
-                  // STATUS (Investigator Cyan / Pulse)
+
                   Text(
                     "INCOMING CALL",
                     style: GoogleFonts.spaceGrotesk(
@@ -138,10 +143,10 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 80),
-                  
-                  // 3. ACTION CONTROLS
+
+                  // 3. ACTION BUTTONS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -153,7 +158,10 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                             icon: Icons.call_end,
                             color: DreadmoorColors.evidenceRed,
                             label: "DECLINE",
-                            onTap: widget.onDecline,
+                            onTap: () async {
+                              await _audioPlayer.stop(); // 🔥 stop ringtone
+                              widget.onDecline();
+                            },
                           ),
                         ),
                       ),
@@ -162,7 +170,10 @@ class _IncomingCallScreenState extends ConsumerState<IncomingCallScreen> {
                         icon: Icons.call,
                         color: DreadmoorColors.investigatorCyan,
                         label: "ACCEPT",
-                        onTap: widget.onAccept,
+                        onTap: () async {
+                          await _audioPlayer.stop(); // 🔥 stop ringtone
+                          widget.onAccept();
+                        },
                       ),
                     ],
                   ),
