@@ -532,10 +532,11 @@ class GlobalScheduler {
     ref.read(gameClockProvider),
   );
 
-  // ✅ Inject audio AFTER starting call
+  // FIX: use public notifier method instead of directly setting .state
+  // In Riverpod 3, Notifier.state is protected — external assignment silently
+  // fails, so callAudioPath was never stored and ActiveCallScreen got null.
   if (audioPath != null) {
-    ref.read(phoneProvider.notifier).state =
-        ref.read(phoneProvider).copyWith(callAudioPath: audioPath);
+    ref.read(phoneProvider.notifier).setCallAudioPath(audioPath);
   }
 
   ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
