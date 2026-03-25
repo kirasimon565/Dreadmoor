@@ -26,34 +26,35 @@ class CallEntry {
   });
 
   Map<String, dynamic> toJson() {
-    String direction = isIncoming ? (isMissed ? "missed" : "incoming") : "outgoing";
+    final direction =
+        isIncoming ? (isMissed ? 'missed' : 'incoming') : 'outgoing';
     return {
-      'name': name,
-      'number': number,
-      'direction': direction,
+      'name':            name,
+      'number':          number,
+      'direction':       direction,
       'durationSeconds': durationSeconds,
-      'timestamp': time,
+      'timestamp':       time,
     };
   }
 
   factory CallEntry.fromJson(Map<String, dynamic> json) {
     final direction = json['direction'] as String?;
     bool isIncoming = false;
-    bool isMissed = false;
+    bool isMissed   = false;
 
-    if (direction == "incoming") {
+    if (direction == 'incoming') {
       isIncoming = true;
-    } else if (direction == "missed") {
+    } else if (direction == 'missed') {
       isIncoming = true;
-      isMissed = true;
+      isMissed   = true;
     }
 
     return CallEntry(
-      name: json['name'] ?? 'Unknown',
-      number: json['number'] ?? '',
-      time: json['timestamp'] ?? 0,
-      isIncoming: isIncoming,
-      isMissed: isMissed,
+      name:            json['name']            ?? 'Unknown',
+      number:          json['number']          ?? '',
+      time:            json['timestamp']        ?? 0,
+      isIncoming:      isIncoming,
+      isMissed:        isMissed,
       durationSeconds: json['durationSeconds'] ?? 0,
     );
   }
@@ -67,8 +68,6 @@ class PhoneState {
   final bool canDecline;
   final VoidCallback? onDecline;
   final VoidCallback? onAccept;
-
-  // ✅ NEW
   final String? callAudioPath;
 
   PhoneState({
@@ -76,31 +75,31 @@ class PhoneState {
     required this.callerName,
     required this.callerNumber,
     required this.history,
-    this.canDecline = true,
+    this.canDecline     = true,
     this.onDecline,
     this.onAccept,
-    this.callAudioPath, // ✅ NEW
+    this.callAudioPath,
   });
 
   PhoneState copyWith({
-    CallState? callState,
-    String? callerName,
-    String? callerNumber,
+    CallState?    callState,
+    String?       callerName,
+    String?       callerNumber,
     List<CallEntry>? history,
-    bool? canDecline,
+    bool?         canDecline,
     VoidCallback? onDecline,
     VoidCallback? onAccept,
-    String? callAudioPath, // ✅ NEW
+    String?       callAudioPath,
   }) {
     return PhoneState(
-      callState: callState ?? this.callState,
-      callerName: callerName ?? this.callerName,
-      callerNumber: callerNumber ?? this.callerNumber,
-      history: history ?? this.history,
-      canDecline: canDecline ?? this.canDecline,
-      onDecline: onDecline ?? this.onDecline,
-      onAccept: onAccept ?? this.onAccept,
-      callAudioPath: callAudioPath ?? this.callAudioPath, // ✅ NEW
+      callState:     callState     ?? this.callState,
+      callerName:    callerName    ?? this.callerName,
+      callerNumber:  callerNumber  ?? this.callerNumber,
+      history:       history       ?? this.history,
+      canDecline:    canDecline    ?? this.canDecline,
+      onDecline:     onDecline     ?? this.onDecline,
+      onAccept:      onAccept      ?? this.onAccept,
+      callAudioPath: callAudioPath ?? this.callAudioPath,
     );
   }
 }
@@ -112,45 +111,47 @@ class PhoneNotifier extends Notifier<PhoneState> {
   PhoneState build() {
     _loadHistory();
     return PhoneState(
-      callState: CallState.idle,
-      callerName: '',
-      callerNumber: '',
-      history: [],
-      callAudioPath: null, // ✅ NEW
+      callState:     CallState.idle,
+      callerName:    '',
+      callerNumber:  '',
+      history:       [],
+      callAudioPath: null,
     );
   }
 
   Future<void> _loadHistory() async {
-    final db = ref.read(databaseProvider);
-    final row = await (db.select(db.storyState)..where((t) => t.key.equals(_historyKey))).getSingleOrNull();
+    final db  = ref.read(databaseProvider);
+    final row = await (db.select(db.storyState)
+          ..where((t) => t.key.equals(_historyKey)))
+        .getSingleOrNull();
 
     if (row != null && row.stringValue != null) {
       try {
         final List<dynamic> decoded = jsonDecode(row.stringValue!);
         final history = decoded.map((e) => CallEntry.fromJson(e)).toList();
         state = state.copyWith(history: history);
-      } catch (e) {}
+      } catch (_) {}
     } else {
       await _saveHistory([]);
     }
   }
 
   Future<void> _saveHistory(List<CallEntry> history) async {
-    final db = ref.read(databaseProvider);
+    final db         = ref.read(databaseProvider);
     final jsonString = jsonEncode(history.map((e) => e.toJson()).toList());
 
     await db.into(db.storyState).insertOnConflictUpdate(
       StoryStateCompanion(
-        key: const Value(_historyKey),
-        value: const Value(true),
+        key:         const Value(_historyKey),
+        value:       const Value(true),
         stringValue: Value(jsonString),
-        updatedAt: Value(DateTime.now()),
+        updatedAt:   Value(DateTime.now()),
       ),
     );
   }
 
   Future<String> getCallerName(String number) async {
-    final db = ref.read(databaseProvider);
+    final db        = ref.read(databaseProvider);
     final character = await (db.select(db.characters)
           ..where((c) => c.phoneNumber.equals(number)))
         .getSingleOrNull();
@@ -158,33 +159,29 @@ class PhoneNotifier extends Notifier<PhoneState> {
     if (character != null) return character.name;
 
     switch (number) {
-      case "911":
-        return "Emergency";
-      case "558169":
-        return "Ash";
-      case "7319":
-        return "Rebecca Voicemail";
-      default:
-        return number;
+      case '911':    return 'Emergency';
+      case '558169': return 'Ash';
+      case '7319':   return 'Rebecca Voicemail';
+      default:       return number;
     }
   }
 
   void startCall(String name, String number, int time) {
     final entry = CallEntry(
-      name: name,
-      number: number,
-      time: time,
-      isIncoming: false,
-      isMissed: false,
+      name:            name,
+      number:          number,
+      time:            time,
+      isIncoming:      false,
+      isMissed:        false,
       durationSeconds: 0,
     );
 
     final newHistory = [entry, ...state.history];
     state = state.copyWith(
-      callState: CallState.active,
-      callerName: name,
+      callState:    CallState.active,
+      callerName:   name,
       callerNumber: number,
-      history: newHistory,
+      history:      newHistory,
     );
     _saveHistory(newHistory);
   }
@@ -192,39 +189,46 @@ class PhoneNotifier extends Notifier<PhoneState> {
   void receiveIncomingCall(
     String name,
     String number, {
-    bool canDecline = true,
+    bool          canDecline    = true,
     VoidCallback? onDecline,
     VoidCallback? onAccept,
-    String? callAudioPath, // ✅ NEW
+    String?       callAudioPath,
   }) {
     state = state.copyWith(
-      callState: CallState.incoming,
-      callerName: name,
-      callerNumber: number,
-      canDecline: canDecline,
-      onDecline: onDecline,
-      onAccept: onAccept,
-      callAudioPath: callAudioPath, // ✅ NEW
+      callState:     CallState.incoming,
+      callerName:    name,
+      callerNumber:  number,
+      canDecline:    canDecline,
+      onDecline:     onDecline,
+      onAccept:      onAccept,
+      callAudioPath: callAudioPath,
     );
+  }
+
+  /// FIX: public method so the scheduler can set callAudioPath after
+  /// startCall() without directly mutating .state (which is protected
+  /// in Riverpod 3 and silently fails when called externally).
+  void setCallAudioPath(String? path) {
+    state = state.copyWith(callAudioPath: path);
   }
 
   void acceptIncomingCall(int time) {
     if (state.callState != CallState.incoming) return;
 
     final entry = CallEntry(
-      name: state.callerName,
-      number: state.callerNumber,
-      time: time,
-      isIncoming: true,
-      isMissed: false,
+      name:            state.callerName,
+      number:          state.callerNumber,
+      time:            time,
+      isIncoming:      true,
+      isMissed:        false,
       durationSeconds: 0,
     );
 
     final newHistory = [entry, ...state.history];
     state = state.copyWith(
-      callState: CallState.active,
-      history: newHistory,
-      callAudioPath: state.callAudioPath, // ✅ KEEP
+      callState:     CallState.active,
+      history:       newHistory,
+      callAudioPath: state.callAudioPath, // preserve path for ActiveCallScreen
     );
     _saveHistory(newHistory);
   }
@@ -233,19 +237,19 @@ class PhoneNotifier extends Notifier<PhoneState> {
     if (state.callState != CallState.incoming) return;
 
     final entry = CallEntry(
-      name: state.callerName,
-      number: state.callerNumber,
-      time: time,
-      isIncoming: true,
-      isMissed: true,
+      name:            state.callerName,
+      number:          state.callerNumber,
+      time:            time,
+      isIncoming:      true,
+      isMissed:        true,
       durationSeconds: 0,
     );
 
     final newHistory = [entry, ...state.history];
     state = state.copyWith(
-      callState: CallState.idle,
-      history: newHistory,
-      callAudioPath: null, // ✅ CLEAR
+      callState:     CallState.idle,
+      history:       newHistory,
+      callAudioPath: null,
     );
     _saveHistory(newHistory);
   }
@@ -254,47 +258,44 @@ class PhoneNotifier extends Notifier<PhoneState> {
     if (state.callState != CallState.active) return;
 
     if (state.history.isNotEmpty) {
-      final activeEntry = state.history.first;
-      final updatedEntry = CallEntry(
-        name: activeEntry.name,
-        number: activeEntry.number,
-        time: activeEntry.time,
-        isIncoming: activeEntry.isIncoming,
-        isMissed: activeEntry.isMissed,
+      final activeEntry   = state.history.first;
+      final updatedEntry  = CallEntry(
+        name:            activeEntry.name,
+        number:          activeEntry.number,
+        time:            activeEntry.time,
+        isIncoming:      activeEntry.isIncoming,
+        isMissed:        activeEntry.isMissed,
         durationSeconds: durationSeconds,
       );
 
       final newHistory = [updatedEntry, ...state.history.skip(1)];
       state = state.copyWith(
-        callState: CallState.idle,
-        callerName: '',
-        callerNumber: '',
-        history: newHistory,
-        callAudioPath: null, // ✅ CLEAR
+        callState:     CallState.idle,
+        callerName:    '',
+        callerNumber:  '',
+        history:       newHistory,
+        callAudioPath: null,
       );
       _saveHistory(newHistory);
     } else {
       state = state.copyWith(
-        callState: CallState.idle,
-        callerName: '',
-        callerNumber: '',
-        callAudioPath: null, // ✅ CLEAR
+        callState:     CallState.idle,
+        callerName:    '',
+        callerNumber:  '',
+        callAudioPath: null,
       );
     }
   }
 
   String resolveName(String number) {
     switch (number) {
-      case "911":
-        return "Emergency";
-      case "558169":
-        return "???";
-      case "7319":
-        return "Rebecca Voicemail";
-      default:
-        return number;
+      case '911':    return 'Emergency';
+      case '558169': return '???';
+      case '7319':   return 'Rebecca Voicemail';
+      default:       return number;
     }
   }
 }
 
-final phoneProvider = NotifierProvider<PhoneNotifier, PhoneState>(PhoneNotifier.new);
+final phoneProvider =
+    NotifierProvider<PhoneNotifier, PhoneState>(PhoneNotifier.new);
