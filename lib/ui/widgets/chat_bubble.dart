@@ -1,3 +1,5 @@
+lib/ui/widgets/chat_bubble.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +31,33 @@ class ChatBubble extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (senderId == 'system') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Column(
+          children: [
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 12,
+                color: Colors.white54,
+                letterSpacing: 1.2,
+              ),
+            ),
+            if (timestamp != null)
+              Text(
+                _formatTime(timestamp!),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 9,
+                  color: Colors.white38,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
 
     // ── COLOURS ───────────────────────────────────────────────────────────────
@@ -37,19 +66,16 @@ class ChatBubble extends ConsumerWidget {
     final Color bubbleFill = isSecret
         ? const Color(0xFF6B0000).withOpacity(0.55)
         : isMe
-            ? const Color(0xFF0D3A4A).withOpacity(0.75)   // player: dark teal
-            : const Color(0xFF0D1A28).withOpacity(0.72);  // NPC: dark navy
-
+            ? const Color(0xFF0D3A4A).withOpacity(0.75) // player: dark teal
+            : const Color(0xFF0D1A28).withOpacity(0.72); // NPC: dark navy
     final Color borderColor = isSecret
         ? const Color(0xFFCC2A2A).withOpacity(0.6)
         : isMe
             ? const Color(0xFF4A9EBF).withOpacity(0.5)
             : Colors.white.withOpacity(0.14);
-
     final Color textColor = isSecret
         ? const Color(0xFFFF6B6B)
         : Colors.white.withOpacity(0.92);
-
     final Color nameColor = isMe
         ? const Color(0xFF4A9EBF)
         : const Color(0xFFB0C8D8);
@@ -100,16 +126,11 @@ class ChatBubble extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Column(
-                crossAxisAlignment: isMe
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
+                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // ── SENDER NAME (NPCs only) ──────────────────────────────
-                  if (!isMe &&
-                      senderId != null &&
-                      senderId != 'system' &&
-                      senderId != 'player') ...[
+                  if (!isMe && senderId != null && senderId != 'system' && senderId != 'player') ...[
                     Text(
                       (senderName ?? senderId!).toUpperCase(),
                       style: GoogleFonts.spaceGrotesk(
@@ -121,7 +142,6 @@ class ChatBubble extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                   ],
-
                   // ── MEDIA (IF APPLICABLE) ────────────────────────────────
                   if (mediaType == 'video' && mediaPath != null) ...[
                     GestureDetector(
@@ -157,7 +177,8 @@ class ChatBubble extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                           child: mediaPath!.startsWith('assets/')
                               ? Image.asset(mediaPath!, fit: BoxFit.cover)
-                              : const SizedBox.shrink(), // Or Image.file for local files later
+                              : const SizedBox.shrink(),
+                          // Or Image.file for local files later
                         ),
                       ),
                     ),
@@ -173,7 +194,6 @@ class ChatBubble extends ConsumerWidget {
                       ),
                     ),
                   ],
-
                   // ── TIMESTAMP ────────────────────────────────────────────
                   if (timestamp != null) ...[
                     const SizedBox(height: 6),
