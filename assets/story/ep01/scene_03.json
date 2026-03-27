@@ -1,7 +1,7 @@
 {
   "scenes": [
     {
-      "id": "s3_group_chat",
+      "id": "S3_Initial_Shock",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "thread_title": "Dreadmoor News",
@@ -11,14 +11,6 @@
         "abigail",
         "michael"
       ],
-      "sender": "System",
-      "text": "[PlayerName] was added to the group.",
-      "next": "S3_Initial_Shock"
-    },
-    {
-      "id": "S3_Initial_Shock",
-      "type": "Chat_Event",
-      "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Pause",
       "duration": 2000,
@@ -125,7 +117,7 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Yeah, I'm on it\u2014",
+      "text": "Yeah, I'm on it—",
       "next": "S3_Michael_Intervene"
     },
     {
@@ -254,7 +246,7 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "Excuse m\u2014",
+      "text": "Excuse m—",
       "next": "S3_Amelia_Typo"
     },
     {
