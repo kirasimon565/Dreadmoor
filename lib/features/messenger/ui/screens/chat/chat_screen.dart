@@ -10,7 +10,6 @@ import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 import 'package:dreadmoor/ui/screens/profiles/character_profile_screen.dart';
-import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
 import 'chat_header_neon_group.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -63,10 +62,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (!mounted) return;
 
       ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
-
-      ref
-          .read(globalSchedulerProvider)
-          .resumeIfThreadActive(widget.threadId);
+      ref.read(globalSchedulerProvider).resumeIfThreadActive(widget.threadId);
 
       final activeChoiceRow = await (db.select(db.storyState)
             ..where((t) => t.key.equals('active_choice_id')))
@@ -145,6 +141,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           return Stack(
             fit: StackFit.expand,
             children: [
+              // Background
               Positioned.fill(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 600),
@@ -160,6 +157,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
 
+              // Top gradient
               Positioned(
                 top: 0,
                 left: 0,
@@ -179,6 +177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
 
+              // Main layout
               Column(
                 children: [
                   StreamBuilder<Thread?>(
@@ -186,6 +185,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     builder: (context, snap) {
                       return ChatHeaderNeonGroup(
                         title: snap.data?.title ?? 'Unknown',
+
+                        // ✅ FIXED HERE
                         onBackPressed: () {
                           ref
                               .read(activeThreadIdProvider.notifier)
@@ -195,6 +196,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               .setApp(PhoneApp.messenger);
                           Navigator.pop(context);
                         },
+
                         avatarPaths: avatarPaths,
                         memberIds: memberIds,
                         isOnline: true,
