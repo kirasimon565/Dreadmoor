@@ -359,20 +359,20 @@ class GlobalScheduler {
 
       case 'Add_To_Group':
         // Creates the group thread and inserts members from metadata.
-        // thread_id, thread_title, thread_members must be in JSON.
         final groupId = meta['thread_id'] as String?;
         if (groupId != null) {
           await _ensureThread(groupId, meta);
-          // Also insert notification message in current thread
-          final currentThread = ref.read(activeThreadIdProvider) ?? 'unknown';
-          await _ensureThread(currentThread, {});
-          await db.into(db.messages).insert(MessagesCompanion.insert(
-            threadId: currentThread,
-            senderId: 'system',
-            content:  Value(node.content ?? 'You were added to a group.'),
-            type:     const Value('system_label'),
-            sequence: 0,
-          ));
+          // Insert system message directly into the group thread
+          final targetThread = groupId;
+          await db.into(db.messages).insert(
+            MessagesCompanion.insert(
+              threadId: targetThread,
+              senderId: 'system',
+              content:  Value(node.content ?? 'You were added to a group.'),
+              type:     const Value('system_label'),
+              sequence: 0,
+            ),
+          );
         }
         _advance(node.nextNodeId);
         return;
