@@ -293,7 +293,20 @@ class GlobalScheduler {
         .write(ThreadsCompanion(lastMessageId: Value(id)));
 
     _playSound('sfx/message_receive.mp3');
-    _advance(node.nextNodeId);
+
+    // Option B: insert immediately but pause until the player is viewing
+    // this thread. If the thread is already active, advance normally.
+    // If not, store the next node and wait — _resumeIfThreadActive() is
+    // called by the scheduler whenever activeThreadId changes.
+    final activeThread = ref.read(activeThreadIdProvider);
+    if (activeThread == threadId) {
+      _advance(node.nextNodeId);
+    } else {
+      // Pause and remember where to resume when the thread opens.
+      print("DreadmoorOS ⏸ '$threadId' not active — holding at '${node.nextNodeId}'");
+      ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
+      ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+    }
   }
 
   // ── System Event — all actions data-driven ───────────────────────────────
@@ -584,7 +597,18 @@ class GlobalScheduler {
       try {
         await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
             .write(const ThreadsCompanion(isTyping: Value(false)));
-        await _processNodeType(node, {...meta, 'action': 'None'});
+
+        // Option B: only process the node (which calls _handleChatMessage)
+        // if the thread is currently active. If not, pause and wait.
+        final activeThread = ref.read(activeThreadIdProvider);
+        if (activeThread == threadId) {
+          await _processNodeType(node, {...meta, 'action': 'None'});
+        } else {
+          print("DreadmoorOS ⏸ Typing done — '$threadId' not active, holding at '${node.id}'");
+          ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
+          // Store this node so resume() re-executes it (typing + message)
+          ref.read(activeNodeIdProvider.notifier).setId(node.id);
+        }
       } catch (e, st) {
         print("DreadmoorOS ✗ Typing timer failed on '${node.id}': $e\n$st");
         try {
@@ -702,6 +726,23 @@ class GlobalScheduler {
   }
 
   void completePuzzle() => resume();
+
+  /// Called by ChatScreen and SecretChatScreen in initState when the
+  /// player opens a thread. If the scheduler is paused waiting for this
+  /// exact thread, it resumes from the stored activeNodeId.
+  void resumeIfThreadActive(String threadId) {
+    final isPaused = ref.read(isSchedulerPausedProvider);
+    if (!isPaused) return;
+
+    final nextNodeId = ref.read(activeNodeIdProvider);
+    if (nextNodeId == null || nextNodeId.isEmpty) return;
+
+    final active = ref.read(activeThreadIdProvider);
+    if (active == threadId) {
+      print("DreadmoorOS ▶ Thread '$threadId' opened — resuming at '$nextNodeId'");
+      resume();
+    }
+  }
 
   void pause() {
     _timer?.cancel();
