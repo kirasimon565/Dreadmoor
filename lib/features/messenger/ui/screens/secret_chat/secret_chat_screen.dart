@@ -66,6 +66,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
+        ref.read(globalSchedulerProvider).resumeIfThreadActive(widget.threadId);
       }
     });
 
