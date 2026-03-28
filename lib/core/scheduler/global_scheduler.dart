@@ -358,21 +358,13 @@ class GlobalScheduler {
         return;
 
       case 'Add_To_Group':
-        // Creates the group thread and inserts members from metadata.
+        // Creates the group thread and members only.
+        // Does NOT insert a system message — the group chat's first
+        // Chat_Event node already inserts "[PlayerName] was added to
+        // the group.", preventing duplication.
         final groupId = meta['thread_id'] as String?;
         if (groupId != null) {
           await _ensureThread(groupId, meta);
-          // Insert system message directly into the group thread
-          final targetThread = groupId;
-          await db.into(db.messages).insert(
-            MessagesCompanion.insert(
-              threadId: targetThread,
-              senderId: 'system',
-              content:  Value(node.content ?? 'You were added to a group.'),
-              type:     const Value('system_label'),
-              sequence: 0,
-            ),
-          );
         }
         _advance(node.nextNodeId);
         return;
