@@ -24,6 +24,9 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
 
   @override
   GhostTraceState build() {
+    // FIX: wrap in a lambda so the type is void Function(), not void Function()?
+    // _timer?.cancel is nullable because _timer is Timer? — ref.onDispose
+    // requires a non-null callback.
     ref.onDispose(() => _timer?.cancel());
     return GhostTraceState(
       phase:  GhostTracePhase.scan,
@@ -182,9 +185,6 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
         phase:         GhostTracePhase.result,
         won:           false,
       );
-
-      ref.read(globalSchedulerProvider).onPuzzleFailed();
-
       _persist(won: false, hearts: 0);
     } else {
       state = state.copyWith(hearts: newHearts);
@@ -199,6 +199,7 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
       won:   true,
     );
     _persist(won: true, hearts: state.hearts);
+    ref.read(globalSchedulerProvider).completePuzzle();
   }
 
   void _persist({required bool won, required int hearts}) {
