@@ -1,150 +1,193 @@
-// lib/features/minigame/ghost_trace/ghost_trace_game.dart
+// lib/features/minigame/ghost_trace/ghost_trace_screen.dart
 
-import 'dart:math';
 import 'package:flame/game.dart';
-import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'components/network_node.dart';
-import 'components/network_edge.dart';
-import 'components/packet.dart';
-import 'components/scanline_overlay.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
+import 'state/ghost_trace_notifier.dart';
+import 'state/ghost_trace_state.dart';
+import 'ghost_trace_game.dart';
+import 'overlays/hud_overlay.dart';
+import 'overlays/scramble_panel.dart';
+import 'overlays/result_overlay.dart';
 import 'data/ghost_trace_constants.dart';
-import 'data/difficulty_config.dart';
 
-class GhostTraceGame extends FlameGame {
-  final DifficultyConfig config;
-  final void Function(String) onNodeTapped;
+class GhostTraceScreen extends ConsumerStatefulWidget {
+  final String minigameId;
+  final int    difficulty;
 
-  final Map<String, NetworkNode> _nodes = {};
-  final List<NetworkEdge> _edges = [];
-  final List<List<int>> _adjacency = [];
-  final _rng = Random();
-
-  // Overlay names
-  static const hudOverlay     = 'hud';
-  static const scrambleOverlay = 'scramble';
-  static const resultOverlay   = 'result';
-
-  GhostTraceGame({
-    required this.config,
-    required this.onNodeTapped,
+  const GhostTraceScreen({
+    super.key,
+    required this.minigameId,
+    this.difficulty = 1,
   });
 
   @override
-  Color backgroundColor() => GhostTraceColors.background;
+  ConsumerState<GhostTraceScreen> createState() =>
+      _GhostTraceScreenState();
+}
+
+class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
+  GhostTraceGame? _game;
 
   @override
-  Future<void> onLoad() async {
-    await super.onLoad();
+  void initState() {
+    super.initState();
 
-    // Scanlines background
-    add(ScanlineOverlay(canvasSize: size));
+    // ✅ FIX: attach listener ONCE here (not in build)
+    ref.listen<GhostTraceState>(ghostTraceProvider, (prev, next) {
+      if (prev?.phase != GhostTracePhase.result &&
+          next.phase == GhostTracePhase.result) {
 
-    // Generate node positions in a circle + random offset
-    final nodeIds = List.generate(
-      config.nodeCount,
-      (i) => 'N${String.fromCharCode(65 + i)}', // NA, NB, NC...
-    );
+        final scheduler = ref.read(globalSchedulerProvider);
 
-    final cx = size.x / 2;
-    final cy = size.y / 2;
-    final radius = min(cx, cy) * 0.65;
-
-    for (int i = 0; i < nodeIds.length; i++) {
-      final angle  = (2 * pi * i / nodeIds.length) - pi / 2;
-      final jitterX = (_rng.nextDouble() - 0.5) * 40;
-      final jitterY = (_rng.nextDouble() - 0.5) * 40;
-      final pos = Vector2(
-        cx + cos(angle) * radius + jitterX,
-        cy + sin(angle) * radius + jitterY,
-      );
-
-      final node = NetworkNode(
-        nodeId:    nodeIds[i],
-        position:  pos,
-        onTapped:  onNodeTapped,
-        nodeState: NodeState.normal,
-      );
-      _nodes[nodeIds[i]] = node;
-      add(node);
-    }
-
-    // Connect nodes: ring + some random cross-edges
-    final ids = _nodes.keys.toList();
-    for (int i = 0; i < ids.length; i++) {
-      final a = _nodes[ids[i]]!.position;
-      final b = _nodes[ids[(i + 1) % ids.length]]!.position;
-      _edges.add(NetworkEdge(from: a, to: b));
-    }
-    // 2 random cross-links per 3 nodes
-    for (int i = 0; i < ids.length ~/ 3; i++) {
-      final ai = _rng.nextInt(ids.length);
-      var   bi = _rng.nextInt(ids.length);
-      while (bi == ai) bi = _rng.nextInt(ids.length);
-      final a = _nodes[ids[ai]]!.position;
-      final b = _nodes[ids[bi]]!.position;
-      _edges.add(NetworkEdge(from: a, to: b));
-    }
-    for (final edge in _edges) {
-      add(edge);
-    }
-
-    // Start packet traffic
-    _schedulePackets(ids);
-  }
-
-  void _schedulePackets(List<String> ids) {
-    Future.delayed(
-      Duration(milliseconds: _rng.nextInt(800) + 200),
-      () {
-        if (!isMounted) return;
-        _spawnPacket(ids);
-        _schedulePackets(ids);
-      },
-    );
-  }
-
-  void _spawnPacket(List<String> ids) {
-    if (ids.length < 2) return;
-    final ai = _rng.nextInt(ids.length);
-    var   bi = _rng.nextInt(ids.length);
-    while (bi == ai) bi = _rng.nextInt(ids.length);
-
-    final from = _nodes[ids[ai]]!.position;
-    final to   = _nodes[ids[bi]]!.position;
-
-    final speed = GhostTraceConstants.packetBaseSpeed *
-        config.packetSpeedMultiplier;
-
-    add(Packet(
-      start: from.clone(),
-      end:   to.clone(),
-      type:  PacketType.normal,
-      speed: speed,
-    ));
-  }
-
-  // ── EXTERNAL COMMANDS ────────────────────────────────────────────────────
-
-  void markAttacker(String nodeId) {
-    _nodes[nodeId]?.nodeState = NodeState.attacker;
-  }
-
-  void markSuspect(String nodeId) {
-    _nodes[nodeId]?.nodeState = NodeState.suspect;
-  }
-
-  void markTraced(String nodeId) {
-    _nodes[nodeId]?.nodeState = NodeState.traced;
-  }
-
-  void dimAll() {
-    for (final n in _nodes.values) {
-      if (n.nodeState == NodeState.normal) {
-        n.nodeState = NodeState.idle;
+        if (next.won == true) {
+          scheduler.completePuzzle();
+        } else {
+          scheduler.onPuzzleFailed();
+        }
       }
+    });
+
+    // Configure notifier before build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final notifier = ref.read(ghostTraceProvider.notifier);
+      notifier.minigameId = widget.minigameId;
+      notifier.difficulty  = widget.difficulty;
+
+      // Build the game first to get node IDs
+      final game = GhostTraceGame(
+        config: notifier.state.config,
+        onNodeTapped: _handleNodeTap,
+      );
+      setState(() => _game = game);
+
+      // Wait one frame for Flame to set up
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      await notifier.initialise(game.nodeIds);
+    });
+  }
+
+  void _handleNodeTap(String nodeId) {
+    final state    = ref.read(ghostTraceProvider);
+    final notifier = ref.read(ghostTraceProvider.notifier);
+
+    switch (state.phase) {
+      case GhostTracePhase.scan:
+        notifier.tapNode(nodeId);
+        if (ref.read(ghostTraceProvider).suspectNodeId != null) {
+          _game?.markAttacker(nodeId);
+          _game?.dimAll();
+        }
+        break;
+
+      case GhostTracePhase.trace:
+        final before = ref.read(ghostTraceProvider).currentHopIdx;
+        notifier.tapHop(nodeId);
+        final after  = ref.read(ghostTraceProvider).currentHopIdx;
+        if (after > before) {
+          _game?.markTraced(nodeId);
+        }
+        break;
+
+      case GhostTracePhase.reconstruct:
+      case GhostTracePhase.result:
+        break;
     }
   }
 
-  List<String> get nodeIds => _nodes.keys.toList();
+  void _restart() {
+    final notifier = ref.read(ghostTraceProvider.notifier);
+    final game     = _game;
+    if (game != null) {
+      notifier.initialise(game.nodeIds);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(ghostTraceProvider);
+    final game  = _game;
+
+    if (game == null) {
+      return const Scaffold(
+        backgroundColor: GhostTraceColors.background,
+        body: Center(
+          child: CircularProgressIndicator(
+              color: GhostTraceColors.nodeNormal),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: GhostTraceColors.background,
+      body: Stack(
+        children: [
+
+          // ── FLAME GAME ─────────────────────────────────────────────
+          GameWidget(game: game),
+
+          // ── HUD ────────────────────────────────────────────────────
+          if (state.phase != GhostTracePhase.result)
+            const HudOverlay(),
+
+          // ── PHASE INSTRUCTION BANNER ────────────────────────────────
+          if (state.phase == GhostTracePhase.scan &&
+              !state.attackerIdentified)
+            const _InstructionBanner(
+                text: 'IDENTIFY THE MALICIOUS NODE'),
+
+          if (state.phase == GhostTracePhase.trace)
+            _InstructionBanner(
+              text:
+                  'TRACE HOP ${state.currentHopIdx + 1} / ${state.config.relayHops}',
+            ),
+
+          // ── SCRAMBLE PANEL ─────────────────────────────────────────
+          if (state.phase == GhostTracePhase.reconstruct)
+            const ScramblePanel(),
+
+          // ── RESULT ─────────────────────────────────────────────────
+          if (state.phase == GhostTracePhase.result)
+            ResultOverlay(onDismiss: _restart),
+        ],
+      ),
+    );
+  }
+}
+
+class _InstructionBanner extends StatelessWidget {
+  final String text;
+  const _InstructionBanner({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 32,
+      left:   0,
+      right:  0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: 20, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.75),
+            border: Border.all(
+                color: GhostTraceColors.hudDim, width: 1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color:     GhostTraceColors.hudText,
+              fontSize:  11,
+              fontFamily: 'monospace',
+              letterSpacing: 1.8,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
