@@ -3,6 +3,7 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
 import 'state/ghost_trace_notifier.dart';
 import 'state/ghost_trace_state.dart';
 import 'ghost_trace_game.dart';
@@ -97,7 +98,7 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
 
         final scheduler = ref.read(globalSchedulerProvider);
 
-        if (next.won) {
+        if (next.won == true) {
           scheduler.completePuzzle();
         } else {
           scheduler.onPuzzleFailed();
