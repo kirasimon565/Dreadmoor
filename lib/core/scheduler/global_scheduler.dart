@@ -1,5 +1,3 @@
-// lib/core/scheduler/global_scheduler.dart
-
 import 'dart:async';
 import 'dart:math';
 import 'dart:convert';
@@ -721,8 +719,6 @@ class GlobalScheduler {
 
   void completePuzzle() => resume();
 
-  void onPuzzleFailed() => resume();
-
   /// Called by ChatScreen and SecretChatScreen in initState when the
   /// player opens a thread. If the scheduler is paused waiting for this
   /// exact thread, it resumes from the stored activeNodeId.
@@ -767,7 +763,3 @@ class GlobalScheduler {
     _timer = null;
   }
 }
-
-final globalSchedulerProvider = Provider<GlobalScheduler>((ref) {
-  return GlobalScheduler(ref);
-});
