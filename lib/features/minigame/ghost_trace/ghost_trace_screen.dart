@@ -91,6 +91,20 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<GhostTraceState>(ghostTraceProvider, (prev, next) {
+      if (prev?.phase != GhostTracePhase.result &&
+          next.phase == GhostTracePhase.result) {
+
+        final scheduler = ref.read(globalSchedulerProvider);
+
+        if (next.won) {
+          scheduler.completePuzzle();
+        } else {
+          scheduler.onPuzzleFailed();
+        }
+      }
+    });
+
     final state = ref.watch(ghostTraceProvider);
     final game  = _game;
 
