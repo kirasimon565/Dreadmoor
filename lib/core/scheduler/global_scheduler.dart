@@ -767,3 +767,7 @@ class GlobalScheduler {
     _timer = null;
   }
 }
+
+final globalSchedulerProvider = Provider<GlobalScheduler>((ref) {
+  return GlobalScheduler(ref);
+});
