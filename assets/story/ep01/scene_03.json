@@ -1,7 +1,7 @@
 {
   "scenes": [
     {
-      "id": "S3_Initial_Shock",
+      "id": "s3_group_chat",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "thread_title": "Dreadmoor News",
@@ -11,6 +11,14 @@
         "abigail",
         "michael"
       ],
+      "sender": "System",
+      "text": "[PlayerName] was added to the group.",
+      "next": "S3_Initial_Shock"
+    },
+    {
+      "id": "S3_Initial_Shock",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Pause",
       "duration": 2000,
@@ -30,7 +38,7 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "Is this some kind of prank? This isn't the time.",
+      "text": "Is this some kind of prank? This isn’t the time.",
       "next": "S3_Michael_Mediator"
     },
     {
@@ -39,7 +47,7 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Everyone take a breath. Let's just ask before we start guessing.",
+      "text": "Everyone take a breath. Let’s just ask before we start guessing.",
       "next": "S3_Amelia_Direct"
     },
     {
@@ -117,7 +125,7 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Yeah, I'm on it—",
+      "text": "Yeah, I’m on it—",
       "next": "S3_Michael_Intervene"
     },
     {
@@ -197,7 +205,7 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "Close? That's funny. She never mentioned a \"[PlayerName].\"",
+      "text": "Close? That’s funny. She never mentioned a “[PlayerName].”",
       "next": "S3_Michael_Logic"
     },
     {
@@ -222,7 +230,7 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "Tell us something useful. Why are you *really* involved?",
+      "text": "Tell us something useful. Why are you really involved?",
       "next": "S3_Choice_Motivation"
     },
     {
@@ -327,7 +335,7 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "So it's the timeline. Specifically, the moment she left.",
+      "text": "So it’s the timeline. Specifically, the moment she left.",
       "next": "S3_Chris_Defensive"
     },
     {
