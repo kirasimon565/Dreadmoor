@@ -134,7 +134,6 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
 
           if (state.phase == GhostTracePhase.trace)
             _InstructionBanner(
-              text:
                   text: 'TRACE HOP ' + (state.currentHopIdx + 1).toString() + ' / ' + state.config.relayHops.toString(),
             ),
 
