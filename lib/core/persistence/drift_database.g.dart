@@ -4435,6 +4435,12 @@ class $MinigameResultsTable extends MinigameResults
   late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
       'completed_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _sessionDataMeta =
+      const VerificationMeta('sessionData');
+  @override
+  late final GeneratedColumn<String> sessionData = GeneratedColumn<String>(
+      'session_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4443,7 +4449,8 @@ class $MinigameResultsTable extends MinigameResults
         attemptsCount,
         heartsRemaining,
         cooldownUntil,
-        completedAt
+        completedAt,
+        sessionData
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4496,6 +4503,12 @@ class $MinigameResultsTable extends MinigameResults
           completedAt.isAcceptableOrUnknown(
               data['completed_at']!, _completedAtMeta));
     }
+    if (data.containsKey('session_data')) {
+      context.handle(
+          _sessionDataMeta,
+          sessionData.isAcceptableOrUnknown(
+              data['session_data']!, _sessionDataMeta));
+    }
     return context;
   }
 
@@ -4519,6 +4532,8 @@ class $MinigameResultsTable extends MinigameResults
           DriftSqlType.dateTime, data['${effectivePrefix}cooldown_until']),
       completedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+      sessionData: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}session_data']),
     );
   }
 
@@ -4536,6 +4551,7 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
   final int heartsRemaining;
   final DateTime? cooldownUntil;
   final DateTime? completedAt;
+  final String? sessionData;
   const MinigameResult(
       {required this.id,
       required this.minigameId,
@@ -4543,7 +4559,8 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
       required this.attemptsCount,
       required this.heartsRemaining,
       this.cooldownUntil,
-      this.completedAt});
+      this.completedAt,
+      this.sessionData});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4557,6 +4574,9 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
     }
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    if (!nullToAbsent || sessionData != null) {
+      map['session_data'] = Variable<String>(sessionData);
     }
     return map;
   }
@@ -4574,6 +4594,9 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
+      sessionData: sessionData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sessionData),
     );
   }
 
@@ -4588,6 +4611,7 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
       heartsRemaining: serializer.fromJson<int>(json['heartsRemaining']),
       cooldownUntil: serializer.fromJson<DateTime?>(json['cooldownUntil']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      sessionData: serializer.fromJson<String?>(json['sessionData']),
     );
   }
   @override
@@ -4601,6 +4625,7 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
       'heartsRemaining': serializer.toJson<int>(heartsRemaining),
       'cooldownUntil': serializer.toJson<DateTime?>(cooldownUntil),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'sessionData': serializer.toJson<String?>(sessionData),
     };
   }
 
@@ -4611,7 +4636,8 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
           int? attemptsCount,
           int? heartsRemaining,
           Value<DateTime?> cooldownUntil = const Value.absent(),
-          Value<DateTime?> completedAt = const Value.absent()}) =>
+          Value<DateTime?> completedAt = const Value.absent(),
+          Value<String?> sessionData = const Value.absent()}) =>
       MinigameResult(
         id: id ?? this.id,
         minigameId: minigameId ?? this.minigameId,
@@ -4621,6 +4647,7 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
         cooldownUntil:
             cooldownUntil.present ? cooldownUntil.value : this.cooldownUntil,
         completedAt: completedAt.present ? completedAt.value : this.completedAt,
+        sessionData: sessionData.present ? sessionData.value : this.sessionData,
       );
   MinigameResult copyWithCompanion(MinigameResultsCompanion data) {
     return MinigameResult(
@@ -4639,6 +4666,8 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
           : this.cooldownUntil,
       completedAt:
           data.completedAt.present ? data.completedAt.value : this.completedAt,
+      sessionData:
+          data.sessionData.present ? data.sessionData.value : this.sessionData,
     );
   }
 
@@ -4651,14 +4680,15 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
           ..write('attemptsCount: $attemptsCount, ')
           ..write('heartsRemaining: $heartsRemaining, ')
           ..write('cooldownUntil: $cooldownUntil, ')
-          ..write('completedAt: $completedAt')
+          ..write('completedAt: $completedAt, ')
+          ..write('sessionData: $sessionData')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, minigameId, completed, attemptsCount,
-      heartsRemaining, cooldownUntil, completedAt);
+      heartsRemaining, cooldownUntil, completedAt, sessionData);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4669,7 +4699,8 @@ class MinigameResult extends DataClass implements Insertable<MinigameResult> {
           other.attemptsCount == this.attemptsCount &&
           other.heartsRemaining == this.heartsRemaining &&
           other.cooldownUntil == this.cooldownUntil &&
-          other.completedAt == this.completedAt);
+          other.completedAt == this.completedAt &&
+          other.sessionData == this.sessionData);
 }
 
 class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
@@ -4680,6 +4711,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
   final Value<int> heartsRemaining;
   final Value<DateTime?> cooldownUntil;
   final Value<DateTime?> completedAt;
+  final Value<String?> sessionData;
   final Value<int> rowid;
   const MinigameResultsCompanion({
     this.id = const Value.absent(),
@@ -4689,6 +4721,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
     this.heartsRemaining = const Value.absent(),
     this.cooldownUntil = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.sessionData = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MinigameResultsCompanion.insert({
@@ -4699,6 +4732,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
     this.heartsRemaining = const Value.absent(),
     this.cooldownUntil = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.sessionData = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         minigameId = Value(minigameId);
@@ -4710,6 +4744,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
     Expression<int>? heartsRemaining,
     Expression<DateTime>? cooldownUntil,
     Expression<DateTime>? completedAt,
+    Expression<String>? sessionData,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4720,6 +4755,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
       if (heartsRemaining != null) 'hearts_remaining': heartsRemaining,
       if (cooldownUntil != null) 'cooldown_until': cooldownUntil,
       if (completedAt != null) 'completed_at': completedAt,
+      if (sessionData != null) 'session_data': sessionData,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4732,6 +4768,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
       Value<int>? heartsRemaining,
       Value<DateTime?>? cooldownUntil,
       Value<DateTime?>? completedAt,
+      Value<String?>? sessionData,
       Value<int>? rowid}) {
     return MinigameResultsCompanion(
       id: id ?? this.id,
@@ -4741,6 +4778,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
       heartsRemaining: heartsRemaining ?? this.heartsRemaining,
       cooldownUntil: cooldownUntil ?? this.cooldownUntil,
       completedAt: completedAt ?? this.completedAt,
+      sessionData: sessionData ?? this.sessionData,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4769,6 +4807,9 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
+    if (sessionData.present) {
+      map['session_data'] = Variable<String>(sessionData.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4785,6 +4826,7 @@ class MinigameResultsCompanion extends UpdateCompanion<MinigameResult> {
           ..write('heartsRemaining: $heartsRemaining, ')
           ..write('cooldownUntil: $cooldownUntil, ')
           ..write('completedAt: $completedAt, ')
+          ..write('sessionData: $sessionData, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8330,6 +8372,7 @@ typedef $$MinigameResultsTableCreateCompanionBuilder = MinigameResultsCompanion
   Value<int> heartsRemaining,
   Value<DateTime?> cooldownUntil,
   Value<DateTime?> completedAt,
+  Value<String?> sessionData,
   Value<int> rowid,
 });
 typedef $$MinigameResultsTableUpdateCompanionBuilder = MinigameResultsCompanion
@@ -8341,6 +8384,7 @@ typedef $$MinigameResultsTableUpdateCompanionBuilder = MinigameResultsCompanion
   Value<int> heartsRemaining,
   Value<DateTime?> cooldownUntil,
   Value<DateTime?> completedAt,
+  Value<String?> sessionData,
   Value<int> rowid,
 });
 
@@ -8374,6 +8418,9 @@ class $$MinigameResultsTableFilterComposer
 
   ColumnFilters<DateTime> get completedAt => $composableBuilder(
       column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sessionData => $composableBuilder(
+      column: $table.sessionData, builder: (column) => ColumnFilters(column));
 }
 
 class $$MinigameResultsTableOrderingComposer
@@ -8408,6 +8455,9 @@ class $$MinigameResultsTableOrderingComposer
 
   ColumnOrderings<DateTime> get completedAt => $composableBuilder(
       column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sessionData => $composableBuilder(
+      column: $table.sessionData, builder: (column) => ColumnOrderings(column));
 }
 
 class $$MinigameResultsTableAnnotationComposer
@@ -8439,6 +8489,9 @@ class $$MinigameResultsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get completedAt => $composableBuilder(
       column: $table.completedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionData => $composableBuilder(
+      column: $table.sessionData, builder: (column) => column);
 }
 
 class $$MinigameResultsTableTableManager extends RootTableManager<
@@ -8475,6 +8528,7 @@ class $$MinigameResultsTableTableManager extends RootTableManager<
             Value<int> heartsRemaining = const Value.absent(),
             Value<DateTime?> cooldownUntil = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
+            Value<String?> sessionData = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MinigameResultsCompanion(
@@ -8485,6 +8539,7 @@ class $$MinigameResultsTableTableManager extends RootTableManager<
             heartsRemaining: heartsRemaining,
             cooldownUntil: cooldownUntil,
             completedAt: completedAt,
+            sessionData: sessionData,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -8495,6 +8550,7 @@ class $$MinigameResultsTableTableManager extends RootTableManager<
             Value<int> heartsRemaining = const Value.absent(),
             Value<DateTime?> cooldownUntil = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
+            Value<String?> sessionData = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MinigameResultsCompanion.insert(
@@ -8505,6 +8561,7 @@ class $$MinigameResultsTableTableManager extends RootTableManager<
             heartsRemaining: heartsRemaining,
             cooldownUntil: cooldownUntil,
             completedAt: completedAt,
+            sessionData: sessionData,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

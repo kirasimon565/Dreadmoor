@@ -105,6 +105,8 @@ class MinigameResults extends Table {
   DateTimeColumn get completedAt =>
       dateTime().nullable()();
 
+  TextColumn get sessionData => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

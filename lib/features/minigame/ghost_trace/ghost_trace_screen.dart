@@ -11,7 +11,11 @@ import 'ghost_trace_game.dart';
 import 'overlays/hud_overlay.dart';
 import 'overlays/scramble_panel.dart';
 import 'overlays/result_overlay.dart';
+import 'overlays/tutorial_overlay.dart';
 import 'data/ghost_trace_constants.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:dreadmoor/core/persistence/drift_database.dart';
 
 class GhostTraceScreen extends ConsumerStatefulWidget {
   final String minigameId;
@@ -30,6 +34,7 @@ class GhostTraceScreen extends ConsumerStatefulWidget {
 
 class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
   GhostTraceGame? _game;
+  bool _showTutorial = false;
 
   @override
   void initState() {
@@ -61,7 +66,33 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
       await Future.delayed(const Duration(milliseconds: 100));
 
       await notifier.initialise(game.nodeIds);
+
+      final hasSeenTutorial = ref.read(gameFlagsProvider).value?['ghost_trace_tutorial_seen'] == true;
+      if (!hasSeenTutorial) {
+          setState(() {
+              _showTutorial = true;
+          });
+          final db = ref.read(databaseProvider);
+          db.into(db.storyState).insertOnConflictUpdate(
+              StoryStateCompanion(
+                  key: const drift.Value('ghost_trace_tutorial_seen'),
+                  value: const drift.Value(true),
+              )
+          );
+      }
     });
+  }
+
+  void _openTutorial() {
+      setState(() {
+          _showTutorial = true;
+      });
+  }
+
+  void _closeTutorial() {
+      setState(() {
+          _showTutorial = false;
+      });
   }
 
   void _handleNodeTap(String nodeId) {
@@ -123,12 +154,15 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
           GameWidget(game: game),
 
           if (state.phase != GhostTracePhase.result)
-            const HudOverlay(),
+            HudOverlay(onShowTutorial: _openTutorial),
 
           if (state.phase == GhostTracePhase.scan &&
               !state.attackerIdentified)
             const _InstructionBanner(
                 text: 'IDENTIFY THE MALICIOUS NODE'),
+
+          if (_showTutorial)
+            TutorialOverlay(onDismiss: _closeTutorial),
 
           if (state.phase == GhostTracePhase.trace)
             _InstructionBanner(

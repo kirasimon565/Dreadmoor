@@ -34,6 +34,7 @@ class MinigameDao {
     required String minigameId,
     required bool won,
     required int heartsRemaining,
+    String? sessionData,
   }) async {
     final existing = await getResult(minigameId);
     final attempts = (existing?.attemptsCount ?? 0) + 1;
@@ -54,6 +55,20 @@ class MinigameDao {
         heartsRemaining: Value(heartsRemaining),
         cooldownUntil:   Value(cooldown),
         completedAt:     won ? Value(DateTime.now()) : const Value(null),
+        sessionData:     Value(sessionData),
+      ),
+    );
+  }
+
+  Future<void> updateSessionData({
+    required String minigameId,
+    required String? sessionData,
+  }) async {
+    await upsertResult(
+      MinigameResultsCompanion(
+        id:          Value(minigameId),
+        minigameId:  Value(minigameId),
+        sessionData: Value(sessionData),
       ),
     );
   }

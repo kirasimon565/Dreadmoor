@@ -32,7 +32,7 @@ class GhostTraceState {
 
   // Hearts / timer
   final int   hearts;
-  final int   secondsLeft;
+  final DateTime? timerEndTimestamp;
   final bool  isLocked;
   final DateTime? cooldownUntil;
 
@@ -53,11 +53,17 @@ class GhostTraceState {
     this.ipSlots            = const [],
     this.tagSlots           = const [],
     this.hearts             = 5,
-    this.secondsLeft        = 60,
+    this.timerEndTimestamp,
     this.isLocked           = false,
     this.cooldownUntil,
     this.won,
   });
+
+  int get secondsLeft {
+    if (timerEndTimestamp == null) return 0;
+    final remaining = timerEndTimestamp!.difference(DateTime.now()).inSeconds;
+    return remaining > 0 ? remaining : 0;
+  }
 
   GhostTraceState copyWith({
     GhostTracePhase?   phase,
@@ -73,7 +79,7 @@ class GhostTraceState {
     List<String?>?     ipSlots,
     List<String?>?     tagSlots,
     int?               hearts,
-    int?               secondsLeft,
+    DateTime?          timerEndTimestamp,
     bool?              isLocked,
     DateTime?          cooldownUntil,
     bool?              won,
@@ -92,7 +98,7 @@ class GhostTraceState {
       ipSlots:             ipSlots            ?? this.ipSlots,
       tagSlots:            tagSlots           ?? this.tagSlots,
       hearts:              hearts             ?? this.hearts,
-      secondsLeft:         secondsLeft        ?? this.secondsLeft,
+      timerEndTimestamp:   timerEndTimestamp  ?? this.timerEndTimestamp,
       isLocked:            isLocked           ?? this.isLocked,
       cooldownUntil:       cooldownUntil      ?? this.cooldownUntil,
       won:                 won                ?? this.won,
