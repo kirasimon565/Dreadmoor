@@ -43,8 +43,6 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
 
         if (next.won == true) {
           scheduler.completePuzzle();
-        } else {
-          scheduler.onPuzzleFailed();
         }
       }
     });
