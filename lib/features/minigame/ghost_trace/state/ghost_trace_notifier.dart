@@ -8,6 +8,7 @@ import 'package:dreadmoor/core/persistence/drift_database.dart';
 import '../data/difficulty_config.dart';
 import '../data/target_generator.dart';
 import '../persistence/minigame_dao.dart';
+import '../data/ghost_trace_session.dart';
 import 'ghost_trace_state.dart';
 
 final ghostTraceProvider =
@@ -52,26 +53,58 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
       return;
     }
 
-    final hearts     = saved?.heartsRemaining ?? 5;
-    final target     = TargetGenerator.generate(
+    final hearts = saved?.heartsRemaining ?? 5;
+
+    if (saved?.sessionData != null && saved!.sessionData!.isNotEmpty) {
+      try {
+        final session = GhostTraceSession.fromJsonString(saved.sessionData!);
+        state = GhostTraceState(
+          phase: session.phase,
+          config: config,
+          target: session.target,
+          hearts: hearts,
+          timerEndTimestamp: session.timerEndTimestamp,
+          currentHopIdx: session.currentHopIdx,
+          correctHops: session.correctHops,
+          scrambledIpTiles: session.scrambledIpTiles,
+          scrambledTagTiles: session.scrambledTagTiles,
+          ipSlots: session.ipSlots,
+          tagSlots: session.tagSlots,
+          suspectNodeId: session.phase != GhostTracePhase.scan ? session.target.nodeId : null,
+          attackerIdentified: session.phase != GhostTracePhase.scan,
+          confidence: session.phase == GhostTracePhase.trace
+              ? (session.currentHopIdx / session.target.relayChain.length)
+              : (session.phase == GhostTracePhase.reconstruct ? 1.0 : 0.0),
+        );
+        _startTimer();
+        return;
+      } catch (e) {
+        // If session parse fails, generate a new one
+      }
+    }
+
+    final target = TargetGenerator.generate(
       allNodeIds: nodeIds,
-      relayHops:  config.relayHops,
+      relayHops: config.relayHops,
     );
-    final scrambledIp  = _scramble(target.ip.split('.'));
+    final scrambledIp = _scramble(target.ip.split('.'));
     final scrambledTag = _scramble(target.tag.split(''));
 
+    final timerEndTimestamp = DateTime.now().add(Duration(seconds: config.timerSeconds));
+
     state = GhostTraceState(
-      phase:             GhostTracePhase.scan,
-      config:            config,
-      target:            target,
-      hearts:            hearts,
-      secondsLeft:       config.timerSeconds,
-      scrambledIpTiles:  scrambledIp,
+      phase: GhostTracePhase.scan,
+      config: config,
+      target: target,
+      hearts: hearts,
+      timerEndTimestamp: timerEndTimestamp,
+      scrambledIpTiles: scrambledIp,
       scrambledTagTiles: scrambledTag,
-      ipSlots:           List.filled(target.ip.split('.').length, null),
-      tagSlots:          List.filled(target.tag.length, null),
+      ipSlots: List.filled(target.ip.split('.').length, null),
+      tagSlots: List.filled(target.tag.length, null),
     );
 
+    _persistSession();
     _startTimer();
   }
 
@@ -88,6 +121,7 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
         correctHops:        [],
         confidence:         0.0,
       );
+      _persistSession();
     } else {
       _loseHeart('wrong_node');
     }
@@ -118,6 +152,7 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
           confidence:    confidence,
         );
       }
+      _persistSession();
     } else {
       state = state.copyWith(
         currentHopIdx: 0,
@@ -133,6 +168,7 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
     final slots = List<String?>.from(state.ipSlots);
     slots[slotIndex] = tile;
     state = state.copyWith(ipSlots: slots);
+    _persistSession();
   }
 
   void placeTagTile(int slotIndex, String tile) {
@@ -140,6 +176,7 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
     final slots = List<String?>.from(state.tagSlots);
     slots[slotIndex] = tile;
     state = state.copyWith(tagSlots: slots);
+    _persistSession();
   }
 
   void submitReconstruction() {
@@ -158,17 +195,27 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
         ipSlots:  List.filled(state.ipSlots.length,  null),
         tagSlots: List.filled(state.tagSlots.length, null),
       );
+      if (state.hearts > 0) {
+          _persistSession();
+      }
     }
   }
 
   void _startTimer() {
     _timer?.cancel();
+
+    // Check immediately in case timer is already expired on resume
+    if (state.secondsLeft <= 0) {
+        _loseHeart('timeout');
+        return;
+    }
+
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (state.secondsLeft <= 1) {
+      // Force a state update to rebuild UI with new secondsLeft getter
+      state = state.copyWith();
+      if (state.secondsLeft <= 0) {
         _timer?.cancel();
         _loseHeart('timeout');
-      } else {
-        state = state.copyWith(secondsLeft: state.secondsLeft - 1);
       }
     });
   }
@@ -185,10 +232,18 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
         phase:         GhostTracePhase.result,
         won:           false,
       );
-      _persist(won: false, hearts: 0);
+      _persist(won: false, hearts: 0, sessionData: null);
     } else {
-      state = state.copyWith(hearts: newHearts);
-      _persist(won: false, hearts: newHearts);
+      if (reason == 'timeout') {
+          // Reset the timer since we are not fully dead yet.
+          final newEndTimestamp = DateTime.now().add(Duration(seconds: state.config.timerSeconds));
+          state = state.copyWith(hearts: newHearts, timerEndTimestamp: newEndTimestamp);
+          _startTimer();
+      } else {
+          state = state.copyWith(hearts: newHearts);
+      }
+
+      _persist(won: false, hearts: newHearts, sessionData: _createSessionJsonString());
     }
   }
 
@@ -198,18 +253,47 @@ class GhostTraceNotifier extends Notifier<GhostTraceState> {
       phase: GhostTracePhase.result,
       won:   true,
     );
-    _persist(won: true, hearts: state.hearts);
+    _persist(won: true, hearts: state.hearts, sessionData: null);
     ref.read(globalSchedulerProvider).completePuzzle();
   }
 
-  void _persist({required bool won, required int hearts}) {
+  void _persist({required bool won, required int hearts, required String? sessionData}) {
     final db  = ref.read(databaseProvider);
     final dao = MinigameDao(db);
     dao.recordAttempt(
       minigameId:      minigameId,
       won:             won,
       heartsRemaining: hearts,
+      sessionData:     sessionData,
     );
+  }
+
+  void _persistSession() {
+      if (state.target == null || state.timerEndTimestamp == null) return;
+
+      final sessionDataStr = _createSessionJsonString();
+      final db  = ref.read(databaseProvider);
+      final dao = MinigameDao(db);
+      dao.updateSessionData(
+          minigameId: minigameId,
+          sessionData: sessionDataStr,
+      );
+  }
+
+  String? _createSessionJsonString() {
+      if (state.target == null || state.timerEndTimestamp == null) return null;
+      final session = GhostTraceSession(
+          target: state.target!,
+          phase: state.phase,
+          currentHopIdx: state.currentHopIdx,
+          correctHops: state.correctHops,
+          scrambledIpTiles: state.scrambledIpTiles,
+          scrambledTagTiles: state.scrambledTagTiles,
+          ipSlots: state.ipSlots,
+          tagSlots: state.tagSlots,
+          timerEndTimestamp: state.timerEndTimestamp!,
+      );
+      return session.toJsonString();
   }
 
   List<String> _scramble(List<String> items) {

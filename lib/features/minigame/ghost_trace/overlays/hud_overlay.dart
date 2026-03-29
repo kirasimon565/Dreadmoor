@@ -8,7 +8,9 @@ import '../state/ghost_trace_state.dart';
 import '../data/ghost_trace_constants.dart';
 
 class HudOverlay extends ConsumerWidget {
-  const HudOverlay({super.key});
+  final VoidCallback onShowTutorial;
+
+  const HudOverlay({super.key, required this.onShowTutorial});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,13 +20,35 @@ class HudOverlay extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
       child: Column(
         children: [
-          // Top row: phase label + timer + hearts
+          // Top row: phase label + timer + hearts + tutorial button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _PhaseLabel(phase: state.phase),
               _Timer(seconds: state.secondsLeft),
-              _Hearts(hearts: state.hearts),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Hearts(hearts: state.hearts),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onShowTutorial,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: GhostTraceColors.hudDim.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: GhostTraceColors.hudDim),
+                      ),
+                      child: const Icon(
+                        Icons.question_mark,
+                        size: 14,
+                        color: GhostTraceColors.hudText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
 

@@ -34,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -47,6 +47,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 10) await m.createTable(characterNotes);
           if (from < 11) await m.createTable(mediaItems);
           if (from < 12) await m.createTable(minigameResults);
+          if (from < 13) await m.addColumn(minigameResults, minigameResults.sessionData);
         },
       );
 
