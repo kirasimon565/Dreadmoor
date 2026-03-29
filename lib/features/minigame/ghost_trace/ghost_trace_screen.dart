@@ -4,6 +4,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
+import 'package:dreadmoor/core/state/game_state.dart'; // provides globalSchedulerProvider
 import 'state/ghost_trace_notifier.dart';
 import 'state/ghost_trace_state.dart';
 import 'ghost_trace_game.dart';
@@ -34,7 +35,6 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
   void initState() {
     super.initState();
 
-    // ✅ FIX: attach listener ONCE here (not in build)
     ref.listen<GhostTraceState>(ghostTraceProvider, (prev, next) {
       if (prev?.phase != GhostTracePhase.result &&
           next.phase == GhostTracePhase.result) {
@@ -49,20 +49,17 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
       }
     });
 
-    // Configure notifier before build
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final notifier = ref.read(ghostTraceProvider.notifier);
       notifier.minigameId = widget.minigameId;
       notifier.difficulty  = widget.difficulty;
 
-      // Build the game first to get node IDs
       final game = GhostTraceGame(
         config: notifier.state.config,
         onNodeTapped: _handleNodeTap,
       );
       setState(() => _game = game);
 
-      // Wait one frame for Flame to set up
       await Future.delayed(const Duration(milliseconds: 100));
 
       await notifier.initialise(game.nodeIds);
@@ -125,14 +122,11 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
       body: Stack(
         children: [
 
-          // ── FLAME GAME ─────────────────────────────────────────────
           GameWidget(game: game),
 
-          // ── HUD ────────────────────────────────────────────────────
           if (state.phase != GhostTracePhase.result)
             const HudOverlay(),
 
-          // ── PHASE INSTRUCTION BANNER ────────────────────────────────
           if (state.phase == GhostTracePhase.scan &&
               !state.attackerIdentified)
             const _InstructionBanner(
@@ -141,14 +135,12 @@ class _GhostTraceScreenState extends ConsumerState<GhostTraceScreen> {
           if (state.phase == GhostTracePhase.trace)
             _InstructionBanner(
               text:
-                  'TRACE HOP ${state.currentHopIdx + 1} / ${state.config.relayHops}',
+                  'TRACE HOP \${state.currentHopIdx + 1} / \${state.config.relayHops}',
             ),
 
-          // ── SCRAMBLE PANEL ─────────────────────────────────────────
           if (state.phase == GhostTracePhase.reconstruct)
             const ScramblePanel(),
 
-          // ── RESULT ─────────────────────────────────────────────────
           if (state.phase == GhostTracePhase.result)
             ResultOverlay(onDismiss: _restart),
         ],
@@ -180,8 +172,8 @@ class _InstructionBanner extends StatelessWidget {
           child: Text(
             text,
             style: const TextStyle(
-              color:     GhostTraceColors.hudText,
-              fontSize:  11,
+              color:      GhostTraceColors.hudText,
+              fontSize:   11,
               fontFamily: 'monospace',
               letterSpacing: 1.8,
             ),
