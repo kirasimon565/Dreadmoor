@@ -385,7 +385,7 @@
       "id": "S3_TRIGGER_UNKNOWN",
       "type": "System_Event",
       "action": "Launch_Minigame",
-      "minigame_id": "ghost_trace_ep01",
+      "minigame_id": "tracecore_ep01",
       "next": "s4_video"
     }
   ]
