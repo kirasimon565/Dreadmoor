@@ -47,7 +47,6 @@ class TracecoreController extends Notifier<TracecoreState> {
     final dao          = TracecoreDao(db);
     final cfg          = TraceCoreDifficulty.forLevel(difficulty);
     final tutorialSeen = await dao.isTutorialSeen();
-
     if (!tutorialSeen) {
       // First time → show guided demo
       _startDemo();
@@ -97,8 +96,7 @@ class TracecoreController extends Notifier<TracecoreState> {
   Future<void> _startNormalSession(
       TraceCoreDifficulty cfg, TracecoreDao dao) async {
     final puzzle = TracecoreGenerator.generate(difficulty: cfg);
-    final session = TracecoreSession(
-      target:          puzzle.target,
+    final session = TracecoreSession(      target:          puzzle.target,
       startTimestamp:  DateTime.now().millisecondsSinceEpoch,
       durationSeconds: cfg.durationSeconds,
       hearts:          cfg.hearts,
@@ -147,8 +145,7 @@ class TracecoreController extends Notifier<TracecoreState> {
     state = state.copyWith(
       activePanel: CluePanel.network,
       demoStep:    DemoStep.networkPanel,
-    );
-    Timer(const Duration(seconds: 2), () {
+    );    Timer(const Duration(seconds: 2), () {
       if (mounted && state.demoStep == DemoStep.networkPanel) {
         state = state.copyWith(demoStep: DemoStep.databaseTab);
       }
@@ -183,20 +180,29 @@ class TracecoreController extends Notifier<TracecoreState> {
 
   void switchPanel(CluePanel panel) {
     if (state.isDemo) {
-      // In demo mode, route to the appropriate demo handler
+
+      // Allow free navigation during selection & submit steps
+      if (state.demoStep == DemoStep.selection ||
+          state.demoStep == DemoStep.submit) {
+        state = state.copyWith(activePanel: panel);
+        return;
+      }
+
+      // Guided demo flow for earlier steps
       switch (panel) {
         case CluePanel.chat:
           demoTapChat();
           break;
         case CluePanel.network:
-          demoTapNetwork();
-          break;
+          demoTapNetwork();          break;
         case CluePanel.database:
           demoTapDatabase();
           break;
       }
       return;
     }
+
+    // Normal gameplay (no restrictions)
     state = state.copyWith(activePanel: panel);
   }
 
@@ -237,8 +243,7 @@ class TracecoreController extends Notifier<TracecoreState> {
     if (target == null) return;
 
     if (state.isDemo) {
-      // Demo always succeeds — advance to complete
-      _demoComplete();
+      // Demo always succeeds — advance to complete      _demoComplete();
       return;
     }
 
@@ -287,8 +292,7 @@ class TracecoreController extends Notifier<TracecoreState> {
       if (state.secondsLeft <= 1) {
         _timer?.cancel();
         _loseHeart();
-      } else {
-        state = state.copyWith(secondsLeft: state.secondsLeft - 1);
+      } else {        state = state.copyWith(secondsLeft: state.secondsLeft - 1);
       }
     });
   }
@@ -337,8 +341,7 @@ class TracecoreController extends Notifier<TracecoreState> {
       durationSeconds: state.difficulty.durationSeconds,
       selectedIp:      state.selectedIp,
       selectedName:    state.selectedName,
-      hearts:          state.hearts,
-      phase:           'active',
+      hearts:          state.hearts,      phase:           'active',
     );
     final db = ref.read(databaseProvider);
     TracecoreDao(db).saveSession(minigameId, session);
