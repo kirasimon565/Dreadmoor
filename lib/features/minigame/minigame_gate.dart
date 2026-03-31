@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dreadmoor/features/tracecore/tracecore_screen.dart';
+import 'package:dreadmoor/features/minigame/tracecore/tracecore_screen.dart';
 
 /// Routes minigame_id → the correct investigation system.
 ///
