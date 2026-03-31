@@ -47,7 +47,6 @@ class _TracecoreScreenState extends ConsumerState<TracecoreScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-
             // ── MAIN LAYOUT ────────────────────────────────────────────
             Column(
               children: [
@@ -97,8 +96,7 @@ class _TracecoreScreenState extends ConsumerState<TracecoreScreen> {
                           ),
                         ),
                       if (!isDemo) const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
+                      Container(                        padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -121,7 +119,9 @@ class _TracecoreScreenState extends ConsumerState<TracecoreScreen> {
                 ),
 
                 // Data panels (tabs)
-                const Expanded(child: TracecoreLayout()),
+                Flexible(
+                  child: const TracecoreLayout(),
+                ),
 
                 // Submit bar
                 _SubmitBar(state: state, notifier: notifier),
@@ -145,8 +145,7 @@ class _TracecoreScreenState extends ConsumerState<TracecoreScreen> {
             if (isDemo && state.demoStep != DemoStep.complete)
               const DemoOverlay(),
 
-            // ── RESULT OVERLAY ─────────────────────────────────────────
-            if (state.phase == TracecorePhase.result)
+            // ── RESULT OVERLAY ─────────────────────────────────────────            if (state.phase == TracecorePhase.result)
               TracecoreResultOverlay(isDemo: isDemo),
           ],
         ),
@@ -195,8 +194,7 @@ class _SubmitBar extends StatelessWidget {
                   horizontal: 18, vertical: 10),
               decoration: BoxDecoration(
                 color: state.canSubmit
-                    ? const Color(0xFF003A00)
-                    : const Color(0xFF0A0A0A),
+                    ? const Color(0xFF003A00)                    : const Color(0xFF0A0A0A),
                 border: Border.all(
                   color: state.canSubmit
                       ? const Color(0xFF00FF41)
@@ -245,8 +243,7 @@ class _SelectionChip extends StatelessWidget {
             color: hasValue
                 ? const Color(0xFF2A5A2A)
                 : const Color(0xFF1A2A1A),
-          ),
-          borderRadius: BorderRadius.circular(3),
+          ),          borderRadius: BorderRadius.circular(3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
