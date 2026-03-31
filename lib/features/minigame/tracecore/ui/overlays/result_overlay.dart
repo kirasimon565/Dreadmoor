@@ -7,8 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../tracecore_controller.dart';
 
 class TracecoreResultOverlay extends ConsumerWidget {
-  final bool isDemo;
-  const TracecoreResultOverlay({super.key, this.isDemo = false});
+  const TracecoreResultOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,11 +34,7 @@ class TracecoreResultOverlay extends ConsumerWidget {
             const SizedBox(height: 20),
 
             Text(
-              isDemo
-                  ? 'TRACE COMPLETE'
-                  : won
-                      ? 'TARGET IDENTIFIED'
-                      : 'TRACE FAILED',
+              won ? 'TARGET IDENTIFIED' : 'TRACE FAILED',
               style: GoogleFonts.sourceCodePro(
                 color:         won
                     ? const Color(0xFF00FF41)
@@ -53,13 +48,11 @@ class TracecoreResultOverlay extends ConsumerWidget {
             const SizedBox(height: 12),
 
             Text(
-              isDemo
-                  ? 'Tutorial complete.\nStarting real investigation...'
-                  : won
-                      ? 'Analysis complete.\nStory continues.'
-                      : state.isLocked
-                          ? 'System locked.\nCooldown active.'
-                          : 'Wrong submission.\nHeart lost. Try again.',
+              won
+                  ? 'Analysis complete.\nStory continues.'
+                  : state.isLocked
+                      ? 'System locked.\nCooldown active.'
+                      : 'Wrong submission.\nHeart lost. Try again.',
               textAlign: TextAlign.center,
               style: GoogleFonts.sourceCodePro(
                 color:    const Color(0xFF2A5A2A),
@@ -75,8 +68,7 @@ class TracecoreResultOverlay extends ConsumerWidget {
 
             const SizedBox(height: 32),
 
-            // Demo: no button needed — auto-transitions
-            if (!isDemo && !state.isLocked)
+            if (!state.isLocked)
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -92,12 +84,14 @@ class TracecoreResultOverlay extends ConsumerWidget {
                     ),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(3)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: won
                       ? null
-                      : () =>
-                          ref.read(tracecoreProvider.notifier).retry(),
+                      : () => ref
+                          .read(tracecoreProvider.notifier)
+                          .retry(),
                   child: Text(
                     won ? 'COMPLETE' : 'RETRY',
                     style: GoogleFonts.sourceCodePro(
