@@ -1,14 +1,15 @@
 // lib/features/minigame/minigame_gate.dart
-//
-// Called by the scheduler when it encounters:
-//   { "action": "Launch_Minigame", "minigame_id": "...", "difficulty": 1 }
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'ghost_trace/ghost_trace_screen.dart';
+import 'package:dreadmoor/features/tracecore/tracecore_screen.dart';
 
-/// Routes minigame_id → the correct minigame screen.
-/// Add new minigames here as they're created.
+/// Routes minigame_id → the correct investigation system.
+///
+/// tracecore_* → TracecoreScreen (primary investigation system)
+///
+/// NOTE:
+/// GhostTrace has been removed to maintain a single coherent gameplay system.
 class MinigameGate extends ConsumerWidget {
   final String minigameId;
   final int    difficulty;
@@ -21,20 +22,28 @@ class MinigameGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (minigameId.startsWith('ghost_trace')) {
-      return GhostTraceScreen(
+
+    // ── TRACECORE (MAIN SYSTEM) ───────────────────────────────────────
+    if (minigameId.startsWith('tracecore')) {
+      return TracecoreScreen(
         minigameId: minigameId,
         difficulty: difficulty,
       );
     }
 
-    // Fallback — should not happen if JSON is correct
+    // ── FALLBACK (SAFETY) ────────────────────────────────────────────
+    // If something still references old minigame IDs (e.g. ghost_trace),
+    // we show a safe error screen instead of crashing.
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: Text(
-          'Unknown minigame: $minigameId',
-          style: const TextStyle(color: Colors.white54),
+          'Unknown investigation module:\n$minigameId',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 14,
+          ),
         ),
       ),
     );
