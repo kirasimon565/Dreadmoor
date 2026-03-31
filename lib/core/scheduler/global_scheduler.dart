@@ -719,6 +719,11 @@ class GlobalScheduler {
 
   void completePuzzle() => resume();
 
+  /// Called when the minigame ends in failure.
+  /// Keeps the scheduler paused so the player must retry
+  /// before the story can continue.
+  void onPuzzleFailed() => pause();
+
   /// Called by ChatScreen and SecretChatScreen in initState when the
   /// player opens a thread. If the scheduler is paused waiting for this
   /// exact thread, it resumes from the stored activeNodeId.
