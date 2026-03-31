@@ -7,7 +7,6 @@ import 'package:dreadmoor/core/state/game_state.dart';
 import 'models/tracecore_clue.dart';
 import 'models/tracecore_session.dart';
 import 'data/tracecore_difficulty.dart';
-import 'data/tracecore_demo_data.dart';
 import 'data/tracecore_generator.dart';
 import 'persistence/tracecore_dao.dart';
 import 'tracecore_state.dart';
@@ -28,14 +27,12 @@ class TracecoreController extends Notifier<TracecoreState> {
     ref.onDispose(() => _timer?.cancel());
     return TracecoreState(
       phase:        TracecorePhase.active,
-      mode:         TracecoreMode.normal,
       difficulty:   TraceCoreDifficulty.forLevel(1),
       clues:        const [],
       secondsLeft:  60,
       hearts:       3,
       activePanel:  CluePanel.chat,
       tutorialSeen: false,
-      demoStep:     DemoStep.intro,
     );
   }
 
@@ -47,19 +44,41 @@ class TracecoreController extends Notifier<TracecoreState> {
     final dao          = TracecoreDao(db);
     final cfg          = TraceCoreDifficulty.forLevel(difficulty);
     final tutorialSeen = await dao.isTutorialSeen();
+
     if (!tutorialSeen) {
-      // First time → show guided demo
-      _startDemo();
+      // Show static tutorial first — no game started yet
+      state = TracecoreState(
+        phase:        TracecorePhase.tutorial,
+        difficulty:   cfg,
+        clues:        const [],
+        secondsLeft:  cfg.durationSeconds,
+        hearts:       cfg.hearts,
+        activePanel:  CluePanel.chat,
+        tutorialSeen: false,
+      );
       return;
     }
 
+    await _startSession(cfg, dao);
+  }
+
+  /// Called when player dismisses the static tutorial screen.
+  Future<void> dismissTutorial() async {
+    final db  = ref.read(databaseProvider);
+    final dao = TracecoreDao(db);
+    await dao.markTutorialSeen();
+    final cfg = TraceCoreDifficulty.forLevel(difficulty);
+    await _startSession(cfg, dao);
+  }
+
+  Future<void> _startSession(
+      TraceCoreDifficulty cfg, TracecoreDao dao) async {
     // Try to restore an in-progress session
     final saved = await dao.loadSession(minigameId);
     if (saved != null && saved.phase == 'active' && saved.secondsLeft > 0) {
       final puzzle = TracecoreGenerator.generate(difficulty: cfg);
       state = TracecoreState(
         phase:        TracecorePhase.active,
-        mode:         TracecoreMode.normal,
         difficulty:   cfg,
         target:       saved.target,
         clues:        puzzle.clues,
@@ -69,34 +88,15 @@ class TracecoreController extends Notifier<TracecoreState> {
         hearts:       saved.hearts,
         activePanel:  CluePanel.chat,
         tutorialSeen: true,
-        demoStep:     DemoStep.intro,
       );
       _startTimer();
       return;
     }
 
-    _startNormalSession(cfg, dao);
-  }
-
-  void _startDemo() {
-    state = TracecoreState(
-      phase:        TracecorePhase.active,
-      mode:         TracecoreMode.demo,
-      difficulty:   TraceCoreDifficulty.forLevel(1),
-      target:       TraceCoreDemoData.target,
-      clues:        TraceCoreDemoData.clues,
-      secondsLeft:  999, // no timer in demo
-      hearts:       3,
-      activePanel:  CluePanel.chat,
-      tutorialSeen: false,
-      demoStep:     DemoStep.intro,
-    );
-  }
-
-  Future<void> _startNormalSession(
-      TraceCoreDifficulty cfg, TracecoreDao dao) async {
-    final puzzle = TracecoreGenerator.generate(difficulty: cfg);
-    final session = TracecoreSession(      target:          puzzle.target,
+    // New puzzle
+    final puzzle  = TracecoreGenerator.generate(difficulty: cfg);
+    final session = TracecoreSession(
+      target:          puzzle.target,
       startTimestamp:  DateTime.now().millisecondsSinceEpoch,
       durationSeconds: cfg.durationSeconds,
       hearts:          cfg.hearts,
@@ -106,7 +106,6 @@ class TracecoreController extends Notifier<TracecoreState> {
 
     state = TracecoreState(
       phase:        TracecorePhase.active,
-      mode:         TracecoreMode.normal,
       difficulty:   cfg,
       target:       puzzle.target,
       clues:        puzzle.clues,
@@ -114,138 +113,30 @@ class TracecoreController extends Notifier<TracecoreState> {
       hearts:       cfg.hearts,
       activePanel:  CluePanel.chat,
       tutorialSeen: true,
-      demoStep:     DemoStep.intro,
     );
     _startTimer();
   }
 
-  // ── DEMO STEP PROGRESSION ─────────────────────────────────────────────────
-  //
-  // Each method is called by the UI when the correct action fires.
-  // In demo mode, incorrect actions are ignored by the UI (locked inputs).
-
-  /// Called when player taps the CHAT tab (step: intro → chatPanel)
-  void demoTapChat() {
-    if (!state.isDemo || state.demoStep != DemoStep.intro) return;
-    state = state.copyWith(
-      activePanel: CluePanel.chat,
-      demoStep:    DemoStep.chatPanel,
-    );
-    // Auto-advance after brief read delay
-    Timer(const Duration(seconds: 2), () {
-      if (mounted && state.demoStep == DemoStep.chatPanel) {
-        state = state.copyWith(demoStep: DemoStep.networkTab);
-      }
-    });
-  }
-
-  /// Called when player taps the NETWORK tab (step: networkTab → networkPanel)
-  void demoTapNetwork() {
-    if (!state.isDemo || state.demoStep != DemoStep.networkTab) return;
-    state = state.copyWith(
-      activePanel: CluePanel.network,
-      demoStep:    DemoStep.networkPanel,
-    );    Timer(const Duration(seconds: 2), () {
-      if (mounted && state.demoStep == DemoStep.networkPanel) {
-        state = state.copyWith(demoStep: DemoStep.databaseTab);
-      }
-    });
-  }
-
-  /// Called when player taps the DATABASE tab (step: databaseTab → databasePanel)
-  void demoTapDatabase() {
-    if (!state.isDemo || state.demoStep != DemoStep.databaseTab) return;
-    state = state.copyWith(
-      activePanel: CluePanel.database,
-      demoStep:    DemoStep.databasePanel,
-    );
-    Timer(const Duration(seconds: 2), () {
-      if (mounted && state.demoStep == DemoStep.databasePanel) {
-        state = state.copyWith(demoStep: DemoStep.selection);
-      }
-    });
-  }
-
-  bool get mounted {
-    try {
-      // ignore: unused_result
-      ref.read(tracecoreProvider);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  // ── COMMON ACTIONS ────────────────────────────────────────────────────────
+  // ── ACTIONS ───────────────────────────────────────────────────────────────
 
   void switchPanel(CluePanel panel) {
-    if (state.isDemo) {
-
-      // Allow free navigation during selection & submit steps
-      if (state.demoStep == DemoStep.selection ||
-          state.demoStep == DemoStep.submit) {
-        state = state.copyWith(activePanel: panel);
-        return;
-      }
-
-      // Guided demo flow for earlier steps
-      switch (panel) {
-        case CluePanel.chat:
-          demoTapChat();
-          break;
-        case CluePanel.network:
-          demoTapNetwork();          break;
-        case CluePanel.database:
-          demoTapDatabase();
-          break;
-      }
-      return;
-    }
-
-    // Normal gameplay (no restrictions)
     state = state.copyWith(activePanel: panel);
   }
 
   void selectIp(String ip) {
-    if (state.isDemo) {
-      // Only allow correct IP
-      if (ip != TraceCoreDemoData.target.ip) return;
-      state = state.copyWith(selectedIp: ip);
-      _checkDemoSelectionComplete();
-      return;
-    }
     state = state.copyWith(selectedIp: ip);
     _persist();
   }
 
   void selectName(String name) {
-    if (state.isDemo) {
-      // Only allow correct name
-      if (name != TraceCoreDemoData.target.name) return;
-      state = state.copyWith(selectedName: name);
-      _checkDemoSelectionComplete();
-      return;
-    }
     state = state.copyWith(selectedName: name);
     _persist();
-  }
-
-  void _checkDemoSelectionComplete() {
-    if (state.selectedIp   == TraceCoreDemoData.target.ip &&
-        state.selectedName == TraceCoreDemoData.target.name) {
-      state = state.copyWith(demoStep: DemoStep.submit);
-    }
   }
 
   void submit() {
     if (!state.canSubmit) return;
     final target = state.target;
     if (target == null) return;
-
-    if (state.isDemo) {
-      // Demo always succeeds — advance to complete      _demoComplete();
-      return;
-    }
 
     final correct = state.selectedIp   == target.ip &&
                     state.selectedName == target.name;
@@ -256,27 +147,6 @@ class TracecoreController extends Notifier<TracecoreState> {
     }
   }
 
-  void _demoComplete() {
-    state = state.copyWith(
-      demoStep: DemoStep.complete,
-      phase:    TracecorePhase.result,
-      won:      true,
-    );
-    // Mark tutorial as seen then launch real session
-    final db  = ref.read(databaseProvider);
-    final dao = TracecoreDao(db);
-    dao.markTutorialSeen().then((_) async {
-      await Future.delayed(const Duration(seconds: 2));
-      final cfg = TraceCoreDifficulty.forLevel(difficulty);
-      await _startNormalSession(cfg, dao);
-    });
-  }
-
-  void replayDemo() {
-    _timer?.cancel();
-    _startDemo();
-  }
-
   void retry() {
     final db  = ref.read(databaseProvider);
     final dao = TracecoreDao(db);
@@ -284,7 +154,7 @@ class TracecoreController extends Notifier<TracecoreState> {
     initialise();
   }
 
-  // ── NORMAL MODE INTERNALS ─────────────────────────────────────────────────
+  // ── INTERNAL ──────────────────────────────────────────────────────────────
 
   void _startTimer() {
     _timer?.cancel();
@@ -292,7 +162,8 @@ class TracecoreController extends Notifier<TracecoreState> {
       if (state.secondsLeft <= 1) {
         _timer?.cancel();
         _loseHeart();
-      } else {        state = state.copyWith(secondsLeft: state.secondsLeft - 1);
+      } else {
+        state = state.copyWith(secondsLeft: state.secondsLeft - 1);
       }
     });
   }
@@ -334,14 +205,15 @@ class TracecoreController extends Notifier<TracecoreState> {
 
   void _persist() {
     final target = state.target;
-    if (target == null || state.isDemo) return;
+    if (target == null) return;
     final session = TracecoreSession(
       target:          target,
       startTimestamp:  DateTime.now().millisecondsSinceEpoch,
       durationSeconds: state.difficulty.durationSeconds,
       selectedIp:      state.selectedIp,
       selectedName:    state.selectedName,
-      hearts:          state.hearts,      phase:           'active',
+      hearts:          state.hearts,
+      phase:           'active',
     );
     final db = ref.read(databaseProvider);
     TracecoreDao(db).saveSession(minigameId, session);
@@ -349,7 +221,7 @@ class TracecoreController extends Notifier<TracecoreState> {
 
   void _persistResult({required bool won, required int hearts}) {
     final target = state.target;
-    if (target == null || state.isDemo) return;
+    if (target == null) return;
     final session = TracecoreSession(
       target:          target,
       startTimestamp:  DateTime.now().millisecondsSinceEpoch,
