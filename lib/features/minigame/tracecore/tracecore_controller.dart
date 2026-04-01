@@ -1,4 +1,4 @@
-// lib/features/minigame/tracecore/tracecore_controller.dart
+// lib/features/tracecore/tracecore_controller.dart
 
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,7 +46,6 @@ class TracecoreController extends Notifier<TracecoreState> {
     final tutorialSeen = await dao.isTutorialSeen();
 
     if (!tutorialSeen) {
-      // Show static tutorial first — no game started yet
       state = TracecoreState(
         phase:        TracecorePhase.tutorial,
         difficulty:   cfg,
@@ -62,38 +61,129 @@ class TracecoreController extends Notifier<TracecoreState> {
     await _startSession(cfg, dao);
   }
 
-  /// Called when player dismisses the static tutorial screen.
-  Future<void> dismissTutorial() async {
-    final db  = ref.read(databaseProvider);
-    final dao = TracecoreDao(db);
-    await dao.markTutorialSeen();
-    final cfg = TraceCoreDifficulty.forLevel(difficulty);
-    await _startSession(cfg, dao);
-  }
-
   Future<void> _startSession(
       TraceCoreDifficulty cfg, TracecoreDao dao) async {
-    // Try to restore an in-progress session
+
     final saved = await dao.loadSession(minigameId);
-    if (saved != null && saved.phase == 'active' && saved.secondsLeft > 0) {
-      final puzzle = TracecoreGenerator.generate(difficulty: cfg);
-      state = TracecoreState(
-        phase:        TracecorePhase.active,
-        difficulty:   cfg,
-        target:       saved.target,
-        clues:        puzzle.clues,
-        selectedIp:   saved.selectedIp,
-        selectedName: saved.selectedName,
-        secondsLeft:  saved.secondsLeft,
-        hearts:       saved.hearts,
-        activePanel:  CluePanel.chat,
-        tutorialSeen: true,
-      );
-      _startTimer();
-      return;
+
+    if (saved != null) {
+      // FIX 2: Handle previously-failed sessions — show failure screen
+      // instead of silently restarting (which looked like a win).
+      if (saved.phase == 'failed') {
+        state = TracecoreState(
+          phase:        TracecorePhase.result,
+          difficulty:   cfg,
+          clues:        const [],
+          secondsLeft:  0,
+          hearts:       0,
+          activePanel:  CluePanel.chat,
+          tutorialSeen: true,
+          won:          false,
+          isLocked:     true,
+        );
+        return;
+      }
+
+      // FIX 2: Previously-completed session — show win screen.
+      // Prevents the story from re-triggering completePuzzle if the
+      // scheduler hasn't advanced yet.
+      if (saved.phase == 'complete') {
+        state = TracecoreState(
+          phase:        TracecorePhase.result,
+          difficulty:   cfg,
+          clues:        const [],
+          secondsLeft:  0,
+          hearts:       saved.hearts,
+          activePanel:  CluePanel.chat,
+          tutorialSeen: true,
+          won:          true,
+        );
+        return;
+      }
+
+      // FIX 3: Use real-world elapsed time to compute remaining seconds.
+      // Previously used saved.secondsLeft directly, which allowed players
+      // to reset the timer by restarting the app.
+      if (saved.phase == 'active') {
+        final elapsed =
+            (DateTime.now().millisecondsSinceEpoch - saved.startTimestamp) ~/
+                1000;
+        final remaining = saved.durationSeconds - elapsed;
+
+        if (remaining <= 0) {
+          // Timer expired while app was closed — treat as timeout failure
+          final newHearts = saved.hearts - 1;
+          if (newHearts <= 0) {
+            final cooldown =
+                DateTime.now().add(const Duration(minutes: 10));
+            await dao.saveSession(
+              minigameId,
+              TracecoreSession(
+                target:          saved.target,
+                startTimestamp:  saved.startTimestamp,
+                durationSeconds: saved.durationSeconds,
+                hearts:          0,
+                phase:           'failed',
+              ),
+            );
+            state = TracecoreState(
+              phase:         TracecorePhase.result,
+              difficulty:    cfg,
+              clues:         const [],
+              secondsLeft:   0,
+              hearts:        0,
+              activePanel:   CluePanel.chat,
+              tutorialSeen:  true,
+              won:           false,
+              isLocked:      true,
+              cooldownUntil: cooldown,
+            );
+          } else {
+            // Hearts remain — restart with fresh timer, same puzzle
+            final puzzle = TracecoreGenerator.generate(difficulty: cfg);
+            final newSession = TracecoreSession(
+              target:          saved.target,
+              startTimestamp:  DateTime.now().millisecondsSinceEpoch,
+              durationSeconds: cfg.durationSeconds,
+              hearts:          newHearts,
+              phase:           'active',
+            );
+            await dao.saveSession(minigameId, newSession);
+            state = TracecoreState(
+              phase:        TracecorePhase.active,
+              difficulty:   cfg,
+              target:       saved.target,
+              clues:        puzzle.clues,
+              secondsLeft:  cfg.durationSeconds,
+              hearts:       newHearts,
+              activePanel:  CluePanel.chat,
+              tutorialSeen: true,
+            );
+            _startTimer();
+          }
+          return;
+        }
+
+        // Session still valid — restore with real remaining time
+        final puzzle = TracecoreGenerator.generate(difficulty: cfg);
+        state = TracecoreState(
+          phase:        TracecorePhase.active,
+          difficulty:   cfg,
+          target:       saved.target,
+          clues:        puzzle.clues,
+          selectedIp:   saved.selectedIp,
+          selectedName: saved.selectedName,
+          secondsLeft:  remaining,
+          hearts:       saved.hearts,
+          activePanel:  CluePanel.chat,
+          tutorialSeen: true,
+        );
+        _startTimer();
+        return;
+      }
     }
 
-    // New puzzle
+    // No saved session — generate fresh puzzle
     final puzzle  = TracecoreGenerator.generate(difficulty: cfg);
     final session = TracecoreSession(
       target:          puzzle.target,
@@ -117,7 +207,15 @@ class TracecoreController extends Notifier<TracecoreState> {
     _startTimer();
   }
 
-  // ── ACTIONS ───────────────────────────────────────────────────────────────
+  // ── PUBLIC ACTIONS ────────────────────────────────────────────────────────
+
+  Future<void> dismissTutorial() async {
+    final db  = ref.read(databaseProvider);
+    final dao = TracecoreDao(db);
+    await dao.markTutorialSeen();
+    final cfg = TraceCoreDifficulty.forLevel(difficulty);
+    await _startSession(cfg, dao);
+  }
 
   void switchPanel(CluePanel panel) {
     state = state.copyWith(activePanel: panel);
@@ -200,6 +298,7 @@ class TracecoreController extends Notifier<TracecoreState> {
       won:   true,
     );
     _persistResult(won: true, hearts: state.hearts);
+    // completePuzzle() now also clears waitingForPuzzleProvider
     ref.read(globalSchedulerProvider).completePuzzle();
   }
 
