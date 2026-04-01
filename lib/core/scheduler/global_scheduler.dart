@@ -717,7 +717,13 @@ class GlobalScheduler {
     });
   }
 
-  void completePuzzle() => resume();
+  void completePuzzle() {
+    // FIX: clear waitingForPuzzle before resuming.
+    // Without this the scheduler stays paused because
+    // waitingForPuzzleProvider is never set back to false.
+    ref.read(waitingForPuzzleProvider.notifier).setWaiting(false);
+    resume();
+  }
 
   /// Called when the minigame ends in failure.
   /// Keeps the scheduler paused so the player must retry
