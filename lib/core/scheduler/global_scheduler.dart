@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
+import 'package:dreadmoor/features/diary/diary_controller.dart';
+import 'package:dreadmoor/features/diary/ui/diary_screen.dart';
 import 'package:dreadmoor/features/phone/phone_state.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
 import 'package:dreadmoor/ui/navigation/app_router.dart';
@@ -338,23 +340,31 @@ class GlobalScheduler {
         _advance(node.nextNodeId);
         return;
 
-      case 'Launch_Minigame':
-        // Read routing info from JSON metadata:
-        // { "action": "Launch_Minigame",
-        //   "minigame_id": "ghost_trace_ep01",
-        //   "difficulty": 1 }
-        final minigameId   = (meta['minigame_id'] as String?) ?? 'ghost_trace_ep01';
-        final minigameDiff = (meta['difficulty']  as int?)    ?? 1;
+      case 'Open_Diary_Lock':
+        final word = meta['word'] as String? ?? 'ECHO';
 
-        // Tell DreadmoorAppContainer which minigame to render in the puzzle slot
-        ref.read(activeMinigameIdProvider.notifier).setId(minigameId);
-        ref.read(activeMinigameDifficultyProvider.notifier).setDifficulty(minigameDiff);
+        // Wait for diary state to be loaded
+        await ref.read(diaryProvider.notifier).init(word);
 
-        pause();
-        ref.read(activeAppProvider.notifier).setApp(PhoneApp.puzzle);
-        ref.read(appRouterProvider).go(Routes.os);
-        ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
-        ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+        final isCompleted = ref.read(diaryProvider)?.isCompleted ?? false;
+
+        if (!isCompleted) {
+          pause();
+          ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+
+          final ctx = ref.read(appRouterProvider).routerDelegate.navigatorKey.currentState?.context;
+          if (ctx != null) {
+            Navigator.push(
+              ctx,
+              MaterialPageRoute(
+                builder: (_) => DiaryScreen(targetWord: word),
+              ),
+            );
+          }
+          return;
+        }
+
+        // If diary is already completed, just let the scheduler continue naturally
         return;
 
       case 'Add_To_Group':

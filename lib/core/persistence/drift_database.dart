@@ -18,6 +18,7 @@ part 'drift_database.g.dart';
   Messages,
   Notifications,
   StoryState,
+  DiaryStateTable,
   Episodes,
   StoryNodes,
   CharacterNotes,
@@ -34,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -48,6 +49,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 11) await m.createTable(mediaItems);
           if (from < 12) await m.createTable(minigameResults);
           if (from < 13) await m.addColumn(minigameResults, minigameResults.sessionData);
+          if (from < 14) await m.createTable(diaryStateTable);
         },
       );
 

@@ -3416,6 +3416,333 @@ class StoryStateCompanion extends UpdateCompanion<StoryStateData> {
   }
 }
 
+class $DiaryStateTableTable extends DiaryStateTable
+    with TableInfo<$DiaryStateTableTable, DiaryStateTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DiaryStateTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _targetWordMeta =
+      const VerificationMeta('targetWord');
+  @override
+  late final GeneratedColumn<String> targetWord = GeneratedColumn<String>(
+      'target_word', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _enteredLettersMeta =
+      const VerificationMeta('enteredLetters');
+  @override
+  late final GeneratedColumn<String> enteredLetters = GeneratedColumn<String>(
+      'entered_letters', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isUnlockedMeta =
+      const VerificationMeta('isUnlocked');
+  @override
+  late final GeneratedColumn<bool> isUnlocked = GeneratedColumn<bool>(
+      'is_unlocked', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_unlocked" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isCompletedMeta =
+      const VerificationMeta('isCompleted');
+  @override
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+      'is_completed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_completed" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, targetWord, enteredLetters, isUnlocked, isCompleted];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'diary_state_table';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DiaryStateTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('target_word')) {
+      context.handle(
+          _targetWordMeta,
+          targetWord.isAcceptableOrUnknown(
+              data['target_word']!, _targetWordMeta));
+    } else if (isInserting) {
+      context.missing(_targetWordMeta);
+    }
+    if (data.containsKey('entered_letters')) {
+      context.handle(
+          _enteredLettersMeta,
+          enteredLetters.isAcceptableOrUnknown(
+              data['entered_letters']!, _enteredLettersMeta));
+    } else if (isInserting) {
+      context.missing(_enteredLettersMeta);
+    }
+    if (data.containsKey('is_unlocked')) {
+      context.handle(
+          _isUnlockedMeta,
+          isUnlocked.isAcceptableOrUnknown(
+              data['is_unlocked']!, _isUnlockedMeta));
+    }
+    if (data.containsKey('is_completed')) {
+      context.handle(
+          _isCompletedMeta,
+          isCompleted.isAcceptableOrUnknown(
+              data['is_completed']!, _isCompletedMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DiaryStateTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DiaryStateTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      targetWord: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}target_word'])!,
+      enteredLetters: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}entered_letters'])!,
+      isUnlocked: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_unlocked'])!,
+      isCompleted: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
+    );
+  }
+
+  @override
+  $DiaryStateTableTable createAlias(String alias) {
+    return $DiaryStateTableTable(attachedDatabase, alias);
+  }
+}
+
+class DiaryStateTableData extends DataClass
+    implements Insertable<DiaryStateTableData> {
+  final String id;
+  final String targetWord;
+  final String enteredLetters;
+  final bool isUnlocked;
+  final bool isCompleted;
+  const DiaryStateTableData(
+      {required this.id,
+      required this.targetWord,
+      required this.enteredLetters,
+      required this.isUnlocked,
+      required this.isCompleted});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['target_word'] = Variable<String>(targetWord);
+    map['entered_letters'] = Variable<String>(enteredLetters);
+    map['is_unlocked'] = Variable<bool>(isUnlocked);
+    map['is_completed'] = Variable<bool>(isCompleted);
+    return map;
+  }
+
+  DiaryStateTableCompanion toCompanion(bool nullToAbsent) {
+    return DiaryStateTableCompanion(
+      id: Value(id),
+      targetWord: Value(targetWord),
+      enteredLetters: Value(enteredLetters),
+      isUnlocked: Value(isUnlocked),
+      isCompleted: Value(isCompleted),
+    );
+  }
+
+  factory DiaryStateTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DiaryStateTableData(
+      id: serializer.fromJson<String>(json['id']),
+      targetWord: serializer.fromJson<String>(json['targetWord']),
+      enteredLetters: serializer.fromJson<String>(json['enteredLetters']),
+      isUnlocked: serializer.fromJson<bool>(json['isUnlocked']),
+      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'targetWord': serializer.toJson<String>(targetWord),
+      'enteredLetters': serializer.toJson<String>(enteredLetters),
+      'isUnlocked': serializer.toJson<bool>(isUnlocked),
+      'isCompleted': serializer.toJson<bool>(isCompleted),
+    };
+  }
+
+  DiaryStateTableData copyWith(
+          {String? id,
+          String? targetWord,
+          String? enteredLetters,
+          bool? isUnlocked,
+          bool? isCompleted}) =>
+      DiaryStateTableData(
+        id: id ?? this.id,
+        targetWord: targetWord ?? this.targetWord,
+        enteredLetters: enteredLetters ?? this.enteredLetters,
+        isUnlocked: isUnlocked ?? this.isUnlocked,
+        isCompleted: isCompleted ?? this.isCompleted,
+      );
+  DiaryStateTableData copyWithCompanion(DiaryStateTableCompanion data) {
+    return DiaryStateTableData(
+      id: data.id.present ? data.id.value : this.id,
+      targetWord:
+          data.targetWord.present ? data.targetWord.value : this.targetWord,
+      enteredLetters: data.enteredLetters.present
+          ? data.enteredLetters.value
+          : this.enteredLetters,
+      isUnlocked:
+          data.isUnlocked.present ? data.isUnlocked.value : this.isUnlocked,
+      isCompleted:
+          data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiaryStateTableData(')
+          ..write('id: $id, ')
+          ..write('targetWord: $targetWord, ')
+          ..write('enteredLetters: $enteredLetters, ')
+          ..write('isUnlocked: $isUnlocked, ')
+          ..write('isCompleted: $isCompleted')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, targetWord, enteredLetters, isUnlocked, isCompleted);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DiaryStateTableData &&
+          other.id == this.id &&
+          other.targetWord == this.targetWord &&
+          other.enteredLetters == this.enteredLetters &&
+          other.isUnlocked == this.isUnlocked &&
+          other.isCompleted == this.isCompleted);
+}
+
+class DiaryStateTableCompanion extends UpdateCompanion<DiaryStateTableData> {
+  final Value<String> id;
+  final Value<String> targetWord;
+  final Value<String> enteredLetters;
+  final Value<bool> isUnlocked;
+  final Value<bool> isCompleted;
+  final Value<int> rowid;
+  const DiaryStateTableCompanion({
+    this.id = const Value.absent(),
+    this.targetWord = const Value.absent(),
+    this.enteredLetters = const Value.absent(),
+    this.isUnlocked = const Value.absent(),
+    this.isCompleted = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DiaryStateTableCompanion.insert({
+    required String id,
+    required String targetWord,
+    required String enteredLetters,
+    this.isUnlocked = const Value.absent(),
+    this.isCompleted = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        targetWord = Value(targetWord),
+        enteredLetters = Value(enteredLetters);
+  static Insertable<DiaryStateTableData> custom({
+    Expression<String>? id,
+    Expression<String>? targetWord,
+    Expression<String>? enteredLetters,
+    Expression<bool>? isUnlocked,
+    Expression<bool>? isCompleted,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (targetWord != null) 'target_word': targetWord,
+      if (enteredLetters != null) 'entered_letters': enteredLetters,
+      if (isUnlocked != null) 'is_unlocked': isUnlocked,
+      if (isCompleted != null) 'is_completed': isCompleted,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DiaryStateTableCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? targetWord,
+      Value<String>? enteredLetters,
+      Value<bool>? isUnlocked,
+      Value<bool>? isCompleted,
+      Value<int>? rowid}) {
+    return DiaryStateTableCompanion(
+      id: id ?? this.id,
+      targetWord: targetWord ?? this.targetWord,
+      enteredLetters: enteredLetters ?? this.enteredLetters,
+      isUnlocked: isUnlocked ?? this.isUnlocked,
+      isCompleted: isCompleted ?? this.isCompleted,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (targetWord.present) {
+      map['target_word'] = Variable<String>(targetWord.value);
+    }
+    if (enteredLetters.present) {
+      map['entered_letters'] = Variable<String>(enteredLetters.value);
+    }
+    if (isUnlocked.present) {
+      map['is_unlocked'] = Variable<bool>(isUnlocked.value);
+    }
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiaryStateTableCompanion(')
+          ..write('id: $id, ')
+          ..write('targetWord: $targetWord, ')
+          ..write('enteredLetters: $enteredLetters, ')
+          ..write('isUnlocked: $isUnlocked, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4846,6 +5173,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MessagesTable messages = $MessagesTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $StoryStateTable storyState = $StoryStateTable(this);
+  late final $DiaryStateTableTable diaryStateTable =
+      $DiaryStateTableTable(this);
   late final $EpisodesTable episodes = $EpisodesTable(this);
   late final $CharacterNotesTable characterNotes = $CharacterNotesTable(this);
   late final $MediaItemsTable mediaItems = $MediaItemsTable(this);
@@ -4865,6 +5194,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         messages,
         notifications,
         storyState,
+        diaryStateTable,
         episodes,
         characterNotes,
         mediaItems,
@@ -7745,6 +8075,182 @@ typedef $$StoryStateTableProcessedTableManager = ProcessedTableManager<
     ),
     StoryStateData,
     PrefetchHooks Function()>;
+typedef $$DiaryStateTableTableCreateCompanionBuilder = DiaryStateTableCompanion
+    Function({
+  required String id,
+  required String targetWord,
+  required String enteredLetters,
+  Value<bool> isUnlocked,
+  Value<bool> isCompleted,
+  Value<int> rowid,
+});
+typedef $$DiaryStateTableTableUpdateCompanionBuilder = DiaryStateTableCompanion
+    Function({
+  Value<String> id,
+  Value<String> targetWord,
+  Value<String> enteredLetters,
+  Value<bool> isUnlocked,
+  Value<bool> isCompleted,
+  Value<int> rowid,
+});
+
+class $$DiaryStateTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DiaryStateTableTable> {
+  $$DiaryStateTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get targetWord => $composableBuilder(
+      column: $table.targetWord, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get enteredLetters => $composableBuilder(
+      column: $table.enteredLetters,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isUnlocked => $composableBuilder(
+      column: $table.isUnlocked, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => ColumnFilters(column));
+}
+
+class $$DiaryStateTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DiaryStateTableTable> {
+  $$DiaryStateTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get targetWord => $composableBuilder(
+      column: $table.targetWord, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get enteredLetters => $composableBuilder(
+      column: $table.enteredLetters,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isUnlocked => $composableBuilder(
+      column: $table.isUnlocked, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DiaryStateTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DiaryStateTableTable> {
+  $$DiaryStateTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get targetWord => $composableBuilder(
+      column: $table.targetWord, builder: (column) => column);
+
+  GeneratedColumn<String> get enteredLetters => $composableBuilder(
+      column: $table.enteredLetters, builder: (column) => column);
+
+  GeneratedColumn<bool> get isUnlocked => $composableBuilder(
+      column: $table.isUnlocked, builder: (column) => column);
+
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => column);
+}
+
+class $$DiaryStateTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DiaryStateTableTable,
+    DiaryStateTableData,
+    $$DiaryStateTableTableFilterComposer,
+    $$DiaryStateTableTableOrderingComposer,
+    $$DiaryStateTableTableAnnotationComposer,
+    $$DiaryStateTableTableCreateCompanionBuilder,
+    $$DiaryStateTableTableUpdateCompanionBuilder,
+    (
+      DiaryStateTableData,
+      BaseReferences<_$AppDatabase, $DiaryStateTableTable, DiaryStateTableData>
+    ),
+    DiaryStateTableData,
+    PrefetchHooks Function()> {
+  $$DiaryStateTableTableTableManager(
+      _$AppDatabase db, $DiaryStateTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DiaryStateTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DiaryStateTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DiaryStateTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> targetWord = const Value.absent(),
+            Value<String> enteredLetters = const Value.absent(),
+            Value<bool> isUnlocked = const Value.absent(),
+            Value<bool> isCompleted = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DiaryStateTableCompanion(
+            id: id,
+            targetWord: targetWord,
+            enteredLetters: enteredLetters,
+            isUnlocked: isUnlocked,
+            isCompleted: isCompleted,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String targetWord,
+            required String enteredLetters,
+            Value<bool> isUnlocked = const Value.absent(),
+            Value<bool> isCompleted = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DiaryStateTableCompanion.insert(
+            id: id,
+            targetWord: targetWord,
+            enteredLetters: enteredLetters,
+            isUnlocked: isUnlocked,
+            isCompleted: isCompleted,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DiaryStateTableTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DiaryStateTableTable,
+    DiaryStateTableData,
+    $$DiaryStateTableTableFilterComposer,
+    $$DiaryStateTableTableOrderingComposer,
+    $$DiaryStateTableTableAnnotationComposer,
+    $$DiaryStateTableTableCreateCompanionBuilder,
+    $$DiaryStateTableTableUpdateCompanionBuilder,
+    (
+      DiaryStateTableData,
+      BaseReferences<_$AppDatabase, $DiaryStateTableTable, DiaryStateTableData>
+    ),
+    DiaryStateTableData,
+    PrefetchHooks Function()>;
 typedef $$EpisodesTableCreateCompanionBuilder = EpisodesCompanion Function({
   required String id,
   Value<bool> isUnlocked,
@@ -8608,6 +9114,8 @@ class $AppDatabaseManager {
       $$NotificationsTableTableManager(_db, _db.notifications);
   $$StoryStateTableTableManager get storyState =>
       $$StoryStateTableTableManager(_db, _db.storyState);
+  $$DiaryStateTableTableTableManager get diaryStateTable =>
+      $$DiaryStateTableTableTableManager(_db, _db.diaryStateTable);
   $$EpisodesTableTableManager get episodes =>
       $$EpisodesTableTableManager(_db, _db.episodes);
   $$CharacterNotesTableTableManager get characterNotes =>
