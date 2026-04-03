@@ -6,39 +6,55 @@
       "chat": "intercept_amelia_michael",
       "thread_id": "intercept_amelia_michael",
       "thread_title": "Amelia & Michael",
-      "thread_members": [
-        "amelia",
-        "michael"
-      ],
+      "thread_members": ["amelia", "michael"],
       "thread_secret": true,
       "sender": "amelia",
       "text": "[VPN: ACTIVE | ENCRYPTION: HIGH | IDENTITY: HIDDEN]",
       "next": "S5_Amelia_Panic"
     },
+
     {
       "id": "S5_Amelia_Panic",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Typing",
-      "text": "Did you tell them? Anything at all?",
+      "text": "Did you tell them anything?",
+      "next": "S5_Amelia_Panic_2"
+    },
+    {
+      "id": "S5_Amelia_Panic_2",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "Be honest.",
       "next": "S5_Michael_Cold"
     },
+
     {
       "id": "S5_Michael_Cold",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
-      "text": "No. I'm not that stupid, Amelia.",
+      "text": "No.",
+      "next": "S5_Michael_Cold_2"
+    },
+    {
+      "id": "S5_Michael_Cold_2",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "And I won’t.",
       "next": "S5_Amelia_Relief"
     },
+
     {
       "id": "S5_Amelia_Relief",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Typing",
-      "text": "Good. Thank god.",
+      "text": "Okay…",
       "next": "S5_Amelia_Relief_2"
     },
     {
@@ -46,18 +62,36 @@
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "amelia",
+      "text": "Okay, good.",
+      "next": "S5_Amelia_Relief_3"
+    },
+
+    {
+      "id": "S5_Amelia_Relief_3",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
       "action": "Pause",
-      "duration": 3000,
-      "text": "Because if that gets out\u2026 if they find out what we were actually doing at that factory\u2026",
+      "duration": 2500,
+      "text": "Because if they find out what we were really doing there…",
+      "next": "S5_Amelia_Relief_4"
+    },
+    {
+      "id": "S5_Amelia_Relief_4",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "we’re done.",
       "next": "S5_Michael_ShutDown"
     },
+
     {
       "id": "S5_Michael_ShutDown",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
       "action": "Typing",
-      "text": "It won't get out. Not unless you keep spiraling like this.",
+      "text": "Then stop typing like this.",
       "next": "S5_Michael_ShutDown_2"
     },
     {
@@ -65,25 +99,50 @@
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
-      "text": "Relax. Breathe. The police are looking for a missing person, not a motive.",
+      "text": "You’re going to get sloppy.",
+      "next": "S5_Michael_ShutDown_3"
+    },
+    {
+      "id": "S5_Michael_ShutDown_3",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "And sloppy gets people caught.",
       "next": "S5_Amelia_Doubt"
     },
+
     {
       "id": "S5_Amelia_Doubt",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "amelia",
       "action": "Typing",
-      "text": "But that 'stranger' in the group\u2026 they knew about the timeline. They knew she didn't leave at midnight.",
+      "text": "That person in the group…",
+      "next": "S5_Amelia_Doubt_2"
+    },
+    {
+      "id": "S5_Amelia_Doubt_2",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "They knew.",
+      "next": "S5_Amelia_Doubt_3"
+    },
+    {
+      "id": "S5_Amelia_Doubt_3",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "About the timeline.",
       "next": "S5_Michael_Dismissive"
     },
+
     {
       "id": "S5_Michael_Dismissive",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
-      "action": "Typing",
-      "text": "A lucky guess. Or someone's idea of a sick joke.",
+      "text": "Coincidence.",
       "next": "S5_Michael_Dismissive_2"
     },
     {
@@ -91,26 +150,87 @@
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
-      "text": "I'm handling the press. You just keep Chris and Abigail quiet.",
+      "text": "Or someone fishing for reactions.",
+      "next": "S5_Michael_Dismissive_3"
+    },
+    {
+      "id": "S5_Michael_Dismissive_3",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "You gave them one.",
       "next": "S5_Amelia_Guilt"
     },
+
     {
       "id": "S5_Amelia_Guilt",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "amelia",
+      "action": "Typing",
+      "text": "I didn’t mean to.",
+      "next": "S5_Amelia_Guilt_2"
+    },
+    {
+      "id": "S5_Amelia_Guilt_2",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "She just kept pushing me that night.",
+      "next": "S5_Amelia_Guilt_3"
+    },
+
+    {
+      "id": "S5_Amelia_Guilt_3",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
       "action": "Pause",
-      "duration": 2000,
-      "text": "She looked so scared, Michael. When she went outside... I just wanted to teach her a lesson. I didn't want this.",
+      "duration": 2500,
+      "text": "I only wanted to scare her.",
+      "next": "S5_Amelia_Guilt_4"
+    },
+    {
+      "id": "S5_Amelia_Guilt_4",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "That’s it.",
+      "next": "S5_Amelia_Guilt_5"
+    },
+    {
+      "id": "S5_Amelia_Guilt_5",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "amelia",
+      "text": "I didn’t think she would—",
+      "next": "S5_Michael_Cut"
+    },
+
+    {
+      "id": "S5_Michael_Cut",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "Stop.",
+      "next": "S5_Michael_Cut_2"
+    },
+    {
+      "id": "S5_Michael_Cut_2",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "Don’t finish that sentence.",
       "next": "S5_Michael_Final_Warning"
     },
+
     {
       "id": "S5_Michael_Final_Warning",
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
       "action": "Typing",
-      "text": "Stop. Don't type another word about that.",
+      "text": "We stick to the story.",
       "next": "S5_Michael_Final_Warning_2"
     },
     {
@@ -118,7 +238,7 @@
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
-      "text": "We stick to the story. She left at midnight. We didn't see anything.",
+      "text": "She left at midnight.",
       "next": "S5_Michael_Final_Warning_3"
     },
     {
@@ -126,14 +246,41 @@
       "type": "Chat_Event",
       "chat": "intercept_amelia_michael",
       "sender": "michael",
-      "action": "Typing",
-      "text": "If we change a single detail now, we're both finished.",
+      "text": "No one saw anything.",
+      "next": "S5_Michael_Final_Warning_4"
+    },
+    {
+      "id": "S5_Michael_Final_Warning_4",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "Nothing else exists.",
+      "next": "S5_Michael_Final_Warning_5"
+    },
+
+    {
+      "id": "S5_Michael_Final_Warning_5",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 2000,
+      "text": "If that changes…",
+      "next": "S5_Michael_Final_Warning_6"
+    },
+    {
+      "id": "S5_Michael_Final_Warning_6",
+      "type": "Chat_Event",
+      "chat": "intercept_amelia_michael",
+      "sender": "michael",
+      "text": "we’re both finished.",
       "next": "s5_glitch"
     },
+
     {
       "id": "s5_glitch",
       "type": "Glitch_Effect",
-      "duration": 1000,
+      "duration": 1200,
       "next_screen": "phone",
       "text": "[SIGNAL LOST... ENCRYPTION BREACHED...]",
       "next": "s6_ring_1"
