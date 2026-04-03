@@ -1,5 +1,3 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
 class DiaryState {
   final String targetWord;
   final List<String?> enteredLetters;

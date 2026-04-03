@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
-import 'diary_state.dart';
+import '../diary_state.dart';
 
 class DiaryDao {
   final AppDatabase db;
