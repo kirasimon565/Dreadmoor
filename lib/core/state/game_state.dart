@@ -118,34 +118,6 @@ final waitingForPuzzleProvider =
     NotifierProvider<WaitingForPuzzleNotifier, bool>(
         WaitingForPuzzleNotifier.new);
 
-// ---------------------------
-// MINIGAME ROUTING
-// Stores which minigame the scheduler launched so DreadmoorAppContainer
-// can render the correct screen in the PhoneApp.puzzle slot.
-// ---------------------------
-
-/// The minigame_id string from the JSON node metadata.
-/// e.g. "ghost_trace_ep01"
-class ActiveMinigameIdNotifier extends Notifier<String?> {
-  @override
-  String? build() => null;
-  void setId(String? id) => state = id;
-}
-
-final activeMinigameIdProvider =
-    NotifierProvider<ActiveMinigameIdNotifier, String?>(
-        ActiveMinigameIdNotifier.new);
-
-/// Difficulty level (1–3) from the JSON node metadata.
-class ActiveMinigameDifficultyNotifier extends Notifier<int> {
-  @override
-  int build() => 1;
-  void setDifficulty(int d) => state = d;
-}
-
-final activeMinigameDifficultyProvider =
-    NotifierProvider<ActiveMinigameDifficultyNotifier, int>(
-        ActiveMinigameDifficultyNotifier.new);
 
 // ---------------------------
 // NAVIGATION

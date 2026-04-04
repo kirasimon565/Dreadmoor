@@ -213,6 +213,20 @@ class StoryState extends Table {
 }
 
 // --------------------------------------------------
+// DIARY_STATE: Puzzle State
+// --------------------------------------------------
+class DiaryStateTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get targetWord => text()();
+  TextColumn get enteredLetters => text()(); // Store as JSON array string
+  BoolColumn get isUnlocked => boolean().withDefault(const Constant(false))();
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// --------------------------------------------------
 // EPISODES: Progress
 // --------------------------------------------------
 class Episodes extends Table {
