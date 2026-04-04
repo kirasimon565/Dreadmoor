@@ -7,7 +7,7 @@ enum PhoneApp {
   browser,
   phone,
   apps,
-  puzzle,
+  diary,
   profile,
 }
 

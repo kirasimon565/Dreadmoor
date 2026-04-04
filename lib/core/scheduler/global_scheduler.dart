@@ -341,30 +341,26 @@ class GlobalScheduler {
         return;
 
       case 'Open_Diary_Lock':
-        final word = meta['word'] as String? ?? 'ECHO';
+        final word = meta['word'] as String?;
 
-        // Wait for diary state to be loaded
-        await ref.read(diaryProvider.notifier).init(word);
-
-        final isCompleted = ref.read(diaryProvider)?.isCompleted ?? false;
-
-        if (!isCompleted) {
-          pause();
-          ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
-
-          final ctx = ref.read(appRouterProvider).routerDelegate.navigatorKey.currentState?.context;
-          if (ctx != null) {
-            Navigator.push(
-              ctx,
-              MaterialPageRoute(
-                builder: (_) => DiaryScreen(targetWord: word),
-              ),
-            );
-          }
+        if (word == null || word.isEmpty) {
           return;
         }
 
-        // If diary is already completed, just let the scheduler continue naturally
+        final controller = ref.read(diaryProvider.notifier);
+
+        await controller.init(word);
+
+        await db.updateStoryFlag('diaryUnlocked', bVal: true);
+
+        final diaryState = ref.read(diaryProvider);
+
+        if (diaryState == null || !diaryState.isCompleted) {
+          pause();
+          return;
+        }
+
+        _advance(node.nextNodeId);
         return;
 
       case 'Add_To_Group':

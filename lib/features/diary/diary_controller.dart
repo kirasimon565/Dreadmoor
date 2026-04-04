@@ -8,49 +8,34 @@ final diaryProvider = NotifierProvider<DiaryController, DiaryState?>(DiaryContro
 class DiaryController extends Notifier<DiaryState?> {
   late DiaryDao _dao;
 
+  DiaryDao get dao => _dao;
+
   @override
   DiaryState? build() {
     _dao = DiaryDao(ref.read(databaseProvider));
-    // Provide a default state to avoid null issues in the UI until init completes.
-    // However, it will realistically be initialized by the scheduler.
     return null;
   }
 
   Future<void> init(String word) async {
-    final savedState = await _dao.loadState();
+    final saved = await _dao.loadState();
 
-    if (savedState != null) {
-      if (savedState.targetWord.toUpperCase() != word.toUpperCase()) {
-        // Word mismatch - reset
-        final newState = DiaryState(
-          targetWord: word.toUpperCase(),
-          enteredLetters: List.filled(word.length, null),
-          isUnlocked: false,
-          isCompleted: false,
-        );
-        state = newState;
-        await _dao.saveState(newState);
-      } else {
-        state = savedState;
-      }
-    } else {
-      // First time
-      final newState = DiaryState(
-        targetWord: word.toUpperCase(),
-        enteredLetters: List.filled(word.length, null),
-        isUnlocked: false,
-        isCompleted: false,
-      );
+    if (saved == null || saved.targetWord != word) {
+      final newState = DiaryState.initial(word);
       state = newState;
       await _dao.saveState(newState);
+      return;
     }
+
+    state = saved;
   }
 
   Future<void> enterLetter(int index, String? letter) async {
     if (state == null || state!.isUnlocked) return;
 
+    final input = letter?.trim().toUpperCase();
+
     final newLetters = List<String?>.from(state!.enteredLetters);
-    newLetters[index] = letter?.toUpperCase();
+    newLetters[index] = input;
 
     final newState = state!.copyWith(enteredLetters: newLetters);
     state = newState;
@@ -69,13 +54,18 @@ class DiaryController extends Notifier<DiaryState?> {
   }
 
   Future<void> _unlockDiary() async {
-    if (state == null) return;
+    final current = state;
+    if (current == null || current.isCompleted) return;
 
-    final newState = state!.copyWith(isUnlocked: true, isCompleted: true);
+    final newState = current.copyWith(
+      isUnlocked: true,
+      isCompleted: true,
+    );
+
     state = newState;
+
     await _dao.saveState(newState);
 
-    // Notify scheduler
     ref.read(globalSchedulerProvider).completePuzzle();
   }
 }

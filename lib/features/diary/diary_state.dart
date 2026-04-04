@@ -11,6 +11,15 @@ class DiaryState {
     required this.isCompleted,
   });
 
+  factory DiaryState.initial(String word) {
+    return DiaryState(
+      targetWord: word.toUpperCase(),
+      enteredLetters: List.filled(word.length, null),
+      isUnlocked: false,
+      isCompleted: false,
+    );
+  }
+
   DiaryState copyWith({
     String? targetWord,
     List<String?>? enteredLetters,
