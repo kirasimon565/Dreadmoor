@@ -8,6 +8,7 @@ import 'package:dreadmoor/features/browser/ui/browser_navigator.dart';
 import 'package:dreadmoor/features/phone/ui/phone_navigator.dart';
 import 'package:dreadmoor/features/profile/ui/profile_navigator.dart';
 import 'package:dreadmoor/features/apps/ui/screens/apps/apps_screen.dart';
+import 'package:dreadmoor/features/diary/ui/diary_screen.dart';
 
 class DreadmoorAppContainer extends ConsumerStatefulWidget {
   const DreadmoorAppContainer({super.key});
@@ -24,7 +25,7 @@ class _DreadmoorAppContainerState
     PhoneApp.browser,
     PhoneApp.phone,
     PhoneApp.apps,
-    PhoneApp.puzzle,
+    PhoneApp.diary,
     PhoneApp.profile,
   ];
 
@@ -40,7 +41,7 @@ class _DreadmoorAppContainerState
         BrowserNavigator(),
         PhoneNavigator(),
         AppsScreen(),
-        SizedBox.shrink(), // Removed Minigame Slot
+        DiaryScreen(),
         ProfileNavigator(),
       ],
     );
