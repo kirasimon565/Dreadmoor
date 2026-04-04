@@ -342,14 +342,15 @@ class GlobalScheduler {
 
       case 'Open_Diary_Lock':
         final word = meta['word'] as String?;
+        final pageId = meta['pageId'] as String?;
 
-        if (word == null || word.isEmpty) {
+        if (word == null || word.isEmpty || pageId == null || pageId.isEmpty) {
           return;
         }
 
         final controller = ref.read(diaryProvider.notifier);
 
-        await controller.init(word);
+        await controller.init(word, pageId);
 
         await db.updateStoryFlag('diaryUnlocked', bVal: true);
 

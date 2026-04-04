@@ -24,11 +24,9 @@ class DiaryScreen extends ConsumerWidget {
       return const DiaryLockedView();
     }
 
-    // Pass the appropriate text for the unlocked page view
-    return const DiaryPageView(
-      pageNumber: 12,
-      dateStr: "Oct 21",
-      content: "The passcode was the key. Now everything is starting to fall into place. The truth is much darker than I thought.",
+    // Render the single active unlocked page based on the current pageId
+    return DiaryPageView(
+      pageId: state.pageId,
     );
   }
 }
