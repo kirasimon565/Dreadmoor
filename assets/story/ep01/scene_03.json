@@ -478,12 +478,24 @@
       "text": "She left.",
       "next": "S3_Amelia_Final_2"
     },
+
     {
       "id": "S3_Amelia_Final_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "text": "End of story.",
+      "next": "S3_Diary_Trigger"
+    },
+
+    {
+      "id": "S3_Diary_Trigger",
+      "type": "System_Event",
+      "action": "Open_Diary_Lock",
+      "meta": {
+        "word": "ECHO",
+        "pageId": "page_01"
+      },
       "next": "s4_video"
     }
   ]
