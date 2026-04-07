@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/time/game_clock.dart';
-import 'package:dreadmoor/features/diary/diary_controller.dart';
-import 'package:dreadmoor/features/diary/ui/diary_screen.dart';
 import 'package:dreadmoor/features/phone/phone_state.dart';
 import 'package:dreadmoor/features/notifications/notification_state.dart';
 import 'package:dreadmoor/ui/navigation/app_router.dart';
@@ -340,37 +338,23 @@ class GlobalScheduler {
         _advance(node.nextNodeId);
         return;
 
-      case 'Open_Diary_Lock':
-        // FAIL-SAFE: if word is missing from metadata, skip and continue.
-        // A bare return here was the primary freeze cause — if any node
-        // lacked the 'word' field the scheduler silently halted forever.
-        final word = meta['word'] as String?;
-        if (word == null || word.isEmpty) {
-          print("DreadmoorOS ⚠ Open_Diary_Lock missing 'word' — skipping.");
-          _advance(node.nextNodeId);
-          return;
-        }
+      case 'Launch_Minigame':
+        // Read routing info from JSON metadata:
+        // { "action": "Launch_Minigame",
+        //   "minigame_id": "ghost_trace_ep01",
+        //   "difficulty": 1 }
+        final minigameId   = (meta['minigame_id'] as String?) ?? 'ghost_trace_ep01';
+        final minigameDiff = (meta['difficulty']  as int?)    ?? 1;
 
-        // Initialise diary with the required word, then set the story flag.
-        await ref.read(diaryProvider.notifier).init(word);
-        await db.updateStoryFlag('diaryUnlocked', bVal: true);
+        // Tell DreadmoorAppContainer which minigame to render in the puzzle slot
+        ref.read(activeMinigameIdProvider.notifier).setId(minigameId);
+        ref.read(activeMinigameDifficultyProvider.notifier).setDifficulty(minigameDiff);
 
-        // Read state AFTER awaiting init so we get the post-init value.
-        // Note: diaryProvider is a Notifier — it never returns null.
-        // We only pause if the diary is genuinely open and unsolved.
-        // Any other condition (unexpected state, init failure) falls
-        // through to _advance so the scheduler is never permanently blocked.
-        final diaryState = ref.read(diaryProvider);
-        if (diaryState == null || !diaryState.isCompleted) {
-          // Diary is open and waiting for the player to solve it.
-          // completePuzzle() (called by the diary on success) will resume.
-          pause();
-          return;
-        }
-
-        // Diary was already completed (e.g. app restarted mid-session) —
-        // advance normally without pausing.
-        _advance(node.nextNodeId);
+        pause();
+        ref.read(activeAppProvider.notifier).setApp(PhoneApp.puzzle);
+        ref.read(appRouterProvider).go(Routes.os);
+        ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
+        ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
         return;
 
       case 'Add_To_Group':
