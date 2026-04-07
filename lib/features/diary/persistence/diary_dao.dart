@@ -5,13 +5,12 @@ import '../diary_state.dart';
 
 class DiaryDao {
   final AppDatabase db;
-  static const String _diaryKey = 'diary_ep01';
 
   DiaryDao(this.db);
 
-  Future<DiaryState?> loadState() async {
+  Future<DiaryState?> loadState(String pageId) async {
     final row = await (db.select(db.diaryStateTable)
-          ..where((t) => t.id.equals(_diaryKey)))
+          ..where((t) => t.id.equals(pageId)))
         .getSingleOrNull();
 
     if (row == null) return null;
@@ -25,6 +24,7 @@ class DiaryDao {
     }
 
     return DiaryState(
+      pageId: row.id,
       targetWord: row.targetWord,
       enteredLetters: enteredLetters,
       isUnlocked: row.isUnlocked,
@@ -36,7 +36,7 @@ class DiaryDao {
     final lettersJson = jsonEncode(state.enteredLetters);
     await db.into(db.diaryStateTable).insertOnConflictUpdate(
       DiaryStateTableCompanion(
-        id: const Value(_diaryKey),
+        id: Value(state.pageId),
         targetWord: Value(state.targetWord),
         enteredLetters: Value(lettersJson),
         isUnlocked: Value(state.isUnlocked),
@@ -45,7 +45,7 @@ class DiaryDao {
     );
   }
 
-  Future<void> clearState() async {
-    await (db.delete(db.diaryStateTable)..where((t) => t.id.equals(_diaryKey))).go();
+  Future<void> clearState(String pageId) async {
+    await (db.delete(db.diaryStateTable)..where((t) => t.id.equals(pageId))).go();
   }
 }

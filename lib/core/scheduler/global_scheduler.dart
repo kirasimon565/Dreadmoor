@@ -16,6 +16,8 @@ import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
 import 'package:dreadmoor/ui/widgets/glitch_overlay.dart';
+import 'package:dreadmoor/features/diary/diary_scheduler_link.dart';
+import 'package:dreadmoor/features/diary/diary_controller.dart';
 import '../state/game_state.dart';
 import '../persistence/seed_characters.dart';
 
@@ -322,6 +324,31 @@ class GlobalScheduler {
     final action = (meta['action'] as String?) ?? '';
 
     switch (action) {
+      case 'Open_Diary_Lock':
+        final word = meta['word'] as String?;
+        final pageId = meta['pageId'] as String?;
+
+        if (word == null || word.isEmpty || pageId == null || pageId.isEmpty) {
+          print("DreadmoorOS ⚠ Open_Diary_Lock missing data — skipping.");
+          _advance(node.nextNodeId);
+          return;
+        }
+
+        final controller = ref.read(diaryProvider.notifier);
+        await controller.init(word, pageId);
+
+        await db.updateStoryFlag('diaryUnlocked', bVal: true);
+
+        final shouldPause = await handleDiary(ref, word, pageId);
+
+        if (shouldPause) {
+          pause();
+          return;
+        }
+
+        _advance(node.nextNodeId);
+        return;
+
       case 'Push_Notification':
         // flag_name defaults to node.id if not specified
         final flag = (meta['flag_name'] as String?) ?? node.id;
