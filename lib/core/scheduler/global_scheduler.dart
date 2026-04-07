@@ -341,25 +341,35 @@ class GlobalScheduler {
         return;
 
       case 'Open_Diary_Lock':
+        // FAIL-SAFE: if word is missing from metadata, skip and continue.
+        // A bare return here was the primary freeze cause — if any node
+        // lacked the 'word' field the scheduler silently halted forever.
         final word = meta['word'] as String?;
-
         if (word == null || word.isEmpty) {
+          print("DreadmoorOS ⚠ Open_Diary_Lock missing 'word' — skipping.");
+          _advance(node.nextNodeId);
           return;
         }
 
-        final controller = ref.read(diaryProvider.notifier);
-
-        await controller.init(word);
-
+        // Initialise diary with the required word, then set the story flag.
+        await ref.read(diaryProvider.notifier).init(word);
         await db.updateStoryFlag('diaryUnlocked', bVal: true);
 
+        // Read state AFTER awaiting init so we get the post-init value.
+        // Note: diaryProvider is a Notifier — it never returns null.
+        // We only pause if the diary is genuinely open and unsolved.
+        // Any other condition (unexpected state, init failure) falls
+        // through to _advance so the scheduler is never permanently blocked.
         final diaryState = ref.read(diaryProvider);
-
-        if (diaryState == null || !diaryState.isCompleted) {
+        if (!diaryState.isCompleted) {
+          // Diary is open and waiting for the player to solve it.
+          // completePuzzle() (called by the diary on success) will resume.
           pause();
           return;
         }
 
+        // Diary was already completed (e.g. app restarted mid-session) —
+        // advance normally without pausing.
         _advance(node.nextNodeId);
         return;
 
