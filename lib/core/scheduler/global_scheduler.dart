@@ -366,22 +366,12 @@ class GlobalScheduler {
         return;
 
       case 'Launch_Minigame':
-        // Read routing info from JSON metadata:
-        // { "action": "Launch_Minigame",
-        //   "minigame_id": "ghost_trace_ep01",
-        //   "difficulty": 1 }
-        final minigameId   = (meta['minigame_id'] as String?) ?? 'ghost_trace_ep01';
-        final minigameDiff = (meta['difficulty']  as int?)    ?? 1;
-
-        // Tell DreadmoorAppContainer which minigame to render in the puzzle slot
-        ref.read(activeMinigameIdProvider.notifier).setId(minigameId);
-        ref.read(activeMinigameDifficultyProvider.notifier).setDifficulty(minigameDiff);
-
-        pause();
-        ref.read(activeAppProvider.notifier).setApp(PhoneApp.puzzle);
-        ref.read(appRouterProvider).go(Routes.os);
-        ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
-        ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+        // Arcade-style minigames have been replaced with story-driven
+        // puzzle mechanics (e.g., Diary Lock System).
+        // This case is deprecated and left here for backward compatibility
+        // or silent skipping.
+        print("DreadmoorOS ⚠ Launch_Minigame is deprecated — skipping.");
+        _advance(node.nextNodeId);
         return;
 
       case 'Add_To_Group':
