@@ -16,11 +16,11 @@ class DiaryController extends Notifier<DiaryState?> {
     return null;
   }
 
-  Future<void> init(String word) async {
-    final saved = await _dao.loadState();
+  Future<void> init(String word, String pageId) async {
+    final saved = await _dao.loadState(pageId);
 
-    if (saved == null || saved.targetWord != word) {
-      final newState = DiaryState.initial(word);
+    if (saved == null || saved.targetWord != word || saved.pageId != pageId) {
+      final newState = DiaryState.initial(word, pageId);
       state = newState;
       await _dao.saveState(newState);
       return;

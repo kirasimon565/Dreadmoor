@@ -16,6 +16,8 @@ import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
 import 'package:dreadmoor/ui/widgets/glitch_overlay.dart';
+import 'package:dreadmoor/features/diary/diary_scheduler_link.dart';
+import 'package:dreadmoor/features/diary/diary_controller.dart';
 import '../state/game_state.dart';
 import '../persistence/seed_characters.dart';
 
@@ -322,6 +324,31 @@ class GlobalScheduler {
     final action = (meta['action'] as String?) ?? '';
 
     switch (action) {
+      case 'Open_Diary_Lock':
+        final word = meta['word'] as String?;
+        final pageId = meta['pageId'] as String?;
+
+        if (word == null || word.isEmpty || pageId == null || pageId.isEmpty) {
+          print("DreadmoorOS ⚠ Open_Diary_Lock missing data — skipping.");
+          _advance(node.nextNodeId);
+          return;
+        }
+
+        final controller = ref.read(diaryProvider.notifier);
+        await controller.init(word, pageId);
+
+        await db.updateStoryFlag('diaryUnlocked', bVal: true);
+
+        final shouldPause = await handleDiary(ref, word, pageId);
+
+        if (shouldPause) {
+          pause();
+          return;
+        }
+
+        _advance(node.nextNodeId);
+        return;
+
       case 'Push_Notification':
         // flag_name defaults to node.id if not specified
         final flag = (meta['flag_name'] as String?) ?? node.id;
@@ -339,22 +366,12 @@ class GlobalScheduler {
         return;
 
       case 'Launch_Minigame':
-        // Read routing info from JSON metadata:
-        // { "action": "Launch_Minigame",
-        //   "minigame_id": "ghost_trace_ep01",
-        //   "difficulty": 1 }
-        final minigameId   = (meta['minigame_id'] as String?) ?? 'ghost_trace_ep01';
-        final minigameDiff = (meta['difficulty']  as int?)    ?? 1;
-
-        // Tell DreadmoorAppContainer which minigame to render in the puzzle slot
-        ref.read(activeMinigameIdProvider.notifier).setId(minigameId);
-        ref.read(activeMinigameDifficultyProvider.notifier).setDifficulty(minigameDiff);
-
-        pause();
-        ref.read(activeAppProvider.notifier).setApp(PhoneApp.puzzle);
-        ref.read(appRouterProvider).go(Routes.os);
-        ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
-        ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+        // Arcade-style minigames have been replaced with story-driven
+        // puzzle mechanics (e.g., Diary Lock System).
+        // This case is deprecated and left here for backward compatibility
+        // or silent skipping.
+        print("DreadmoorOS ⚠ Launch_Minigame is deprecated — skipping.");
+        _advance(node.nextNodeId);
         return;
 
       case 'Add_To_Group':
