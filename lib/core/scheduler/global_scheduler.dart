@@ -361,7 +361,7 @@ class GlobalScheduler {
         // Any other condition (unexpected state, init failure) falls
         // through to _advance so the scheduler is never permanently blocked.
         final diaryState = ref.read(diaryProvider);
-        if (!diaryState.isCompleted) {
+        if (diaryState == null || !diaryState.isCompleted) {
           // Diary is open and waiting for the player to solve it.
           // completePuzzle() (called by the diary on success) will resume.
           pause();
