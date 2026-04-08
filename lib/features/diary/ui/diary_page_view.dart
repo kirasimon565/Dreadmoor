@@ -3,15 +3,17 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class DiaryPageView extends StatefulWidget {
+  final String pageId;
   final int pageNumber;
   final String dateStr;
-  final String content;
+  final List<String> contentList;
 
   const DiaryPageView({
     super.key,
+    required this.pageId,
     required this.pageNumber,
     required this.dateStr,
-    required this.content,
+    required this.contentList,
   });
 
   @override
@@ -22,10 +24,12 @@ class _DiaryPageViewState extends State<DiaryPageView> {
   String _displayedText = "";
   Timer? _timer;
   int _currentIndex = 0;
+  late String _fullContent;
 
   @override
   void initState() {
     super.initState();
+    _fullContent = widget.contentList.join('\n\n');
     _startTypewriter();
   }
 
@@ -34,9 +38,9 @@ class _DiaryPageViewState extends State<DiaryPageView> {
   }
 
   void _scheduleNextCharacter() {
-    if (_currentIndex >= widget.content.length) return;
+    if (_currentIndex >= _fullContent.length) return;
 
-    final char = widget.content[_currentIndex];
+    final char = _fullContent[_currentIndex];
 
     int delay = 20 + Random().nextInt(30);
     if ('.!,?'.contains(char)) {
@@ -57,10 +61,10 @@ class _DiaryPageViewState extends State<DiaryPageView> {
 
   void _skipAnimation() {
     _timer?.cancel();
-    if (_displayedText != widget.content) {
+    if (_displayedText != _fullContent) {
       setState(() {
-        _displayedText = widget.content;
-        _currentIndex = widget.content.length;
+        _displayedText = _fullContent;
+        _currentIndex = _fullContent.length;
       });
     }
   }

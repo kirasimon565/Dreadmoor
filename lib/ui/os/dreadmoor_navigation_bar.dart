@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
-import 'package:dreadmoor/core/state/game_state.dart';
-import 'package:dreadmoor/features/diary/diary_controller.dart';
 
 class DreadmoorNavigationBar extends ConsumerWidget {
   const DreadmoorNavigationBar({super.key});
@@ -14,9 +12,6 @@ class DreadmoorNavigationBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeApp  = ref.watch(activeAppProvider);
     final brightness = Theme.of(context).brightness;
-
-    final diaryState    = ref.watch(diaryProvider);
-    final diaryUnlocked = diaryState != null;
 
     return Container(
       height: 64,
@@ -43,7 +38,6 @@ class DreadmoorNavigationBar extends ConsumerWidget {
             label:    'Diary',
             app:      PhoneApp.diary,
             isActive: activeApp == PhoneApp.diary,
-            isDisabled: !diaryUnlocked,
           ),
           _NavItem(
             icon:     Icons.person_outline,
@@ -68,7 +62,6 @@ class _NavItem extends ConsumerWidget {
   final String   label;
   final PhoneApp app;
   final bool     isActive;
-  final bool     isDisabled;
 
   const _NavItem({
     super.key,
@@ -76,7 +69,6 @@ class _NavItem extends ConsumerWidget {
     required this.label,
     required this.app,
     required this.isActive,
-    this.isDisabled = false,
   });
 
   @override
@@ -84,9 +76,7 @@ class _NavItem extends ConsumerWidget {
     final brightness = Theme.of(context).brightness;
 
     Color color;
-    if (isDisabled) {
-      color = Colors.grey;
-    } else if (isActive) {
+    if (isActive) {
       color = DreadmoorColors.investigatorCyan;
     } else {
       color = DreadmoorColors.text(brightness).withOpacity(0.7);
@@ -95,7 +85,7 @@ class _NavItem extends ConsumerWidget {
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: isDisabled ? null : () => ref.read(activeAppProvider.notifier).state = app,
+        onTap: () => ref.read(activeAppProvider.notifier).state = app,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
