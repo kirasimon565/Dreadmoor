@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/features/diary/diary_controller.dart';
 import 'package:dreadmoor/features/diary/diary_state.dart';
 import 'widgets/letter_slot.dart';
@@ -32,19 +33,24 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    // Single listener: when the diary is unlocked, pop the overlay and
+    // signal the scheduler to resume story progression.
+    // The scheduler already stored node.nextNodeId before pausing, so
+    // completePuzzle() → resume() → _executeNode(nextNodeId) works correctly.
     ref.listen<DiaryState?>(diaryProvider, (previous, next) {
       if (next?.isUnlocked == true) {
-        if (context.mounted && Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
+        if (context.mounted) {
+          ref.read(globalSchedulerProvider).completePuzzle();
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
         }
       }
     });
 
-    final state = ref.watch(diaryProvider);
-
-    // Provide safe defaults if state happens to be null
+    final state      = ref.watch(diaryProvider);
     final wordLength = state?.targetWord.length ?? 4;
-    final letters = state?.enteredLetters ?? List.filled(wordLength, null);
+    final letters    = state?.enteredLetters ?? List.filled(wordLength, null);
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -63,8 +69,8 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
             const Text(
               "LOCKED PAGE",
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+                color:      Colors.white,
+                fontSize:   24,
                 letterSpacing: 4,
                 fontWeight: FontWeight.bold,
               ),
@@ -72,10 +78,7 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
             const SizedBox(height: 10),
             const Text(
               "Enter the passcode.",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 40),
             Row(
@@ -84,13 +87,9 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: LetterSlot(
-                    letter: letters[index],
+                    letter:     letters[index],
                     isSelected: _selectedIndex == index,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = index;
-                      });
-                    },
+                    onTap: () => setState(() => _selectedIndex = index),
                   ),
                 );
               }),
@@ -98,24 +97,21 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
             const SizedBox(height: 60),
             KeyboardInput(
               onLetterTap: (letter) async {
-                await ref.read(diaryProvider.notifier).enterLetter(_selectedIndex, letter);
-
-                // Read fresh state after entering a letter to check completion immediately
-                final newState = ref.read(diaryProvider);
-                if (newState != null && newState.isCompleted) {
-                   if (mounted) Navigator.pop(context); // Close the modal
-                } else if (_selectedIndex < wordLength - 1) {
-                   setState(() {
-                     _selectedIndex++;
-                   });
+                await ref
+                    .read(diaryProvider.notifier)
+                    .enterLetter(_selectedIndex, letter);
+                // Advance the cursor — unlock/completion is handled
+                // entirely by the ref.listen above, not here.
+                if (_selectedIndex < wordLength - 1) {
+                  setState(() => _selectedIndex++);
                 }
               },
-              onBackspace: () async {
-                ref.read(diaryProvider.notifier).enterLetter(_selectedIndex, null);
+              onBackspace: () {
+                ref
+                    .read(diaryProvider.notifier)
+                    .enterLetter(_selectedIndex, null);
                 if (_selectedIndex > 0) {
-                  setState(() {
-                    _selectedIndex--;
-                  });
+                  setState(() => _selectedIndex--);
                 }
               },
             ),
