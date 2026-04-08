@@ -5,6 +5,7 @@ import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/theme/dreadmoor_theme.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/features/diary/diary_controller.dart';
 
 class DreadmoorNavigationBar extends ConsumerWidget {
   const DreadmoorNavigationBar({super.key});
@@ -14,8 +15,8 @@ class DreadmoorNavigationBar extends ConsumerWidget {
     final activeApp  = ref.watch(activeAppProvider);
     final brightness = Theme.of(context).brightness;
 
-    final flags = ref.watch(gameFlagsProvider);
-    final diaryUnlocked = flags.value?['diaryUnlocked'] == true;
+    final diaryState    = ref.watch(diaryProvider);
+    final diaryUnlocked = diaryState != null;
 
     return Container(
       height: 64,
