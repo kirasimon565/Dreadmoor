@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/features/diary/diary_controller.dart';
+import 'package:dreadmoor/features/diary/diary_state.dart';
 import 'widgets/letter_slot.dart';
 import 'widgets/keyboard_input.dart';
 
@@ -31,6 +32,14 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<DiaryState?>(diaryProvider, (previous, next) {
+      if (next?.isUnlocked == true) {
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      }
+    });
+
     final state = ref.watch(diaryProvider);
 
     // Provide safe defaults if state happens to be null

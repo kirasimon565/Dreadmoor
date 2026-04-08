@@ -342,6 +342,7 @@ class GlobalScheduler {
         final shouldPause = await handleDiary(ref, word, pageId);
 
         if (shouldPause) {
+          ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
           pause();
           return;
         }
