@@ -30,7 +30,8 @@ class DiaryController extends Notifier<DiaryState?> {
   }
 
   Future<void> enterLetter(int index, String? letter) async {
-    if (state == null || state!.isUnlocked) return;
+    // ✅ FIX 1: use isCompleted instead of isUnlocked
+    if (state == null || state!.isCompleted) return;
 
     final input = letter?.trim().toUpperCase();
 
@@ -47,8 +48,19 @@ class DiaryController extends Notifier<DiaryState?> {
   void _checkCompletion() {
     if (state == null) return;
 
-    final enteredStr = state!.enteredLetters.map((l) => l ?? '').join();
-    if (enteredStr == state!.targetWord) {
+    // ✅ FIX 2: normalize input and compare safely
+    final enteredStr = state!.enteredLetters
+        .map((l) => (l ?? '').trim().toUpperCase())
+        .join();
+
+    final target = state!.targetWord.trim().toUpperCase();
+
+    print("ENTERED: '$enteredStr'");
+    print("TARGET:  '$target'");
+
+    if (enteredStr.length != target.length) return;
+
+    if (enteredStr == target) {
       _unlockDiary();
     }
   }
