@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/features/diary/models/diary_page_meta.dart';
+import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/features/diary/diary_providers.dart';
 import 'widgets/diary_tile.dart';
 import 'diary_page_view.dart';
@@ -19,7 +20,12 @@ class DiaryScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2D1B14),
         title: const Text("Diary", style: TextStyle(fontFamily: 'serif', color: Colors.white)),
-        automaticallyImplyLeading: false, // OS handles back/nav
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
+          },
+        ),
       ),
       body: pagesAsync.when(
         data: (pages) {
