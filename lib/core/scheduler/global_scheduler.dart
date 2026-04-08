@@ -343,6 +343,10 @@ class GlobalScheduler {
 
         if (shouldPause) {
           ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
+          // CRITICAL: store the next node BEFORE pausing.
+          // resume() calls _executeNode(activeNodeId) — if this isn't set
+          // first, resume() has no continuation point and the story dies.
+          ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
           pause();
           return;
         }
