@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/features/diary/diary_state.dart';
 import 'package:dreadmoor/features/diary/persistence/diary_dao.dart';
+import 'package:dreadmoor/features/diary/diary_providers.dart'; // ✅ ADDED
 
 final diaryProvider = NotifierProvider<DiaryController, DiaryState?>(DiaryController.new);
 
@@ -77,6 +78,9 @@ class DiaryController extends Notifier<DiaryState?> {
     state = newState;
 
     await _dao.saveState(newState);
+
+    // 🔴 FIX: force UI refresh for this page
+    ref.invalidate(diaryPageStateProvider(current.pageId));
 
     ref.read(globalSchedulerProvider).completePuzzle();
   }
