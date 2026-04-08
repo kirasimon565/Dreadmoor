@@ -5,7 +5,14 @@ import 'widgets/letter_slot.dart';
 import 'widgets/keyboard_input.dart';
 
 class DiaryLockOverlay extends ConsumerStatefulWidget {
-  const DiaryLockOverlay({super.key});
+  final String pageId;
+  final String targetWord;
+
+  const DiaryLockOverlay({
+    super.key,
+    required this.pageId,
+    required this.targetWord,
+  });
 
   @override
   ConsumerState<DiaryLockOverlay> createState() => _DiaryLockOverlayState();
@@ -13,6 +20,14 @@ class DiaryLockOverlay extends ConsumerStatefulWidget {
 
 class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(diaryProvider.notifier).init(widget.targetWord, widget.pageId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
