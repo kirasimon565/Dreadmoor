@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/features/diary/diary_controller.dart';
 import 'package:dreadmoor/features/diary/diary_state.dart';
-import 'widgets/letter_slot.dart';
-import 'widgets/keyboard_input.dart';
+
+// keyboard_input.dart and letter_slot.dart imports removed —
+// no longer used now that input is stepper-based.
 
 class DiaryLockOverlay extends ConsumerStatefulWidget {
   final String pageId;
@@ -21,8 +22,6 @@ class DiaryLockOverlay extends ConsumerStatefulWidget {
 }
 
 class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
-  int _selectedIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -50,7 +49,6 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
 
     final state      = ref.watch(diaryProvider);
     final wordLength = state?.targetWord.length ?? 4;
-    final letters    = state?.enteredLetters ?? List.filled(wordLength, null);
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -67,57 +65,99 @@ class _DiaryLockOverlayState extends ConsumerState<DiaryLockOverlay> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "LOCKED PAGE",
+              'LOCKED PAGE',
               style: TextStyle(
-                color:      Colors.white,
-                fontSize:   24,
+                color:         Colors.white,
+                fontSize:      24,
                 letterSpacing: 4,
-                fontWeight: FontWeight.bold,
+                fontWeight:    FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
             const Text(
-              "Enter the passcode.",
+              'Enter the passcode.',
               style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+
+            // ── STEPPER INPUT ─────────────────────────────────────────
+            Wrap(
+              spacing:       12,
+              runSpacing:    16,
+              alignment:     WrapAlignment.center,
               children: List.generate(wordLength, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: LetterSlot(
-                    letter:     letters[index],
-                    isSelected: _selectedIndex == index,
-                    onTap: () => setState(() => _selectedIndex = index),
-                  ),
-                );
+                return LetterStepper(index: index);
               }),
-            ),
-            const SizedBox(height: 60),
-            KeyboardInput(
-              onLetterTap: (letter) async {
-                await ref
-                    .read(diaryProvider.notifier)
-                    .enterLetter(_selectedIndex, letter);
-                // Advance the cursor — unlock/completion is handled
-                // entirely by the ref.listen above, not here.
-                if (_selectedIndex < wordLength - 1) {
-                  setState(() => _selectedIndex++);
-                }
-              },
-              onBackspace: () {
-                ref
-                    .read(diaryProvider.notifier)
-                    .enterLetter(_selectedIndex, null);
-                if (_selectedIndex > 0) {
-                  setState(() => _selectedIndex--);
-                }
-              },
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── LETTER STEPPER ────────────────────────────────────────────────────────────
+
+class LetterStepper extends ConsumerWidget {
+  final int index;
+
+  const LetterStepper({super.key, required this.index});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state   = ref.watch(diaryProvider);
+    final letters = state?.enteredLetters ?? [];
+
+    final currentLetter = (index < letters.length ? letters[index] : null) ?? 'A';
+
+    String next(String l) {
+      final code = l.codeUnitAt(0);
+      return String.fromCharCode(code == 90 ? 65 : code + 1);
+    }
+
+    String prev(String l) {
+      final code = l.codeUnitAt(0);
+      return String.fromCharCode(code == 65 ? 90 : code - 1);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+          onPressed: () {
+            ref.read(diaryProvider.notifier)
+                .enterLetter(index, next(currentLetter));
+          },
+        ),
+
+        Container(
+          width:     60,
+          height:    60,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color:        const Color(0xFFF0EAD6),
+            borderRadius: BorderRadius.circular(8),
+            border:       Border.all(color: Colors.black26),
+          ),
+          child: Text(
+            currentLetter,
+            style: const TextStyle(
+              fontSize:   24,
+              fontWeight: FontWeight.bold,
+              color:      Colors.black87,
+            ),
+          ),
+        ),
+
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+          onPressed: () {
+            ref.read(diaryProvider.notifier)
+                .enterLetter(index, prev(currentLetter));
+          },
+        ),
+      ],
     );
   }
 }
