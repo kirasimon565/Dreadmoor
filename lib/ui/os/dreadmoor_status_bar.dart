@@ -13,35 +13,36 @@ class DreadmoorStatusBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timeString = ref.watch(gameClockStringProvider);
+    // FIX: watch clockProvider (StreamProvider<DateTime>) instead of
+    // gameClockStringProvider, which was not ticking and produced a
+    // static string after the first build.
+    final timeAsync = ref.watch(clockProvider);
     final brightness = Theme.of(context).brightness;
 
     SystemChrome.setSystemUIOverlayStyle(
       brightness == Brightness.dark
           ? const SystemUiOverlayStyle(
-              statusBarColor:            Colors.transparent,
-              statusBarIconBrightness:   Brightness.light,
-              statusBarBrightness:       Brightness.dark,
+              statusBarColor:          Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness:     Brightness.dark,
             )
           : const SystemUiOverlayStyle(
-              statusBarColor:            Colors.transparent,
-              statusBarIconBrightness:   Brightness.dark,
-              statusBarBrightness:       Brightness.light,
+              statusBarColor:          Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness:     Brightness.light,
             ),
     );
 
     return SafeArea(
       bottom: false,
       child: Container(
-        height: 24,
-        // FIX: fully transparent — no solid colour, no tint.
-        // The single global status bar from DreadmoorOS floats
-        // over all screens without obscuring any background.
+        height:  24,
         color:   Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
@@ -49,15 +50,21 @@ class DreadmoorStatusBar extends ConsumerWidget {
                   builder: (_) => const d_nc.NotificationCenterScreen(),
                 ),
               ),
-              child: Text(
-                timeString,
-                style: DreadmoorTheme.bodyStyle(brightness).copyWith(
-                  fontSize:   12,
-                  color:      DreadmoorColors.text(brightness).withOpacity(0.75),
-                  fontWeight: FontWeight.w600,
+              child: timeAsync.when(
+                data: (time) => Text(
+                  '${time.hour.toString().padLeft(2, '0')}'
+                  ':${time.minute.toString().padLeft(2, '0')}',
+                  style: DreadmoorTheme.bodyStyle(brightness).copyWith(
+                    fontSize:   12,
+                    color:      DreadmoorColors.text(brightness).withOpacity(0.75),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                loading: () => const SizedBox(width: 32),
+                error:   (_, __) => const SizedBox(width: 32),
               ),
             ),
+
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
@@ -68,15 +75,15 @@ class DreadmoorStatusBar extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(Icons.signal_cellular_4_bar,
-                      size: 14,
+                      size:  14,
                       color: DreadmoorColors.text(brightness).withOpacity(0.75)),
                   const SizedBox(width: 6),
                   Icon(Icons.wifi,
-                      size: 14,
+                      size:  14,
                       color: DreadmoorColors.text(brightness).withOpacity(0.75)),
                   const SizedBox(width: 6),
                   Icon(Icons.battery_full,
-                      size: 14,
+                      size:  14,
                       color: DreadmoorColors.text(brightness).withOpacity(0.75)),
                 ],
               ),
