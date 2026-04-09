@@ -8,7 +8,7 @@
       "thread_members": ["unknown"],
       "sender": "Unknown",
       "action": "Notification",
-      "text": "Well…",
+      "text": "…",
       "next": "s2_private_msg_2"
     },
     {
@@ -16,31 +16,61 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
+      "action": "Typing",
+      "text": "You read the article.",
+      "next": "s2_private_msg_3"
+    },
+    {
+      "id": "s2_private_msg_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
       "action": "Pause",
-      "duration": 1200,
-      "text": "that's convenient.",
+      "duration": 1100,
+      "text": "I saw you.",
+      "next": "s2_private_msg_4"
+    },
+    {
+      "id": "s2_private_msg_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Now you're curious.",
+      "next": "s2_private_msg_5"
+    },
+    {
+      "id": "s2_private_msg_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1300,
+      "text": "Good.",
       "next": "S2_Player_Intro"
     },
-
     {
       "id": "S2_Player_Intro",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
         {
-          "text": "Who the hell are you? How did you get my number?",
+          "text": "Who are you? How do you have my number?",
+          "next": "S2_Unknown_Rebuttal"
+        },
+        {
+          "text": "I don't know what you're talking about.",
           "next": "S2_Unknown_Rebuttal"
         }
       ]
     },
-
     {
       "id": "S2_Unknown_Rebuttal",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Relax.",
+      "text": "You can lie to yourself.",
       "next": "S2_Unknown_Rebuttal_2"
     },
     {
@@ -50,38 +80,64 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 900,
-      "text": "My identity is the least of your concerns right now.",
+      "text": "Not to me.",
+      "next": "S2_Unknown_Rebuttal_3"
+    },
+    {
+      "id": "S2_Unknown_Rebuttal_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Rebecca Stone.",
+      "next": "S2_Unknown_Rebuttal_4"
+    },
+    {
+      "id": "S2_Unknown_Rebuttal_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "That's why you're still reading this.",
       "next": "S2_Unknown_Hook"
     },
-
     {
       "id": "S2_Unknown_Hook",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "You should be asking about Rebecca Stone.",
+      "text": "She's gone.",
+      "next": "S2_Unknown_Hook_2"
+    },
+    {
+      "id": "S2_Unknown_Hook_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1400,
+      "text": "And no one is looking in the right place.",
       "next": "S2_Choice_HowKnow"
     },
-
     {
       "id": "S2_Choice_HowKnow",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "How do you know her?", "next": "S2_Branch_A" },
-        { "text": "If this is some kind of sick joke, cut it out.", "next": "S2_Branch_B" },
-        { "text": "I'm listening. Talk.", "next": "S2_Branch_C" }
+        { "text": "How do you know Rebecca?", "next": "S2_Branch_A" },
+        { "text": "Is this some kind of threat?", "next": "S2_Branch_B" },
+        { "text": "I'm listening. Keep talking.", "next": "S2_Branch_C" }
       ]
     },
-
     {
       "id": "S2_Branch_A",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Because she trusted me.",
+      "text": "She trusted me.",
       "next": "S2_Branch_A_2"
     },
     {
@@ -90,18 +146,26 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 1000,
-      "text": "More than the people she was with.",
+      "duration": 1200,
+      "text": "More than the people standing next to her that night.",
+      "next": "S2_Branch_A_3"
+    },
+    {
+      "id": "S2_Branch_A_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "That should tell you something.",
       "next": "S2_The_Factory_Lead"
     },
-
     {
       "id": "S2_Branch_B",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Look at the news, [PlayerName].",
+      "text": "No.",
       "next": "S2_Branch_B_2"
     },
     {
@@ -110,18 +174,36 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 1200,
-      "text": "Does any of this look like a joke to you?",
+      "duration": 800,
+      "text": "A threat would be easier.",
+      "next": "S2_Branch_B_3"
+    },
+    {
+      "id": "S2_Branch_B_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "This is worse.",
+      "next": "S2_Branch_B_4"
+    },
+    {
+      "id": "S2_Branch_B_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1100,
+      "text": "This is real.",
       "next": "S2_The_Factory_Lead"
     },
-
     {
       "id": "S2_Branch_C",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Straight to the point.",
+      "text": "No panic.",
       "next": "S2_Branch_C_2"
     },
     {
@@ -130,18 +212,36 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 800,
-      "text": "Good. Then pay attention.",
+      "duration": 900,
+      "text": "No denial.",
+      "next": "S2_Branch_C_3"
+    },
+    {
+      "id": "S2_Branch_C_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "You're smarter than they are.",
+      "next": "S2_Branch_C_4"
+    },
+    {
+      "id": "S2_Branch_C_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Prove me right.",
       "next": "S2_The_Factory_Lead"
     },
-
     {
       "id": "S2_The_Factory_Lead",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Rebecca didn't just vanish.",
+      "text": "The article told you where.",
       "next": "S2_The_Factory_Lead_2"
     },
     {
@@ -151,7 +251,7 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 900,
-      "text": "She went to that factory.",
+      "text": "An abandoned factory.",
       "next": "S2_The_Factory_Lead_3"
     },
     {
@@ -159,26 +259,45 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "And she had a reason.",
+      "action": "Typing",
+      "text": "It didn't tell you why.",
+      "next": "S2_The_Factory_Lead_4"
+    },
+    {
+      "id": "S2_The_Factory_Lead_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "She had a reason to be there.",
+      "next": "S2_The_Factory_Lead_5"
+    },
+    {
+      "id": "S2_The_Factory_Lead_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "A reason she didn't choose.",
       "next": "S2_Player_PartyQuery"
     },
-
     {
       "id": "S2_Player_PartyQuery",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "The article said it was just a party.", "next": "S2_The_Sister_Reveal" }
+        { "text": "The news said it was just a party.", "next": "S2_The_Sister_Reveal" },
+        { "text": "Who chose it then?", "next": "S2_The_Sister_Reveal" }
       ]
     },
-
     {
       "id": "S2_The_Sister_Reveal",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "A party…",
+      "text": "A party.",
       "next": "S2_The_Sister_Reveal_2"
     },
     {
@@ -187,8 +306,8 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 1400,
-      "text": "That's what they want you to believe.",
+      "duration": 1000,
+      "text": "That's the word they're using.",
       "next": "S2_The_Sister_Reveal_3"
     },
     {
@@ -196,19 +315,38 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "The press missed the best part.",
+      "action": "Typing",
+      "text": "It's a clean word.",
+      "next": "S2_The_Sister_Reveal_4"
+    },
+    {
+      "id": "S2_The_Sister_Reveal_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "Safe.",
+      "next": "S2_The_Sister_Reveal_5"
+    },
+    {
+      "id": "S2_The_Sister_Reveal_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "It hides what it really was.",
       "next": "S2_Player_WhatMean"
     },
-
     {
       "id": "S2_Player_WhatMean",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "What are you implying?", "next": "S2_Amelia_Accusation" }
+        { "text": "What was it really?", "next": "S2_Amelia_Accusation" },
+        { "text": "Stop speaking in riddles.", "next": "S2_Amelia_Accusation" }
       ]
     },
-
     {
       "id": "S2_Amelia_Accusation",
       "type": "Chat_Event",
@@ -224,8 +362,8 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 1200,
-      "text": "Amelia.",
+      "duration": 1300,
+      "text": "Amelia Stone.",
       "next": "S2_Amelia_Accusation_3"
     },
     {
@@ -233,27 +371,36 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "She chose that place.",
+      "action": "Typing",
+      "text": "She built the whole night.",
+      "next": "S2_Amelia_Accusation_4"
+    },
+    {
+      "id": "S2_Amelia_Accusation_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Every piece.",
       "next": "S2_Choice_AmeliaLogic"
     },
-
     {
       "id": "S2_Choice_AmeliaLogic",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "That doesn't make sense. Why would she?", "next": "S2_Amelia_Reasoning" },
-        { "text": "How are you so sure Amelia called the shots?", "next": "S2_Amelia_Reasoning" }
+        { "text": "Why would her own sister do that?", "next": "S2_Amelia_Reasoning" },
+        { "text": "You're sure Amelia was in control?", "next": "S2_Amelia_Reasoning" }
       ]
     },
-
     {
       "id": "S2_Amelia_Reasoning",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "She handled the invites.",
+      "text": "She chose the location.",
       "next": "S2_Amelia_Reasoning_2"
     },
     {
@@ -262,8 +409,8 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 900,
-      "text": "She chose the isolation.",
+      "duration": 800,
+      "text": "An abandoned factory.",
       "next": "S2_Amelia_Reasoning_3"
     },
     {
@@ -271,10 +418,29 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "No neighbors. No witnesses.",
+      "action": "Typing",
+      "text": "No lights. No cameras. No help.",
+      "next": "S2_Amelia_Reasoning_4"
+    },
+    {
+      "id": "S2_Amelia_Reasoning_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1100,
+      "text": "She wanted Rebecca there.",
+      "next": "S2_Amelia_Reasoning_5"
+    },
+    {
+      "id": "S2_Amelia_Reasoning_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "And she wanted her afraid.",
       "next": "S2_Amelia_Scare"
     },
-
     {
       "id": "S2_Amelia_Scare",
       "type": "Chat_Event",
@@ -289,26 +455,36 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "A stunt.",
+      "action": "Pause",
+      "duration": 900,
+      "text": "A performance.",
+      "next": "S2_Amelia_Scare_3"
+    },
+    {
+      "id": "S2_Amelia_Scare_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "But something went wrong.",
       "next": "S2_Player_ScareGoal"
     },
-
     {
       "id": "S2_Player_ScareGoal",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "You think she staged the whole disappearance?", "next": "S2_The_Phone_Call" }
+        { "text": "You think Amelia made her disappear?", "next": "S2_The_Phone_Call" },
+        { "text": "What went wrong?", "next": "S2_The_Phone_Call" }
       ]
     },
-
     {
       "id": "S2_The_Phone_Call",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "That's what Rebecca told me.",
+      "text": "Rebecca called me.",
       "next": "S2_The_Phone_Call_2"
     },
     {
@@ -318,20 +494,27 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 1200,
-      "text": "Herself.",
+      "text": "That night.",
+      "next": "S2_The_Phone_Call_3"
+    },
+    {
+      "id": "S2_The_Phone_Call_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "From outside the factory.",
       "next": "S2_Choice_WhenTalk"
     },
-
     {
       "id": "S2_Choice_WhenTalk",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "She talked to you right before she vanished?", "next": "S2_Timeline_Details" },
-        { "text": "When exactly was this?", "next": "S2_Timeline_Details" }
+        { "text": "When exactly?", "next": "S2_Timeline_Details" },
+        { "text": "What did she say?", "next": "S2_Timeline_Details" }
       ]
     },
-
     {
       "id": "S2_Timeline_Details",
       "type": "Chat_Event",
@@ -346,17 +529,37 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "She stepped outside to find signal.",
+      "action": "Pause",
+      "duration": 900,
+      "text": "She stepped outside.",
+      "next": "S2_Timeline_Details_3"
+    },
+    {
+      "id": "S2_Timeline_Details_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Said she needed signal.",
+      "next": "S2_Timeline_Details_4"
+    },
+    {
+      "id": "S2_Timeline_Details_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1100,
+      "text": "That was a lie too.",
       "next": "S2_Something_Off"
     },
-
     {
       "id": "S2_Something_Off",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "She sounded calm.",
+      "text": "She wanted to talk.",
       "next": "S2_Something_Off_2"
     },
     {
@@ -364,17 +567,75 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Too calm.",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "But she was careful.",
+      "next": "S2_Something_Off_3"
+    },
+    {
+      "id": "S2_Something_Off_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Too careful.",
+      "next": "S2_Something_Off_4"
+    },
+    {
+      "id": "S2_Something_Off_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Like someone was listening.",
+      "next": "S2_The_Avoidance"
+    },
+    {
+      "id": "S2_The_Avoidance",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "I asked about Amelia.",
+      "next": "S2_The_Avoidance_2"
+    },
+    {
+      "id": "S2_The_Avoidance_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1300,
+      "text": "She didn't answer.",
+      "next": "S2_The_Avoidance_3"
+    },
+    {
+      "id": "S2_The_Avoidance_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "She changed the subject.",
+      "next": "S2_The_Avoidance_4"
+    },
+    {
+      "id": "S2_The_Avoidance_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "Fast.",
       "next": "S2_The_Hangup"
     },
-
     {
       "id": "S2_The_Hangup",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Then she rushed.",
+      "text": "Then she stopped mid-sentence.",
       "next": "S2_The_Hangup_2"
     },
     {
@@ -382,19 +643,58 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "And hung up.",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "A pause.",
+      "next": "S2_The_Hangup_3"
+    },
+    {
+      "id": "S2_The_Hangup_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Not for me.",
+      "next": "S2_The_Hangup_4"
+    },
+    {
+      "id": "S2_The_Hangup_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1400,
+      "text": "She was listening to something.",
+      "next": "S2_The_Hangup_5"
+    },
+    {
+      "id": "S2_The_Hangup_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Then she said: 'I'll call you later.'",
+      "next": "S2_The_Hangup_6"
+    },
+    {
+      "id": "S2_The_Hangup_6",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1500,
+      "text": "She never did.",
       "next": "S2_Player_Question"
     },
-
     {
       "id": "S2_Player_Question",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "What did you ask her?", "next": "S2_The_Last_Words" }
+        { "text": "Why are you telling me this?", "next": "S2_The_Last_Words" },
+        { "text": "What do you think she heard?", "next": "S2_The_Last_Words" }
       ]
     },
-
     {
       "id": "S2_The_Last_Words",
       "type": "Chat_Event",
@@ -409,6 +709,8 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
+      "action": "Pause",
+      "duration": 800,
       "text": "She said yes.",
       "next": "S2_The_Last_Words_3"
     },
@@ -417,57 +719,111 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
+      "action": "Typing",
+      "text": "But her voice—",
+      "next": "S2_The_Last_Words_4"
+    },
+    {
+      "id": "S2_The_Last_Words_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
       "action": "Pause",
-      "duration": 1500,
-      "text": "She lied.",
+      "duration": 1200,
+      "text": "It wasn't yes.",
+      "next": "S2_The_Last_Words_5"
+    },
+    {
+      "id": "S2_The_Last_Words_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "It was survival.",
       "next": "S2_Choice_WhatSaying"
     },
-
     {
       "id": "S2_Choice_WhatSaying",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "So what are you getting at?", "next": "S2_The_Mismatch" },
+        { "text": "So what are you saying?", "next": "S2_The_Mismatch" },
         { "text": "What happened after she hung up?", "next": "S2_The_Mismatch" }
       ]
     },
-
     {
       "id": "S2_The_Mismatch",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "The timeline is wrong.",
+      "text": "The timeline they're telling.",
+      "next": "S2_The_Mismatch_2"
+    },
+    {
+      "id": "S2_The_Mismatch_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "It doesn't match.",
+      "next": "S2_The_Mismatch_3"
+    },
+    {
+      "id": "S2_The_Mismatch_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Amelia says one thing.",
+      "next": "S2_The_Mismatch_4"
+    },
+    {
+      "id": "S2_The_Mismatch_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 800,
+      "text": "The others say another.",
+      "next": "S2_The_Mismatch_5"
+    },
+    {
+      "id": "S2_The_Mismatch_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "They're building a wall.",
       "next": "S2_The_Coordination"
     },
-
     {
       "id": "S2_The_Coordination",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "They're coordinating stories.",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Brick by brick.",
       "next": "S2_Player_HowKnow"
     },
-
     {
       "id": "S2_Player_HowKnow",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "How can you possibly know that?", "next": "S2_The_Intercept" }
+        { "text": "How do you know all this?", "next": "S2_The_Intercept" },
+        { "text": "You're watching them.", "next": "S2_The_Intercept" }
       ]
     },
-
     {
       "id": "S2_The_Intercept",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Because I'm inside their group chat.",
+      "text": "I'm inside.",
       "next": "S2_The_Intercept_2"
     },
     {
@@ -476,11 +832,29 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 1500,
-      "text": "Right now.",
+      "duration": 1100,
+      "text": "Their group chat.",
+      "next": "S2_The_Intercept_3"
+    },
+    {
+      "id": "S2_The_Intercept_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Dreadmoor News.",
+      "next": "S2_The_Intercept_4"
+    },
+    {
+      "id": "S2_The_Intercept_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1400,
+      "text": "Ironic name.",
       "next": "S2_Choice_WhatSayingGroup"
     },
-
     {
       "id": "S2_Choice_WhatSayingGroup",
       "type": "Player_Choice",
@@ -488,16 +862,45 @@
       "options": [
         { "text": "What is Amelia saying?", "next": "S2_Group_Intel_A" },
         { "text": "What about the others?", "next": "S2_Group_Intel_B" },
-        { "text": "Show me exactly what they're saying.", "next": "S2_Group_Intel_C" }
+        { "text": "Show me what they're saying.", "next": "S2_Group_Intel_C" }
       ]
     },
-
     {
       "id": "S2_Group_Intel_A",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Amelia says midnight. No direction.",
+      "action": "Typing",
+      "text": "Amelia is nervous.",
+      "next": "S2_Group_Intel_A_2"
+    },
+    {
+      "id": "S2_Group_Intel_A_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "She keeps changing details.",
+      "next": "S2_Group_Intel_A_3"
+    },
+    {
+      "id": "S2_Group_Intel_A_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Small ones.",
+      "next": "S2_Group_Intel_A_4"
+    },
+    {
+      "id": "S2_Group_Intel_A_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "The kind you forget if you're telling the truth.",
       "next": "S2_The_Invitation"
     },
     {
@@ -505,7 +908,46 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "No one agrees. Everyone saw something different.",
+      "action": "Typing",
+      "text": "They're scared.",
+      "next": "S2_Group_Intel_B_2"
+    },
+    {
+      "id": "S2_Group_Intel_B_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Not for Rebecca.",
+      "next": "S2_Group_Intel_B_3"
+    },
+    {
+      "id": "S2_Group_Intel_B_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "For themselves.",
+      "next": "S2_Group_Intel_B_4"
+    },
+    {
+      "id": "S2_Group_Intel_B_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1100,
+      "text": "Everyone saw something different.",
+      "next": "S2_Group_Intel_B_5"
+    },
+    {
+      "id": "S2_Group_Intel_B_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Or they're pretending to.",
       "next": "S2_The_Invitation"
     },
     {
@@ -513,27 +955,74 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Their stories don’t match.",
+      "action": "Typing",
+      "text": "You'll see.",
+      "next": "S2_Group_Intel_C_2"
+    },
+    {
+      "id": "S2_Group_Intel_C_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Better if I show you.",
+      "next": "S2_Group_Intel_C_3"
+    },
+    {
+      "id": "S2_Group_Intel_C_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Words lie.",
+      "next": "S2_Group_Intel_C_4"
+    },
+    {
+      "id": "S2_Group_Intel_C_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "Patterns don't.",
       "next": "S2_The_Invitation"
     },
-
     {
       "id": "S2_The_Invitation",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "I'm adding you.",
+      "text": "I'm adding you now.",
+      "next": "S2_The_Invitation_2"
+    },
+    {
+      "id": "S2_The_Invitation_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "You'll be invisible.",
+      "next": "S2_The_Invitation_3"
+    },
+    {
+      "id": "S2_The_Invitation_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Until you're not.",
       "next": "S2_The_Warning"
     },
-
     {
       "id": "S2_The_Warning",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Pause",
-      "duration": 1200,
+      "duration": 1300,
       "text": "Say nothing.",
       "next": "S2_The_Warning_2"
     },
@@ -542,26 +1031,84 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Just watch.",
+      "action": "Typing",
+      "text": "Not a word.",
+      "next": "S2_The_Warning_3"
+    },
+    {
+      "id": "S2_The_Warning_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Watch.",
+      "next": "S2_The_Warning_4"
+    },
+    {
+      "id": "S2_The_Warning_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Listen.",
+      "next": "S2_The_Warning_5"
+    },
+    {
+      "id": "S2_The_Warning_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Learn.",
+      "next": "S2_The_Warning_6"
+    },
+    {
+      "id": "S2_The_Warning_6",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "They'll notice you eventually.",
+      "next": "S2_The_Warning_7"
+    },
+    {
+      "id": "S2_The_Warning_7",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "By then, you'll know what to say.",
       "next": "S2_Choice_FinalReady"
     },
-
     {
       "id": "S2_Choice_FinalReady",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
-        { "text": "Do it. Get me in.", "next": "S2_Add_Success" },
-        { "text": "Wait, I'm not sure about this.", "next": "S2_Add_Forced" }
+        { "text": "Do it. Add me.", "next": "S2_Add_Success" },
+        { "text": "Wait. I'm not ready.", "next": "S2_Add_Forced" }
       ]
     },
-
     {
       "id": "S2_Add_Success",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Good.",
+      "action": "Typing",
+      "text": "Good choice.",
+      "next": "S2_Add_Success_2"
+    },
+    {
+      "id": "S2_Add_Success_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "Stay quiet.",
       "next": "s2_system_add"
     },
     {
@@ -569,10 +1116,20 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Too late.",
+      "action": "Typing",
+      "text": "Ready or not.",
+      "next": "S2_Add_Forced_2"
+    },
+    {
+      "id": "S2_Add_Forced_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "Rebecca doesn't have time.",
       "next": "s2_system_add"
     },
-
     {
       "id": "s2_system_add",
       "type": "System_Event",
