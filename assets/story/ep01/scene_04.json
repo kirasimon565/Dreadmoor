@@ -6,10 +6,28 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Watch this carefully.",
+      "text": "I have something.",
+      "next": "s4_video_2"
+    },
+    {
+      "id": "s4_video_2",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Watch it closely.",
+      "next": "s4_video_3"
+    },
+    {
+      "id": "s4_video_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Don't look away.",
       "next": "S4_VIDEO_NODE"
     },
-
     {
       "id": "S4_VIDEO_NODE",
       "type": "Video_Node",
@@ -20,7 +38,6 @@
       "file_asset": "assets/media/videos/party_clip.mp4",
       "next": "S4_Player_Reaction"
     },
-
     {
       "id": "S4_Player_Reaction",
       "type": "Player_Choice",
@@ -29,17 +46,20 @@
         {
           "text": "Where did you get this?",
           "next": "S4_Unknown_Source"
+        },
+        {
+          "text": "That's her. That's Rebecca.",
+          "next": "S4_Unknown_Source"
         }
       ]
     },
-
     {
       "id": "S4_Unknown_Source",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Same place I got their messages.",
+      "text": "Their phones.",
       "next": "S4_Unknown_Source_2"
     },
     {
@@ -47,7 +67,9 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Someone tried to delete this.",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Their messages. Their media.",
       "next": "S4_Unknown_Source_3"
     },
     {
@@ -55,32 +77,51 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
+      "action": "Typing",
+      "text": "Someone tried to erase this clip.",
+      "next": "S4_Unknown_Source_4"
+    },
+    {
+      "id": "S4_Unknown_Source_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
       "action": "Pause",
-      "duration": 1200,
-      "text": "They missed a backup.",
+      "duration": 1100,
+      "text": "They were thorough.",
+      "next": "S4_Unknown_Source_5"
+    },
+    {
+      "id": "S4_Unknown_Source_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "But not thorough enough.",
       "next": "S4_Player_Realization"
     },
-
     {
       "id": "S4_Player_Realization",
       "type": "Player_Choice",
       "chat": "unknown",
       "options": [
         {
-          "text": "Rebecca is still inside.",
+          "text": "She's still there. In the background.",
+          "next": "S4_Unknown_Confirm"
+        },
+        {
+          "text": "This was after 11:30. Way after.",
           "next": "S4_Unknown_Confirm"
         }
       ]
     },
-
     {
       "id": "S4_Unknown_Confirm",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "action": "Pause",
-      "duration": 1500,
-      "text": "Exactly.",
+      "action": "Typing",
+      "text": "Yes.",
       "next": "S4_Unknown_Confirm_2"
     },
     {
@@ -88,7 +129,9 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "So the midnight story…",
+      "action": "Pause",
+      "duration": 1300,
+      "text": "You see it now.",
       "next": "S4_Unknown_Confirm_3"
     },
     {
@@ -96,17 +139,36 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "is a lie.",
+      "action": "Typing",
+      "text": "The midnight story.",
+      "next": "S4_Unknown_Confirm_4"
+    },
+    {
+      "id": "S4_Unknown_Confirm_4",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Pause",
+      "duration": 900,
+      "text": "It's not just wrong.",
+      "next": "S4_Unknown_Confirm_5"
+    },
+    {
+      "id": "S4_Unknown_Confirm_5",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "It's deliberate.",
       "next": "S4_The_Mission"
     },
-
     {
       "id": "S4_The_Mission",
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Go back.",
+      "text": "Go back to them.",
       "next": "S4_The_Mission_2"
     },
     {
@@ -114,10 +176,20 @@
       "type": "Chat_Event",
       "chat": "unknown",
       "sender": "Unknown",
-      "text": "Watch them carefully.",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Armed with this.",
+      "next": "S4_The_Mission_3"
+    },
+    {
+      "id": "S4_The_Mission_3",
+      "type": "Chat_Event",
+      "chat": "unknown",
+      "sender": "Unknown",
+      "action": "Typing",
+      "text": "Watch how they move now.",
       "next": "S4_SWITCH_GROUP"
     },
-
     {
       "id": "S4_SWITCH_GROUP",
       "type": "System_Event",
@@ -125,14 +197,13 @@
       "target": "group_dreadmoor_news",
       "next": "S4_Group_Loop"
     },
-
     {
       "id": "S4_Group_Loop",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "I don’t get it.",
+      "text": "I still don't get it.",
       "next": "S4_Group_Loop_2"
     },
     {
@@ -140,16 +211,27 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "Why does the time matter so much?",
+      "action": "Pause",
+      "duration": 600,
+      "text": "Why does the time even matter?",
+      "next": "S4_Group_Loop_3"
+    },
+    {
+      "id": "S4_Group_Loop_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "She's gone. That's what matters.",
       "next": "S4_Abigail_Echo"
     },
-
     {
       "id": "S4_Abigail_Echo",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "Exactly.",
+      "action": "Typing",
+      "text": "Chris is right.",
       "next": "S4_Abigail_Echo_2"
     },
     {
@@ -157,7 +239,9 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "She left.",
+      "action": "Pause",
+      "duration": 500,
+      "text": "We told you.",
       "next": "S4_Abigail_Echo_3"
     },
     {
@@ -165,17 +249,17 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "That’s it.",
+      "action": "Typing",
+      "text": "She left. End of story.",
       "next": "S4_Michael_Pressure"
     },
-
     {
       "id": "S4_Michael_Pressure",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "It matters because details matter.",
+      "text": "It matters.",
       "next": "S4_Michael_Pressure_2"
     },
     {
@@ -183,7 +267,9 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "If stories don’t match…",
+      "action": "Pause",
+      "duration": 700,
+      "text": "Details always matter.",
       "next": "S4_Michael_Pressure_3"
     },
     {
@@ -191,17 +277,27 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "the police start asking questions.",
+      "action": "Typing",
+      "text": "If your stories don't line up...",
+      "next": "S4_Michael_Pressure_4"
+    },
+    {
+      "id": "S4_Michael_Pressure_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 900,
+      "text": "People start wondering why.",
       "next": "S4_Amelia_Hostile"
     },
-
     {
       "id": "S4_Amelia_Hostile",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "You’re overthinking this.",
+      "text": "You're making this into something it's not.",
       "next": "S4_Amelia_Hostile_2"
     },
     {
@@ -209,87 +305,164 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
+      "action": "Pause",
+      "duration": 600,
       "text": "Nothing happened.",
+      "next": "S4_Amelia_Hostile_3"
+    },
+    {
+      "id": "S4_Amelia_Hostile_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "She was there. Then she wasn't.",
       "next": "S4_Michael_Neutral"
     },
-
     {
       "id": "S4_Michael_Neutral",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "Then why are you so defensive?",
+      "action": "Typing",
+      "text": "Then why are you shaking?",
+      "next": "S4_Michael_Neutral_2"
+    },
+    {
+      "id": "S4_Michael_Neutral_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "I can hear it in your voice.",
       "next": "S4_Choice_Entry"
     },
-
     {
       "id": "S4_Choice_Entry",
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
         {
-          "text": "Your timeline doesn’t match.",
+          "text": "Your timeline doesn't match.",
           "next": "S4_Group_React_B"
         },
         {
-          "text": "You’re all avoiding something.",
+          "text": "You're all hiding something.",
           "next": "S4_Group_React_A"
         }
       ]
     },
-
     {
       "id": "S4_Group_React_B",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "What does that even mean?",
+      "action": "Typing",
+      "text": "What timeline?",
+      "next": "S4_Group_React_B_2"
+    },
+    {
+      "id": "S4_Group_React_B_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Pause",
+      "duration": 500,
+      "text": "There is no timeline.",
       "next": "S4_Michael_Question"
     },
-
     {
       "id": "S4_Group_React_A",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "text": "Hiding?",
+      "next": "S4_Group_React_A_2"
+    },
+    {
+      "id": "S4_Group_React_A_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "We’re not avoiding anything.",
+      "action": "Typing",
+      "text": "You don't know us.",
+      "next": "S4_Group_React_A_3"
+    },
+    {
+      "id": "S4_Group_React_A_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 700,
+      "text": "You don't get to accuse us.",
       "next": "S4_Michael_Question"
     },
-
     {
       "id": "S4_Michael_Question",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Let’s simplify this.",
+      "text": "Let's make this simple.",
       "next": "S4_Michael_Question_2"
     },
-
     {
       "id": "S4_Michael_Question_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "When was the LAST time anyone saw her?",
+      "action": "Pause",
+      "duration": 800,
+      "text": "One question.",
+      "next": "S4_Michael_Question_3"
+    },
+    {
+      "id": "S4_Michael_Question_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "When did you last see Rebecca?",
+      "next": "S4_Michael_Question_4"
+    },
+    {
+      "id": "S4_Michael_Question_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Exactly.",
       "next": "S4_The_Slip"
     },
-
     {
       "id": "S4_The_Slip",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Around 1—",
+      "text": "Look, it was late.",
+      "next": "S4_The_Slip_2"
+    },
+    {
+      "id": "S4_The_Slip_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Pause",
+      "duration": 600,
+      "text": "Maybe around 1—",
       "next": "S4_Amelia_Interruption"
     },
-
     {
       "id": "S4_Amelia_Interruption",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
+      "action": "Typing",
       "text": "Chris.",
       "next": "S4_Amelia_Interruption_2"
     },
@@ -298,27 +471,46 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "Stop.",
+      "action": "Pause",
+      "duration": 400,
+      "text": "Stop talking.",
       "next": "S4_Michael_Catch"
     },
-
     {
       "id": "S4_Michael_Catch",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
+      "action": "Typing",
+      "text": "...",
+      "next": "S4_Michael_Catch_2"
+    },
+    {
+      "id": "S4_Michael_Catch_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
       "action": "Pause",
-      "duration": 2000,
-      "text": "…around one what?",
+      "duration": 1800,
+      "text": "Around one.",
+      "next": "S4_Michael_Catch_3"
+    },
+    {
+      "id": "S4_Michael_Catch_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "One what, Chris?",
       "next": "S4_Chris_Backtrack"
     },
-
     {
       "id": "S4_Chris_Backtrack",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "I was guessing!",
+      "action": "Typing",
+      "text": "Nothing.",
       "next": "S4_Chris_Backtrack_2"
     },
     {
@@ -326,19 +518,39 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "We were drinking, okay?",
+      "action": "Pause",
+      "duration": 500,
+      "text": "I meant nothing.",
+      "next": "S4_Chris_Backtrack_3"
+    },
+    {
+      "id": "S4_Chris_Backtrack_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "I was just guessing. We were all drinking.",
       "next": "S4_Abigail_Exit"
     },
-
     {
       "id": "S4_Abigail_Exit",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "This is getting weird.",
+      "action": "Typing",
+      "text": "I can't do this.",
+      "next": "S4_Abigail_Exit_2"
+    },
+    {
+      "id": "S4_Abigail_Exit_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Pause",
+      "duration": 600,
+      "text": "This is insane.",
       "next": "S4_Group_Offline"
     },
-
     {
       "id": "S4_Group_Offline",
       "type": "System_Notification",
@@ -346,16 +558,34 @@
       "text": "Abigail and Chris went offline.",
       "next": "S4_Amelia_Last"
     },
-
     {
       "id": "S4_Amelia_Last",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "I’m done.",
+      "action": "Typing",
+      "text": "I hope you're happy.",
+      "next": "S4_Amelia_Last_2"
+    },
+    {
+      "id": "S4_Amelia_Last_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Whatever you're trying to prove...",
+      "next": "S4_Amelia_Last_3"
+    },
+    {
+      "id": "S4_Amelia_Last_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "You're wrong.",
       "next": "S4_Amelia_Offline"
     },
-
     {
       "id": "S4_Amelia_Offline",
       "type": "System_Notification",
@@ -363,14 +593,13 @@
       "text": "Amelia went offline.",
       "next": "S4_Michael_Closing"
     },
-
     {
       "id": "S4_Michael_Closing",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "That… wasn’t normal.",
+      "text": "Well.",
       "next": "S4_Michael_Closing_2"
     },
     {
@@ -378,7 +607,28 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "Something’s off.",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "That happened.",
+      "next": "S4_Michael_Closing_3"
+    },
+    {
+      "id": "S4_Michael_Closing_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Chris knows something.",
+      "next": "S4_Michael_Closing_4"
+    },
+    {
+      "id": "S4_Michael_Closing_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 900,
+      "text": "And Amelia just confirmed it.",
       "next": "s4_intercept"
     }
   ]
