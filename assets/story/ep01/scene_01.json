@@ -20,7 +20,7 @@
       "type": "System_Event",
       "action": "Push_Notification",
       "sender": "Unknown",
-      "text": "Well... That's convenient.",
+      "text": "You read the article.",
       "next": "s2_private_msg"
     }
   ]
