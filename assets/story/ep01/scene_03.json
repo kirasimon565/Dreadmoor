@@ -10,15 +10,13 @@
       "text": "[PlayerName] was added to the group.",
       "next": "S3_Initial_Shock"
     },
-
     {
       "id": "S3_Initial_Shock",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "action": "Pause",
-      "duration": 1500,
-      "text": "…",
+      "action": "Typing",
+      "text": "What.",
       "next": "S3_Initial_Shock_2"
     },
     {
@@ -26,7 +24,9 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "Wait.",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "No.",
       "next": "S3_Initial_Shock_3"
     },
     {
@@ -35,16 +35,16 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "Who just added [PlayerName]?",
+      "text": "Who the hell just added [PlayerName]?",
       "next": "S3_Chris_Denial"
     },
-
     {
       "id": "S3_Chris_Denial",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "Not me.",
+      "action": "Typing",
+      "text": "Wasn't me.",
       "next": "S3_Chris_Denial_2"
     },
     {
@@ -53,17 +53,17 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Pause",
-      "duration": 700,
-      "text": "Seriously.",
+      "duration": 600,
+      "text": "I swear.",
       "next": "S3_Abigail_Skeptic"
     },
-
     {
       "id": "S3_Abigail_Skeptic",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "Is this a joke?",
+      "action": "Typing",
+      "text": "Someone's playing games.",
       "next": "S3_Abigail_Skeptic_2"
     },
     {
@@ -71,18 +71,27 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Now.",
+      "next": "S3_Abigail_Skeptic_3"
+    },
+    {
+      "id": "S3_Abigail_Skeptic_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
       "action": "Typing",
-      "text": "Because this is NOT the time.",
+      "text": "Of all times.",
       "next": "S3_Michael_Mediator"
     },
-
     {
       "id": "S3_Michael_Mediator",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Everyone relax.",
+      "text": "Everyone.",
       "next": "S3_Michael_Mediator_2"
     },
     {
@@ -90,17 +99,27 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "Let’s not jump to conclusions.",
+      "action": "Pause",
+      "duration": 700,
+      "text": "Breathe.",
+      "next": "S3_Michael_Mediator_3"
+    },
+    {
+      "id": "S3_Michael_Mediator_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Panic helps no one.",
       "next": "S3_Amelia_Direct"
     },
-
     {
       "id": "S3_Amelia_Direct",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "Fine.",
+      "text": "Easy for you to say.",
       "next": "S3_Amelia_Direct_2"
     },
     {
@@ -108,7 +127,9 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "You.",
+      "action": "Pause",
+      "duration": 900,
+      "text": "My sister is missing.",
       "next": "S3_Amelia_Direct_3"
     },
     {
@@ -117,10 +138,28 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
+      "text": "And now a stranger is in our chat.",
+      "next": "S3_Amelia_Direct_4"
+    },
+    {
+      "id": "S3_Amelia_Direct_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "So I'll ask once.",
+      "next": "S3_Amelia_Direct_5"
+    },
+    {
+      "id": "S3_Amelia_Direct_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
       "text": "Who are you?",
       "next": "S3_Choice_Intro"
     },
-
     {
       "id": "S3_Choice_Intro",
       "type": "Player_Choice",
@@ -131,13 +170,13 @@
         { "text": "Depends on who's asking.", "next": "S3_Branch_Aggressive" }
       ]
     },
-
     {
       "id": "S3_Branch_Mistake",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "Mistake?",
+      "action": "Typing",
+      "text": "Mistake.",
       "next": "S3_Branch_Mistake_2"
     },
     {
@@ -145,10 +184,20 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "Nobody added you.",
+      "action": "Pause",
+      "duration": 600,
+      "text": "Right.",
+      "next": "S3_Branch_Mistake_3"
+    },
+    {
+      "id": "S3_Branch_Mistake_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "Because people just magically appear in private groups.",
       "next": "S3_Abigail_Push"
     },
-
     {
       "id": "S3_Branch_Rebecca",
       "type": "Chat_Event",
@@ -163,15 +212,26 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "The whole town already knows.",
+      "action": "Pause",
+      "duration": 800,
+      "text": "Everyone knows about Rebecca.",
+      "next": "S3_Branch_Rebecca_3"
+    },
+    {
+      "id": "S3_Branch_Rebecca_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "Why are YOU here?",
       "next": "S3_Abigail_Push"
     },
-
     {
       "id": "S3_Branch_Aggressive",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
-      "sender": "amelia",
+      "sender": "abigail",
+      "action": "Typing",
       "text": "Excuse me?",
       "next": "S3_Branch_Aggressive_2"
     },
@@ -179,46 +239,104 @@
       "id": "S3_Branch_Aggressive_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Pause",
+      "duration": 700,
+      "text": "Amelia, did you hear that?",
+      "next": "S3_Branch_Aggressive_3"
+    },
+    {
+      "id": "S3_Branch_Aggressive_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "You're the one intruding here.",
+      "action": "Typing",
+      "text": "I heard it.",
+      "next": "S3_Branch_Aggressive_4"
+    },
+    {
+      "id": "S3_Branch_Aggressive_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 900,
+      "text": "You don't get to have an attitude.",
+      "next": "S3_Branch_Aggressive_5"
+    },
+    {
+      "id": "S3_Branch_Aggressive_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "You're the intruder here.",
       "next": "S3_Abigail_Push"
     },
-
     {
       "id": "S3_Abigail_Push",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "Amelia, just remove them.",
+      "action": "Typing",
+      "text": "Amelia.",
+      "next": "S3_Abigail_Push_2"
+    },
+    {
+      "id": "S3_Abigail_Push_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Pause",
+      "duration": 600,
+      "text": "Just remove them.",
+      "next": "S3_Abigail_Push_3"
+    },
+    {
+      "id": "S3_Abigail_Push_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "text": "We don't need this right now.",
       "next": "S3_Chris_Agree"
     },
-
     {
       "id": "S3_Chris_Agree",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Yeah I’ll—",
+      "text": "She's right.",
+      "next": "S3_Chris_Agree_2"
+    },
+    {
+      "id": "S3_Chris_Agree_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Pause",
+      "duration": 500,
+      "text": "I'll do it—",
       "next": "S3_Chris_Interrupt"
     },
-
     {
       "id": "S3_Chris_Interrupt",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
+      "action": "Typing",
       "text": "Wait.",
       "next": "S3_Michael_Intervene_2"
     },
-
     {
       "id": "S3_Michael_Intervene_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "action": "Typing",
-      "text": "You’re here for a reason.",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Just wait.",
       "next": "S3_Michael_Intervene_3"
     },
     {
@@ -226,25 +344,63 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "So say it.",
+      "action": "Typing",
+      "text": "Think for a second.",
+      "next": "S3_Michael_Intervene_4"
+    },
+    {
+      "id": "S3_Michael_Intervene_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 800,
+      "text": "If they wanted to just watch...",
+      "next": "S3_Michael_Intervene_5"
+    },
+    {
+      "id": "S3_Michael_Intervene_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "They wouldn't have spoken at all.",
+      "next": "S3_Michael_Intervene_6"
+    },
+    {
+      "id": "S3_Michael_Intervene_6",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "So. They're here for a reason.",
+      "next": "S3_Michael_Intervene_7"
+    },
+    {
+      "id": "S3_Michael_Intervene_7",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Say it.",
       "next": "S3_Choice_WhyHere"
     },
-
     {
       "id": "S3_Choice_WhyHere",
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
         { "text": "I'm trying to find her.", "next": "S3_Search_Reaction" },
-        { "text": "Something about this doesn’t feel right.", "next": "S3_Sus_Reaction" }
+        { "text": "Something about this doesn't feel right.", "next": "S3_Sus_Reaction" }
       ]
     },
-
     {
       "id": "S3_Search_Reaction",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
+      "action": "Typing",
       "text": "You?",
       "next": "S3_Search_Reaction_2"
     },
@@ -253,44 +409,91 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "Looking for my sister?",
+      "action": "Pause",
+      "duration": 900,
+      "text": "You're looking for my sister?",
+      "next": "S3_Search_Reaction_3"
+    },
+    {
+      "id": "S3_Search_Reaction_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "text": "And who asked you to do that?",
       "next": "S3_Michael_ID_Check"
     },
-
     {
       "id": "S3_Sus_Reaction",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
+      "action": "Typing",
       "text": "What does that mean?",
+      "next": "S3_Sus_Reaction_2"
+    },
+    {
+      "id": "S3_Sus_Reaction_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Pause",
+      "duration": 700,
+      "text": "Doesn't feel right?",
+      "next": "S3_Sus_Reaction_3"
+    },
+    {
+      "id": "S3_Sus_Reaction_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "text": "You don't even know us.",
       "next": "S3_Michael_ID_Check"
     },
-
     {
       "id": "S3_Michael_ID_Check",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "You still haven’t said who you are.",
+      "text": "You still haven't answered the question.",
+      "next": "S3_Michael_ID_Check_2"
+    },
+    {
+      "id": "S3_Michael_ID_Check_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "Who are you?",
+      "next": "S3_Michael_ID_Check_3"
+    },
+    {
+      "id": "S3_Michael_ID_Check_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "Really.",
       "next": "S3_Choice_Identity"
     },
-
     {
       "id": "S3_Choice_Identity",
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
         { "text": "I knew her.", "next": "S3_KnewHer_Branch" },
-        { "text": "That doesn’t matter.", "next": "S3_NoID_Branch" }
+        { "text": "That doesn't matter.", "next": "S3_NoID_Branch" }
       ]
     },
-
     {
       "id": "S3_KnewHer_Branch",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
+      "action": "Typing",
       "text": "Funny.",
       "next": "S3_KnewHer_Branch_2"
     },
@@ -299,26 +502,46 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
+      "action": "Pause",
+      "duration": 800,
       "text": "She never mentioned you.",
+      "next": "S3_KnewHer_Branch_3"
+    },
+    {
+      "id": "S3_KnewHer_Branch_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "text": "Not once.",
       "next": "S3_Michael_Logic"
     },
-
     {
       "id": "S3_NoID_Branch",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "It does matter.",
+      "action": "Typing",
+      "text": "It matters.",
+      "next": "S3_NoID_Branch_2"
+    },
+    {
+      "id": "S3_NoID_Branch_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Pause",
+      "duration": 600,
+      "text": "It definitely matters.",
       "next": "S3_Michael_Logic"
     },
-
     {
       "id": "S3_Michael_Logic",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "You didn’t get here by accident.",
+      "text": "You appeared in a private conversation.",
       "next": "S3_Michael_Logic_2"
     },
     {
@@ -326,25 +549,45 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "So tell us something useful.",
+      "action": "Pause",
+      "duration": 800,
+      "text": "About a missing woman.",
+      "next": "S3_Michael_Logic_3"
+    },
+    {
+      "id": "S3_Michael_Logic_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "You're making accusations.",
+      "next": "S3_Michael_Logic_4"
+    },
+    {
+      "id": "S3_Michael_Logic_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "So give us something.",
       "next": "S3_Choice_Motivation"
     },
-
     {
       "id": "S3_Choice_Motivation",
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
         { "text": "No one is taking this seriously.", "next": "S3_Motivation_A" },
-        { "text": "Your story doesn’t match.", "next": "S3_Motivation_B" }
+        { "text": "Your story doesn't match.", "next": "S3_Motivation_B" }
       ]
     },
-
     {
       "id": "S3_Motivation_A",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
+      "action": "Typing",
       "text": "Excuse m—",
       "next": "S3_Motivation_A_2"
     },
@@ -353,81 +596,158 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
+      "action": "Pause",
+      "duration": 400,
       "text": "*me.",
+      "next": "S3_Motivation_A_3"
+    },
+    {
+      "id": "S3_Motivation_A_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "You don't get to say that.",
+      "next": "S3_Motivation_A_4"
+    },
+    {
+      "id": "S3_Motivation_A_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 900,
+      "text": "You have no idea what I'm going through.",
       "next": "S3_Michael_Warning"
     },
-
     {
       "id": "S3_Motivation_B",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "That’s a strong accusation.",
+      "action": "Typing",
+      "text": "Doesn't match.",
+      "next": "S3_Motivation_B_2"
+    },
+    {
+      "id": "S3_Motivation_B_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 800,
+      "text": "That's interesting.",
+      "next": "S3_Motivation_B_3"
+    },
+    {
+      "id": "S3_Motivation_B_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "What story have you heard?",
       "next": "S3_Michael_Warning"
     },
-
     {
       "id": "S3_Michael_Warning",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "So what’s your theory?",
+      "text": "Go on then.",
+      "next": "S3_Michael_Warning_2"
+    },
+    {
+      "id": "S3_Michael_Warning_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "What's your theory?",
       "next": "S3_Choice_The_Theory"
     },
-
     {
       "id": "S3_Choice_The_Theory",
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
         { "text": "Someone here is lying.", "next": "S3_Liar_Branch" },
-        { "text": "She didn’t leave when you said.", "next": "S3_Timeline_Branch" }
+        { "text": "She didn't leave when you said.", "next": "S3_Timeline_Branch" }
       ]
     },
-
     {
       "id": "S3_Liar_Branch",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
-      "text": "You don’t know anything.",
+      "action": "Typing",
+      "text": "Whoa.",
+      "next": "S3_Liar_Branch_2"
+    },
+    {
+      "id": "S3_Liar_Branch_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Pause",
+      "duration": 600,
+      "text": "You can't just—",
+      "next": "S3_Liar_Branch_3"
+    },
+    {
+      "id": "S3_Liar_Branch_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "text": "You don't know anything about us.",
       "next": "S3_Michael_Timeline_Interject"
     },
-
     {
       "id": "S3_Timeline_Branch",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
+      "action": "Typing",
       "text": "We told the police everything.",
+      "next": "S3_Timeline_Branch_2"
+    },
+    {
+      "id": "S3_Timeline_Branch_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Pause",
+      "duration": 700,
+      "text": "Everything.",
       "next": "S3_Michael_Timeline_Interject"
     },
-
     {
       "id": "S3_Michael_Timeline_Interject",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Interesting…",
+      "text": "Interesting.",
       "next": "S3_Michael_Timeline_Interject_2"
     },
-
     {
       "id": "S3_Michael_Timeline_Interject_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
-      "text": "So it’s the timeline.",
+      "action": "Pause",
+      "duration": 1200,
+      "text": "So it's the timeline.",
       "next": "S3_Chris_Defensive"
     },
-
     {
       "id": "S3_Chris_Defensive",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
+      "action": "Typing",
       "text": "Midnight.",
       "next": "S3_Chris_Defensive_2"
     },
@@ -436,58 +756,124 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "chris",
+      "action": "Pause",
+      "duration": 500,
       "text": "She left around midnight.",
+      "next": "S3_Chris_Defensive_3"
+    },
+    {
+      "id": "S3_Chris_Defensive_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Typing",
+      "text": "That's the truth.",
       "next": "S3_Abigail_Backup"
     },
-
     {
       "id": "S3_Abigail_Backup",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
-      "text": "That’s what we said.",
+      "action": "Typing",
+      "text": "That's what we said.",
+      "next": "S3_Abigail_Backup_2"
+    },
+    {
+      "id": "S3_Abigail_Backup_2",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Pause",
+      "duration": 600,
+      "text": "All of us.",
       "next": "S3_Michael_Doubt"
     },
-
     {
       "id": "S3_Michael_Doubt",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "“Around midnight.”",
+      "text": "'Around midnight.'",
       "next": "S3_Michael_Doubt_2"
     },
-
     {
       "id": "S3_Michael_Doubt_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Pause",
-      "duration": 1500,
-      "text": "That means no one actually checked.",
+      "duration": 1000,
+      "text": "That's not a time.",
+      "next": "S3_Michael_Doubt_3"
+    },
+    {
+      "id": "S3_Michael_Doubt_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "text": "That's an estimate.",
+      "next": "S3_Michael_Doubt_4"
+    },
+    {
+      "id": "S3_Michael_Doubt_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Pause",
+      "duration": 1400,
+      "text": "Which means no one actually saw her leave.",
       "next": "S3_Amelia_Final"
     },
-
     {
       "id": "S3_Amelia_Final",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "She left.",
+      "action": "Typing",
+      "text": "Enough.",
       "next": "S3_Amelia_Final_2"
     },
-
     {
       "id": "S3_Amelia_Final_2",
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
-      "text": "End of story.",
+      "action": "Pause",
+      "duration": 800,
+      "text": "I said enough.",
+      "next": "S3_Amelia_Final_3"
+    },
+    {
+      "id": "S3_Amelia_Final_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "She left.",
+      "next": "S3_Amelia_Final_4"
+    },
+    {
+      "id": "S3_Amelia_Final_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Pause",
+      "duration": 1000,
+      "text": "That's the story.",
+      "next": "S3_Amelia_Final_5"
+    },
+    {
+      "id": "S3_Amelia_Final_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "text": "And I'm done talking about it.",
       "next": "S3_Diary_Trigger"
     },
-
     {
       "id": "S3_Diary_Trigger",
       "type": "System_Event",
