@@ -108,3 +108,18 @@ String formatGameDateFull(int totalMinutes) {
   
   return '$timeStr $dayStr, March $dateNum';
 }
+
+// --------------------------------------------------
+// REAL-TIME CLOCK PROVIDER
+//
+// Emits DateTime.now() every second.
+// Used by DreadmoorStatusBar and AppsScreen for live display.
+// Separate from gameClockProvider which tracks fictional in-game time.
+// --------------------------------------------------
+
+final clockProvider = StreamProvider<DateTime>((ref) async* {
+  while (true) {
+    yield DateTime.now();
+    await Future.delayed(const Duration(seconds: 1));
+  }
+});
