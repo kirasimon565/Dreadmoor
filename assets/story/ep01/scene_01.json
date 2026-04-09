@@ -4,14 +4,14 @@
       "id": "SCENE_1_NEWS_ARTICLE",
       "type": "News_Module",
       "theme": "Dreadmoor_Standard",
-      "headline": "Woman Reported Missing Following Midnight Party at Abandoned Factory",
-      "subheadline": "Police are investigating the disappearance of 26-year-old Rebecca Stone.",
+      "headline": "Woman Vanishes After Late-Night Gathering at Abandoned Factory",
+      "subheadline": "Authorities investigate the disappearance of 26-year-old Rebecca Stone under unclear circumstances.",
       "image_asset": "assets/media/images/factory_police.png",
-      "caption": "Officers respond to the abandoned factory on the outskirts of Dreadmoor.",
+      "caption": "Police presence at the derelict factory site on the outskirts of Dreadmoor.",
       "body": [
-        "Rebecca Stone, 26, was reported missing early Sunday morning after attending a private gathering at an abandoned factory on the outskirts of Dreadmoor.",
-        "According to initial reports, Stone arrived at the location shortly before 11:00 PM on Saturday evening. Witnesses at the gathering stated that she was last seen shortly after midnight. Friends who attended the event told authorities that Stone left the premises on her own.",
-        "The factory, which has been vacant for several years, is located near the eastern industrial district and is not authorized for public use. It remains unclear why the gathering was held at the property."
+        "Rebecca Stone, 26, was reported missing in the early hours of Sunday morning following a private gathering at a long-abandoned factory on the eastern fringe of Dreadmoor.",
+        "Preliminary statements indicate Stone arrived at the location shortly before 11:00 PM on Saturday. Those present claim she was last seen sometime after midnight, and reportedly left the premises alone. Authorities have not yet confirmed independent verification of this timeline.",
+        "The factory, shuttered and decaying for years, sits isolated near the old industrial corridor. It is unclear who organized the gathering or why such a remote, hazardous location was chosen. Police have cordoned off the area as the investigation continues."
       ],
       "next": "SCENE_1_NOTIFICATION_TRIGGER"
     },
