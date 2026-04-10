@@ -13,6 +13,10 @@ import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart';
 
+// FIX: matches the actual DB filename in drift_database.dart
+const _dbFileName   = 'dreadmoor_v8.sqlite';
+const _slotPrefix   = 'dreadmoor_v8_slot';
+
 class SaveLoadScreen extends ConsumerStatefulWidget {
   const SaveLoadScreen({super.key});
 
@@ -23,70 +27,151 @@ class SaveLoadScreen extends ConsumerStatefulWidget {
 class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
   bool _isLoading = false;
 
+  // ── SAVE ──────────────────────────────────────────────────────────────────
+
   Future<void> _handleSave(int slot) async {
-    setState(() { _isLoading = true; });
+    // FIX: guard against concurrent operations
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
     try {
-      final dbFolder = await getApplicationDocumentsDirectory();
-      final sourceFile = File(p.join(dbFolder.path, 'dreadmoor.sqlite'));
-      final destFile = File(p.join(dbFolder.path, 'dreadmoor_slot$slot.sqlite'));
+      final dbFolder   = await getApplicationDocumentsDirectory();
+      final sourceFile = File(p.join(dbFolder.path, _dbFileName));
+      final destFile   = File(p.join(dbFolder.path, '$_slotPrefix$slot.sqlite'));
 
-      if (await sourceFile.exists()) {
-        await sourceFile.copy(destFile.path);
-
-        final db = ref.read(databaseProvider);
-        await db.into(db.storyState).insertOnConflictUpdate(
-          StoryStateCompanion(
-            key: const Value('game_saved'),
-            value: const Value(true),
-            updatedAt: Value(DateTime.now()),
-          )
-        );
-
-        if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to Slot $slot')));
-        }
+      if (!await sourceFile.exists()) {
+        _showSnack('No active save file found.');
+        return;
       }
+
+      // Stamp the timestamp BEFORE copying so it's in the slot file too
+      final db = ref.read(databaseProvider);
+      await db.into(db.storyState).insertOnConflictUpdate(
+        StoryStateCompanion(
+          key:       const Value('game_saved'),
+          value:     const Value(true),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+      await sourceFile.copy(destFile.path);
+      _showSnack('Saved to Slot $slot');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save game')));
+      _showSnack('Failed to save game.');
     } finally {
-      setState(() { _isLoading = false; });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  // ── LOAD ──────────────────────────────────────────────────────────────────
 
   Future<void> _handleLoad(int slot) async {
-    setState(() { _isLoading = true; });
+    // FIX: guard against concurrent operations
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
     try {
-      final dbFolder = await getApplicationDocumentsDirectory();
-      final sourceFile = File(p.join(dbFolder.path, 'dreadmoor_slot$slot.sqlite'));
-      final destFile = File(p.join(dbFolder.path, 'dreadmoor.sqlite'));
+      final dbFolder   = await getApplicationDocumentsDirectory();
+      final sourceFile = File(p.join(dbFolder.path, '$_slotPrefix$slot.sqlite'));
+      final destFile   = File(p.join(dbFolder.path, _dbFileName));
 
-      if (await sourceFile.exists()) {
-        // Technically drift connections need to be closed/reopened for a hard file overwrite
-        // but for this UI demonstration, we overwrite it and trigger a hard restart suggestion
-        await sourceFile.copy(destFile.path);
+      if (!await sourceFile.exists()) {
+        _showSnack('Slot $slot is empty.');
+        return;
+      }
 
-        if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Game loaded. Please restart the app.')));
-        }
-      } else {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Slot is empty')));
+      // FIX 1: close the database before overwriting the file.
+      // Writing to a live SQLite file that Drift has open causes corruption.
+      final db = ref.read(databaseProvider);
+      await db.close();
+
+      // FIX 2: copy the slot file over the live DB file
+      await sourceFile.copy(destFile.path);
+
+      // FIX 3: invalidate databaseProvider so Drift reopens with the new file
+      ref.invalidate(databaseProvider);
+
+      // FIX 4: reset all runtime state so providers reload from the new DB.
+      // Using invalidate rather than manual .setId(null) so each notifier
+      // re-runs its build() and restores from the freshly loaded database.
+      ref.invalidate(globalSchedulerProvider);
+      ref.invalidate(activeNodeIdProvider);
+      ref.invalidate(activeThreadIdProvider);
+      ref.invalidate(playerStateProvider);
+      ref.invalidate(gameFlagsProvider);
+
+      // FIX 5: validate that the restored activeNodeId exists in the new DB.
+      // If the node is missing (corrupted slot), fall back to the start of
+      // episode 1 so the player is never left in a frozen state.
+      final restoredDb   = ref.read(databaseProvider);
+      final restoredNode = await (restoredDb.select(restoredDb.storyState)
+            ..where((t) => t.key.equals('active_node_id')))
+          .getSingleOrNull();
+
+      final nodeId = restoredNode?.stringValue;
+      if (nodeId == null || nodeId.isEmpty) {
+        // No valid node — restart from the beginning
+        final scheduler = ref.read(globalSchedulerProvider);
+        scheduler.processNode('s2_private_msg');
+      }
+
+      // FIX 6: navigate to root so the OS shell reinitialises cleanly.
+      // No restart required.
+      if (mounted) {
+        context.go('/');
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to load game')));
+      _showSnack('Failed to load game: $e');
+      // Even on failure, try to recover by navigating to root
+      if (mounted) context.go('/');
     } finally {
-      setState(() { _isLoading = false; });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<String?> _loadSaveTimestamp(AppDatabase db) async {
+    try {
+      final row = await (db.select(db.storyState)
+            ..where((s) => s.key.equals('game_saved')))
+          .getSingleOrNull();
+      if (row == null) return null;
+      final dt = row.updatedAt;
+      return '${_weekday(dt.weekday)} ${dt.day} ${_month(dt.month)} ${dt.year}'
+          '  —  ${dt.hour.toString().padLeft(2, '0')}'
+          ':${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _weekday(int d) =>
+      ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][d - 1];
+
+  String _month(int m) => [
+    'JAN','FEB','MAR','APR','MAY','JUN',
+    'JUL','AUG','SEP','OCT','NOV','DEC',
+  ][m - 1];
+
+  // ── BUILD ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final db = ref.read(databaseProvider);
+    final b  = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: DreadmoorColors.background(Theme.of(context).brightness),
+      backgroundColor: DreadmoorColors.background(b),
       body: Stack(
         children: [
-          Positioned.fill(child: CustomPaint(painter: const ScanlinePainter())),
+          Positioned.fill(
+              child: CustomPaint(painter: const ScanlinePainter())),
 
           Column(
             children: [
@@ -107,15 +192,16 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Auto-save status card ──────────────────────
+
+                      // Auto-save status card
                       DossierCard(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              width: 3,
+                              width:  3,
                               height: 40,
-                              color: DreadmoorColors.investigatorCyan,
+                              color:  DreadmoorColors.investigatorCyan,
                               margin: const EdgeInsets.only(right: 16, top: 2),
                             ),
                             Expanded(
@@ -125,7 +211,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                                   Text(
                                     'AUTO-SAVE ACTIVE',
                                     style: GoogleFonts.michroma(
-                                      fontSize: 11,
+                                      fontSize:      11,
                                       letterSpacing: 2.5,
                                       color: DreadmoorColors.investigatorCyan,
                                     ),
@@ -135,8 +221,8 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                                     'Progress is saved automatically after every significant event.',
                                     style: GoogleFonts.sourceCodePro(
                                       fontSize: 12,
-                                      height: 1.6,
-                                      color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
+                                      height:   1.6,
+                                      color: DreadmoorColors.text(b).withOpacity(0.7),
                                     ),
                                   ),
                                 ],
@@ -145,9 +231,8 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                             const SizedBox(width: 12),
                             Icon(
                               Icons.cloud_done_outlined,
-                              color: DreadmoorColors.investigatorCyan.withValues(
-                                alpha: 0.6,
-                              ),
+                              color: DreadmoorColors.investigatorCyan
+                                  .withOpacity(0.6),
                               size: 20,
                             ),
                           ],
@@ -156,7 +241,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
 
                       const SizedBox(height: 20),
 
-                      // ── Last save timestamp ────────────────────────
+                      // Last save timestamp
                       const SectionLabel(label: 'LAST CHECKPOINT'),
                       FutureBuilder<String?>(
                         future: _loadSaveTimestamp(db),
@@ -167,7 +252,8 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                               children: [
                                 Icon(
                                   Icons.schedule_rounded,
-                                  color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
+                                  color: DreadmoorColors.text(b)
+                                      .withOpacity(0.4),
                                   size: 16,
                                 ),
                                 const SizedBox(width: 12),
@@ -177,8 +263,10 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                                     style: GoogleFonts.sourceCodePro(
                                       fontSize: 12,
                                       color: timestamp != null
-                                          ? DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7)
-                                          : DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.4),
+                                          ? DreadmoorColors.text(b)
+                                              .withOpacity(0.7)
+                                          : DreadmoorColors.text(b)
+                                              .withOpacity(0.4),
                                     ),
                                   ),
                                 ),
@@ -190,11 +278,13 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
 
                       const SizedBox(height: 20),
 
-                      // ── Manual save slots ──────────────────
+                      // Manual save slots
                       const SectionLabel(label: 'MANUAL SAVE SLOTS'),
                       for (int i = 1; i <= 3; i++) ...[
                         _SaveSlot(
-                          slot: i,
+                          slot:   i,
+                          // FIX: pass _isLoading so buttons disable during operations
+                          locked: _isLoading,
                           onSave: () => _handleSave(i),
                           onLoad: () => _handleLoad(i),
                         ),
@@ -202,8 +292,13 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                       ],
 
                       const SizedBox(height: 32),
+
                       if (_isLoading)
-                        const Center(child: CircularProgressIndicator(color: DreadmoorColors.investigatorCyan)),
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: DreadmoorColors.investigatorCyan,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -214,93 +309,75 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
       ),
     );
   }
-
-  Future<String?> _loadSaveTimestamp(AppDatabase db) async {
-    try {
-      final row = await (db.select(
-        db.storyState,
-      )..where((s) => s.key.equals('game_saved'))).getSingleOrNull();
-      if (row == null) return null;
-      final dt = row.updatedAt;
-      return '${_weekday(dt.weekday)} ${dt.day} ${_month(dt.month)} ${dt.year}'
-          '  —  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _weekday(int d) =>
-      ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][d - 1];
-
-  String _month(int m) => [
-    'JAN',
-    'FEB',
-    'MAR',
-    'APR',
-    'MAY',
-    'JUN',
-    'JUL',
-    'AUG',
-    'SEP',
-    'OCT',
-    'NOV',
-    'DEC',
-  ][m - 1];
 }
 
+// ── SAVE SLOT ─────────────────────────────────────────────────────────────────
+
 class _SaveSlot extends StatelessWidget {
-  final int slot;
+  final int          slot;
+  final bool         locked; // true while any operation is in progress
   final VoidCallback onSave;
   final VoidCallback onLoad;
 
-  const _SaveSlot({required this.slot, required this.onSave, required this.onLoad});
+  const _SaveSlot({
+    required this.slot,
+    required this.locked,
+    required this.onSave,
+    required this.onLoad,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final b = Theme.of(context).brightness;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: DreadmoorColors.investigatorCyan.withOpacity(0.3)),
-        color: DreadmoorColors.surface(Theme.of(context).brightness),
-        borderRadius: BorderRadius.circular(8),
+        border:        Border.all(
+            color: DreadmoorColors.investigatorCyan.withOpacity(0.3)),
+        color:         DreadmoorColors.surface(b),
+        borderRadius:  BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.save,
-            size: 18,
-            color: DreadmoorColors.investigatorCyan,
-          ),
+          Icon(Icons.save,
+              size:  18,
+              color: DreadmoorColors.investigatorCyan),
           const SizedBox(width: 12),
           Text(
             'SLOT ${slot.toString().padLeft(2, '0')}',
             style: GoogleFonts.sourceCodePro(
-              fontSize: 14,
+              fontSize:      14,
               letterSpacing: 1.5,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+              color:         Colors.white,
+              fontWeight:    FontWeight.bold,
             ),
           ),
           const Spacer(),
           TextButton(
-            onPressed: onLoad,
+            // FIX: null callback disables the button while loading
+            onPressed: locked ? null : onLoad,
             child: Text(
-              "LOAD",
+              'LOAD',
               style: GoogleFonts.michroma(
-                 fontSize: 10,
-                 color: DreadmoorColors.text(Theme.of(context).brightness).withOpacity(0.7),
-                 letterSpacing: 1.0,
+                fontSize:      10,
+                color:         locked
+                    ? DreadmoorColors.text(b).withOpacity(0.3)
+                    : DreadmoorColors.text(b).withOpacity(0.7),
+                letterSpacing: 1.0,
               ),
             ),
           ),
           TextButton(
-            onPressed: onSave,
+            onPressed: locked ? null : onSave,
             child: Text(
-              "SAVE",
+              'SAVE',
               style: GoogleFonts.michroma(
-                 fontSize: 10,
-                 color: DreadmoorColors.investigatorCyan,
-                 letterSpacing: 1.0,
+                fontSize:      10,
+                color:         locked
+                    ? DreadmoorColors.investigatorCyan.withOpacity(0.3)
+                    : DreadmoorColors.investigatorCyan,
+                letterSpacing: 1.0,
               ),
             ),
           ),
