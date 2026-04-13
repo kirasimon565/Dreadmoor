@@ -60,26 +60,18 @@ class ChatBubble extends ConsumerWidget {
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
 
     // ── COLOURS ───────────────────────────────────────────────────────────────
-    // Bubbles float over a white floating sheet background.
     final Color bubbleFill = isSecret
-        ? const Color(0xFF1E1E1E)
-        : isMe
-            ? const Color(0xFFE8F2FA) // player: soft blue
-            : const Color(0xFFF3F4F6); // NPC: light gray
+        ? const Color(0xFF1E1E1E) // Dark charcoal for secret chat
+        : Colors.white; // White for regular chats
     final Color borderColor =
         isSecret ? const Color(0xFF2E2E2E) : Colors.transparent;
     final Color textColor =
-        isSecret ? const Color(0xFFFF6B6B) : const Color(0xFF1B242C);
+        isSecret ? const Color(0xFFFF6B6B) : const Color(0xFF1B242C); // Red accent for secret, dark for regular
     final Color nameColor =
         isMe ? const Color(0xFF4A9EBF) : const Color(0xFF8FA8B8);
 
     // ── BORDER RADIUS ─────────────────────────────────────────────────────────
-    final radius = BorderRadius.only(
-      topLeft: const Radius.circular(20),
-      topRight: const Radius.circular(20),
-      bottomLeft: Radius.circular(isMe ? 20 : 4),
-      bottomRight: Radius.circular(isMe ? 4 : 20),
-    );
+    final radius = BorderRadius.circular(20); // Uniformly rounded corners
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
