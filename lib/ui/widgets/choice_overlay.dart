@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:ui'; // For BackdropFilter
 
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/models/script_models.dart';
@@ -17,18 +16,17 @@ class ChoiceOverlay extends ConsumerStatefulWidget {
 class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
-  late final Animation<Offset> _slide;
-  late final Animation<double> _fade;
+  late final Animation<Offset>   _slide;
+  late final Animation<double>   _fade;
 
   @override
   void initState() {
     super.initState();
     _anim = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
+        vsync: this, duration: const Duration(milliseconds: 320));
     _slide = Tween<Offset>(
             begin: const Offset(0, 1), end: Offset.zero)
-        .animate(CurvedAnimation(
-            parent: _anim, curve: Curves.easeOutQuart));
+        .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutQuart));
     _fade = CurvedAnimation(parent: _anim, curve: Curves.easeIn);
   }
 
@@ -41,79 +39,21 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
   @override
   Widget build(BuildContext context) {
     final waiting = ref.watch(waitingForChoiceProvider);
-    final player = ref.watch(playerStateProvider);
+    final player  = ref.watch(playerStateProvider);
 
     waiting ? _anim.forward() : _anim.reverse();
 
-    return Stack(
-      children: [
-        if (waiting)
-          Positioned(
-            left: 0, right: 0, bottom: 0,
-            child: SlideTransition(
-              position: _slide,
-              child: FadeTransition(
-                  opacity: _fade,
-                  child: _ChoiceSheet(player: player)),
-            ),
-          ),
-        if (!waiting)
-          Positioned(
-            left: 0, right: 0, bottom: 0,
-            child: _InputBar(),
-          ),
-      ],
-    );
-  }
-}
+    if (!waiting) return const SizedBox.shrink();
 
-// ── INPUT BAR ─────────────────────────────────────────────────────────────────
-
-class _InputBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final bp = MediaQuery.of(context).padding.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, bp + 16),
-      child: Container(
-        height: 54,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE0E0E0), // Soft light gray background
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.30),
-                blurRadius: 10, offset: const Offset(0, 3))
-          ],
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 22),
-            Expanded(
-              child: Text(
-                'Write message...', // Placeholder text
-                style: GoogleFonts.spectral(
-                  color: Colors.black.withOpacity(0.58), // Black placeholder text
-                  fontSize: 17,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: Consumer(
-                builder: (context, ref, _) => GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    ref.read(globalSchedulerProvider).resume();
-                  },
-                  child: const SizedBox(
-                    width: 40, height: 40,
-                    child: Icon(Icons.send, color: Colors.black, size: 24), // Black send arrow icon
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return Positioned.fill(
+      child: SlideTransition(
+        position: _slide,
+        child: FadeTransition(
+          opacity: _fade,
+          child:   Align(
+            alignment: Alignment.bottomCenter,
+            child:     _ChoiceSheet(player: player),
+          ),
         ),
       ),
     );
@@ -121,6 +61,8 @@ class _InputBar extends StatelessWidget {
 }
 
 // ── CHOICE SHEET ──────────────────────────────────────────────────────────────
+// Matches image 4: white panel, floating player avatar top-right,
+// choices as clean serif text lines — no borders, no buttons.
 
 class _ChoiceSheet extends ConsumerStatefulWidget {
   final dynamic player;
@@ -135,35 +77,46 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bp = MediaQuery.of(context).padding.bottom;
+    final bp       = MediaQuery.of(context).padding.bottom;
     final scheduler = ref.read(globalSchedulerProvider);
-    final activeId = ref.watch(activeNodeIdProvider);
+    final activeId  = ref.watch(activeNodeIdProvider);
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Choice Cards
-        Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, bp + 16), // Adjust padding to make it semi-floating
+
+        // ── WHITE PANEL ────────────────────────────────────────────────
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(28, 20, 100, bp + 24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(32),
+            ),
+          ),
           child: FutureBuilder(
             future: ref
                 .read(databaseProvider)
                 .getNextNode(activeId ?? ''),
             builder: (context, snap) {
               if (!snap.hasData || snap.data == null) {
-                return const SizedBox(height: 48);
+                return const SizedBox(height: 60);
               }
+
               final choices =
                   DreadmoorNode.fromDb(snap.data!).choices;
+
               if (choices.isEmpty) {
-                return const SizedBox(height: 48);
+                return const SizedBox(height: 60);
               }
+
               return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: choices.map((c) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10), // Generous vertical spacing
-                  child: _ChoiceRow(
-                    text: c.text,
+                mainAxisSize:      MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: choices.map((c) {
+                  return _ChoiceRow(
+                    text:     c.text,
                     disabled: _tapped,
                     onTap: () {
                       if (_tapped) return;
@@ -171,28 +124,32 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
                       HapticFeedback.lightImpact();
                       scheduler.submitChoice(c.target, c.text);
                     },
-                  ),
-                )).toList(),
+                  );
+                }).toList(),
               );
             },
           ),
         ),
 
-        // Player Avatar
+        // ── FLOATING PLAYER AVATAR ─────────────────────────────────────
+        // Positioned top-right, half-overlapping the panel edge.
+        // Matches the large circular avatar in image 4.
         Positioned(
-          top: -40, // Adjust position to overlap
-          right: 14,
+          top:   -44,
+          right: 16,
           child: Container(
-            width: 80, height: 80,
+            width:  88,
+            height: 88,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: const Color(0xFFF0EEEA), width: 3),
+              shape:  BoxShape.circle,
+              color:  Colors.white,
+              border: Border.all(color: Colors.white, width: 4),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withOpacity(0.20),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3))
+                  color:      Colors.black.withOpacity(0.18),
+                  blurRadius: 14,
+                  offset:     const Offset(0, 4),
+                ),
               ],
             ),
             child: ClipOval(
@@ -201,9 +158,11 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
                     ?? 'assets/characters/player_default.png',
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFFD4B896),
-                  child: const Icon(Icons.person,
-                      color: Colors.white54, size: 38),
+                  color: const Color(0xFFE8E8E8),
+                  child: const Icon(
+                      Icons.person,
+                      color: Colors.grey,
+                      size: 44),
                 ),
               ),
             ),
@@ -215,11 +174,13 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
 }
 
 // ── CHOICE ROW ────────────────────────────────────────────────────────────────
+// Matches image 4: plain serif text, no borders, no background,
+// generous vertical spacing. Tap triggers subtle scale + opacity feedback.
 
 class _ChoiceRow extends StatefulWidget {
-  final String text;
+  final String       text;
   final VoidCallback onTap;
-  final bool disabled;
+  final bool         disabled;
 
   const _ChoiceRow({
     required this.text,
@@ -231,42 +192,50 @@ class _ChoiceRow extends StatefulWidget {
   State<_ChoiceRow> createState() => _ChoiceRowState();
 }
 
-class _ChoiceRowState extends State<_ChoiceRow> {
-  bool _isHovering = false; // For hover effect (desktop/web) or tap highlight
+class _ChoiceRowState extends State<_ChoiceRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _press;
+  late final Animation<double>   _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _press = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 100),
+        reverseDuration: const Duration(milliseconds: 200));
+    _scale = Tween<double>(begin: 1.0, end: 0.97)
+        .animate(CurvedAnimation(parent: _press, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _press.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: widget.disabled ? 0.35 : 1.0,
-      child: GestureDetector(
-        onTap: widget.disabled ? null : widget.onTap,
-        onTapDown: (_) => setState(() => _isHovering = true),
-        onTapUp: (_) => setState(() => _isHovering = false),
-        onTapCancel: () => setState(() => _isHovering = false),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12), // Rounded rectangular cards
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // Soft blur optional
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 16, horizontal: 20), // Generous padding
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.4), // Dark translucent background
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _isHovering ? const Color(0xFFCC2A2A) : Colors.transparent, // Subtle red noir highlight on tap
-                  width: 2,
-                ),
-              ),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                widget.text,
-                style: GoogleFonts.spectral(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white, // White text
-                  letterSpacing: 0.5,
-                ),
+    return GestureDetector(
+      onTapDown:   widget.disabled ? null : (_) => _press.forward(),
+      onTapUp:     widget.disabled ? null : (_) => _press.reverse(),
+      onTapCancel: widget.disabled ? null : ()  => _press.reverse(),
+      onTap:       widget.disabled ? null : widget.onTap,
+      behavior:    HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: ScaleTransition(
+          scale: _scale,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 150),
+            opacity:  widget.disabled ? 0.28 : 1.0,
+            child: Text(
+              widget.text,
+              style: GoogleFonts.spectral(
+                fontSize:   22,
+                height:     1.35,
+                color:      const Color(0xFF1B242C),
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
