@@ -20,6 +20,10 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  await SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.immersiveSticky,
+  );
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -35,7 +39,8 @@ void main() async {
 
   final existingPlayer = await (db.select(
     db.players,
-  )..limit(1)).getSingleOrNull();
+  )..limit(1))
+      .getSingleOrNull();
 
   runZonedGuarded(
     () => runApp(
@@ -116,7 +121,6 @@ class _DreadmoorAppState extends ConsumerState<DreadmoorApp>
       themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
-
       builder: (context, child) {
         final media = MediaQuery.of(context);
 

@@ -43,9 +43,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .join([
-          leftOuterJoin(db.characters,
-              db.characters.id.equalsExp(db.messages.senderId)),
-        ]).watch();
+      leftOuterJoin(
+          db.characters, db.characters.id.equalsExp(db.messages.senderId)),
+    ]).watch();
 
     _membersStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
@@ -54,9 +54,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _membersWithNamesStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
         .join([
-          innerJoin(db.characters,
-              db.characters.id.equalsExp(db.threadMembers.characterId)),
-        ]).watch();
+      innerJoin(db.characters,
+          db.characters.id.equalsExp(db.threadMembers.characterId)),
+    ]).watch();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -69,7 +69,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           .getSingleOrNull();
 
       if (activeChoiceRow?.stringValue != null) {
-        ref.read(activeNodeIdProvider.notifier)
+        ref
+            .read(activeNodeIdProvider.notifier)
             .setId(activeChoiceRow!.stringValue!);
         ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
       }
@@ -188,9 +189,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                         // ✅ FIXED HERE
                         onBackPressed: () {
-                          ref
-                              .read(activeThreadIdProvider.notifier)
-                              .setId(null);
+                          ref.read(activeThreadIdProvider.notifier).setId(null);
                           ref
                               .read(activeAppProvider.notifier)
                               .setApp(PhoneApp.messenger);
@@ -207,8 +206,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     HapticFeedback.selectionClick();
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            CharacterProfileScreen(
+                                        builder: (_) => CharacterProfileScreen(
                                           characterId: singleProfileId,
                                         ),
                                       ),
@@ -219,58 +217,72 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       );
                     },
                   ),
-
                   Expanded(
-                    child: StreamBuilder<List<TypedResult>>(
-                      stream: _messagesStream,
-                      builder: (context, snapshot) {
-                        final messages = snapshot.data ?? [];
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(32),
+                          topRight: Radius.circular(32),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32),
+                          topRight: Radius.circular(32),
+                        ),
+                        child: StreamBuilder<List<TypedResult>>(
+                          stream: _messagesStream,
+                          builder: (context, snapshot) {
+                            final messages = snapshot.data ?? [];
 
-                        if (messages.length != _lastMessageCount) {
-                          _lastMessageCount = messages.length;
-                          WidgetsBinding.instance.addPostFrameCallback(
-                            (_) => _scrollToBottom(
-                              animated: _lastMessageCount > 1,
-                            ),
-                          );
-                        }
-
-                        return ListView.builder(
-                          controller: _scrollController,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          itemCount: messages.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index == messages.length) {
-                              return _buildTypingIndicator();
+                            if (messages.length != _lastMessageCount) {
+                              _lastMessageCount = messages.length;
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => _scrollToBottom(
+                                  animated: _lastMessageCount > 1,
+                                ),
+                              );
                             }
 
-                            final db = ref.read(databaseProvider);
-                            final row = messages[index];
-                            final msg = row.readTable(db.messages);
-                            final character =
-                                row.readTableOrNull(db.characters);
+                            return ListView.builder(
+                              controller: _scrollController,
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                top: 24,
+                                bottom: 100,
+                              ),
+                              itemCount: messages.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == messages.length) {
+                                  return _buildTypingIndicator();
+                                }
 
-                            return ChatBubble(
-                              text: msg.content ?? '',
-                              isMe: msg.isPlayerMessage,
-                              senderId: msg.senderId,
-                              senderName: character?.name,
-                              timestamp: msg.timestamp,
-                              isSecret: msg.isSecret,
-                              mediaType: msg.type,
-                              mediaPath: msg.mediaPath,
+                                final db = ref.read(databaseProvider);
+                                final row = messages[index];
+                                final msg = row.readTable(db.messages);
+                                final character =
+                                    row.readTableOrNull(db.characters);
+
+                                return ChatBubble(
+                                  text: msg.content ?? '',
+                                  isMe: msg.isPlayerMessage,
+                                  senderId: msg.senderId,
+                                  senderName: character?.name,
+                                  timestamp: msg.timestamp,
+                                  isSecret: msg.isSecret,
+                                  mediaType: msg.type,
+                                  mediaPath: msg.mediaPath,
+                                );
+                              },
                             );
                           },
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
-
-                  const SizedBox(height: 90),
                 ],
               ),
 

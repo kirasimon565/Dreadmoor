@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
+import 'package:dreadmoor/ui/widgets/video_thumbnail_image.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 
 class ChatBubble extends ConsumerWidget {
@@ -59,31 +60,25 @@ class ChatBubble extends ConsumerWidget {
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
 
     // ── COLOURS ───────────────────────────────────────────────────────────────
-    // Bubbles float over a dark forest image, so we use translucent dark fills
-    // with a subtle blur-glass effect to keep them readable at all times.
+    // Bubbles float over a white floating sheet background.
     final Color bubbleFill = isSecret
-        ? const Color(0xFF6B0000).withOpacity(0.55)
+        ? const Color(0xFF1E1E1E)
         : isMe
-            ? const Color(0xFF0D3A4A).withOpacity(0.75) // player: dark teal
-            : const Color(0xFF0D1A28).withOpacity(0.72); // NPC: dark navy
-    final Color borderColor = isSecret
-        ? const Color(0xFFCC2A2A).withOpacity(0.6)
-        : isMe
-            ? const Color(0xFF4A9EBF).withOpacity(0.5)
-            : Colors.white.withOpacity(0.14);
-    final Color textColor = isSecret
-        ? const Color(0xFFFF6B6B)
-        : Colors.white.withOpacity(0.92);
-    final Color nameColor = isMe
-        ? const Color(0xFF4A9EBF)
-        : const Color(0xFFB0C8D8);
+            ? const Color(0xFFE8F2FA) // player: soft blue
+            : const Color(0xFFF3F4F6); // NPC: light gray
+    final Color borderColor =
+        isSecret ? const Color(0xFF2E2E2E) : Colors.transparent;
+    final Color textColor =
+        isSecret ? const Color(0xFFFF6B6B) : const Color(0xFF1B242C);
+    final Color nameColor =
+        isMe ? const Color(0xFF4A9EBF) : const Color(0xFF8FA8B8);
 
     // ── BORDER RADIUS ─────────────────────────────────────────────────────────
     final radius = BorderRadius.only(
-      topLeft: const Radius.circular(14),
-      topRight: const Radius.circular(14),
-      bottomLeft: Radius.circular(isMe ? 14 : 2),
-      bottomRight: Radius.circular(isMe ? 2 : 14),
+      topLeft: const Radius.circular(20),
+      topRight: const Radius.circular(20),
+      bottomLeft: Radius.circular(isMe ? 20 : 4),
+      bottomRight: Radius.circular(isMe ? 4 : 20),
     );
 
     return TweenAnimationBuilder<double>(
@@ -105,30 +100,21 @@ class ChatBubble extends ConsumerWidget {
             color: bubbleFill,
             borderRadius: radius,
             border: Border.all(color: borderColor, width: 0.9),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isSecret ? 0.35 : 0.22),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-              if (isSecret)
-                BoxShadow(
-                  color: const Color(0xFFCC2A2A).withOpacity(0.18),
-                  blurRadius: 16,
-                  spreadRadius: 1,
-                ),
-            ],
           ),
           child: ClipRRect(
             borderRadius: radius,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Column(
-                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // ── SENDER NAME (NPCs only) ──────────────────────────────
-                  if (!isMe && senderId != null && senderId != 'system' && senderId != 'player') ...[
+                  if (!isMe &&
+                      senderId != null &&
+                      senderId != 'system' &&
+                      senderId != 'player') ...[
                     Text(
                       (senderName ?? senderId!).toUpperCase(),
                       style: GoogleFonts.spaceGrotesk(
@@ -157,8 +143,21 @@ class ChatBubble extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.white24, width: 1),
                         ),
-                        child: const Center(
-                          child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: VideoThumbnailImage(videoPath: mediaPath!),
+                            ),
+                            Container(
+                              color: Colors.black.withOpacity(0.3),
+                              child: const Center(
+                                child: Icon(Icons.play_circle_fill,
+                                    color: Colors.white, size: 48),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -170,7 +169,8 @@ class ChatBubble extends ConsumerWidget {
                         ]);
                       },
                       child: Container(
-                        constraints: const BoxConstraints(maxHeight: 200, maxWidth: 220),
+                        constraints:
+                            const BoxConstraints(maxHeight: 200, maxWidth: 220),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: mediaPath!.startsWith('assets/')
@@ -199,7 +199,9 @@ class ChatBubble extends ConsumerWidget {
                       _formatTime(timestamp!),
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 9,
-                        color: Colors.white.withOpacity(0.35),
+                        color: isSecret
+                            ? Colors.white.withOpacity(0.35)
+                            : const Color(0xFF8FA8B8),
                         letterSpacing: 1.0,
                         fontWeight: FontWeight.w500,
                       ),

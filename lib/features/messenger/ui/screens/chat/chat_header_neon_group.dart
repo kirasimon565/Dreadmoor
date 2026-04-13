@@ -1,210 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Original layout preserved exactly:
-///   [←]  [ avatar  Name        ]
-///                  Online •
-///
-/// Added: [memberIds] + [onMemberTap] for group threads so each
-/// stacked avatar opens its own character profile independently.
 class ChatHeaderNeonGroup extends StatelessWidget {
   final String title;
-  final VoidCallback onBackPressed;
   final List<String> avatarPaths;
-
-  /// Character IDs in the same order as [avatarPaths].
   final List<String> memberIds;
-
+  final VoidCallback onBackPressed;
   final bool isOnline;
-
-  /// Single-thread: tap anywhere on the pill → open profile.
   final VoidCallback? onAvatarTap;
-
-  /// Group-thread: { characterId → VoidCallback } — each avatar taps independently.
   final Map<String, VoidCallback>? onMemberTap;
 
   const ChatHeaderNeonGroup({
     super.key,
     required this.title,
-    required this.onBackPressed,
-    required this.avatarPaths,
-    this.memberIds = const [],
-    this.isOnline = true,
-    this.onAvatarTap,
-    this.onMemberTap,
-  });
-
-  bool get _isGroup => avatarPaths.length > 1;
-
-  @override
-  Widget build(BuildContext context) {
-    return _isGroup
-        ? _GroupHeader(
-            title: title,
-            avatarPaths: avatarPaths,
-            memberIds: memberIds,
-            onBackPressed: onBackPressed,
-            isOnline: isOnline,
-            onTitleTap: onAvatarTap,
-            onMemberTap: onMemberTap,
-          )
-        : _SingleHeader(
-            title: title,
-            avatarPath: avatarPaths.isNotEmpty ? avatarPaths.first : null,
-            onBackPressed: onBackPressed,
-            isOnline: isOnline,
-            onTap: onAvatarTap,
-          );
-  }
-}
-
-// ── SINGLE CHARACTER HEADER ───────────────────────────────────────────────────
-
-class _SingleHeader extends StatelessWidget {
-  final String title;
-  final String? avatarPath;
-  final VoidCallback onBackPressed;
-  final bool isOnline;
-  final VoidCallback? onTap;
-
-  const _SingleHeader({
-    required this.title,
-    required this.avatarPath,
-    required this.onBackPressed,
-    required this.isOnline,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final topPad = MediaQuery.of(context).padding.top;
-
-    return SizedBox(
-      width: double.infinity,
-      child: Padding(
-        padding: EdgeInsets.only(
-            top: topPad + 8, bottom: 12, left: 8, right: 8),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            GestureDetector(
-              onTap: onTap,
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.62,
-                padding: const EdgeInsets.symmetric(
-                    vertical: 8, horizontal: 14),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white, width: 1.4),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF1A0A2E),
-                        border: Border.all(color: Colors.white24, width: 1),
-                      ),
-                      child: ClipOval(
-                        child: avatarPath != null
-                            ? Image.asset(avatarPath!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const _FallbackAvatar())
-                            : const _FallbackAvatar(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.spectral(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (isOnline)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('Online',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      color: const Color(0xFF3DDB5E),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    )),
-                                const SizedBox(width: 4),
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF3DDB5E),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              child: GestureDetector(
-                onTap: onBackPressed,
-                behavior: HitTestBehavior.opaque,
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.chevron_left,
-                      color: Colors.white, size: 32),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── GROUP HEADER ──────────────────────────────────────────────────────────────
-
-class _GroupHeader extends StatelessWidget {
-  final String title;
-  final List<String> avatarPaths;
-  final List<String> memberIds;
-  final VoidCallback onBackPressed;
-  final bool isOnline;
-  final VoidCallback? onTitleTap;
-  final Map<String, VoidCallback>? onMemberTap;
-
-  const _GroupHeader({
-    required this.title,
     required this.avatarPaths,
     required this.memberIds,
     required this.onBackPressed,
     required this.isOnline,
-    this.onTitleTap,
+    this.onAvatarTap,
     this.onMemberTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
+    final isGroup = memberIds.length > 1;
+
     final visible = avatarPaths.take(4).toList();
     final visibleIds = memberIds.take(4).toList();
     final extra = (avatarPaths.length - 4).clamp(0, 999);
@@ -213,92 +34,62 @@ class _GroupHeader extends StatelessWidget {
       width: double.infinity,
       child: Padding(
         padding: EdgeInsets.only(
-            top: topPad + 8, bottom: 12, left: 8, right: 8),
+            top: topPad + 12, bottom: 12, left: 8, right: 8),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Container(
-              width: MediaQuery.of(context).size.width * 0.70,
-              padding: const EdgeInsets.symmetric(
-                  vertical: 8, horizontal: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1B3040).withOpacity(0.82),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: const Color(0xFF4A9EBF).withOpacity(0.7),
-                  width: 1.4,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF4A9EBF).withOpacity(0.18),
-                    blurRadius: 14,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            GestureDetector(
+              onTap: onAvatarTap,
+              behavior: HitTestBehavior.opaque,
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _StackedAvatars(
-                    avatarPaths: visible,
-                    memberIds: visibleIds,
-                    extra: extra,
-                    onMemberTap: onMemberTap,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: GestureDetector(
-                      onTap: onTitleTap,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.spectral(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (isOnline)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('Online',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      color: const Color(0xFF3DDB5E),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    )),
-                                const SizedBox(width: 4),
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF3DDB5E),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
+                  Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.spectral(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  if (isGroup)
+                    _StackedAvatars(
+                      avatarPaths: visible,
+                      memberIds: visibleIds,
+                      extra: extra,
+                      onMemberTap: onMemberTap,
+                    )
+                  else if (isOnline)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Live',
+                            style: GoogleFonts.spaceGrotesk(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            )),
+                      ],
+                    ),
                 ],
               ),
             ),
             Positioned(
               left: 0,
-              child: GestureDetector(
-                onTap: onBackPressed,
-                behavior: HitTestBehavior.opaque,
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.chevron_left,
-                      color: Colors.white, size: 32),
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: onBackPressed,
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(Icons.chevron_left,
+                        color: Colors.white, size: 32),
+                  ),
                 ),
               ),
             ),
@@ -340,9 +131,6 @@ class _StackedAvatars extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           ...List.generate(count, (i) {
-            // FIX: resolve tap callback without nesting two ? operators
-            // in one expression — Dart's parser confuses the null-safe
-            // index ?[key] with a ternary when both appear on the same line.
             VoidCallback? onTap;
             if (i < memberIds.length && onMemberTap != null) {
               onTap = onMemberTap![memberIds[i]];
@@ -404,8 +192,6 @@ class _StackedAvatars extends StatelessWidget {
     );
   }
 }
-
-// ── SHARED ────────────────────────────────────────────────────────────────────
 
 class _FallbackAvatar extends StatelessWidget {
   const _FallbackAvatar();

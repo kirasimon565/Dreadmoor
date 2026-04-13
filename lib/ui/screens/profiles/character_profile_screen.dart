@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/character_state.dart';
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
+import 'package:dreadmoor/ui/widgets/video_thumbnail_image.dart';
 import 'profile_layout.dart';
 
 class CharacterProfileScreen extends ConsumerWidget {
@@ -177,12 +178,14 @@ class ProfilePhotoGrid extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 Container(
-                  color: Colors.grey.shade200,
-                  child: path.startsWith('assets/')
-                      ? Image.asset(path, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              Container(color: Colors.grey.shade200))
-                      : Image.file(File(path), fit: BoxFit.cover),
+                  color: Colors.black,
+                  child: isVideo
+                      ? import_video_thumb(path)
+                      : path.startsWith('assets/')
+                          ? Image.asset(path, fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  Container(color: Colors.grey.shade200))
+                          : Image.file(File(path), fit: BoxFit.cover),
                 ),
                 if (isVideo)
                   Positioned(
@@ -203,5 +206,9 @@ class ProfilePhotoGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  Widget import_video_thumb(String path) {
+    return VideoThumbnailImage(videoPath: path);
   }
 }
