@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui'; // For BackdropFilter
 
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/core/models/script_models.dart';
@@ -17,7 +18,7 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<Offset> _slide;
-  late final Animation<double>  _fade;
+  late final Animation<double> _fade;
 
   @override
   void initState() {
@@ -40,7 +41,7 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
   @override
   Widget build(BuildContext context) {
     final waiting = ref.watch(waitingForChoiceProvider);
-    final player  = ref.watch(playerStateProvider);
+    final player = ref.watch(playerStateProvider);
 
     waiting ? _anim.forward() : _anim.reverse();
 
@@ -77,7 +78,7 @@ class _InputBar extends StatelessWidget {
       child: Container(
         height: 54,
         decoration: BoxDecoration(
-          color: const Color(0xFF4E6470),
+          color: const Color(0xFFE0E0E0), // Soft light gray background
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.30),
@@ -88,12 +89,14 @@ class _InputBar extends StatelessWidget {
           children: [
             const SizedBox(width: 22),
             Expanded(
-              child: Text('Say something...',
-                  style: GoogleFonts.spectral(
-                    color: Colors.white.withOpacity(0.58),
-                    fontSize: 17,
-                    fontStyle: FontStyle.italic,
-                  )),
+              child: Text(
+                'Write message...', // Placeholder text
+                style: GoogleFonts.spectral(
+                  color: Colors.black.withOpacity(0.58), // Black placeholder text
+                  fontSize: 17,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(right: 10),
@@ -103,14 +106,9 @@ class _InputBar extends StatelessWidget {
                     HapticFeedback.lightImpact();
                     ref.read(globalSchedulerProvider).resume();
                   },
-                  child: SizedBox(
+                  child: const SizedBox(
                     width: 40, height: 40,
-                    child: Image.asset('assets/ui/quill_red.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                            Icons.edit,
-                            color: Color(0xFFCC2A2A),
-                            size: 24)),
+                    child: Icon(Icons.send, color: Colors.black, size: 24), // Black send arrow icon
                   ),
                 ),
               ),
@@ -137,25 +135,16 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bp          = MediaQuery.of(context).padding.bottom;
-    final scheduler   = ref.read(globalSchedulerProvider);
-    final activeId    = ref.watch(activeNodeIdProvider);
+    final bp = MediaQuery.of(context).padding.bottom;
+    final scheduler = ref.read(globalSchedulerProvider);
+    final activeId = ref.watch(activeNodeIdProvider);
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Sheet
-        Container(
-          width: double.infinity,
-          // FIX: reduced padding — sheet was too tall
-          padding: EdgeInsets.fromLTRB(16, 14, 16, bp + 14),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF0EEEA),
-            borderRadius: BorderRadius.only(
-              topLeft:  Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
+        // Choice Cards
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, bp + 16), // Adjust padding to make it semi-floating
           child: FutureBuilder(
             future: ref
                 .read(databaseProvider)
@@ -172,9 +161,9 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: choices.map((c) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 10), // Generous vertical spacing
                   child: _ChoiceRow(
-                    text:     c.text,
+                    text: c.text,
                     disabled: _tapped,
                     onTap: () {
                       if (_tapped) return;
@@ -189,9 +178,10 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
           ),
         ),
 
-        // FIX: avatar reduced from 112 → 80px, offset from -56 → -40
+        // Player Avatar
         Positioned(
-          top: -40, right: 14,
+          top: -40, // Adjust position to overlap
+          right: 14,
           child: Container(
             width: 80, height: 80,
             decoration: BoxDecoration(
@@ -226,7 +216,7 @@ class _ChoiceSheetState extends ConsumerState<_ChoiceSheet> {
 
 // ── CHOICE ROW ────────────────────────────────────────────────────────────────
 
-class _ChoiceRow extends StatelessWidget {
+class _ChoiceRow extends StatefulWidget {
   final String text;
   final VoidCallback onTap;
   final bool disabled;
@@ -238,43 +228,48 @@ class _ChoiceRow extends StatelessWidget {
   });
 
   @override
+  State<_ChoiceRow> createState() => _ChoiceRowState();
+}
+
+class _ChoiceRowState extends State<_ChoiceRow> {
+  bool _isHovering = false; // For hover effect (desktop/web) or tap highlight
+
+  @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: disabled ? 0.35 : 1.0,
+      opacity: widget.disabled ? 0.35 : 1.0,
       child: GestureDetector(
-        onTap: disabled ? null : onTap,
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 11, horizontal: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border:
-                      Border.all(color: Colors.black, width: 1.5),
+        onTap: widget.disabled ? null : widget.onTap,
+        onTapDown: (_) => setState(() => _isHovering = true),
+        onTapUp: (_) => setState(() => _isHovering = false),
+        onTapCancel: () => setState(() => _isHovering = false),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12), // Rounded rectangular cards
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // Soft blur optional
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 16, horizontal: 20), // Generous padding
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4), // Dark translucent background
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isHovering ? const Color(0xFFCC2A2A) : Colors.transparent, // Subtle red noir highlight on tap
+                  width: 2,
                 ),
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  text.toUpperCase(),
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                    letterSpacing: 0.5,
-                  ),
+              ),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                widget.text,
+                style: GoogleFonts.spectral(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white, // White text
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 38, height: 38,
-              child: Image.asset('assets/ui/quill_black.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                      Icons.edit, color: Colors.black87, size: 22)),
-            ),
-          ],
+          ),
         ),
       ),
     );
