@@ -9,7 +9,7 @@ import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/choice_overlay.dart';
-import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart'; // Renamed from feather_typing_indicator.dart
+import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 import 'package:dreadmoor/ui/screens/profiles/character_profile_screen.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -23,12 +23,14 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _scrollController = ScrollController();
 
-  late final Stream<Thread?> _threadStream;
-  late final Stream<List<TypedResult>> _messagesStream;
-  late final Stream<List<TypedResult>> _membersWithNamesStream;
+  late final Stream<Thread?>            _threadStream;
+  late final Stream<List<TypedResult>>  _messagesStream;
+  late final Stream<List<TypedResult>>  _membersWithNamesStream;
   late final Stream<List<ThreadMember>> _membersStream;
 
   int _lastMessageCount = 0;
+
+  // ── LIFECYCLE ─────────────────────────────────────────────────────────────
 
   @override
   void initState() {
@@ -43,9 +45,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..where((m) => m.threadId.equals(widget.threadId))
           ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
         .join([
-      leftOuterJoin(
-          db.characters, db.characters.id.equalsExp(db.messages.senderId)),
-    ]).watch();
+          leftOuterJoin(db.characters,
+              db.characters.id.equalsExp(db.messages.senderId)),
+        ]).watch();
 
     _membersStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
@@ -54,24 +56,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _membersWithNamesStream = (db.select(db.threadMembers)
           ..where((m) => m.threadId.equals(widget.threadId)))
         .join([
-      innerJoin(db.characters,
-          db.characters.id.equalsExp(db.threadMembers.characterId)),
-    ]).watch();
+          innerJoin(db.characters,
+              db.characters.id.equalsExp(db.threadMembers.characterId)),
+        ]).watch();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-
       ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
       ref.read(globalSchedulerProvider).resumeIfThreadActive(widget.threadId);
 
+      final db = ref.read(databaseProvider);
       final activeChoiceRow = await (db.select(db.storyState)
             ..where((t) => t.key.equals('active_choice_id')))
           .getSingleOrNull();
-
       if (activeChoiceRow?.stringValue != null) {
-        ref
-            .read(activeNodeIdProvider.notifier)
-            .setId(activeChoiceRow!.stringValue!); // Use ! for non-null assertion
+        ref.read(activeNodeIdProvider.notifier)
+            .setId(activeChoiceRow!.stringValue!);
         ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
       }
     });
@@ -88,13 +88,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _scrollToBottom({bool animated = true}) {
     if (!_scrollController.hasClients) return;
     final max = _scrollController.position.maxScrollExtent;
-
     if (animated) {
-      _scrollController.animateTo(
-        max,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOut,
-      );
+      _scrollController.animateTo(max,
+          duration: const Duration(milliseconds: 320), curve: Curves.easeOut);
     } else {
       _scrollController.jumpTo(max);
     }
@@ -105,175 +101,196 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       for (final m in members.where((m) => m.characterId != 'player'))
         m.characterId: () {
           HapticFeedback.selectionClick();
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  CharacterProfileScreen(characterId: m.characterId),
-            ),
-          );
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) =>
+                CharacterProfileScreen(characterId: m.characterId),
+          ));
         },
     };
   }
 
+  // ── BUILD ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<ThreadMember>>(
-      stream: _membersStream,
-      builder: (context, membersSnap) {
-        final members = membersSnap.data ?? [];
-        final isGroup = members.length > 1;
+    final size = MediaQuery.of(context).size;
+    // Panel starts at 42% from the top — image dominates upper portion.
+    final panelTop = size.height * 0.42;
 
-        final nonPlayer =
-            members.where((m) => m.characterId != 'player').toList();
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: StreamBuilder<List<ThreadMember>>(
+        stream: _membersStream,
+        builder: (context, membersSnap) {
+          final members   = membersSnap.data ?? [];
+          final isGroup   = members.length > 1;
+          final nonPlayer = members
+              .where((m) => m.characterId != 'player')
+              .toList();
+          final avatarPaths =
+              nonPlayer.map((m) => 'assets/characters/${m.characterId}.png')
+                  .toList();
+          final memberIds =
+              nonPlayer.map((m) => m.characterId).toList();
+          final memberTapMap = _buildMemberTapMap(members);
+          final singleProfileId =
+              nonPlayer.isNotEmpty ? nonPlayer.first.characterId : null;
 
-        final avatarPaths = nonPlayer
-            .map((m) => 'assets/characters/${m.characterId}.png')
-            .toList();
+          return Stack(
+            children: [
 
-        final memberIds = nonPlayer.map((m) => m.characterId).toList();
-
-        final memberTapMap = _buildMemberTapMap(members);
-
-        final singleProfileId =
-            nonPlayer.isNotEmpty ? nonPlayer.first.characterId : null;
-
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // Background Image
-            Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 600),
-                child: Image.asset(
-                  isGroup
-                      ? 'assets/images/group_chat_bg.png'
-                      : 'assets/images/forest_bg.png',
-                  key: ValueKey(isGroup),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: const Color(0xFF0B1520)),
+              // ── LAYER 0: FULL-SCREEN BACKGROUND ───────────────────────
+              Positioned.fill(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 600),
+                  child: Image.asset(
+                    isGroup
+                        ? 'assets/images/group_chat_bg.png'
+                        : 'assets/images/forest_bg.png',
+                    key:   ValueKey(isGroup),
+                    fit:   BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: const Color(0xFF0A1520)),
+                  ),
                 ),
               ),
-            ),
 
-            // Transparent Floating Header Overlay
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SafeArea(
+              // ── LAYER 1: TOP GRADIENT (header legibility) ─────────────
+              Positioned(
+                top: 0, left: 0, right: 0,
+                height: 160,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end:   Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.55),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── LAYER 2: WHITE PANEL ───────────────────────────────────
+              Positioned(
+                top:    panelTop,
+                left:   0,
+                right:  0,
+                bottom: 0,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(44),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+
+                      // Messages
+                      Expanded(
+                        child: StreamBuilder<List<TypedResult>>(
+                          stream: _messagesStream,
+                          builder: (context, snapshot) {
+                            final messages = snapshot.data ?? [];
+
+                            if (messages.length != _lastMessageCount) {
+                              _lastMessageCount = messages.length;
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => _scrollToBottom(
+                                    animated: _lastMessageCount > 1),
+                              );
+                            }
+
+                            return ListView.builder(
+                              controller: _scrollController,
+                              physics:    const BouncingScrollPhysics(),
+                              padding:    const EdgeInsets.only(
+                                left:   0,
+                                right:  0,
+                                top:    20,
+                                bottom: 16,
+                              ),
+                              itemCount:   messages.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == messages.length) {
+                                  return _buildTypingIndicator();
+                                }
+                                final db        = ref.read(databaseProvider);
+                                final row       = messages[index];
+                                final msg       = row.readTable(db.messages);
+                                final character =
+                                    row.readTableOrNull(db.characters);
+
+                                return ChatBubble(
+                                  text:       msg.content ?? '',
+                                  isMe:       msg.isPlayerMessage,
+                                  senderId:   msg.senderId,
+                                  senderName: character?.name,
+                                  timestamp:  msg.timestamp,
+                                  isSecret:   msg.isSecret,
+                                  mediaType:  msg.type,
+                                  mediaPath:  msg.mediaPath,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+
+                      // Decorative input bar (narrative game — choices come
+                      // from ChoiceOverlay, not from typing)
+                      _InputBar(),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── LAYER 3: FLOATING HEADER ───────────────────────────────
+              SafeArea(
+                bottom: false,
                 child: StreamBuilder<Thread?>(
                   stream: _threadStream,
                   builder: (context, snap) {
-                    final threadTitle = snap.data?.title ?? 'UNKNOWN';
+                    final title = snap.data?.title ?? 'Unknown';
                     return _ChatHeader(
-                      title: threadTitle,
-                      isGroup: isGroup,
+                      title:     title,
+                      isGroup:   isGroup,
                       avatarPaths: avatarPaths,
-                      onBackPressed: () {
+                      memberIds: memberIds,
+                      onBack: () {
                         ref.read(activeThreadIdProvider.notifier).setId(null);
-                        ref
-                            .read(activeAppProvider.notifier)
+                        ref.read(activeAppProvider.notifier)
                             .setApp(PhoneApp.messenger);
                         Navigator.pop(context);
                       },
-                      onProfileTap: isGroup
+                      onAvatarTap: isGroup
                           ? null
                           : singleProfileId != null
                               ? () {
                                   HapticFeedback.selectionClick();
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => CharacterProfileScreen(
-                                        characterId: singleProfileId,
-                                      ),
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (_) => CharacterProfileScreen(
+                                      characterId: singleProfileId,
                                     ),
-                                  );
+                                  ));
                                 }
                               : null,
+                      memberTapMap: isGroup ? memberTapMap : null,
                     );
                   },
                 ),
               ),
-            ),
 
-            // Lower Section: White Rounded Sheet
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              top: MediaQuery.of(context).size.height * 0.4, // Starts from lower half
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40), // Large smooth rounded top corners
-                    topRight: Radius.circular(40),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40),
-                  ),
-                  child: StreamBuilder<List<TypedResult>>(
-                    stream: _messagesStream,
-                    builder: (context, snapshot) {
-                      final messages = snapshot.data ?? [];
-
-                      if (messages.length != _lastMessageCount) {
-                        _lastMessageCount = messages.length;
-                        WidgetsBinding.instance.addPostFrameCallback(
-                          (_) => _scrollToBottom(
-                            animated: _lastMessageCount > 1,
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        controller: _scrollController,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(
-                          left: 16,
-                          right: 16,
-                          top: 24,
-                          bottom: 100, // Space for the input bar
-                        ),
-                        itemCount: messages.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == messages.length) {
-                            return _buildTypingIndicator();
-                          }
-
-                          final db = ref.read(databaseProvider);
-                          final row = messages[index];
-                          final msg = row.readTable(db.messages);
-                          final character =
-                              row.readTableOrNull(db.characters);
-
-                          return ChatBubble(
-                            text: msg.content ?? '',
-                            isMe: msg.isPlayerMessage,
-                            senderId: msg.senderId,
-                            senderName: isGroup ? character?.name : null, // Show sender name only in group chat
-                            timestamp: msg.timestamp,
-                            isSecret: msg.isSecret,
-                            mediaType: msg.type,
-                            mediaPath: msg.mediaPath,
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-
-            // Choice Overlay (includes input bar when not waiting for choice)
-            const ChoiceOverlay(),
-          ],
-        );
-      },
+              // ── LAYER 4: CHOICE OVERLAY ────────────────────────────────
+              const ChoiceOverlay(),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -282,16 +299,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       stream: _threadStream,
       builder: (context, threadSnap) {
         if (threadSnap.data?.isTyping != true) {
-          return const SizedBox(height: 20);
+          return const SizedBox(height: 12);
         }
-
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
             final db = ref.read(databaseProvider);
-
             String? senderName;
-
             if (membersSnap.hasData) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
@@ -301,10 +315,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 }
               }
             }
-
             return FeatherTypingIndicator(
               senderName: senderName,
-              isSecret: false,
+              isSecret:   false,
             );
           },
         );
@@ -313,84 +326,199 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 }
 
-// Custom Chat Header Widget
+// ── FLOATING HEADER ───────────────────────────────────────────────────────────
+
 class _ChatHeader extends StatelessWidget {
-  final String title;
-  final bool isGroup;
-  final List<String> avatarPaths;
-  final VoidCallback onBackPressed;
-  final VoidCallback? onProfileTap;
+  final String                   title;
+  final bool                     isGroup;
+  final List<String>             avatarPaths;
+  final List<String>             memberIds;
+  final VoidCallback             onBack;
+  final VoidCallback?            onAvatarTap;
+  final Map<String, VoidCallback>? memberTapMap;
 
   const _ChatHeader({
     required this.title,
     required this.isGroup,
     required this.avatarPaths,
-    required this.onBackPressed,
-    this.onProfileTap,
+    required this.memberIds,
+    required this.onBack,
+    this.onAvatarTap,
+    this.memberTapMap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Back Button
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 24),
-            onPressed: onBackPressed,
-          ),
-          const SizedBox(width: 8),
-          // Title and Subtitle/Avatars
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  title.toUpperCase(),
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                  ),
+
+          // Back button — left
+          Positioned(
+            left: 0,
+            child: GestureDetector(
+              onTap:     onBack,
+              behavior:  HitTestBehavior.opaque,
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(
+                  Icons.chevron_left,
+                  color: Colors.white,
+                  size:  32,
                 ),
-                if (!isGroup) // Single Chat Subtitle
-                  Text(
-                    'Online',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
-                  ) // Group Chat Avatars
-                else
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: avatarPaths.take(3).map((path) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                        child: CircleAvatar(
-                          radius: 12,
-                          backgroundImage: AssetImage(path),
-                          backgroundColor: Colors.grey.shade800,
-                        ),
-                      )).toList(),
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          // Profile Icon Button (Single Chat Only)
+
+          // Center content
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: GoogleFonts.spectral(
+                  color:      Colors.white,
+                  fontSize:   20,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 3),
+              if (!isGroup)
+                Text(
+                  'Online',
+                  style: GoogleFonts.spaceGrotesk(
+                    color:      Colors.white.withOpacity(0.85),
+                    fontSize:   13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                )
+              else
+                // Overlapping avatars for group
+                _OverlappingAvatars(paths: avatarPaths),
+            ],
+          ),
+
+          // Single-user profile shortcut — right
+          // Icon only (NOT an avatar image) per design spec.
+          // Tapping opens the character profile screen.
           if (!isGroup)
-            IconButton(
-              icon: const Icon(Icons.person, color: Colors.white, size: 24), // Person silhouette icon
-              onPressed: onProfileTap,
-            )
-          else
-            const SizedBox(width: 48), // Placeholder for alignment in group chat
+            Positioned(
+              right: 4,
+              child: GestureDetector(
+                onTap:    onAvatarTap,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width:  44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size:  30,
+                  ),
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+// ── OVERLAPPING AVATARS (GROUP) ───────────────────────────────────────────────
+
+class _OverlappingAvatars extends StatelessWidget {
+  final List<String> paths;
+  const _OverlappingAvatars({required this.paths});
+
+  @override
+  Widget build(BuildContext context) {
+    const size     = 30.0;
+    const overlap  = 14.0;
+    final count    = paths.length.clamp(0, 5);
+    final width    = size + (count - 1) * (size - overlap);
+
+    return SizedBox(
+      height: size,
+      width:  width > 0 ? width : size,
+      child: Stack(
+        children: List.generate(count, (i) {
+          return Positioned(
+            left: i * (size - overlap),
+            child: Container(
+              width:  size,
+              height: size,
+              decoration: BoxDecoration(
+                shape:  BoxShape.circle,
+                color:  Colors.white,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  paths[i],
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFF2A4A6E),
+                    child: const Icon(Icons.person,
+                        color: Colors.white, size: 16),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ── DECORATIVE INPUT BAR ──────────────────────────────────────────────────────
+
+class _InputBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, bottomPad > 0 ? bottomPad : 16),
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color:        const Color(0xFFF1F1F1),
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 20),
+            Expanded(
+              child: Text(
+                'Write message...',
+                style: GoogleFonts.spaceGrotesk(
+                  color:    const Color(0xFFBBBBBB),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+            Container(
+              width:  42,
+              height: 42,
+              margin: const EdgeInsets.only(right: 7),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1A1A2E),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.send,
+                color: Colors.white,
+                size:  18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
