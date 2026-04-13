@@ -3,13 +3,13 @@ import 'dart:math';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 const double _kVpnBarHeight = 44.0;
 
@@ -79,14 +79,11 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
   }
 
   void _startVpnCycle() {
-    // Pick a random interval between 2–4 seconds, then cycle one label
-    // and schedule the next tick. Subtle opacity flicker accompanies each change.
     final delay = Duration(milliseconds: 2000 + _rng.nextInt(2000));
     _vpnTimer = Timer(delay, () {
       if (!mounted) return;
       setState(() {
-        _vpnOpacity = 0.5; // brief dim
-        // Randomly pick which field to update
+        _vpnOpacity = 0.5;
         final field = _rng.nextInt(3);
         if (field == 0)
           _vpnStatus = _vpnVariants[_rng.nextInt(_vpnVariants.length)];
@@ -95,11 +92,10 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
         if (field == 2)
           _idStatus = _idVariants[_rng.nextInt(_idVariants.length)];
       });
-      // Restore opacity after 200ms
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) setState(() => _vpnOpacity = 1.0);
       });
-      _startVpnCycle(); // reschedule
+      _startVpnCycle();
     });
   }
 
@@ -124,258 +120,152 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.2,
-            colors: [Color(0xFF000000), Color(0xFF0D1B2A)],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Background Image
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/skull_noir_bg.png', // Dark skull noir background
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                Container(color: const Color(0xFF000000)),
           ),
         ),
-        child: SafeArea(
-          child: Stack(
+
+        // Main content area
+        SafeArea(
+          child: Column(
             children: [
-              // Top gradient behind header
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 180,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.45),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
+              // Header
+              StreamBuilder<Thread?>(
+                stream: _threadStream,
+                builder: (context, snap) {
+                  final title = snap.data?.title ?? 'Unknown';
+                  return _SecretChatHeader(
+                    title: title,
+                    onBackPressed: () {
+                      ref.read(activeThreadIdProvider.notifier).setId(null);
+                      ref
+                          .read(activeAppProvider.notifier)
+                          .setApp(PhoneApp.messenger);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
               ),
 
-              Column(
-                children: [
-                  // Header
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                    child: StreamBuilder<Thread?>(
-                      stream: _threadStream,
+              // Messages
+              Expanded(
+                child: StreamBuilder<List<TypedResult>>(
+                  stream: _membersWithNamesStream,
+                  builder: (context, membersSnap) {
+                    final db = ref.read(databaseProvider);
+
+                    final nameMap = <String, String>{};
+                    if (membersSnap.hasData) {
+                      for (final row in membersSnap.data!) {
+                        final char = row.readTableOrNull(db.characters);
+                        if (char != null) {
+                          nameMap[char.id] = char.name;
+                        }
+                      }
+                    }
+
+                    return StreamBuilder<List<Message>>(
+                      stream: _messagesStream,
                       builder: (context, snap) {
-                        final title = snap.data?.title ?? 'Unknown';
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(title,
-                                    style: GoogleFonts.spectral(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
-                                    )),
-                                const SizedBox(height: 4),
-                                Text('Live',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400,
-                                    )),
-                              ],
-                            ),
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Icon(Icons.chevron_left,
-                                        color: Colors.white, size: 32),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                        final messages = snap.data ?? [];
 
-                  // Messages
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
-                        ),
-                        child: StreamBuilder<List<TypedResult>>(
-                          stream: _membersWithNamesStream,
-                          builder: (context, membersSnap) {
-                            final db = ref.read(databaseProvider);
+                        if (messages.length != _lastCount) {
+                          _lastCount = messages.length;
+                          WidgetsBinding.instance.addPostFrameCallback(
+                              (_) => _scrollToBottom(
+                                  animated: _lastCount > 1));
+                        }
 
-                            // Build nameMap once from the members snapshot
-                            final nameMap = <String, String>{};
-                            if (membersSnap.hasData) {
-                              for (final row in membersSnap.data!) {
-                                final char = row.readTableOrNull(db.characters);
-                                if (char != null) {
-                                  nameMap[char.id] = char.name;
-                                }
-                              }
+                        if (messages.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        final seenIds = <String>{};
+                        final senderIds = <String>[];
+                        for (final m in messages) {
+                          if (m.senderId != 'system' &&
+                              seenIds.add(m.senderId)) {
+                            senderIds.add(m.senderId);
+                          }
+                        }
+                        senderIds.sort();
+                        final rightSenderId = senderIds.length > 1
+                            ? senderIds[1]
+                            : (senderIds.isNotEmpty
+                                ? senderIds[0]
+                                : null);
+
+                        return ListView.builder(
+                          controller: _scrollController,
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            top: 24,
+                            bottom: _kVpnBarHeight + 16, // Space for VPN bar
+                          ),
+                          itemCount: messages.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == messages.length) {
+                              return _buildTypingIndicator();
                             }
 
-                            return StreamBuilder<List<Message>>(
-                              stream: _messagesStream,
-                              builder: (context, snap) {
-                                final messages = snap.data ?? [];
+                            final msg = messages[index];
+                            final isMe = msg.senderId == rightSenderId;
 
-                                if (messages.length != _lastCount) {
-                                  _lastCount = messages.length;
-                                  WidgetsBinding.instance.addPostFrameCallback(
-                                      (_) => _scrollToBottom(
-                                          animated: _lastCount > 1));
-                                }
-
-                                if (messages.isEmpty) {
-                                  return const SizedBox.shrink();
-                                }
-
-                                // Collect unique non-system senderIds, sort
-                                // alphabetically for deterministic alignment.
-                                final seenIds = <String>{};
-                                final senderIds = <String>[];
-                                for (final m in messages) {
-                                  if (m.senderId != 'system' &&
-                                      seenIds.add(m.senderId)) {
-                                    senderIds.add(m.senderId);
-                                  }
-                                }
-                                senderIds.sort();
-                                final rightSenderId = senderIds.length > 1
-                                    ? senderIds[1]
-                                    : (senderIds.isNotEmpty
-                                        ? senderIds.first
-                                        : null);
-
-                                return ListView.builder(
-                                  controller: _scrollController,
-                                  physics: const BouncingScrollPhysics(),
-                                  padding: EdgeInsets.only(
-                                    left: 16,
-                                    right: 16,
-                                    top: 24,
-                                    bottom: _kVpnBarHeight + 100,
-                                  ),
-                                  itemCount: messages.length + 1,
-                                  itemBuilder: (context, i) {
-                                    if (i == messages.length) {
-                                      return _buildTypingIndicator();
-                                    }
-                                    final msg = messages[i];
-                                    final isRight =
-                                        msg.senderId == rightSenderId;
-                                    final isSystem = msg.senderId == 'system';
-
-                                    // Sender name rendered above the bubble,
-                                    // not injected into message text.
-                                    final senderName = isSystem
-                                        ? null
-                                        : (nameMap[msg.senderId] ??
-                                                msg.senderId)
-                                            .toUpperCase();
-
-                                    return Column(
-                                      crossAxisAlignment: isRight
-                                          ? CrossAxisAlignment.end
-                                          : CrossAxisAlignment.start,
-                                      children: [
-                                        if (senderName != null)
-                                          Padding(
-                                            padding: EdgeInsets.only(
-                                              left: isRight ? 0 : 28,
-                                              right: isRight ? 28 : 0,
-                                              bottom: 2,
-                                            ),
-                                            child: Text(
-                                              senderName,
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
-                                                color: Color(0xFF8FA8B8),
-                                                letterSpacing: 1.2,
-                                              ),
-                                            ),
-                                          ),
-                                        ChatBubble(
-                                          text: msg.content ?? '',
-                                          isMe: isRight,
-                                          senderId: null,
-                                          timestamp: msg.timestamp,
-                                          isSecret: true,
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
+                            return ChatBubble(
+                              text: msg.content ?? '',
+                              isMe: isMe,
+                              senderId: msg.senderId,
+                              senderName: nameMap[msg.senderId],
+                              timestamp: msg.timestamp,
+                              isSecret: true, // Always secret for this screen
+                              mediaType: msg.type,
+                              mediaPath: msg.mediaPath,
                             );
                           },
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // ChoiceOverlay REMOVED — secret chat is read-only.
-              // The player cannot send messages here.
-
-              // VPN status bar — animated labels, subtle opacity flicker
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: AnimatedOpacity(
-                  opacity: _vpnOpacity,
-                  duration: const Duration(milliseconds: 180),
-                  child: Container(
-                    height: _kVpnBarHeight,
-                    color: Colors.black.withOpacity(0.35),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _StatusText(label: _vpnStatus),
-                        _StatusText(label: _encStatus),
-                        _StatusText(label: _idStatus),
-                      ],
-                    ),
-                  ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],
           ),
         ),
-      ),
+
+        // VPN Status Bar
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: AnimatedOpacity(
+            opacity: _vpnOpacity,
+            duration: const Duration(milliseconds: 100),
+            child: Container(
+              height: _kVpnBarHeight,
+              color: Colors.black.withOpacity(0.8), // Dark background for VPN bar
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _StatusText(text: _vpnStatus),
+                  _StatusText(text: _encStatus),
+                  _StatusText(text: _idStatus),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -384,13 +274,16 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
       stream: _threadStream,
       builder: (context, threadSnap) {
         if (threadSnap.data?.isTyping != true) {
-          return const SizedBox(height: 8);
+          return const SizedBox(height: 20);
         }
+
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
             final db = ref.read(databaseProvider);
+
             String? senderName;
+
             if (membersSnap.hasData) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
@@ -400,9 +293,10 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                 }
               }
             }
-            return FeatherTypingIndicator(
+
+            return GunTypingIndicator(
               senderName: senderName,
-              isSecret: true,
+              isSecret: true, // Secret typing indicator
             );
           },
         );
@@ -411,19 +305,72 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
   }
 }
 
+// Custom Secret Chat Header Widget
+class _SecretChatHeader extends StatelessWidget {
+  final String title;
+  final VoidCallback onBackPressed;
+
+  const _SecretChatHeader({
+    required this.title,
+    required this.onBackPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // Back Button
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 24),
+            onPressed: onBackPressed,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.spectral(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Live',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 48), // Placeholder for alignment
+        ],
+      ),
+    );
+  }
+}
+
+// VPN Status Text Widget
 class _StatusText extends StatelessWidget {
-  final String label;
-  const _StatusText({required this.label});
+  final String text;
+  const _StatusText({required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      label,
-      style: const TextStyle(
-        color: Colors.white,
+      text,
+      style: GoogleFonts.spaceGrotesk(
         fontSize: 11,
-        fontWeight: FontWeight.w300,
-        letterSpacing: 0.5,
+        fontWeight: FontWeight.w500,
+        color: Colors.white.withOpacity(0.7),
+        letterSpacing: 0.8,
       ),
     );
   }
