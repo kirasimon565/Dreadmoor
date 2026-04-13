@@ -14,22 +14,24 @@ class ChatBubble extends ConsumerWidget {
     this.senderId,
     this.senderName,
     this.timestamp,
-    this.isSecret = false,
+    this.isSecret  = false,
     this.mediaType,
     this.mediaPath,
   });
 
-  final String text;
-  final bool isMe;
-  final String? senderId;
-  final String? senderName;
+  final String    text;
+  final bool      isMe;
+  final String?   senderId;
+  final String?   senderName;
   final DateTime? timestamp;
-  final bool isSecret;
-  final String? mediaType;
-  final String? mediaPath;
+  final bool      isSecret;
+  final String?   mediaType;
+  final String?   mediaPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
+    // ── SYSTEM LABEL ────────────────────────────────────────────────────────
     if (senderId == 'system') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -39,19 +41,26 @@ class ChatBubble extends ConsumerWidget {
               text,
               textAlign: TextAlign.center,
               style: GoogleFonts.spaceGrotesk(
-                fontSize: 12,
-                color: Colors.white54,
+                fontSize:  12,
+                // On white panel: use dark gray. On secret dark bg: use white.
+                color: isSecret
+                    ? Colors.white54
+                    : const Color(0xFF888888),
                 letterSpacing: 1.2,
               ),
             ),
-            if (timestamp != null)
+            if (timestamp != null) ...[
+              const SizedBox(height: 3),
               Text(
                 _formatTime(timestamp!),
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 9,
-                  color: Colors.white38,
+                  color:    isSecret
+                      ? Colors.white38
+                      : const Color(0xFFBBBBBB),
                 ),
               ),
+            ],
           ],
         ),
       );
@@ -59,50 +68,63 @@ class ChatBubble extends ConsumerWidget {
 
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
 
-    // ── COLOURS ───────────────────────────────────────────────────────────────
+    // ── COLOURS ──────────────────────────────────────────────────────────────
     final Color bubbleFill = isSecret
-        ? const Color(0xFF1E1E1E) // Dark charcoal for secret chat
-        : Colors.white; // White for regular chats
+        ? const Color(0xFF1E1E1E)
+        : isMe
+            ? const Color(0xFFE8F2FA) // player: soft blue
+            : const Color(0xFFF3F4F6); // NPC: light gray
+
     final Color borderColor =
         isSecret ? const Color(0xFF2E2E2E) : Colors.transparent;
-    final Color textColor =
-        isSecret ? const Color(0xFFFF6B6B) : const Color(0xFF1B242C); // Red accent for secret, dark for regular
+
+    final Color textColor = isSecret
+        ? const Color(0xFFFF6B6B)
+        : const Color(0xFF1B242C);
+
     final Color nameColor =
         isMe ? const Color(0xFF4A9EBF) : const Color(0xFF8FA8B8);
 
     // ── BORDER RADIUS ─────────────────────────────────────────────────────────
-    final radius = BorderRadius.circular(20); // Uniformly rounded corners
+    final radius = BorderRadius.only(
+      topLeft:     const Radius.circular(20),
+      topRight:    const Radius.circular(20),
+      bottomLeft:  Radius.circular(isMe ? 20 : 4),
+      bottomRight: Radius.circular(isMe ? 4 : 20),
+    );
 
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
+      tween:    Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 220),
       builder: (context, value, child) => Opacity(
         opacity: value,
-        child: Transform.translate(
+        child:   Transform.translate(
           offset: Offset(0, 6 * (1 - value)),
-          child: child,
+          child:  child,
         ),
       ),
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
           constraints: BoxConstraints(maxWidth: maxWidth),
-          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-          decoration: BoxDecoration(
-            color: bubbleFill,
+          margin:      const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+          decoration:  BoxDecoration(
+            color:        bubbleFill,
             borderRadius: radius,
-            border: Border.all(color: borderColor, width: 0.9),
+            border:       Border.all(color: borderColor, width: 0.9),
           ),
           child: ClipRRect(
             borderRadius: radius,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Column(
-                crossAxisAlignment:
-                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment: isMe
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ── SENDER NAME (NPCs only) ──────────────────────────────
+
+                  // Sender name (NPCs only, normal chat)
                   if (!isMe &&
                       senderId != null &&
                       senderId != 'system' &&
@@ -110,30 +132,31 @@ class ChatBubble extends ConsumerWidget {
                     Text(
                       (senderName ?? senderId!).toUpperCase(),
                       style: GoogleFonts.spaceGrotesk(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: nameColor,
+                        fontSize:      10,
+                        fontWeight:    FontWeight.w700,
+                        color:         nameColor,
                         letterSpacing: 1.6,
                       ),
                     ),
                     const SizedBox(height: 4),
                   ],
-                  // ── MEDIA (IF APPLICABLE) ────────────────────────────────
+
+                  // Media — video
                   if (mediaType == 'video' && mediaPath != null) ...[
                     GestureDetector(
                       onTap: () {
                         ref.read(globalSchedulerProvider).pause();
                         MediaViewer.open(context, items: [
-                          GalleryMediaItem(path: mediaPath!, isVideo: true)
+                          GalleryMediaItem(path: mediaPath!, isVideo: true),
                         ]);
                       },
                       child: Container(
                         height: 160,
-                        width: 220,
+                        width:  220,
                         decoration: BoxDecoration(
-                          color: Colors.black,
+                          color:        Colors.black,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white24, width: 1),
+                          border:       Border.all(color: Colors.white24),
                         ),
                         child: Stack(
                           fit: StackFit.expand,
@@ -153,49 +176,50 @@ class ChatBubble extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ] else if (mediaType == 'image' && mediaPath != null) ...[
+                  ]
+                  // Media — image
+                  else if (mediaType == 'image' && mediaPath != null) ...[
                     GestureDetector(
-                      onTap: () {
-                        MediaViewer.open(context, items: [
-                          GalleryMediaItem(path: mediaPath!, isVideo: false)
-                        ]);
-                      },
+                      onTap: () => MediaViewer.open(context, items: [
+                        GalleryMediaItem(path: mediaPath!, isVideo: false),
+                      ]),
                       child: Container(
-                        constraints:
-                            const BoxConstraints(maxHeight: 200, maxWidth: 220),
+                        constraints: const BoxConstraints(
+                            maxHeight: 200, maxWidth: 220),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: mediaPath!.startsWith('assets/')
                               ? Image.asset(mediaPath!, fit: BoxFit.cover)
                               : const SizedBox.shrink(),
-                          // Or Image.file for local files later
                         ),
                       ),
                     ),
-                  ] else ...[
-                    // ── MESSAGE TEXT ─────────────────────────────────────────
+                  ]
+                  // Text
+                  else ...[
                     SelectableText(
                       text,
                       style: GoogleFonts.spectral(
-                        fontSize: 15,
-                        height: 1.45,
-                        color: textColor,
+                        fontSize:   15,
+                        height:     1.45,
+                        color:      textColor,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
-                  // ── TIMESTAMP ────────────────────────────────────────────
+
+                  // Timestamp
                   if (timestamp != null) ...[
                     const SizedBox(height: 6),
                     Text(
                       _formatTime(timestamp!),
                       style: GoogleFonts.spaceGrotesk(
-                        fontSize: 9,
-                        color: isSecret
+                        fontSize:      9,
+                        color:         isSecret
                             ? Colors.white.withOpacity(0.35)
                             : const Color(0xFF8FA8B8),
                         letterSpacing: 1.0,
-                        fontWeight: FontWeight.w500,
+                        fontWeight:    FontWeight.w500,
                       ),
                     ),
                   ],
