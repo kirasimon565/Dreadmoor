@@ -65,6 +65,17 @@ final currentEpisodeIdProvider =
 // ---------------------------
 // THREAD / CHAT STATE
 // ---------------------------
+
+class IsChoiceOverlayExpandedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setExpanded(bool expanded) => state = expanded;
+}
+
+final isChoiceOverlayExpandedProvider =
+    NotifierProvider<IsChoiceOverlayExpandedNotifier, bool>(
+        IsChoiceOverlayExpandedNotifier.new);
+
 class ActiveThreadIdNotifier extends Notifier<String?> {
   @override
   String? build() => null;

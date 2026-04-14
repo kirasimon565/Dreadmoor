@@ -128,6 +128,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to choice overlay expansion state to auto-scroll
+    ref.listen(isChoiceOverlayExpandedProvider, (prev, next) {
+      if (next == true) {
+        // Scroll continuously during expansion
+        _scrollToBottom(animated: true);
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) _scrollToBottom(animated: true);
+        });
+      }
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B1520),
       body: StreamBuilder<List<ThreadMember>>(
@@ -263,11 +274,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 90), // Space for floating input
+                  const ChoiceOverlay(),
                 ],
               ),
-
-              const ChoiceOverlay(),
             ],
           );
         },
