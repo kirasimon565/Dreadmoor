@@ -195,14 +195,19 @@ class _NotchPanelClipper extends CustomClipper<Path> {
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
 
     // Line to the start of the notch
-    final notchStartX = size.width - rightInset - (notchRadius * 2);
-    path.lineTo(notchStartX, 0);
+    final notchCenterX = size.width - rightInset - notchRadius;
+    final notchRect = Rect.fromCircle(
+      center: Offset(notchCenterX, 0),
+      radius: notchRadius,
+    );
 
-    // Draw the concave semi-circle notch
-    path.arcToPoint(
-      Offset(notchStartX + (notchRadius * 2), 0),
-      radius: Radius.circular(notchRadius),
-      clockwise: false,
+    path.lineTo(notchCenterX - notchRadius, 0);
+
+    path.arcTo(
+      notchRect,
+      3.1415926535,
+      -3.1415926535,
+      false,
     );
 
     // Ensure we only draw the top-right corner if there is space between the notch and the corner
@@ -250,7 +255,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
 
     const double avatarDiameter = 72; // Adjusted size
     const double notchRadius = (avatarDiameter / 2) +
-        4; // Add a small gap/border around avatar inside notch
+        2; // Add a small gap/border around avatar inside notch
     const double rightInset = 20;
 
     return Stack(
@@ -314,8 +319,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
         // The Player Avatar inside the Notch
         Positioned(
           top: -(avatarDiameter / 2),
-          right: rightInset +
-              4, // 4 to center within the 4px gap of the notchRadius
+          right: rightInset,
           child: Container(
             width: avatarDiameter,
             height: avatarDiameter,
