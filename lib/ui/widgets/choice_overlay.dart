@@ -197,7 +197,7 @@ class _NotchPanelClipper extends CustomClipper<Path> {
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
 
     // Line to the start of the notch
-    final notchCenterX = size.width / 2;
+    final notchCenterX = size.width - rightInset - notchRadius;
     final notchRect = Rect.fromCircle(
       center: Offset(notchCenterX, 0),
       radius: notchRadius,
@@ -257,7 +257,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
 
     const double avatarDiameter = 62;
     const double notchRadius = 40;
-    const double rightInset = 0; // Not used for placement anymore but kept for clipper args
+    const double rightInset = 20;
 
     return Padding(
       padding: const EdgeInsets.only(top: 36),
@@ -322,7 +322,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
         // The Player Avatar inside the Notch
         Positioned(
           top: -(avatarDiameter / 2),
-          left: MediaQuery.of(context).size.width / 2 - (avatarDiameter / 2),
+          left: MediaQuery.of(context).size.width - rightInset - notchRadius - (avatarDiameter / 2),
           child: Container(
             width: avatarDiameter,
             height: avatarDiameter,
