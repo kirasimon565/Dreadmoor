@@ -107,11 +107,13 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
               children: [
                 // ── EXPANDED NOTCH PANEL ──────────────────────────────────────────
                 // This panel takes natural layout space that animates from 0 to its full size.
-                // We use ClipRect + Align heightFactor to animate its natural height pushing the list up.
-                ClipRect(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    heightFactor: _expandAnim.value,
+                // We use SizeTransition to safely animate its natural height pushing the list up
+                // without clipping the top portion (the protruding avatar).
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizeTransition(
+                    sizeFactor: _expandAnim,
+                    axisAlignment: 1.0,
                     child: _ChoiceSheetNotch(player: player),
                   ),
                 ),
@@ -254,20 +256,21 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
     final bp = MediaQuery.of(context).padding.bottom;
 
     const double avatarDiameter = 72; // Adjusted size
-    const double notchRadius = (avatarDiameter / 2) +
-        2; // Add a small gap/border around avatar inside notch
+    const double notchRadius = avatarDiameter / 2; // Match avatar diameter exactly
     const double rightInset = 20;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // The Clipped Panel
-        ClipPath(
+    return Padding(
+      padding: const EdgeInsets.only(top: 36),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // The Clipped Panel
+          ClipPath(
           clipper: _NotchPanelClipper(
               notchRadius: notchRadius, rightInset: rightInset),
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(16, 40, 16,
+            padding: EdgeInsets.fromLTRB(16, 56, 16,
                 bp + 20), // Padding to account for the notch space at top
             decoration: BoxDecoration(
               color: const Color(0xFFF0EEEA), // Elegant white/light gray
@@ -366,12 +369,13 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
                       ),
                     );
                   }
-                },
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
