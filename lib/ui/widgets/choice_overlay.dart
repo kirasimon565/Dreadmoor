@@ -186,14 +186,19 @@ class _NotchPanelClipper extends CustomClipper<Path> {
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
 
     // Line to the start of the notch
-    final notchStartX = size.width - rightInset - (notchRadius * 2);
-    path.lineTo(notchStartX, 0);
+    final notchCenterX = size.width - rightInset - notchRadius;
+    final notchRect = Rect.fromCircle(
+      center: Offset(notchCenterX, 0),
+      radius: notchRadius,
+    );
 
-    // Draw the concave semi-circle notch
-    path.arcToPoint(
-      Offset(notchStartX + (notchRadius * 2), 0),
-      radius: Radius.circular(notchRadius),
-      clockwise: false,
+    path.lineTo(notchCenterX - notchRadius, 0);
+
+    path.arcTo(
+      notchRect,
+      3.1415926535,
+      -3.1415926535,
+      false,
     );
 
     // Ensure we only draw the top-right corner if there is space between the notch and the corner
@@ -240,20 +245,21 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
     final bp = MediaQuery.of(context).padding.bottom;
 
     const double avatarDiameter = 72; // Adjusted size
-    const double notchRadius = (avatarDiameter / 2) +
-        4; // Add a small gap/border around avatar inside notch
+    const double notchRadius = avatarDiameter / 2; // Match avatar diameter exactly
     const double rightInset = 20;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // The Clipped Panel
-        ClipPath(
+    return Padding(
+      padding: const EdgeInsets.only(top: 36),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // The Clipped Panel
+          ClipPath(
           clipper: _NotchPanelClipper(
               notchRadius: notchRadius, rightInset: rightInset),
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(16, 40, 16,
+            padding: EdgeInsets.fromLTRB(16, 56, 16,
                 bp + 20), // Padding to account for the notch space at top
             decoration: BoxDecoration(
               color: const Color(0xFFF0EEEA), // Elegant white/light gray
@@ -305,8 +311,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
         // The Player Avatar inside the Notch
         Positioned(
           top: -(avatarDiameter / 2),
-          right: rightInset +
-              4, // 4 to center within the 4px gap of the notchRadius
+          right: rightInset,
           child: Container(
             width: avatarDiameter,
             height: avatarDiameter,
@@ -332,8 +337,8 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
