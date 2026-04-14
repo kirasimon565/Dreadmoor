@@ -1,0 +1,1 @@
+sed -i 's/waiting ? \x27Write message... ${_showCursor ? \x27|\x27 : \x27 \x27}\x27 : \x27Write message...\x27,/Text(waiting ? \x27Write message... ${_showCursor ? \x27|\x27 : \x27 \x27}\x27 : \x27Write message...\x27,/g' lib/ui/widgets/choice_overlay.dart

@@ -30,71 +30,96 @@ class ChatHeaderNeonGroup extends StatelessWidget {
     final visibleIds = memberIds.take(4).toList();
     final extra = (avatarPaths.length - 4).clamp(0, 999);
 
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      child: Padding(
-        padding: EdgeInsets.only(
-            top: topPad + 12, bottom: 12, left: 8, right: 8),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            GestureDetector(
-              onTap: onAvatarTap,
-              behavior: HitTestBehavior.opaque,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.spectral(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (isGroup)
-                    _StackedAvatars(
-                      avatarPaths: visible,
-                      memberIds: visibleIds,
-                      extra: extra,
-                      onMemberTap: onMemberTap,
-                    )
-                  else if (isOnline)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Live',
-                            style: GoogleFonts.spaceGrotesk(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            )),
-                      ],
-                    ),
-                ],
+      color: Colors.transparent, // Transparent header overlay
+      padding: EdgeInsets.only(
+        top: topPad + 12,
+        bottom: 12,
+        left: 16,
+        right: 16,
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // CENTER: Title and Subtitle/Avatars
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                title.toUpperCase(),
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.spectral(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: GestureDetector(
-                  onTap: onBackPressed,
-                  behavior: HitTestBehavior.opaque,
-                  child: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Icon(Icons.chevron_left,
-                        color: Colors.white, size: 32),
+              const SizedBox(height: 4),
+              if (isGroup)
+                _StackedAvatars(
+                  avatarPaths: visible,
+                  memberIds: visibleIds,
+                  extra: extra,
+                  onMemberTap: onMemberTap,
+                )
+              else if (isOnline)
+                Text(
+                  'Online',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+            ],
+          ),
+
+          // LEFT: Back Button
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: GestureDetector(
+                onTap: onBackPressed,
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                    size: 24,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+
+          // RIGHT: Profile Icon (Single Chat Only)
+          if (!isGroup)
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: onAvatarTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(
+                      Icons.person_outline, // Symbolic profile silhouette icon
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -115,14 +140,13 @@ class _StackedAvatars extends StatelessWidget {
     this.onMemberTap,
   });
 
-  static const double _size = 26;
-  static const double _overlap = 16;
+  static const double _size = 28;
+  static const double _overlap = 18;
 
   @override
   Widget build(BuildContext context) {
     final count = avatarPaths.length;
-    final totalW =
-        _size + (count - 1) * _overlap + (extra > 0 ? _overlap : 0);
+    final totalW = _size + (count - 1) * _overlap + (extra > 0 ? _overlap : 0);
 
     return SizedBox(
       width: totalW,
@@ -146,8 +170,10 @@ class _StackedAvatars extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF4A9EBF).withOpacity(0.8),
-                      width: 1.2,
+                      color: Colors.white.withOpacity(
+                        0.8,
+                      ), // Clean overlapping circles
+                      width: 1.5,
                     ),
                     color: const Color(0xFF0D1E2A),
                   ),
@@ -155,8 +181,7 @@ class _StackedAvatars extends StatelessWidget {
                     child: Image.asset(
                       avatarPaths[i],
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          const _FallbackAvatar(),
+                      errorBuilder: (_, __, ___) => const _FallbackAvatar(),
                     ),
                   ),
                 ),
@@ -173,17 +198,19 @@ class _StackedAvatars extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: const Color(0xFF2A4A5E),
                   border: Border.all(
-                    color: const Color(0xFF4A9EBF).withOpacity(0.6),
-                    width: 1.2,
+                    color: Colors.white.withOpacity(0.6),
+                    width: 1.5,
                   ),
                 ),
                 child: Center(
-                  child: Text('+$extra',
-                      style: GoogleFonts.spaceGrotesk(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w700,
-                      )),
+                  child: Text(
+                    '+$extra',
+                    style: GoogleFonts.spaceGrotesk(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -200,7 +227,7 @@ class _FallbackAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF2A1A4A),
-      child: const Icon(Icons.person, color: Color(0xFF8B5CF6), size: 20),
+      child: const Icon(Icons.person, color: Colors.white, size: 20),
     );
   }
 }

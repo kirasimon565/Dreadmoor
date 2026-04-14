@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:drift/drift.dart' hide Column;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:drift/drift.dart' hide Column;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
@@ -11,19 +12,9 @@ import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
 
-const double _kVpnBarHeight = 44.0;
-
-// ── VPN label variant pools ───────────────────────────────────────────────────
-const _vpnVariants = ['VPN: ACTIVE', 'VPN: STABLE', 'VPN: SECURED'];
-const _encVariants = [
-  'ENCRYPTION: HIGH',
-  'ENCRYPTION: LOCKED',
-  'ENCRYPTION: AES-256'
-];
-const _idVariants = ['IDENTITY: HIDDEN', 'IDENTITY: MASKED', 'IDENTITY: ANON'];
-
 class SecretChatScreen extends ConsumerStatefulWidget {
   final String threadId;
+
   const SecretChatScreen({super.key, required this.threadId});
 
   @override
@@ -31,42 +22,66 @@ class SecretChatScreen extends ConsumerStatefulWidget {
 }
 
 class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
-  final _scrollController = ScrollController();
-  final _rng = Random();
-
-  late final Stream<Thread?> _threadStream;
-  late final Stream<List<Message>> _messagesStream;
-  late final Stream<List<TypedResult>> _membersWithNamesStream;
+  final ScrollController _scrollController = ScrollController();
+  late Stream<Thread?> _threadStream;
+  late Stream<List<Message>> _messagesStream;
+  late Stream<List<TypedResult>> _membersWithNamesStream;
 
   int _lastCount = 0;
 
-  // ── VPN bar animation state ───────────────────────────────────────────────
+  // VPN Status Simulation
   Timer? _vpnTimer;
+  final _rng = Random();
+  String _vpnStatus = 'VPN ACTIVE';
+  String _encStatus = 'AES-256 LOCKED';
+  String _idStatus = 'ANON-ROUTING';
   double _vpnOpacity = 1.0;
-  String _vpnStatus = _vpnVariants[0];
-  String _encStatus = _encVariants[0];
-  String _idStatus = _idVariants[0];
+
+  static const double _kVpnBarHeight = 40.0;
+
+  final _vpnVariants = [
+    'VPN ACTIVE',
+    'VPN REROUTING',
+    'PROXY SECURE',
+    'ONION LIVE',
+  ];
+  final _encVariants = [
+    'AES-256 LOCKED',
+    'RSA-4096 VALID',
+    'ENC: ENFORCED',
+    'HANDSHAKE OK',
+  ];
+  final _idVariants = [
+    'ANON-ROUTING',
+    'ID MASKED',
+    'GHOST MODE',
+    'IP OBFUSCATED',
+  ];
 
   @override
   void initState() {
     super.initState();
     final db = ref.read(databaseProvider);
 
-    _threadStream = (db.select(db.threads)
-          ..where((t) => t.id.equals(widget.threadId)))
-        .watchSingleOrNull();
+    _threadStream = (db.select(
+      db.threads,
+    )..where((t) => t.id.equals(widget.threadId))).watchSingleOrNull();
 
-    _messagesStream = (db.select(db.messages)
-          ..where((m) => m.threadId.equals(widget.threadId))
-          ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
-        .watch();
+    _messagesStream =
+        (db.select(db.messages)
+              ..where((m) => m.threadId.equals(widget.threadId))
+              ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
+            .watch();
 
-    _membersWithNamesStream = (db.select(db.threadMembers)
-          ..where((m) => m.threadId.equals(widget.threadId)))
-        .join([
-      innerJoin(db.characters,
-          db.characters.id.equalsExp(db.threadMembers.characterId)),
-    ]).watch();
+    _membersWithNamesStream =
+        (db.select(
+          db.threadMembers,
+        )..where((m) => m.threadId.equals(widget.threadId))).join([
+          innerJoin(
+            db.characters,
+            db.characters.id.equalsExp(db.threadMembers.characterId),
+          ),
+        ]).watch();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -111,8 +126,11 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
     if (!_scrollController.hasClients) return;
     final max = _scrollController.position.maxScrollExtent;
     if (animated) {
-      _scrollController.animateTo(max,
-          duration: const Duration(milliseconds: 320), curve: Curves.easeOut);
+      _scrollController.animateTo(
+        max,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOut,
+      );
     } else {
       _scrollController.jumpTo(max);
     }
@@ -120,39 +138,43 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Background Image
-        Positioned.fill(
-          child: Image.asset(
-            'assets/images/skull_noir_bg.png', // Dark skull noir background
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Container(color: const Color(0xFF000000)),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background Image Edge-to-Edge
+          Positioned.fill(
+            child: Image.asset(
+              'assets/media/images/skull_noir_bg.png', // Dark skull noir background
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  Container(color: const Color(0xFF000000)),
+            ),
           ),
-        ),
 
-        // Main content area
-        SafeArea(
-          child: Column(
+          // Main content area
+          Column(
             children: [
               // Header
-              StreamBuilder<Thread?>(
-                stream: _threadStream,
-                builder: (context, snap) {
-                  final title = snap.data?.title ?? 'Unknown';
-                  return _SecretChatHeader(
-                    title: title,
-                    onBackPressed: () {
-                      ref.read(activeThreadIdProvider.notifier).setId(null);
-                      ref
-                          .read(activeAppProvider.notifier)
-                          .setApp(PhoneApp.messenger);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
+              SafeArea(
+                bottom: false,
+                child: StreamBuilder<Thread?>(
+                  stream: _threadStream,
+                  builder: (context, snap) {
+                    final title = snap.data?.title ?? 'Unknown';
+                    return _SecretChatHeader(
+                      title: title,
+                      onBackPressed: () {
+                        ref.read(activeThreadIdProvider.notifier).setId(null);
+                        ref
+                            .read(activeAppProvider.notifier)
+                            .setApp(PhoneApp.messenger);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
               ),
 
               // Messages
@@ -180,8 +202,8 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                         if (messages.length != _lastCount) {
                           _lastCount = messages.length;
                           WidgetsBinding.instance.addPostFrameCallback(
-                              (_) => _scrollToBottom(
-                                  animated: _lastCount > 1));
+                            (_) => _scrollToBottom(animated: _lastCount > 1),
+                          );
                         }
 
                         if (messages.isEmpty) {
@@ -199,9 +221,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                         senderIds.sort();
                         final rightSenderId = senderIds.length > 1
                             ? senderIds[1]
-                            : (senderIds.isNotEmpty
-                                ? senderIds[0]
-                                : null);
+                            : (senderIds.isNotEmpty ? senderIds[0] : null);
 
                         return ListView.builder(
                           controller: _scrollController,
@@ -230,6 +250,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                               isSecret: true, // Always secret for this screen
                               mediaType: msg.type,
                               mediaPath: msg.mediaPath,
+                              isGroup: false,
                             );
                           },
                         );
@@ -240,32 +261,37 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
               ),
             ],
           ),
-        ),
 
-        // VPN Status Bar
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: AnimatedOpacity(
-            opacity: _vpnOpacity,
-            duration: const Duration(milliseconds: 100),
-            child: Container(
-              height: _kVpnBarHeight,
-              color: Colors.black.withOpacity(0.8), // Dark background for VPN bar
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _StatusText(text: _vpnStatus),
-                  _StatusText(text: _encStatus),
-                  _StatusText(text: _idStatus),
-                ],
+          // VPN Status Bar
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AnimatedOpacity(
+              opacity: _vpnOpacity,
+              duration: const Duration(milliseconds: 100),
+              child: SafeArea(
+                top: false,
+                child: Container(
+                  height: _kVpnBarHeight,
+                  color: Colors.black.withOpacity(
+                    0.8,
+                  ), // Dark background for VPN bar
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _StatusText(text: _vpnStatus),
+                      _StatusText(text: _encStatus),
+                      _StatusText(text: _idStatus),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -294,10 +320,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
               }
             }
 
-            return GunTypingIndicator(
-              senderName: senderName,
-              isSecret: true, // Secret typing indicator
-            );
+            return GunTypingIndicator(senderName: senderName, isSecret: true);
           },
         );
       },
@@ -310,20 +333,22 @@ class _SecretChatHeader extends StatelessWidget {
   final String title;
   final VoidCallback onBackPressed;
 
-  const _SecretChatHeader({
-    required this.title,
-    required this.onBackPressed,
-  });
+  const _SecretChatHeader({required this.title, required this.onBackPressed});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           // Back Button
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 24),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: 24,
+            ),
             onPressed: onBackPressed,
           ),
           Expanded(
@@ -333,9 +358,10 @@ class _SecretChatHeader extends StatelessWidget {
                 Text(
                   title,
                   style: GoogleFonts.spectral(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 4),
