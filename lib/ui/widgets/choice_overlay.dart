@@ -255,8 +255,8 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
     final activeId = ref.watch(activeNodeIdProvider);
     final bp = MediaQuery.of(context).padding.bottom;
 
-    const double avatarDiameter = 72; // Adjusted size
-    const double notchRadius = avatarDiameter / 2; // Match avatar diameter exactly
+    const double avatarDiameter = 62;
+    const double notchRadius = 40;
     const double rightInset = 20;
 
     return Padding(
@@ -322,7 +322,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
         // The Player Avatar inside the Notch
         Positioned(
           top: -(avatarDiameter / 2),
-          right: rightInset,
+          right: rightInset + 6,
           child: Container(
             width: avatarDiameter,
             height: avatarDiameter,
