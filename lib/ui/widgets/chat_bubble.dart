@@ -240,19 +240,24 @@ class ChatBubble extends ConsumerWidget {
               ),
             ),
 
-            // ── TIMESTAMP BELOW BUBBLE with directional padding ───────────────
+            // ── TIMESTAMP: Aligned with bubble edge + bottom spacing ──────────
             if (timeText != null) ...[
               const SizedBox(height: 6),
-              Padding(                padding: EdgeInsets.only(
-                  left: isMe ? 0 : 16,
-                  right: isMe ? 16 : 0,
-                ),
-                child: Text(
-                  timeText,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 11,
-                    color: timestampColor,
-                    fontWeight: FontWeight.w500,
+              Align(                alignment:
+                    isMe ? Alignment.centerRight : Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: isMe ? 0 : 16,
+                    right: isMe ? 16 : 0,
+                    bottom: 10,
+                  ),
+                  child: Text(
+                    timeText,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 11,
+                      color: timestampColor,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
