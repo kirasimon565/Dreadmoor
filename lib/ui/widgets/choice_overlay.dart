@@ -250,6 +250,12 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
   bool _tapped = false;
 
   @override
+  void didUpdateWidget(covariant _ChoiceSheetNotch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _tapped = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final scheduler = ref.read(globalSchedulerProvider);
     final activeId = ref.watch(activeNodeIdProvider);
