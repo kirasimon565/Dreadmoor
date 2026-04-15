@@ -41,7 +41,7 @@ class ChatBubble extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: GoogleFonts.spaceGrotesk(
               fontSize: 12,
-              color: Colors.white54,
+              color: const Color(0xFF888888),
               letterSpacing: 1.2,
             ),
           ),
@@ -96,7 +96,8 @@ class ChatBubble extends ConsumerWidget {
       builder: (context, value, child) => Opacity(
         opacity: value,
         child: Transform.translate(
-          offset: Offset(0, 6 * (1 - value)),          child: child,
+          offset: Offset(0, 6 * (1 - value)),
+          child: child,
         ),
       ),
       child: Align(
@@ -145,7 +146,8 @@ class ChatBubble extends ConsumerWidget {
               child: ClipRRect(
                 borderRadius: radius,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),                  child: Column(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
                     crossAxisAlignment: isMe
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
@@ -194,7 +196,8 @@ class ChatBubble extends ConsumerWidget {
                               maxHeight: 200,
                               maxWidth: 220,
                             ),
-                            child: ClipRRect(                              borderRadius: BorderRadius.circular(8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
                               child: mediaPath!.startsWith('assets/')
                                   ? Image.asset(
                                       mediaPath!,
