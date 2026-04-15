@@ -45,14 +45,6 @@ class ChatBubble extends ConsumerWidget {
                 letterSpacing: 1.2,
               ),
             ),
-            if (timestamp != null)
-              Text(
-                _formatTime(timestamp!),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 9,
-                  color: Colors.white38,
-                ),
-              ),
           ],
         ),
       );
@@ -203,6 +195,23 @@ class ChatBubble extends ConsumerWidget {
                         height: 1.4,
                         color: textColor,
                         fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                  // ── TIMESTAMP ──────────────────────────────────────────────
+                  if (timestamp != null) ...[
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Text(
+                        _formatTime(timestamp!),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 11,
+                          color: isSecret
+                              ? const Color(0xFF7A2A2A).withOpacity(0.65)
+                              : Colors.white.withOpacity(0.55),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
