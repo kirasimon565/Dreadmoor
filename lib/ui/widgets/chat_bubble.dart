@@ -31,7 +31,7 @@ class ChatBubble extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ── SYSTEM EVENTS: centered, no bubble, no timestamp ─────────────────────
+    // ── SYSTEM EVENTS ─────────────────────────────────────────────────────────
     if (senderId == 'system') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -41,7 +41,7 @@ class ChatBubble extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: GoogleFonts.spaceGrotesk(
               fontSize: 12,
-              color: const Color(0xFF888888),
+              color: Colors.white54,
               letterSpacing: 1.2,
             ),
           ),
@@ -51,41 +51,41 @@ class ChatBubble extends ConsumerWidget {
 
     final maxWidth = MediaQuery.of(context).size.width * 0.75;
 
-    // ── COLORS ────────────────────────────────────────────────────────────────
+    // ── ORIGINAL DREADMOOR COLORS RESTORED ───────────────────────────────────
     final Color bubbleFill = isSecret
-        ? const Color(0xFF111111).withOpacity(0.9)
+        ? const Color(0xFF6B0000).withOpacity(0.55)
         : isMe
-            ? const Color(0xFF222222).withOpacity(0.9)
-            : const Color(0xFF333333).withOpacity(0.7);
+            ? const Color(0xFF0D3A4A).withOpacity(0.75)
+            : const Color(0xFF0D1A28).withOpacity(0.72);
 
     final Color borderColor = isSecret
-        ? const Color(0xFF880000).withOpacity(0.6)
-        : Colors.white.withOpacity(0.1);
+        ? const Color(0xFFCC2A2A).withOpacity(0.6)
+        : isMe
+            ? const Color(0xFF4A9EBF).withOpacity(0.5)
+            : Colors.white.withOpacity(0.14);
 
     final Color textColor = isSecret
-        ? const Color(0xFFFF4444)
-        : Colors.white.withOpacity(0.95);
+        ? const Color(0xFFFF6B6B)
+        : Colors.white.withOpacity(0.92);
 
-    final Color nameColor = const Color(0xFFAAAAAA);
+    final Color nameColor = isMe
+        ? const Color(0xFF4A9EBF)
+        : const Color(0xFFB0C8D8);
 
     final Color timestampColor = isSecret
-        ? const Color(0xFF7A2A2A).withOpacity(0.65)
-        : Colors.white.withOpacity(0.55);
+        ? const Color(0xFFFF8A8A).withOpacity(0.45)
+        : Colors.white.withOpacity(0.35);
 
-    // ── BORDER RADIUS ─────────────────────────────────────────────────────────
+    // ── ORIGINAL BORDER SHAPE RESTORED ───────────────────────────────────────
     final radius = BorderRadius.only(
-      topLeft: const Radius.circular(16),
-      topRight: const Radius.circular(16),
-      bottomLeft: Radius.circular(isMe ? 16 : 4),
-      bottomRight: Radius.circular(isMe ? 4 : 16),
+      topLeft: const Radius.circular(14),
+      topRight: const Radius.circular(14),
+      bottomLeft: Radius.circular(isMe ? 14 : 2),
+      bottomRight: Radius.circular(isMe ? 2 : 14),
     );
 
-    // ── DYNAMIC TIMESTAMP ─────────────────────────────────────────────────────
-    final timeText = timestamp != null
-        ? '${timestamp!.hour.toString().padLeft(2, '0')}:${timestamp!.minute.toString().padLeft(2, '0')}'
-        : null;
+    final timeText = timestamp != null ? _formatTime(timestamp!) : null;
 
-    // ── SENDER NAME RULE ──────────────────────────────────────────────────────
     final showSenderName = !isMe &&
         senderId != null &&
         senderId != 'system' &&
@@ -101,199 +101,178 @@ class ChatBubble extends ConsumerWidget {
           child: child,
         ),
       ),
+
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-          child: Column(
-            crossAxisAlignment:
-                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── SENDER NAME ────────────────────────────────────────────────
-              if (showSenderName) ...[
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 8,
-                    right: 8,
-                    bottom: 6,
-                  ),
-                  child: Text(
-                    ((senderName?.trim().isNotEmpty ?? false)
-                            ? senderName!
-                            : senderId!)
-                        .toUpperCase(),
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: nameColor,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-              ],
 
-              // ── BUBBLE ─────────────────────────────────────────────────────
-              Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                decoration: BoxDecoration(
-                  color: bubbleFill,
-                  borderRadius: radius,
-                  border: Border.all(color: borderColor, width: 0.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(isSecret ? 0.5 : 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: radius,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: isMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // ── VIDEO ───────────────────────────────────────────
-                        if (mediaType == 'video' && mediaPath != null) ...[
-                          GestureDetector(
-                            onTap: () {
-                              ref.read(globalSchedulerProvider).pause();
-                              MediaViewer.open(
-                                context,
-                                items: [
-                                  GalleryMediaItem(
-                                    path: mediaPath!,
-                                    isVideo: true,
-                                  ),
-                                ],
-                              );
-                            },
-                            child: Container(
-                              height: 160,
-                              width: 220,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Colors.white24,
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.play_circle_fill,
-                                  color: Colors.white,
-                                  size: 48,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ]
+        // ORIGINAL OUTER SPACING RESTORED
+        child: Container(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
 
-                        // ── IMAGE ───────────────────────────────────────────
-                        else if (mediaType == 'image' &&
-                            mediaPath != null) ...[
-                          GestureDetector(
-                            onTap: () {
-                              MediaViewer.open(
-                                context,
-                                items: [
-                                  GalleryMediaItem(
-                                    path: mediaPath!,
-                                    isVideo: false,
-                                  ),
-                                ],
-                              );
-                            },
-                            child: Container(
-                              constraints: const BoxConstraints(
-                                maxHeight: 200,
-                                maxWidth: 220,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: mediaPath!.startsWith('assets/')
-                                    ? Image.asset(
-                                        mediaPath!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            Container(
-                                          height: 120,
-                                          width: 180,
-                                          alignment: Alignment.center,
-                                          child: const Icon(
-                                            Icons.broken_image,
-                                            color: Colors.white38,
-                                            size: 32,
-                                          ),
-                                        ),
-                                      )
-                                    : Container(
-                                        height: 120,
-                                        width: 180,
-                                        alignment: Alignment.center,
-                                        child: const Icon(
-                                          Icons.broken_image,
-                                          color: Colors.white38,
-                                          size: 32,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ]
-
-                        // ── TEXT ────────────────────────────────────────────
-                        else ...[
-                          SelectableText(
-                            text,
-                            style: GoogleFonts.spectral(
-                              fontSize: 16,
-                              height: 1.4,
-                              color: textColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
+          decoration: BoxDecoration(
+            color: bubbleFill,
+            borderRadius: radius,
+            border: Border.all(color: borderColor, width: 0.9),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isSecret ? 0.35 : 0.22),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
+              if (isSecret)
+                BoxShadow(
+                  color: const Color(0xFFCC2A2A).withOpacity(0.18),
+                  blurRadius: 16,
+                  spreadRadius: 1,
+                ),
+            ],
+          ),
 
-              // ── TIMESTAMP: ALWAYS RIGHT SIDE ──────────────────────────────
-              if (timeText != null) ...[
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      right: 16,
-                      bottom: 10,
-                    ),
-                    child: Text(
-                      timeText,
+          child: ClipRRect(
+            borderRadius: radius,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 10,
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    isMe
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ── SENDER NAME ───────────────────────────────────────────
+                  if (showSenderName) ...[
+                    Text(
+                      ((senderName?.trim().isNotEmpty ?? false)
+                              ? senderName!
+                              : senderId!)
+                          .toUpperCase(),
                       style: GoogleFonts.spaceGrotesk(
-                        fontSize: 11,
-                        color: timestampColor,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: nameColor,
+                        letterSpacing: 1.6,
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ],
+                    const SizedBox(height: 4),
+                  ],
+
+                  // ── VIDEO ────────────────────────────────────────────────
+                  if (mediaType == 'video' && mediaPath != null) ...[
+                    GestureDetector(
+                      onTap: () {
+                        ref.read(globalSchedulerProvider).pause();
+                        MediaViewer.open(
+                          context,
+                          items: [
+                            GalleryMediaItem(
+                              path: mediaPath!,
+                              isVideo: true,
+                            ),
+                          ],
+                        );
+                      },
+                      child: Container(
+                        height: 160,
+                        width: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.white24,
+                            width: 1,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.play_circle_fill,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+
+                  // ── IMAGE ────────────────────────────────────────────────
+                  else if (mediaType == 'image' &&
+                      mediaPath != null) ...[
+                    GestureDetector(
+                      onTap: () {
+                        MediaViewer.open(
+                          context,
+                          items: [
+                            GalleryMediaItem(
+                              path: mediaPath!,
+                              isVideo: false,
+                            ),
+                          ],
+                        );
+                      },
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          maxHeight: 200,
+                          maxWidth: 220,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: mediaPath!.startsWith('assets/')
+                              ? Image.asset(
+                                  mediaPath!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      const SizedBox.shrink(),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ]
+
+                  // ── TEXT ─────────────────────────────────────────────────
+                  else ...[
+                    SelectableText(
+                      text,
+                      style: GoogleFonts.spectral(
+                        fontSize: 15,
+                        height: 1.45,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+
+                  // ── TIMESTAMP INSIDE BUBBLE / RIGHT ALIGNED ──────────────
+                  if (timeText != null) ...[
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Text(
+                        timeText,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 9,
+                          color: timestampColor,
+                          letterSpacing: 1.0,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 }
