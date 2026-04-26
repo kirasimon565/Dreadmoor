@@ -294,6 +294,42 @@ class GlobalScheduler {
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
         .write(ThreadsCompanion(lastMessageId: Value(id)));
 
+    // Create a notification if specified in metadata
+    final notify = meta['notify'] as Map<String, dynamic>?;
+
+    if (notify?['enabled'] == true) {
+      final notifId = 'msg_${node.id}';
+      final existingNotif = await (db.select(db.notifications)
+            ..where((n) => n.id.equals(notifId))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (existingNotif == null) {
+        final thread = await (db.select(db.threads)
+              ..where((t) => t.id.equals(threadId)))
+            .getSingleOrNull();
+        final threadTitle = thread?.title ?? threadId;
+
+        final notifPayload = {
+          'threadId': threadId,
+        };
+        if (notify?['avatarPath'] != null) {
+          notifPayload['avatarPath'] = notify!['avatarPath'];
+        }
+
+        await db.into(db.notifications).insert(
+          NotificationsCompanion.insert(
+            id: notifId,
+            type: 'chat',
+            title: notify?['title'] ?? threadTitle,
+            message: notify?['preview'] ?? _sanitize(node.content),
+            createdAtMinutes: 0,
+            payload: Value(jsonEncode(notifPayload)),
+          ),
+        );
+      }
+    }
+
     _playSound('sfx/message_receive.mp3');
 
     // Option B: insert immediately but pause until the player is viewing
@@ -358,6 +394,27 @@ class GlobalScheduler {
         // flag_name defaults to node.id if not specified
         final flag = (meta['flag_name'] as String?) ?? node.id;
         await db.updateStoryFlag(flag, bVal: true);
+
+        if (meta['title'] != null && meta['message'] != null) {
+          final existingNotif = await (db.select(db.notifications)
+                ..where((n) => n.id.equals(node.id))
+                ..limit(1))
+              .getSingleOrNull();
+
+          if (existingNotif == null) {
+            await db.into(db.notifications).insert(
+              NotificationsCompanion.insert(
+                id: node.id,
+                type: 'system',
+                title: meta['title'],
+                message: meta['message'],
+                createdAtMinutes: 0,
+                payload: const Value(null),
+              ),
+            );
+          }
+        }
+
         _advance(node.nextNodeId);
         return;
 

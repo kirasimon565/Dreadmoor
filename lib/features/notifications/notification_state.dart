@@ -12,7 +12,7 @@ final activeNotificationsProvider =
       .map((rows) => rows.map((row) {
             final typeStr = row.type;
             NotificationType type = NotificationType.system;
-            if (typeStr == 'message') type = NotificationType.message;
+            if (typeStr == 'chat') type = NotificationType.chat;
             if (typeStr == 'article') type = NotificationType.article;
 
             Map<String, dynamic>? payload;

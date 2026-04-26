@@ -153,7 +153,7 @@ class NotificationCenterScreen extends ConsumerWidget {
 
   IconData _getIcon(NotificationType type) {
     switch (type) {
-      case NotificationType.message: return Icons.chat_bubble_outline;
+      case NotificationType.chat: return Icons.chat_bubble_outline;
       case NotificationType.article: return Icons.newspaper_outlined;
       case NotificationType.system: return Icons.settings_input_component_outlined;
     }
