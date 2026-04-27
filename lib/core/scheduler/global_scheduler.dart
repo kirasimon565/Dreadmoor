@@ -253,14 +253,19 @@ class GlobalScheduler {
     final mediaType = isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
     final senderId = node.senderId ?? 'unknown';
 
+    // TEMP: diagnostic log — remove once duplication is confirmed fixed.
+    // If this prints twice for the same node ID, the scheduler is replaying.
+    // Expected: exactly ONE line per node per session.
+    print("🔥 INSERT ATTEMPT → ${node.id}");
+
     // FIX: skip if this node's message was already inserted (e.g. app restart).
     if (node.id.isNotEmpty) {
-      final existing = await (db.select(db.messages)
-            ..where((m) => m.nodeId.equals(node.id))
-            ..limit(1))
+      final exists = await (db.select(db.messages)
+            ..where((m) => m.nodeId.equals(node.id)))
           .getSingleOrNull();
-      if (existing != null) {
-        print("DreadmoorOS ⚠ '${node.id}' already inserted — skipping duplicate.");
+
+      if (exists != null) {
+        print("DreadmoorOS ⚠ Duplicate prevented for node '${node.id}'");
         _advance(node.nextNodeId);
         return;
       }
@@ -391,32 +396,33 @@ class GlobalScheduler {
         return;
 
       case 'Push_Notification':
-        // flag_name defaults to node.id if not specified
-        final flag = (meta['flag_name'] as String?) ?? node.id;
-        await db.updateStoryFlag(flag, bVal: true);
+        final title = meta['title'] as String?;
+        final message = meta['message'] as String?;
 
-        if (meta['title'] != null && meta['message'] != null) {
-          final existingNotif = await (db.select(db.notifications)
-                ..where((n) => n.id.equals(node.id))
-                ..limit(1))
-              .getSingleOrNull();
+        if (title != null && message != null) {
+          // Normalise payload so the banner can always read `threadId`.
+          // JSON nodes use `thread_id`; the banner reads `payload['threadId']`.
+          // Spread meta first, then remap the key — consistent regardless of
+          // how the JSON was authored.
+          final notifPayload = <String, dynamic>{
+            ...meta,
+            if (meta['thread_id'] != null) 'threadId': meta['thread_id'],
+          };
 
-          if (existingNotif == null) {
-            await db.into(db.notifications).insert(
-              NotificationsCompanion.insert(
-                id: node.id,
-                type: 'system',
-                title: meta['title'],
-                message: meta['message'],
-                createdAtMinutes: 0,
-                payload: const Value(null),
-              ),
-            );
-          }
+          await db.into(db.notifications).insert(
+            NotificationsCompanion.insert(
+              id: node.id,
+              type: 'system',
+              title: title,
+              message: message,
+              createdAtMinutes: 0,
+              payload: Value(jsonEncode(notifPayload)),
+            ),
+          );
         }
 
         _advance(node.nextNodeId);
-        return;
+        return; // CRITICAL: prevent any fallthrough
 
       case 'Switch_Context':
         // target: the thread ID to switch to
@@ -812,6 +818,17 @@ class GlobalScheduler {
   /// Called by ChatScreen and SecretChatScreen in initState when the
   /// player opens a thread. If the scheduler is paused waiting for this
   /// exact thread, it resumes from the stored activeNodeId.
+  ///
+  /// REPLAY SAFETY: when _handleChatMessage pauses (thread not active), it
+  /// stores node.nextNodeId — the NEXT node — not the current one.
+  /// So resumeIfThreadActive always advances forward, never re-runs the
+  /// message that triggered the pause. The 🔥 INSERT ATTEMPT log should
+  /// appear exactly once per node even when the player taps a notification
+  /// to open the thread.
+  ///
+  /// The notification banner onTap itself does NOT call processNode, resume,
+  /// or _advance — it only sets state and navigates. Scheduler continuation
+  /// happens here, one level up, driven by ChatScreen.initState.
   void resumeIfThreadActive(String threadId) {
     final isPaused = ref.read(isSchedulerPausedProvider);
     if (!isPaused) return;
