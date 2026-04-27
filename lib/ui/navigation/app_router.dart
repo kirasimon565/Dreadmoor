@@ -20,6 +20,8 @@ import '../screens/recap/recap_screen.dart';
 import '../screens/intro/intro_trailer_screen.dart';
 import '../screens/intro/title_cinematic_screen.dart';
 
+import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
+
 import 'routes.dart';
 
 class DreadmoorPage<T> extends CustomTransitionPage<T> {
@@ -51,12 +53,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.studio,
 
     errorPageBuilder: (context, state) =>
-        DreadmoorPage(
-          key: state.pageKey,
-          child: FatalErrorScreen(
-            error: state.error?.toString(),
-          ),
-        ),
+        DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
 
     redirect: (context, state) {
 
@@ -225,6 +222,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: Routes.error,
         pageBuilder: (context, state) =>
             DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
+      ),
+
+      /// Chat
+      GoRoute(
+        path: '/chat/:threadId',
+        pageBuilder: (context, state) {
+          final threadId = state.pathParameters['threadId']!;
+
+          return DreadmoorPage(
+            key: state.pageKey,
+            child: ChatScreen(threadId: threadId),
+          );
+        },
       ),
     ],
   );
