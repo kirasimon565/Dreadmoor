@@ -134,14 +134,26 @@ class _NotificationBannerState extends ConsumerState<NotificationBanner> {
               return;
             }
 
-            // 2. Set app state
+            // 2. Verify thread exists in DB before navigating
+            final db = ref.read(databaseProvider);
+            final thread = await (db.select(db.threads)
+                  ..where((t) => t.id.equals(threadId)))
+                .getSingleOrNull();
+
+            if (thread == null) {
+              debugPrint("⚠ Thread not ready yet: $threadId");
+              _markAsRead(notification.id);
+              return;
+            }
+
+            // 3. Set app state
             ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
             ref.read(activeThreadIdProvider.notifier).setId(threadId);
 
-            // 3. Navigate
+            // 4. Navigate
             ref.read(appRouterProvider).go(Routes.chat(threadId));
 
-            // 4. Mark as read
+            // 5. Mark as read
             _markAsRead(notification.id);
           } else if (notification.type == NotificationType.article) {
             // 2. Set App State
