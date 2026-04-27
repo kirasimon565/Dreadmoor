@@ -123,7 +123,7 @@ class _NotificationBannerState extends ConsumerState<NotificationBanner> {
       left: 10,
       right: 10,
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           // 1. Validate payload
           if (notification.type == NotificationType.chat) {
             final threadId = payloadMap?['threadId'];
