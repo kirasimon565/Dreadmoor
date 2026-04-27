@@ -13,14 +13,26 @@
         "Preliminary statements indicate Stone arrived at the location shortly before 11:00 PM on Saturday. Those present claim she was last seen sometime after midnight, and reportedly left the premises alone. Authorities have not yet confirmed independent verification of this timeline.",
         "The factory, shuttered and decaying for years, sits isolated near the old industrial corridor. It is unclear who organized the gathering or why such a remote, hazardous location was chosen. Police have cordoned off the area as the investigation continues."
       ],
-      "next": "SCENE_1_NOTIFICATION_TRIGGER"
+      "next": "SCENE_1_UNKNOWN_MESSAGE"
     },
+
     {
-      "id": "SCENE_1_NOTIFICATION_TRIGGER",
-      "type": "System_Event",
-      "action": "Push_Notification",
-      "sender": "Unknown",
+      "id": "SCENE_1_UNKNOWN_MESSAGE",
+      "type": "Chat_Event",
+      "chat": "unknown_private",
+      "thread_title": "Unknown",
+      "thread_members": [],
+      "thread_secret": false,
+
+      "sender": "unknown",
       "text": "You read the article.",
+
+      "notify": {
+        "enabled": true,
+        "title": "Unknown",
+        "preview": "You read the article."
+      },
+
       "next": "s2_private_msg"
     }
   ]
