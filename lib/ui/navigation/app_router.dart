@@ -51,7 +51,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.studio,
 
     errorPageBuilder: (context, state) =>
-        DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
+        DreadmoorPage(
+          key: state.pageKey,
+          child: FatalErrorScreen(
+            error: state.error?.toString(),
+          ),
+        ),
 
     redirect: (context, state) {
 
