@@ -273,6 +273,8 @@ class GlobalScheduler {
       }
     }
 
+    // Advance FIRST so each message gets a unique, incrementing timestamp.
+    ref.read(gameClockProvider.notifier).advanceTime(1);
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
 
@@ -304,10 +306,6 @@ class GlobalScheduler {
 
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
         .write(ThreadsCompanion(lastMessageId: Value(id)));
-
-    // Advance GameClock on every chat message so the UI reflects
-    // real in-game time progression (status bar, apps screen, bubbles).
-    ref.read(gameClockProvider.notifier).advanceTime(1);
 
     final activeThread = ref.read(activeThreadIdProvider);
 
@@ -789,6 +787,9 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
 
+    // Advance FIRST so the player choice gets the next tick, not the same
+    // timestamp as the preceding NPC message.
+    ref.read(gameClockProvider.notifier).advanceTime(1);
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
 
