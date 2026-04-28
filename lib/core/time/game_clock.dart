@@ -5,7 +5,7 @@ import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
 
 /// Dreadmoor Episode 1 Timeline:
-/// Sunday, March 8th.
+/// Sunday, June 12th, 2016.
 /// Start: 23:42 (11:42 PM)
 /// (23 * 60) + 42 = 1422 minutes from start of Sunday.
 const int _initialGameTimeMinutes = 1422;
@@ -75,38 +75,56 @@ final gameClockStringProvider = Provider<String>((ref) {
 });
 
 // --------------------------------------------------
-// FORMATTING HELPERS (FIXES MIDNIGHT LOGIC)
+// DATE/TIME LOGIC & FORMATTING
 // --------------------------------------------------
 
-/// Returns HH:MM format
+final DateTime _baseDate = DateTime(2016, 6, 12, 23, 42);
+
+DateTime getGameDateTime(int totalMinutes) {
+  return _baseDate.add(
+    Duration(minutes: totalMinutes - 1422),
+  );
+}
+
+String formatGameTimeFromDate(DateTime dt) {
+  final h = dt.hour.toString().padLeft(2, '0');
+  final m = dt.minute.toString().padLeft(2, '0');
+  return '$h:$m';
+}
+
+String formatGameDateFullFromDate(DateTime dt) {
+  final weekday = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][dt.weekday - 1];
+  final month = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+  ][dt.month - 1];
+
+  return '$weekday, ${dt.day} $month ${dt.year}';
+}
+
+/// Returns HH:MM format (legacy wrapper)
 String formatGameTime(int totalMinutes) {
-  final dayMinutes = totalMinutes % (24 * 60);
-  final hours = dayMinutes ~/ 60;
-  final minutes = dayMinutes % 60;
-
-  final hStr = hours.toString().padLeft(2, '0');
-  final mStr = minutes.toString().padLeft(2, '0');
-  return '$hStr:$mStr';
+  return formatGameTimeFromDate(getGameDateTime(totalMinutes));
 }
 
-/// Returns the day. Since Episode 1 starts at 23:42 Sunday,
-/// the clock will roll over to Monday fairly quickly.
+/// Returns the day (legacy wrapper)
 String getGameDay(int totalMinutes) {
-  final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  final dayIndex = (totalMinutes ~/ (24 * 60)) % 7;
-  return days[dayIndex];
+  final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  return days[getGameDateTime(totalMinutes).weekday - 1];
 }
 
-/// Formats the date seen in the Messenger top bar or OS header
+/// Formats the date seen in the Messenger top bar or OS header (legacy wrapper)
 String formatGameDateFull(int totalMinutes) {
-  final timeStr = formatGameTime(totalMinutes);
-  final dayStr = getGameDay(totalMinutes);
+  final dt = getGameDateTime(totalMinutes);
+  final timeStr = formatGameTimeFromDate(dt);
+  final dayStr = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][dt.weekday - 1];
   
-  // Start date is March 8 (Sunday)
-  final dayOffset = (totalMinutes ~/ (24 * 60));
-  final dateNum = 8 + dayOffset;
+  final monthStr = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ][dt.month - 1];
   
-  return '$timeStr $dayStr, March $dateNum';
+  return '$timeStr $dayStr, $monthStr ${dt.day}';
 }
 
 // --------------------------------------------------

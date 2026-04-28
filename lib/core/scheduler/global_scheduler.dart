@@ -103,12 +103,12 @@ class GlobalScheduler {
   Future<void> _executeNode(String nodeId) async {
     if (nodeId.isEmpty) return;
 
-    final db   = ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final node = await db.getNextNode(nodeId);
 
     if (node == null) {
       print("DreadmoorOS ✗ Node '$nodeId' not found."
-            " Was importPendingEpisodes() called?");
+          " Was importPendingEpisodes() called?");
       return;
     }
 
@@ -123,16 +123,15 @@ class GlobalScheduler {
 
     final action = (meta['action'] as String?) ?? '';
     print("DreadmoorOS → '$nodeId' [${node.type}]"
-          "${action.isNotEmpty ? ' action=$action' : ''}");
+        "${action.isNotEmpty ? ' action=$action' : ''}");
 
     if (action == 'Typing') {
       await _handleTyping(node, meta);
       return;
     }
 
-    final delay = action == 'Pause'
-        ? ((meta['duration'] as int?) ?? 2000)
-        : 500;
+    final delay =
+        action == 'Pause' ? ((meta['duration'] as int?) ?? 2000) : 500;
 
     _timer = Timer(Duration(milliseconds: delay), () async {
       try {
@@ -156,10 +155,9 @@ class GlobalScheduler {
     await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
 
     switch (node.type) {
-
       // ── Chat message — any thread, any episode ─────────────────────────
       case 'Chat_Event':
-      case 'Private_Unknown':    // ep01 alias — kept for back-compat
+      case 'Private_Unknown': // ep01 alias — kept for back-compat
       case 'Video_Message':
         await _handleChatMessage(node, meta);
         break;
@@ -185,7 +183,7 @@ class GlobalScheduler {
       // ── Phone calls ───────────────────────────────────────────────────
       case 'IncomingCall':
       case 'Phone_Call_Event':
-      case 'Force_Ringing':      // disables decline button
+      case 'Force_Ringing': // disables decline button
         _handlePhoneCall(node, meta);
         break;
 
@@ -198,7 +196,7 @@ class GlobalScheduler {
       // ── Full-screen video playback ────────────────────────────────────
       // Requires metadata: { "file_asset": "path/to/video.mp4" }
       case 'Video_Node':
-      case 'S4_VIDEO_NODE':      // ep01 alias — kept for back-compat
+      case 'S4_VIDEO_NODE': // ep01 alias — kept for back-compat
         // Treat as a chat message with video attached
         await _handleChatMessage(node, meta);
         break;
@@ -213,14 +211,15 @@ class GlobalScheduler {
       // ── Accept call — full screen UI ─────────────────────────────────
       // Optional metadata: { "audio_asset": "path/to/audio.mp3" }
       case 'Accept_Call':
-      case 'S6_Accept_Call':     // ep01 alias — kept for back-compat
+      case 'S6_Accept_Call': // ep01 alias — kept for back-compat
         _handleAcceptCall(node, meta);
         break;
 
       default:
         // In debug: crash loudly so you know immediately.
         // In release: skip and advance so the story never permanently freezes.
-        assert(false,
+        assert(
+            false,
             "DreadmoorOS: Unhandled node type '${node.type}' "
             "on node '${node.id}'. Add a case or rename the type.");
         print("DreadmoorOS ✗ Unknown type '${node.type}' — advancing.");
@@ -240,17 +239,20 @@ class GlobalScheduler {
   // ── Chat Message ─────────────────────────────────────────────────────────
   Future<void> _handleChatMessage(
       StoryNode node, Map<String, dynamic> meta) async {
-    final db       = ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final threadId = _resolveThreadId(node, meta);
 
     // Creates thread + members from JSON metadata if not already in DB.
     await _ensureThread(threadId, meta);
 
-    final isVideo  = node.type == 'Video_Message' || node.type == 'Video_Node' || node.type == 'S4_VIDEO_NODE';
-    final content  = node.content ?? (meta['file_asset'] as String?) ?? '';
+    final isVideo = node.type == 'Video_Message' ||
+        node.type == 'Video_Node' ||
+        node.type == 'S4_VIDEO_NODE';
+    final content = node.content ?? (meta['file_asset'] as String?) ?? '';
 
     final mediaPath = meta['file_asset'] as String?;
-    final mediaType = isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
+    final mediaType =
+        isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
     final senderId = node.senderId ?? 'unknown';
 
     // TEMP: diagnostic log — remove once duplication is confirmed fixed.
@@ -272,67 +274,54 @@ class GlobalScheduler {
     }
 
     final id = await db.into(db.messages).insert(
-      MessagesCompanion.insert(
-        nodeId:    Value(node.id),
-        threadId:  threadId,
-        senderId:  senderId,
-        content:   Value(_sanitize(content)),
-        type:      Value(mediaType),
-        mediaPath: Value(mediaPath),
-        sequence:  0,
-      ),
-    );
+          MessagesCompanion.insert(
+            nodeId: Value(node.id),
+            threadId: threadId,
+            senderId: senderId,
+            content: Value(_sanitize(content)),
+            type: Value(mediaType),
+            mediaPath: Value(mediaPath),
+            sequence: 0,
+          ),
+        );
 
     // Save media to gallery table automatically
     if (mediaPath != null && (mediaType == 'video' || mediaType == 'image')) {
       await db.into(db.mediaItems).insert(
-        MediaItemsCompanion.insert(
-          id:          DateTime.now().millisecondsSinceEpoch.toString(),
-          threadId:    threadId,
-          senderId:    senderId,
-          mediaType:   mediaType,
-          filePath:    mediaPath,
-        ),
-      );
+            MediaItemsCompanion.insert(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              threadId: threadId,
+              senderId: senderId,
+              mediaType: mediaType,
+              filePath: mediaPath,
+            ),
+          );
     }
 
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
         .write(ThreadsCompanion(lastMessageId: Value(id)));
 
-    // Create a notification if specified in metadata
-    final notify = meta['notify'] as Map<String, dynamic>?;
+    final activeThread = ref.read(activeThreadIdProvider);
 
-    if (notify?['enabled'] == true) {
-      final notifId = 'msg_${node.id}';
-      final existingNotif = await (db.select(db.notifications)
-            ..where((n) => n.id.equals(notifId))
-            ..limit(1))
+    if (activeThread != threadId) {
+      final thread = await (db.select(db.threads)
+            ..where((t) => t.id.equals(threadId)))
           .getSingleOrNull();
 
-      if (existingNotif == null) {
-        final thread = await (db.select(db.threads)
-              ..where((t) => t.id.equals(threadId)))
-            .getSingleOrNull();
-        final threadTitle = thread?.title ?? threadId;
+      final threadTitle = thread?.title ?? threadId;
 
-        final notifPayload = {
-          'threadId': threadId,
-        };
-        if (notify?['avatarPath'] != null) {
-          notifPayload['avatarPath'] = notify!['avatarPath'];
-        }
-
-        await db.into(db.notifications).insert(
-          NotificationsCompanion.insert(
-            id: notifId,
-            type: 'chat',
-            title: notify?['title'] ?? threadTitle,
-            message: notify?['preview'] ?? _sanitize(node.content),
-            createdAtMinutes: 0,
-            payload: Value(jsonEncode(notifPayload)),
-          ),
-        );
-      }
+      await db.into(db.notifications).insert(
+            NotificationsCompanion.insert(
+              id: 'msg_${node.id}',
+              type: 'chat',
+              title: threadTitle,
+              message: _sanitize(content),
+              createdAtMinutes: ref.read(gameClockProvider),
+              payload: Value(jsonEncode({
+                'threadId': threadId,
+              })),
+            ),
+          );
     }
 
     _playSound('sfx/message_receive.mp3');
@@ -341,12 +330,12 @@ class GlobalScheduler {
     // this thread. If the thread is already active, advance normally.
     // If not, store the next node and wait — _resumeIfThreadActive() is
     // called by the scheduler whenever activeThreadId changes.
-    final activeThread = ref.read(activeThreadIdProvider);
     if (activeThread == threadId) {
       _advance(node.nextNodeId);
     } else {
       // Pause and remember where to resume when the thread opens.
-      print("DreadmoorOS ⏸ '$threadId' not active — holding at '${node.nextNodeId}'");
+      print(
+          "DreadmoorOS ⏸ '$threadId' not active — holding at '${node.nextNodeId}'");
       ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
       ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
     }
@@ -361,7 +350,7 @@ class GlobalScheduler {
   // (no action)                → inline system label message in current thread
   Future<void> _handleSystemEvent(
       StoryNode node, Map<String, dynamic> meta) async {
-    final db     = ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final action = (meta['action'] as String?) ?? '';
 
     switch (action) {
@@ -410,15 +399,15 @@ class GlobalScheduler {
           };
 
           await db.into(db.notifications).insert(
-            NotificationsCompanion.insert(
-              id: node.id,
-              type: 'system',
-              title: title,
-              message: message,
-              createdAtMinutes: 0,
-              payload: Value(jsonEncode(notifPayload)),
-            ),
-          );
+                NotificationsCompanion.insert(
+                  id: node.id,
+                  type: 'system',
+                  title: title,
+                  message: message,
+                  createdAtMinutes: 0,
+                  payload: Value(jsonEncode(notifPayload)),
+                ),
+              );
         }
 
         _advance(node.nextNodeId);
@@ -465,12 +454,12 @@ class GlobalScheduler {
         final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
         await _ensureThread(threadId, {});
         await db.into(db.messages).insert(MessagesCompanion.insert(
-          threadId: threadId,
-          senderId: 'system',
-          content:  Value(node.content),
-          type:     const Value('system_label'),
-          sequence: 0,
-        ));
+              threadId: threadId,
+              senderId: 'system',
+              content: Value(node.content),
+              type: const Value('system_label'),
+              sequence: 0,
+            ));
         _advance(node.nextNodeId);
     }
   }
@@ -480,24 +469,25 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
 
     db.into(db.notifications).insert(
-      NotificationsCompanion.insert(
-        id:               'news_${node.id}',
-        type:             'article',
-        title:            (meta['notification_title'] as String?) ?? 'News Alert',
-        message:          (meta['notification_body'] as String?) ?? 'A new article is available.',
-        createdAtMinutes: 0,
-        payload: Value(jsonEncode({
-          'article': {
-            'headline':    meta['headline']    ?? '',
-            'subheadline': meta['subheadline'] ?? '',
-            'photo':       meta['image_asset'] ?? '',
-            'caption':     meta['caption']     ?? '',
-            'body':        meta['body']        ?? [],
-          }
-        })),
-      ),
-      mode: InsertMode.insertOrReplace,
-    );
+          NotificationsCompanion.insert(
+            id: 'news_${node.id}',
+            type: 'article',
+            title: (meta['notification_title'] as String?) ?? 'News Alert',
+            message: (meta['notification_body'] as String?) ??
+                'A new article is available.',
+            createdAtMinutes: 0,
+            payload: Value(jsonEncode({
+              'article': {
+                'headline': meta['headline'] ?? '',
+                'subheadline': meta['subheadline'] ?? '',
+                'photo': meta['image_asset'] ?? '',
+                'caption': meta['caption'] ?? '',
+                'body': meta['body'] ?? [],
+              }
+            })),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
 
     // flag_name lets each episode use its own unlock flag
     final flag = (meta['flag_name'] as String?) ?? 'article_read';
@@ -513,29 +503,32 @@ class GlobalScheduler {
   void _handlePhoneCall(StoryNode node, Map<String, dynamic> meta) {
     final declineMeta = meta['next_on_decline'] as Map<String, dynamic>?;
     // Force_Ringing type OR explicit disable_decline flag disables the button
-    final canDecline  = node.type != 'Force_Ringing'
-        && node.type != 'S6_Ringing_Final'
-        && (meta['disable_decline'] != true)
-        && declineMeta != null;
+    final canDecline = node.type != 'Force_Ringing' &&
+        node.type != 'S6_Ringing_Final' &&
+        (meta['disable_decline'] != true) &&
+        declineMeta != null;
 
-    final callerName   = (meta['caller_name']   as String?) ?? node.content ?? 'Unknown';
-    final callerNumber = (meta['caller_id']     as String?) ?? node.senderId ?? 'Unknown Number';
+    final callerName =
+        (meta['caller_name'] as String?) ?? node.content ?? 'Unknown';
+    final callerNumber =
+        (meta['caller_id'] as String?) ?? node.senderId ?? 'Unknown Number';
 
     ref.read(phoneProvider.notifier).receiveIncomingCall(
-      callerName,
-      callerNumber,
-      canDecline: canDecline,
-      onDecline: () {
-        if (declineMeta != null) {
-          final delay  = (declineMeta['delay_seconds'] as int?) ?? 0;
-          final target = declineMeta['target'] as String?;
-          if (target != null) {
-            Future.delayed(Duration(seconds: delay), () => _executeNode(target));
-          }
-        }
-      },
-      onAccept: () => _advance(node.nextNodeId),
-    );
+          callerName,
+          callerNumber,
+          canDecline: canDecline,
+          onDecline: () {
+            if (declineMeta != null) {
+              final delay = (declineMeta['delay_seconds'] as int?) ?? 0;
+              final target = declineMeta['target'] as String?;
+              if (target != null) {
+                Future.delayed(
+                    Duration(seconds: delay), () => _executeNode(target));
+              }
+            }
+          },
+          onAccept: () => _advance(node.nextNodeId),
+        );
     pause();
   }
 
@@ -546,8 +539,8 @@ class GlobalScheduler {
   // then immediately advances. No navigation, no delays.
   Future<void> _handleSecretHacked(
       StoryNode node, Map<String, dynamic> meta) async {
-    final threadId = (meta['thread_id'] as String?)
-        ?? _resolveThreadId(node, meta);
+    final threadId =
+        (meta['thread_id'] as String?) ?? _resolveThreadId(node, meta);
 
     // Force thread_secret = true regardless of what meta says
     final enrichedMeta = {
@@ -570,25 +563,31 @@ class GlobalScheduler {
       return;
     }
 
-    final ctx = ref.read(appRouterProvider)
-        .routerDelegate.navigatorKey.currentContext;
-    if (ctx == null) { _advance(node.nextNodeId); return; }
+    final ctx =
+        ref.read(appRouterProvider).routerDelegate.navigatorKey.currentContext;
+    if (ctx == null) {
+      _advance(node.nextNodeId);
+      return;
+    }
 
     ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
     // Requires media_viewer.dart: void open → Future<void> open
-    MediaViewer.open(ctx, items: [GalleryMediaItem(path: assetPath, isVideo: true)])
+    MediaViewer.open(ctx,
+            items: [GalleryMediaItem(path: assetPath, isVideo: true)])
         .then((_) => _advance(node.nextNodeId));
   }
 
   // ── Glitch Effect ────────────────────────────────────────────────────────
   // Optional metadata: { "next_screen": "messenger" | "phone" }
   void _handleGlitchEffect(StoryNode node, Map<String, dynamic> meta) {
-    final ctx = ref.read(appRouterProvider)
-        .routerDelegate.navigatorKey.currentContext;
-    if (ctx == null) { _advance(node.nextNodeId); return; }
+    final ctx =
+        ref.read(appRouterProvider).routerDelegate.navigatorKey.currentContext;
+    if (ctx == null) {
+      _advance(node.nextNodeId);
+      return;
+    }
 
-    final duration = Duration(
-        milliseconds: (meta['duration'] as int?) ?? 1000);
+    final duration = Duration(milliseconds: (meta['duration'] as int?) ?? 1000);
     final nextScreen = (meta['next_screen'] as String?) ?? 'messenger';
 
     final overlay = Overlay.of(ctx, rootOverlay: true);
@@ -611,27 +610,27 @@ class GlobalScheduler {
 
   // ── Accept Call — full-screen call UI ────────────────────────────────────
   void _handleAcceptCall(StoryNode node, Map<String, dynamic> meta) {
-  final callerName = (meta['caller_name'] as String?) ?? 'Unknown';
-  final callerId   = (meta['caller_id']   as String?) ?? 'Unknown Number';
+    final callerName = (meta['caller_name'] as String?) ?? 'Unknown';
+    final callerId = (meta['caller_id'] as String?) ?? 'Unknown Number';
 
-  final audioPath  = meta['audio_asset'] as String?; // ✅ NEW
+    final audioPath = meta['audio_asset'] as String?; // ✅ NEW
 
-  ref.read(phoneProvider.notifier).startCall(
-    callerName,
-    callerId,
-    ref.read(gameClockProvider),
-  );
+    ref.read(phoneProvider.notifier).startCall(
+          callerName,
+          callerId,
+          ref.read(gameClockProvider),
+        );
 
-  // FIX: use public notifier method instead of directly setting .state
-  // In Riverpod 3, Notifier.state is protected — external assignment silently
-  // fails, so callAudioPath was never stored and ActiveCallScreen got null.
-  if (audioPath != null) {
-    ref.read(phoneProvider.notifier).setCallAudioPath(audioPath);
+    // FIX: use public notifier method instead of directly setting .state
+    // In Riverpod 3, Notifier.state is protected — external assignment silently
+    // fails, so callAudioPath was never stored and ActiveCallScreen got null.
+    if (audioPath != null) {
+      ref.read(phoneProvider.notifier).setCallAudioPath(audioPath);
+    }
+
+    ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+    pause();
   }
-
-  ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
-  pause();
-}
 
   // ── Choice Required ──────────────────────────────────────────────────────
   void _handleChoiceRequired(StoryNode node, Map<String, dynamic> meta) {
@@ -653,16 +652,17 @@ class GlobalScheduler {
 
     ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
     ref.read(activeNodeIdProvider.notifier).setId(node.id);
-    ref.read(databaseProvider).updateStoryFlag('active_choice_id', sVal: node.id);
+    ref
+        .read(databaseProvider)
+        .updateStoryFlag('active_choice_id', sVal: node.id);
   }
 
   // --------------------------------------------------
   // HELPERS
   // --------------------------------------------------
 
-  Future<void> _handleTyping(
-      StoryNode node, Map<String, dynamic> meta) async {
-    final db       = ref.read(databaseProvider);
+  Future<void> _handleTyping(StoryNode node, Map<String, dynamic> meta) async {
+    final db = ref.read(databaseProvider);
     final threadId = _resolveThreadId(node, meta);
     final duration = (meta['duration'] as int?) ?? 2000;
 
@@ -681,7 +681,8 @@ class GlobalScheduler {
         if (activeThread == threadId) {
           await _processNodeType(node, {...meta, 'action': 'None'});
         } else {
-          print("DreadmoorOS ⏸ Typing done — '$threadId' not active, holding at '${node.id}'");
+          print(
+              "DreadmoorOS ⏸ Typing done — '$threadId' not active, holding at '${node.id}'");
           ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
           // Store this node so resume() re-executes it (typing + message)
           ref.read(activeNodeIdProvider.notifier).setId(node.id);
@@ -707,10 +708,10 @@ class GlobalScheduler {
   //
   // NO node ID pattern matching. NO hardcoded thread IDs.
   String _resolveThreadId(StoryNode node, Map<String, dynamic> meta) {
-    final chat     = meta['chat']      as String?;
+    final chat = meta['chat'] as String?;
     final threadId = meta['thread_id'] as String?;
 
-    if (chat     != null && chat.isNotEmpty)     return chat;
+    if (chat != null && chat.isNotEmpty) return chat;
     if (threadId != null && threadId.isNotEmpty) return threadId;
 
     // Fall back to currently active thread if the JSON didn't specify
@@ -729,8 +730,7 @@ class GlobalScheduler {
   //
   // If not provided, thread is created with the threadId as title
   // and no members (safe — chat still works, header shows fallback avatar).
-  Future<void> _ensureThread(
-      String threadId, Map<String, dynamic> meta) async {
+  Future<void> _ensureThread(String threadId, Map<String, dynamic> meta) async {
     final db = ref.read(databaseProvider);
 
     final exists = await (db.select(db.threads)
@@ -739,20 +739,18 @@ class GlobalScheduler {
 
     if (exists != null) return;
 
-    final title      = (meta['thread_title']   as String?) ?? threadId;
-    final members    = (meta['thread_members'] as List?)
-        ?.cast<String>() ?? <String>[];
-    final isSecret   = (meta['thread_secret']  as bool?)  ?? false;
-    final participants = members.isNotEmpty
-        ? members.join(',')
-        : threadId;
+    final title = (meta['thread_title'] as String?) ?? threadId;
+    final members =
+        (meta['thread_members'] as List?)?.cast<String>() ?? <String>[];
+    final isSecret = (meta['thread_secret'] as bool?) ?? false;
+    final participants = members.isNotEmpty ? members.join(',') : threadId;
 
     await db.into(db.threads).insert(ThreadsCompanion.insert(
-      id:           threadId,
-      title:        title,
-      participants: participants,
-      isSecret:     Value(isSecret),
-    ));
+          id: threadId,
+          title: title,
+          participants: participants,
+          isSecret: Value(isSecret),
+        ));
 
     for (final memberId in members) {
       final charExists = await (db.select(db.characters)
@@ -760,14 +758,14 @@ class GlobalScheduler {
           .getSingleOrNull();
       if (charExists != null) {
         await db.into(db.threadMembers).insertOnConflictUpdate(
-          ThreadMembersCompanion.insert(
-              threadId: threadId, characterId: memberId),
-        );
+              ThreadMembersCompanion.insert(
+                  threadId: threadId, characterId: memberId),
+            );
       }
     }
 
     print("DreadmoorOS ✓ Thread '$threadId' "
-          "(${members.length} members, secret=$isSecret)");
+        "(${members.length} members, secret=$isSecret)");
   }
 
   String _sanitize(String? input) {
@@ -780,20 +778,25 @@ class GlobalScheduler {
     if (_isSubmittingChoice) return;
     _isSubmittingChoice = true;
 
-    final db       = ref.read(databaseProvider);
+    final db = ref.read(databaseProvider);
     final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
 
-    db.into(db.messages).insert(
-      MessagesCompanion.insert(
-        threadId:        threadId,
-        senderId:        'player',
-        content:         Value(choiceText),
-        type:            const Value('text'),
-        sequence:        0,
-        isPlayerMessage: const Value(true),
-      ),
-    ).then((_) async {
-      await (db.delete(db.storyState)..where((t) => t.key.equals('active_choice_id'))).go();
+    db
+        .into(db.messages)
+        .insert(
+          MessagesCompanion.insert(
+            threadId: threadId,
+            senderId: 'player',
+            content: Value(choiceText),
+            type: const Value('text'),
+            sequence: 0,
+            isPlayerMessage: const Value(true),
+          ),
+        )
+        .then((_) async {
+      await (db.delete(db.storyState)
+            ..where((t) => t.key.equals('active_choice_id')))
+          .go();
       ref.read(waitingForChoiceProvider.notifier).setWaiting(false);
       _executeNode(targetNodeId);
     }).catchError((e) {
@@ -838,7 +841,8 @@ class GlobalScheduler {
 
     final active = ref.read(activeThreadIdProvider);
     if (active == threadId) {
-      print("DreadmoorOS ▶ Thread '$threadId' opened — resuming at '$nextNodeId'");
+      print(
+          "DreadmoorOS ▶ Thread '$threadId' opened — resuming at '$nextNodeId'");
       resume();
     }
   }
@@ -862,7 +866,9 @@ class GlobalScheduler {
   }
 
   Future<void> _playSound(String path) async {
-    try { await AudioPlayer().play(AssetSource(path)); } catch (_) {}
+    try {
+      await AudioPlayer().play(AssetSource(path));
+    } catch (_) {}
   }
 
   void dispose() {

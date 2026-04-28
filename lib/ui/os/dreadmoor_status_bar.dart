@@ -13,36 +13,33 @@ class DreadmoorStatusBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // FIX: watch clockProvider (StreamProvider<DateTime>) instead of
-    // gameClockStringProvider, which was not ticking and produced a
-    // static string after the first build.
-    final timeAsync = ref.watch(clockProvider);
+    final totalMinutes = ref.watch(gameClockProvider);
+    final dt = getGameDateTime(totalMinutes);
     final brightness = Theme.of(context).brightness;
 
     SystemChrome.setSystemUIOverlayStyle(
       brightness == Brightness.dark
           ? const SystemUiOverlayStyle(
-              statusBarColor:          Colors.transparent,
+              statusBarColor: Colors.transparent,
               statusBarIconBrightness: Brightness.light,
-              statusBarBrightness:     Brightness.dark,
+              statusBarBrightness: Brightness.dark,
             )
           : const SystemUiOverlayStyle(
-              statusBarColor:          Colors.transparent,
+              statusBarColor: Colors.transparent,
               statusBarIconBrightness: Brightness.dark,
-              statusBarBrightness:     Brightness.light,
+              statusBarBrightness: Brightness.light,
             ),
     );
 
     return SafeArea(
       bottom: false,
       child: Container(
-        height:  24,
-        color:   Colors.transparent,
+        height: 24,
+        color: Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
@@ -50,21 +47,15 @@ class DreadmoorStatusBar extends ConsumerWidget {
                   builder: (_) => const d_nc.NotificationCenterScreen(),
                 ),
               ),
-              child: timeAsync.when(
-                data: (time) => Text(
-                  '${time.hour.toString().padLeft(2, '0')}'
-                  ':${time.minute.toString().padLeft(2, '0')}',
-                  style: DreadmoorTheme.bodyStyle(brightness).copyWith(
-                    fontSize:   12,
-                    color:      DreadmoorColors.text(brightness).withOpacity(0.75),
-                    fontWeight: FontWeight.w600,
-                  ),
+              child: Text(
+                formatGameTimeFromDate(dt),
+                style: DreadmoorTheme.bodyStyle(brightness).copyWith(
+                  fontSize: 12,
+                  color: DreadmoorColors.text(brightness).withOpacity(0.75),
+                  fontWeight: FontWeight.w600,
                 ),
-                loading: () => const SizedBox(width: 32),
-                error:   (_, __) => const SizedBox(width: 32),
               ),
             ),
-
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
@@ -75,16 +66,19 @@ class DreadmoorStatusBar extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(Icons.signal_cellular_4_bar,
-                      size:  14,
-                      color: DreadmoorColors.text(brightness).withOpacity(0.75)),
+                      size: 14,
+                      color:
+                          DreadmoorColors.text(brightness).withOpacity(0.75)),
                   const SizedBox(width: 6),
                   Icon(Icons.wifi,
-                      size:  14,
-                      color: DreadmoorColors.text(brightness).withOpacity(0.75)),
+                      size: 14,
+                      color:
+                          DreadmoorColors.text(brightness).withOpacity(0.75)),
                   const SizedBox(width: 6),
                   Icon(Icons.battery_full,
-                      size:  14,
-                      color: DreadmoorColors.text(brightness).withOpacity(0.75)),
+                      size: 14,
+                      color:
+                          DreadmoorColors.text(brightness).withOpacity(0.75)),
                 ],
               ),
             ),
