@@ -273,6 +273,9 @@ class GlobalScheduler {
       }
     }
 
+    final minutes = ref.read(gameClockProvider);
+    final dt = getGameDateTime(minutes);
+
     final id = await db.into(db.messages).insert(
           MessagesCompanion.insert(
             nodeId: Value(node.id),
@@ -282,6 +285,7 @@ class GlobalScheduler {
             type: Value(mediaType),
             mediaPath: Value(mediaPath),
             sequence: 0,
+            timestamp: Value(dt),
           ),
         );
 
@@ -781,6 +785,9 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
 
+    final minutes = ref.read(gameClockProvider);
+    final dt = getGameDateTime(minutes);
+
     db
         .into(db.messages)
         .insert(
@@ -791,6 +798,7 @@ class GlobalScheduler {
             type: const Value('text'),
             sequence: 0,
             isPlayerMessage: const Value(true),
+            timestamp: Value(dt),
           ),
         )
         .then((_) async {
