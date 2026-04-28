@@ -135,7 +135,7 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Message>> watchChatMessages(String threadId) {
     return (select(messages)
           ..where((t) => t.threadId.equals(threadId))
-          ..orderBy([(t) => OrderingTerm.asc(t.sequence)]))
+          ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
         .watch();
   }
 

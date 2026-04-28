@@ -129,32 +129,30 @@ class _NotificationBannerState extends ConsumerState<NotificationBanner> {
             final threadId = payloadMap?['threadId'];
 
             if (threadId == null || threadId is! String || threadId.isEmpty) {
-              debugPrint("DreadmoorOS ⚠ Invalid threadId");
+              debugPrint("DreadmoorOS ❌ Invalid notification payload: $payloadMap");
               _markAsRead(notification.id);
               return;
             }
 
             // 2. Verify thread exists in DB before navigating
             final db = ref.read(databaseProvider);
-            final thread = await (db.select(db.threads)
-                  ..where((t) => t.id.equals(threadId)))
-                .getSingleOrNull();
+            db.select(db.threads)
+              ..where((t) => t.id.equals(threadId))
+              ..getSingleOrNull()
+              .then((thread) {
+                if (thread == null) {
+                  debugPrint("DreadmoorOS ❌ Thread not found for notification → $threadId");
+                  _markAsRead(notification.id);
+                  return;
+                }
 
-            if (thread == null) {
-              debugPrint("⚠ Thread not ready yet: $threadId");
-              _markAsRead(notification.id);
-              return;
-            }
+                // SAFE NAVIGATION
+                ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
+                ref.read(activeThreadIdProvider.notifier).setId(threadId);
+                ref.read(appRouterProvider).go(Routes.chat(threadId));
 
-            // 3. Set app state
-            ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
-            ref.read(activeThreadIdProvider.notifier).setId(threadId);
-
-            // 4. Navigate
-            ref.read(appRouterProvider).go(Routes.chat(threadId));
-
-            // 5. Mark as read
-            _markAsRead(notification.id);
+                _markAsRead(notification.id);
+            });
           } else if (notification.type == NotificationType.article) {
             // 2. Set App State
             ref.read(activeAppProvider.notifier).setApp(PhoneApp.browser);
