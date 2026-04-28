@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/ui/widgets/media_viewer.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/time/game_clock.dart';
 
 class ChatBubble extends ConsumerWidget {
   const ChatBubble({
@@ -64,13 +65,11 @@ class ChatBubble extends ConsumerWidget {
             ? const Color(0xFF4A9EBF).withOpacity(0.5)
             : Colors.white.withOpacity(0.14);
 
-    final Color textColor = isSecret
-        ? const Color(0xFFFF6B6B)
-        : Colors.white.withOpacity(0.92);
+    final Color textColor =
+        isSecret ? const Color(0xFFFF6B6B) : Colors.white.withOpacity(0.92);
 
-    final Color nameColor = isMe
-        ? const Color(0xFF4A9EBF)
-        : const Color(0xFFB0C8D8);
+    final Color nameColor =
+        isMe ? const Color(0xFF4A9EBF) : const Color(0xFFB0C8D8);
 
     final Color timestampColor = isSecret
         ? const Color(0xFFFF8A8A).withOpacity(0.45)
@@ -101,7 +100,6 @@ class ChatBubble extends ConsumerWidget {
           child: child,
         ),
       ),
-
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
 
@@ -109,7 +107,6 @@ class ChatBubble extends ConsumerWidget {
         child: Container(
           constraints: BoxConstraints(maxWidth: maxWidth),
           margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-
           decoration: BoxDecoration(
             color: bubbleFill,
             borderRadius: radius,
@@ -128,7 +125,6 @@ class ChatBubble extends ConsumerWidget {
                 ),
             ],
           ),
-
           child: ClipRRect(
             borderRadius: radius,
             child: Padding(
@@ -138,9 +134,7 @@ class ChatBubble extends ConsumerWidget {
               ),
               child: Column(
                 crossAxisAlignment:
-                    isMe
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
+                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // ── SENDER NAME ───────────────────────────────────────────
@@ -198,8 +192,7 @@ class ChatBubble extends ConsumerWidget {
                   ]
 
                   // ── IMAGE ────────────────────────────────────────────────
-                  else if (mediaType == 'image' &&
-                      mediaPath != null) ...[
+                  else if (mediaType == 'image' && mediaPath != null) ...[
                     GestureDetector(
                       onTap: () {
                         MediaViewer.open(
@@ -271,8 +264,6 @@ class ChatBubble extends ConsumerWidget {
   }
 
   String _formatTime(DateTime time) {
-    final h = time.hour.toString().padLeft(2, '0');
-    final m = time.minute.toString().padLeft(2, '0');
-    return '$h:$m';
+    return formatGameTimeFromDate(time);
   }
 }
