@@ -273,13 +273,10 @@ class GlobalScheduler {
       }
     }
 
-    // Advance by a fraction of the node's delay so fast messages share a
-    // timestamp while slower-paced exchanges show natural time progression.
-    final delayMs = (meta['duration'] as int?) ?? 500;
-    final delayMinutes = (delayMs / 60000).clamp(0, 5).round();
-    ref.read(gameClockProvider.notifier).advanceTime(
-      delayMinutes > 0 ? delayMinutes : 0,
-    );
+    // Time is story-driven: time_passed is explicit in JSON.
+    // duration is UI pacing only — never used for clock progression.
+    final timePassed = (meta['time_passed'] as int?) ?? 0;
+    ref.read(gameClockProvider.notifier).advanceTime(timePassed);
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
 
@@ -792,13 +789,8 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
 
-    // Player choices have no meta duration; default 500 ms → 0 delayMinutes,
-    // so replies share the timestamp of the preceding message.
-    final delayMs = 500;
-    final delayMinutes = (delayMs / 60000).clamp(0, 5).round();
-    ref.read(gameClockProvider.notifier).advanceTime(
-      delayMinutes > 0 ? delayMinutes : 0,
-    );
+    // Player choices carry no time_passed — replies are instant (0 minutes).
+    ref.read(gameClockProvider.notifier).advanceTime(0);
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
 
