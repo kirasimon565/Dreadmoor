@@ -301,6 +301,10 @@ class GlobalScheduler {
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
         .write(ThreadsCompanion(lastMessageId: Value(id)));
 
+    // Advance GameClock on every chat message so the UI reflects
+    // real in-game time progression (status bar, apps screen, bubbles).
+    ref.read(gameClockProvider.notifier).advanceTime(1);
+
     final activeThread = ref.read(activeThreadIdProvider);
 
     if (activeThread != threadId) {
