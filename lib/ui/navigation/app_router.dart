@@ -20,7 +20,6 @@ import '../screens/recap/recap_screen.dart';
 import '../screens/intro/intro_trailer_screen.dart';
 import '../screens/intro/title_cinematic_screen.dart';
 
-import 'package:dreadmoor/features/messenger/ui/screens/chat/chat_screen.dart';
 
 import 'routes.dart';
 
@@ -99,7 +98,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           Routes.episodes,
           Routes.save,
         ];
-        if (allowedUtilities.contains(loc) || loc.startsWith('/recap') || loc.startsWith('/chat') || loc.startsWith('/secret') || loc.startsWith('/profile')) {
+        if (allowedUtilities.contains(loc) || loc.startsWith('/recap') || loc.startsWith('/secret') || loc.startsWith('/profile')) {
           return null;
         }
 
@@ -224,18 +223,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             DreadmoorPage(key: state.pageKey, child: const FatalErrorScreen()),
       ),
 
-      /// Chat
-      GoRoute(
-        path: '/chat/:threadId',
-        pageBuilder: (context, state) {
-          final threadId = state.pathParameters['threadId']!;
-
-          return DreadmoorPage(
-            key: state.pageKey,
-            child: ChatScreen(threadId: threadId),
-          );
-        },
-      ),
     ],
   );
 
