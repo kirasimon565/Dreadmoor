@@ -273,8 +273,13 @@ class GlobalScheduler {
       }
     }
 
-    // Advance FIRST so each message gets a unique, incrementing timestamp.
-    ref.read(gameClockProvider.notifier).advanceTime(1);
+    // Advance by a fraction of the node's delay so fast messages share a
+    // timestamp while slower-paced exchanges show natural time progression.
+    final delayMs = (meta['duration'] as int?) ?? 500;
+    final delayMinutes = (delayMs / 60000).clamp(0, 5).round();
+    ref.read(gameClockProvider.notifier).advanceTime(
+      delayMinutes > 0 ? delayMinutes : 0,
+    );
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
 
@@ -787,9 +792,13 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
 
-    // Advance FIRST so the player choice gets the next tick, not the same
-    // timestamp as the preceding NPC message.
-    ref.read(gameClockProvider.notifier).advanceTime(1);
+    // Player choices have no meta duration; default 500 ms → 0 delayMinutes,
+    // so replies share the timestamp of the preceding message.
+    final delayMs = 500;
+    final delayMinutes = (delayMs / 60000).clamp(0, 5).round();
+    ref.read(gameClockProvider.notifier).advanceTime(
+      delayMinutes > 0 ? delayMinutes : 0,
+    );
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
 
