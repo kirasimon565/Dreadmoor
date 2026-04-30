@@ -130,8 +130,20 @@ class GlobalScheduler {
       return;
     }
 
-    final delay =
-        action == 'Pause' ? ((meta['duration'] as int?) ?? 2000) : 500;
+    if (action == 'Pause') {
+      // CRITICAL: mark node as processed
+      await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
+
+      final delay = (meta['duration'] as int?) ?? 2000;
+
+      _timer = Timer(Duration(milliseconds: delay), () {
+        _advance(node.nextNodeId);
+      });
+
+      return;
+    }
+
+    final delay = 500;
 
     _timer = Timer(Duration(milliseconds: delay), () async {
       try {
