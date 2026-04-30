@@ -4,14 +4,14 @@
       "id": "SCENE_1_NEWS_ARTICLE",
       "type": "News_Module",
       "theme": "Dreadmoor_Standard",
-      "headline": "Woman Vanishes After Late-Night Gathering at Abandoned Factory",
-      "subheadline": "Authorities investigate the disappearance of 26-year-old Rebecca Stone under unclear circumstances.",
+      "headline": "Where is Rebecca Stone? Local Woman Vanishes Following Late-Night Gathering at Derelict Factory",
+      "subheadline": "Authorities are scrambling to piece together a timeline after a 26-year-old disappeared under highly unusual circumstances on the town's eastern fringe.",
       "image_asset": "assets/media/images/factory_police.png",
-      "caption": "Police presence at the derelict factory site on the outskirts of Dreadmoor.",
+      "caption": "Police tape secures the perimeter of the derelict eastern factory where Rebecca Stone was last seen late Saturday night.",
       "body": [
-        "Rebecca Stone, 26, was reported missing in the early hours of Sunday morning following a private gathering at a long-abandoned factory on the eastern fringe of Dreadmoor.",
-        "Preliminary statements indicate Stone arrived at the location shortly before 11:00 PM on Saturday. Those present claim she was last seen sometime after midnight, and reportedly left the premises alone. Authorities have not yet confirmed independent verification of this timeline.",
-        "The factory, shuttered and decaying for years, sits isolated near the old industrial corridor. It is unclear who organized the gathering or why such a remote, hazardous location was chosen. Police have cordoned off the area as the investigation continues."
+        "DREADMOOR — The search is on for 26-year-old Rebecca Stone, who was reported missing in the early hours of Sunday morning. Her disappearance follows what attendees have described as a private, late-night gathering at a long-abandoned factory on the eastern edge of town.",
+        "According to preliminary statements given to local authorities, Stone arrived at the dilapidated site shortly before 11:00 p.m. on Saturday. Witnesses claim she was last seen departing the premises alone sometime 'around midnight.' However, authorities have yet to independently verify this timeline, leaving a critical gap in the night's events.",
+        "The location itself raises additional questions. The factory, which has sat shuttered and decaying for years in the old industrial corridor, lacks proper lighting, security, and cellular service. It remains entirely unclear who orchestrated the gathering, or why such a remote, hazardous site was chosen. Police have currently cordoned off the area as the investigation continues."
       ],
       "next": "SCENE_1_NOTIFICATION_TRIGGER"
     },
@@ -20,7 +20,7 @@
       "type": "System_Event",
       "action": "Push_Notification",
       "sender": "Unknown",
-      "text": "You read the article.",
+      "text": "you read it",
       "next": "s2_private_msg"
     }
   ]
