@@ -31,7 +31,6 @@
       "action": "Pause",
       "duration": 1200,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Initial_Shock_3"
     },
     {
@@ -64,7 +63,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Chris_Denial_3"
     },
     {
@@ -97,7 +95,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Abigail_Skeptic_3"
     },
     {
@@ -130,7 +127,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Mediator_3"
     },
     {
@@ -163,7 +159,6 @@
       "action": "Pause",
       "duration": 900,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Amelia_Direct_3"
     },
     {
@@ -185,7 +180,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Amelia_Direct_5"
     },
     {
@@ -228,7 +222,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Branch_Mistake_3"
     },
     {
@@ -261,7 +254,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Branch_Rebecca_3"
     },
     {
@@ -294,7 +286,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Branch_Aggressive_3"
     },
     {
@@ -316,7 +307,6 @@
       "action": "Pause",
       "duration": 900,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Branch_Aggressive_5"
     },
     {
@@ -349,7 +339,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Abigail_Push_3"
     },
     {
@@ -382,7 +371,6 @@
       "action": "Pause",
       "duration": 500,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Chris_Agree_3"
     },
     {
@@ -415,7 +403,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Intervene_3"
     },
     {
@@ -437,7 +424,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Intervene_5"
     },
     {
@@ -459,7 +445,6 @@
       "action": "Pause",
       "duration": 1200,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Intervene_7"
     },
     {
@@ -501,7 +486,6 @@
       "action": "Pause",
       "duration": 900,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Search_Reaction_3"
     },
     {
@@ -545,7 +529,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Sus_Reaction_3"
     },
     {
@@ -578,7 +561,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_ID_Check_3"
     },
     {
@@ -620,7 +602,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_KnewHer_Branch_3"
     },
     {
@@ -653,7 +634,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S3_NoID_Branch_3"
     },
     {
@@ -686,7 +666,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Logic_3"
     },
     {
@@ -708,7 +687,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Logic_5"
     },
     {
@@ -750,7 +728,6 @@
       "action": "Pause",
       "duration": 400,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Motivation_A_3"
     },
     {
@@ -772,7 +749,6 @@
       "action": "Pause",
       "duration": 900,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Motivation_A_5"
     },
     {
@@ -805,7 +781,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Motivation_B_3"
     },
     {
@@ -838,7 +813,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Warning_3"
     },
     {
@@ -880,7 +854,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Liar_Branch_3"
     },
     {
@@ -924,7 +897,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Timeline_Branch_3"
     },
     {
@@ -957,7 +929,6 @@
       "action": "Pause",
       "duration": 1200,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Timeline_Interject_3"
     },
     {
@@ -990,7 +961,6 @@
       "action": "Pause",
       "duration": 500,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Chris_Defensive_3"
     },
     {
@@ -1023,7 +993,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Abigail_Backup_3"
     },
     {
@@ -1056,7 +1025,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Michael_Doubt_3"
     },
     {
@@ -1078,7 +1046,6 @@
       "action": "Pause",
       "duration": 1400,
       "time_passed": 1,
-      "text": "",
       "next": "S3_Michael_Doubt_5"
     },
     {
@@ -1111,7 +1078,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Amelia_Final_3"
     },
     {
@@ -1133,7 +1099,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S3_Amelia_Final_5"
     },
     {
