@@ -6,7 +6,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "I have something.",
+      "duration": 1100,
+      "time_passed": 0,
+      "text": "i have something",
       "next": "s4_video_2"
     },
     {
@@ -16,7 +18,8 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 1000,
-      "text": "Watch it closely.",
+      "time_passed": 0,
+      "text": "",
       "next": "s4_video_3"
     },
     {
@@ -25,7 +28,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Don't look away.",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "watch it closely. don't look away.",
       "next": "S4_VIDEO_NODE"
     },
     {
@@ -59,7 +64,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Their phones.",
+      "duration": 1000,
+      "time_passed": 0,
+      "text": "their phones",
       "next": "S4_Unknown_Source_2"
     },
     {
@@ -69,7 +76,8 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 800,
-      "text": "Their messages. Their media.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Unknown_Source_3"
     },
     {
@@ -78,7 +86,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Someone tried to erase this clip.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "someone tried to erase this clip",
       "next": "S4_Unknown_Source_4"
     },
     {
@@ -88,7 +98,8 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 1100,
-      "text": "They were thorough.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Unknown_Source_5"
     },
     {
@@ -97,7 +108,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "But not thorough enough.",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "they were thorough. but not enough.",
       "next": "S4_Player_Realization"
     },
     {
@@ -121,7 +134,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Yes.",
+      "duration": 600,
+      "time_passed": 0,
+      "text": "yes",
       "next": "S4_Unknown_Confirm_2"
     },
     {
@@ -131,7 +146,8 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 1300,
-      "text": "You see it now.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Unknown_Confirm_3"
     },
     {
@@ -140,7 +156,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "The midnight story.",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "you see it now",
       "next": "S4_Unknown_Confirm_4"
     },
     {
@@ -150,7 +168,8 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 900,
-      "text": "It's not just wrong.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Unknown_Confirm_5"
     },
     {
@@ -159,7 +178,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "It's deliberate.",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "the midnight story isn't just wrong. it's deliberate.",
       "next": "S4_The_Mission"
     },
     {
@@ -168,7 +189,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Go back to them.",
+      "duration": 1200,
+      "time_passed": 1,
+      "text": "go back to them",
       "next": "S4_The_Mission_2"
     },
     {
@@ -178,7 +201,8 @@
       "sender": "Unknown",
       "action": "Pause",
       "duration": 800,
-      "text": "Armed with this.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_The_Mission_3"
     },
     {
@@ -187,7 +211,9 @@
       "chat": "unknown",
       "sender": "Unknown",
       "action": "Typing",
-      "text": "Watch how they move now.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "armed with this. watch how they move.",
       "next": "S4_SWITCH_GROUP"
     },
     {
@@ -203,7 +229,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "I still don't get it.",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "i still don't get it",
       "next": "S4_Group_Loop_2"
     },
     {
@@ -213,7 +241,8 @@
       "sender": "chris",
       "action": "Pause",
       "duration": 600,
-      "text": "Why does the time even matter?",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Group_Loop_3"
     },
     {
@@ -222,7 +251,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "She's gone. That's what matters.",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "why does the exact time even matter? she's gone.",
       "next": "S4_Abigail_Echo"
     },
     {
@@ -231,7 +262,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
       "action": "Typing",
-      "text": "Chris is right.",
+      "duration": 1100,
+      "time_passed": 0,
+      "text": "chris is right",
       "next": "S4_Abigail_Echo_2"
     },
     {
@@ -241,7 +274,8 @@
       "sender": "abigail",
       "action": "Pause",
       "duration": 500,
-      "text": "We told you.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Abigail_Echo_3"
     },
     {
@@ -250,7 +284,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
       "action": "Typing",
-      "text": "She left. End of story.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "we told you. she left. end of story.",
       "next": "S4_Michael_Pressure"
     },
     {
@@ -259,7 +295,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "It matters.",
+      "duration": 1000,
+      "time_passed": 0,
+      "text": "it matters.",
       "next": "S4_Michael_Pressure_2"
     },
     {
@@ -269,7 +307,8 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 700,
-      "text": "Details always matter.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Michael_Pressure_3"
     },
     {
@@ -278,7 +317,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "If your stories don't line up...",
+      "duration": 1500,
+      "time_passed": 0,
+      "text": "details always matter. if your stories don't line up...",
       "next": "S4_Michael_Pressure_4"
     },
     {
@@ -288,7 +329,19 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 900,
-      "text": "People start wondering why.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Michael_Pressure_5"
+    },
+    {
+      "id": "S4_Michael_Pressure_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "people start wondering why.",
       "next": "S4_Amelia_Hostile"
     },
     {
@@ -297,7 +350,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "You're making this into something it's not.",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "you're making this into something it's not",
       "next": "S4_Amelia_Hostile_2"
     },
     {
@@ -307,7 +362,8 @@
       "sender": "amelia",
       "action": "Pause",
       "duration": 600,
-      "text": "Nothing happened.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Amelia_Hostile_3"
     },
     {
@@ -316,7 +372,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "She was there. Then she wasn't.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "she was there. then she wasn't.",
       "next": "S4_Michael_Neutral"
     },
     {
@@ -325,7 +383,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Then why are you shaking?",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "then why are you shaking?",
       "next": "S4_Michael_Neutral_2"
     },
     {
@@ -335,7 +395,19 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 1000,
-      "text": "I can hear it in your voice.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Michael_Neutral_3"
+    },
+    {
+      "id": "S4_Michael_Neutral_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "i can hear it in your voice.",
       "next": "S4_Choice_Entry"
     },
     {
@@ -359,7 +431,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "What timeline?",
+      "duration": 1100,
+      "time_passed": 0,
+      "text": "what timeline?",
       "next": "S4_Group_React_B_2"
     },
     {
@@ -369,7 +443,19 @@
       "sender": "chris",
       "action": "Pause",
       "duration": 500,
-      "text": "There is no timeline.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Group_React_B_3"
+    },
+    {
+      "id": "S4_Group_React_B_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Typing",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "there is no timeline man",
       "next": "S4_Michael_Question"
     },
     {
@@ -378,7 +464,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
       "action": "Typing",
-      "text": "Hiding?",
+      "duration": 900,
+      "time_passed": 0,
+      "text": "hiding?",
       "next": "S4_Group_React_A_2"
     },
     {
@@ -387,7 +475,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "You don't know us.",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "you don't know us.",
       "next": "S4_Group_React_A_3"
     },
     {
@@ -397,7 +487,19 @@
       "sender": "amelia",
       "action": "Pause",
       "duration": 700,
-      "text": "You don't get to accuse us.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Group_React_A_4"
+    },
+    {
+      "id": "S4_Group_React_A_4",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "you don't get to accuse us.",
       "next": "S4_Michael_Question"
     },
     {
@@ -406,7 +508,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Let's make this simple.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "let's make this simple.",
       "next": "S4_Michael_Question_2"
     },
     {
@@ -416,7 +520,8 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 800,
-      "text": "One question.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Michael_Question_3"
     },
     {
@@ -425,7 +530,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "When did you last see Rebecca?",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "one question. when did you last see rebecca?",
       "next": "S4_Michael_Question_4"
     },
     {
@@ -435,7 +542,19 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 1000,
-      "text": "Exactly.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Michael_Question_5"
+    },
+    {
+      "id": "S4_Michael_Question_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "duration": 900,
+      "time_passed": 0,
+      "text": "exactly.",
       "next": "S4_The_Slip"
     },
     {
@@ -444,7 +563,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Look, it was late.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "look it was late",
       "next": "S4_The_Slip_2"
     },
     {
@@ -454,7 +575,19 @@
       "sender": "chris",
       "action": "Pause",
       "duration": 600,
-      "text": "Maybe around 1—",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_The_Slip_3"
+    },
+    {
+      "id": "S4_The_Slip_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "chris",
+      "action": "Typing",
+      "duration": 1100,
+      "time_passed": 0,
+      "text": "we were drinking, maybe around 1—",
       "next": "S4_Amelia_Interruption"
     },
     {
@@ -463,7 +596,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "Chris.",
+      "duration": 700,
+      "time_passed": 0,
+      "text": "chris.",
       "next": "S4_Amelia_Interruption_2"
     },
     {
@@ -473,7 +608,19 @@
       "sender": "amelia",
       "action": "Pause",
       "duration": 400,
-      "text": "Stop talking.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Amelia_Interruption_3"
+    },
+    {
+      "id": "S4_Amelia_Interruption_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "amelia",
+      "action": "Typing",
+      "duration": 900,
+      "time_passed": 0,
+      "text": "shut up.",
       "next": "S4_Michael_Catch"
     },
     {
@@ -482,6 +629,8 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
+      "duration": 800,
+      "time_passed": 0,
       "text": "...",
       "next": "S4_Michael_Catch_2"
     },
@@ -492,7 +641,8 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 1800,
-      "text": "Around one.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Michael_Catch_3"
     },
     {
@@ -501,7 +651,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "One what, Chris?",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "around one. one what, chris?",
       "next": "S4_Chris_Backtrack"
     },
     {
@@ -510,7 +662,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "Nothing.",
+      "duration": 800,
+      "time_passed": 0,
+      "text": "nothing",
       "next": "S4_Chris_Backtrack_2"
     },
     {
@@ -520,7 +674,8 @@
       "sender": "chris",
       "action": "Pause",
       "duration": 500,
-      "text": "I meant nothing.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Chris_Backtrack_3"
     },
     {
@@ -529,7 +684,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "chris",
       "action": "Typing",
-      "text": "I was just guessing. We were all drinking.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "i didn't mean anything. just guessing.",
       "next": "S4_Abigail_Exit"
     },
     {
@@ -538,7 +695,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "abigail",
       "action": "Typing",
-      "text": "I can't do this.",
+      "duration": 1000,
+      "time_passed": 0,
+      "text": "i can't do this",
       "next": "S4_Abigail_Exit_2"
     },
     {
@@ -548,7 +707,19 @@
       "sender": "abigail",
       "action": "Pause",
       "duration": 600,
-      "text": "This is insane.",
+      "time_passed": 0,
+      "text": "",
+      "next": "S4_Abigail_Exit_3"
+    },
+    {
+      "id": "S4_Abigail_Exit_3",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "abigail",
+      "action": "Typing",
+      "duration": 1100,
+      "time_passed": 0,
+      "text": "this is insane",
       "next": "S4_Group_Offline"
     },
     {
@@ -564,7 +735,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "I hope you're happy.",
+      "duration": 1200,
+      "time_passed": 0,
+      "text": "hope you're happy",
       "next": "S4_Amelia_Last_2"
     },
     {
@@ -574,7 +747,8 @@
       "sender": "amelia",
       "action": "Pause",
       "duration": 800,
-      "text": "Whatever you're trying to prove...",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Amelia_Last_3"
     },
     {
@@ -583,7 +757,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "amelia",
       "action": "Typing",
-      "text": "You're wrong.",
+      "duration": 1400,
+      "time_passed": 0,
+      "text": "whatever you think you know... you're wrong.",
       "next": "S4_Amelia_Offline"
     },
     {
@@ -599,7 +775,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Well.",
+      "duration": 700,
+      "time_passed": 0,
+      "text": "well.",
       "next": "S4_Michael_Closing_2"
     },
     {
@@ -609,7 +787,8 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 1200,
-      "text": "That happened.",
+      "time_passed": 0,
+      "text": "",
       "next": "S4_Michael_Closing_3"
     },
     {
@@ -618,7 +797,9 @@
       "chat": "group_dreadmoor_news",
       "sender": "michael",
       "action": "Typing",
-      "text": "Chris knows something.",
+      "duration": 1300,
+      "time_passed": 0,
+      "text": "that happened.",
       "next": "S4_Michael_Closing_4"
     },
     {
@@ -628,7 +809,19 @@
       "sender": "michael",
       "action": "Pause",
       "duration": 900,
-      "text": "And Amelia just confirmed it.",
+      "time_passed": 1,
+      "text": "",
+      "next": "S4_Michael_Closing_5"
+    },
+    {
+      "id": "S4_Michael_Closing_5",
+      "type": "Chat_Event",
+      "chat": "group_dreadmoor_news",
+      "sender": "michael",
+      "action": "Typing",
+      "duration": 1500,
+      "time_passed": 0,
+      "text": "chris knows something. and amelia just confirmed it.",
       "next": "s4_intercept"
     }
   ]
