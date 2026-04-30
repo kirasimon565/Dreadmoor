@@ -31,7 +31,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Panic_3"
     },
     {
@@ -53,7 +52,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Panic_5"
     },
     {
@@ -75,7 +73,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Panic_7"
     },
     {
@@ -108,7 +105,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Cold_3"
     },
     {
@@ -130,7 +126,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Cold_5"
     },
     {
@@ -163,7 +158,6 @@
       "action": "Pause",
       "duration": 500,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Relief_3"
     },
     {
@@ -185,7 +179,6 @@
       "action": "Pause",
       "duration": 1800,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Relief_5"
     },
     {
@@ -207,7 +200,6 @@
       "action": "Pause",
       "duration": 900,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Relief_7"
     },
     {
@@ -240,7 +232,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_ShutDown_3"
     },
     {
@@ -262,7 +253,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_ShutDown_5"
     },
     {
@@ -295,7 +285,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Doubt_3"
     },
     {
@@ -317,7 +306,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Doubt_5"
     },
     {
@@ -350,7 +338,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Dismissive_3"
     },
     {
@@ -372,7 +359,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 1,
-      "text": "",
       "next": "S5_Michael_Dismissive_5"
     },
     {
@@ -405,7 +391,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Guilt_3"
     },
     {
@@ -427,7 +412,6 @@
       "action": "Pause",
       "duration": 900,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Guilt_5"
     },
     {
@@ -449,7 +433,6 @@
       "action": "Pause",
       "duration": 1200,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Guilt_7"
     },
     {
@@ -471,7 +454,6 @@
       "action": "Pause",
       "duration": 2000,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Amelia_Guilt_9"
     },
     {
@@ -504,7 +486,6 @@
       "action": "Pause",
       "duration": 600,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Cut_3"
     },
     {
@@ -526,7 +507,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Cut_5"
     },
     {
@@ -559,7 +539,6 @@
       "action": "Pause",
       "duration": 800,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Final_Warning_3"
     },
     {
@@ -581,7 +560,6 @@
       "action": "Pause",
       "duration": 500,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Final_Warning_5"
     },
     {
@@ -603,7 +581,6 @@
       "action": "Pause",
       "duration": 700,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Final_Warning_7"
     },
     {
@@ -625,7 +602,6 @@
       "action": "Pause",
       "duration": 1500,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Final_Warning_9"
     },
     {
@@ -647,7 +623,6 @@
       "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
-      "text": "",
       "next": "S5_Michael_Final_Warning_11"
     },
     {
