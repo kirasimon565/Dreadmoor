@@ -13,10 +13,8 @@
     },
     {
       "id": "s4_video_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "unknown",
-      "sender": "Unknown",
-      "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
       "next": "s4_video_3"
@@ -70,10 +68,8 @@
     },
     {
       "id": "S4_Unknown_Source_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "unknown",
-      "sender": "Unknown",
-      "action": "Pause",
       "duration": 800,
       "time_passed": 0,
       "next": "S4_Unknown_Source_3"
@@ -91,10 +87,8 @@
     },
     {
       "id": "S4_Unknown_Source_4",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "unknown",
-      "sender": "Unknown",
-      "action": "Pause",
       "duration": 1100,
       "time_passed": 0,
       "next": "S4_Unknown_Source_5"
@@ -138,10 +132,8 @@
     },
     {
       "id": "S4_Unknown_Confirm_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "unknown",
-      "sender": "Unknown",
-      "action": "Pause",
       "duration": 1300,
       "time_passed": 0,
       "next": "S4_Unknown_Confirm_3"
@@ -159,10 +151,8 @@
     },
     {
       "id": "S4_Unknown_Confirm_4",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "unknown",
-      "sender": "Unknown",
-      "action": "Pause",
       "duration": 900,
       "time_passed": 0,
       "next": "S4_Unknown_Confirm_5"
@@ -191,10 +181,8 @@
     },
     {
       "id": "S4_The_Mission_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "unknown",
-      "sender": "Unknown",
-      "action": "Pause",
       "duration": 800,
       "time_passed": 0,
       "next": "S4_The_Mission_3"
@@ -230,10 +218,8 @@
     },
     {
       "id": "S4_Group_Loop_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "chris",
-      "action": "Pause",
       "duration": 600,
       "time_passed": 0,
       "next": "S4_Group_Loop_3"
@@ -262,10 +248,8 @@
     },
     {
       "id": "S4_Abigail_Echo_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "abigail",
-      "action": "Pause",
       "duration": 500,
       "time_passed": 0,
       "next": "S4_Abigail_Echo_3"
@@ -294,10 +278,8 @@
     },
     {
       "id": "S4_Michael_Pressure_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 700,
       "time_passed": 0,
       "next": "S4_Michael_Pressure_3"
@@ -315,10 +297,8 @@
     },
     {
       "id": "S4_Michael_Pressure_4",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 900,
       "time_passed": 0,
       "next": "S4_Michael_Pressure_5"
@@ -347,10 +327,8 @@
     },
     {
       "id": "S4_Amelia_Hostile_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "amelia",
-      "action": "Pause",
       "duration": 600,
       "time_passed": 0,
       "next": "S4_Amelia_Hostile_3"
@@ -379,10 +357,8 @@
     },
     {
       "id": "S4_Michael_Neutral_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
       "next": "S4_Michael_Neutral_3"
@@ -426,10 +402,8 @@
     },
     {
       "id": "S4_Group_React_B_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "chris",
-      "action": "Pause",
       "duration": 500,
       "time_passed": 0,
       "next": "S4_Group_React_B_3"
@@ -469,10 +443,8 @@
     },
     {
       "id": "S4_Group_React_A_3",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "amelia",
-      "action": "Pause",
       "duration": 700,
       "time_passed": 0,
       "next": "S4_Group_React_A_4"
@@ -501,10 +473,8 @@
     },
     {
       "id": "S4_Michael_Question_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 800,
       "time_passed": 0,
       "next": "S4_Michael_Question_3"
@@ -522,10 +492,8 @@
     },
     {
       "id": "S4_Michael_Question_4",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 1000,
       "time_passed": 0,
       "next": "S4_Michael_Question_5"
@@ -554,10 +522,8 @@
     },
     {
       "id": "S4_The_Slip_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "chris",
-      "action": "Pause",
       "duration": 600,
       "time_passed": 0,
       "next": "S4_The_Slip_3"
@@ -586,10 +552,8 @@
     },
     {
       "id": "S4_Amelia_Interruption_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "amelia",
-      "action": "Pause",
       "duration": 400,
       "time_passed": 0,
       "next": "S4_Amelia_Interruption_3"
@@ -618,10 +582,8 @@
     },
     {
       "id": "S4_Michael_Catch_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 1800,
       "time_passed": 0,
       "next": "S4_Michael_Catch_3"
@@ -650,10 +612,8 @@
     },
     {
       "id": "S4_Chris_Backtrack_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "chris",
-      "action": "Pause",
       "duration": 500,
       "time_passed": 0,
       "next": "S4_Chris_Backtrack_3"
@@ -682,10 +642,8 @@
     },
     {
       "id": "S4_Abigail_Exit_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "abigail",
-      "action": "Pause",
       "duration": 600,
       "time_passed": 0,
       "next": "S4_Abigail_Exit_3"
@@ -721,10 +679,8 @@
     },
     {
       "id": "S4_Amelia_Last_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "amelia",
-      "action": "Pause",
       "duration": 800,
       "time_passed": 0,
       "next": "S4_Amelia_Last_3"
@@ -760,10 +716,8 @@
     },
     {
       "id": "S4_Michael_Closing_2",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 1200,
       "time_passed": 0,
       "next": "S4_Michael_Closing_3"
@@ -781,10 +735,8 @@
     },
     {
       "id": "S4_Michael_Closing_4",
-      "type": "Chat_Event",
+      "type": "Pause",
       "chat": "group_dreadmoor_news",
-      "sender": "michael",
-      "action": "Pause",
       "duration": 900,
       "time_passed": 1,
       "next": "S4_Michael_Closing_5"
