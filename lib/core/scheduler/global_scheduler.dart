@@ -689,6 +689,11 @@ class GlobalScheduler {
   Future<void> _handlePause(StoryNode node, Map<String, dynamic> meta) async {
     await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
 
+    final timePassed = (meta['time_passed'] as int?) ?? 0;
+    if (timePassed > 0) {
+      ref.read(gameClockProvider.notifier).advanceTime(timePassed);
+    }
+
     final delay = (meta['duration'] as int?) ?? 2000;
 
     _timer = Timer(Duration(milliseconds: delay), () {
