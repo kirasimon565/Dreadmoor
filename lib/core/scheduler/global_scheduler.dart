@@ -38,6 +38,10 @@ import '../persistence/seed_characters.dart';
 //
 //   GENERIC (work in any episode):
 //     Chat_Event          — NPC message in the thread defined by metadata.chat
+//     Typing              — Shows typing indicator; metadata.duration (ms)
+//     Pause               — Delays execution only; metadata.duration (ms)
+//                           Does NOT insert any message. Use instead of
+//                           { "type": "Chat_Event", "action": "Pause" }.
 //     Player_Choice       — Shows choice buttons; options in metadata.options
 //     System_Event        — System actions: Push_Notification, Switch_Context,
 //                           Add_To_Group, Trigger_Credits
@@ -130,19 +134,6 @@ class GlobalScheduler {
       return;
     }
 
-    if (action == 'Pause') {
-      // CRITICAL: mark node as processed
-      await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
-
-      final delay = (meta['duration'] as int?) ?? 2000;
-
-      _timer = Timer(Duration(milliseconds: delay), () {
-        _advance(node.nextNodeId);
-      });
-
-      return;
-    }
-
     final delay = 500;
 
     _timer = Timer(Duration(milliseconds: delay), () async {
@@ -172,6 +163,13 @@ class GlobalScheduler {
       case 'Private_Unknown': // ep01 alias — kept for back-compat
       case 'Video_Message':
         await _handleChatMessage(node, meta);
+        break;
+
+      // ── Delay-only — no message, no side effects ───────────────────────
+      // Use this instead of { "type": "Chat_Event", "action": "Pause" }.
+      // Contract: a node that produces no message must not be a Chat_Event.
+      case 'Pause':
+        await _handlePause(node, meta);
         break;
 
       // ── Player makes a choice ──────────────────────────────────────────
@@ -680,6 +678,23 @@ class GlobalScheduler {
   // --------------------------------------------------
   // HELPERS
   // --------------------------------------------------
+
+  // ── Pause — delay only, no message ──────────────────────────────────────
+  //
+  // Use in JSON as: { "type": "Pause", "duration": 1100, "next": "..." }
+  //
+  // This is the correct node type whenever execution must stall without
+  // inserting a chat message. Using Chat_Event with action=Pause violated
+  // the engine contract (a message node that produces no message).
+  Future<void> _handlePause(StoryNode node, Map<String, dynamic> meta) async {
+    await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
+
+    final delay = (meta['duration'] as int?) ?? 2000;
+
+    _timer = Timer(Duration(milliseconds: delay), () {
+      _advance(node.nextNodeId);
+    });
+  }
 
   Future<void> _handleTyping(StoryNode node, Map<String, dynamic> meta) async {
     final db = ref.read(databaseProvider);
