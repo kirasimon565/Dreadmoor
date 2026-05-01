@@ -1140,6 +1140,12 @@ class $ThreadsTable extends Threads with TableInfo<$ThreadsTable, Thread> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_typing" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _typingUserIdMeta =
+      const VerificationMeta('typingUserId');
+  @override
+  late final GeneratedColumn<String> typingUserId = GeneratedColumn<String>(
+      'typing_user_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _isSecretMeta =
       const VerificationMeta('isSecret');
   @override
@@ -1171,6 +1177,7 @@ class $ThreadsTable extends Threads with TableInfo<$ThreadsTable, Thread> {
         lastMessageId,
         isLocked,
         isTyping,
+        typingUserId,
         isSecret,
         unreadCount,
         participants
@@ -1210,6 +1217,12 @@ class $ThreadsTable extends Threads with TableInfo<$ThreadsTable, Thread> {
       context.handle(_isTypingMeta,
           isTyping.isAcceptableOrUnknown(data['is_typing']!, _isTypingMeta));
     }
+    if (data.containsKey('typing_user_id')) {
+      context.handle(
+          _typingUserIdMeta,
+          typingUserId.isAcceptableOrUnknown(
+              data['typing_user_id']!, _typingUserIdMeta));
+    }
     if (data.containsKey('is_secret')) {
       context.handle(_isSecretMeta,
           isSecret.isAcceptableOrUnknown(data['is_secret']!, _isSecretMeta));
@@ -1247,6 +1260,8 @@ class $ThreadsTable extends Threads with TableInfo<$ThreadsTable, Thread> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_locked'])!,
       isTyping: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_typing'])!,
+      typingUserId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}typing_user_id']),
       isSecret: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_secret'])!,
       unreadCount: attachedDatabase.typeMapping
@@ -1268,6 +1283,7 @@ class Thread extends DataClass implements Insertable<Thread> {
   final int? lastMessageId;
   final bool isLocked;
   final bool isTyping;
+  final String? typingUserId;
   final bool isSecret;
   final int unreadCount;
   final String participants;
@@ -1277,6 +1293,7 @@ class Thread extends DataClass implements Insertable<Thread> {
       this.lastMessageId,
       required this.isLocked,
       required this.isTyping,
+      this.typingUserId,
       required this.isSecret,
       required this.unreadCount,
       required this.participants});
@@ -1290,6 +1307,9 @@ class Thread extends DataClass implements Insertable<Thread> {
     }
     map['is_locked'] = Variable<bool>(isLocked);
     map['is_typing'] = Variable<bool>(isTyping);
+    if (!nullToAbsent || typingUserId != null) {
+      map['typing_user_id'] = Variable<String>(typingUserId);
+    }
     map['is_secret'] = Variable<bool>(isSecret);
     map['unread_count'] = Variable<int>(unreadCount);
     map['participants'] = Variable<String>(participants);
@@ -1305,6 +1325,9 @@ class Thread extends DataClass implements Insertable<Thread> {
           : Value(lastMessageId),
       isLocked: Value(isLocked),
       isTyping: Value(isTyping),
+      typingUserId: typingUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(typingUserId),
       isSecret: Value(isSecret),
       unreadCount: Value(unreadCount),
       participants: Value(participants),
@@ -1320,6 +1343,7 @@ class Thread extends DataClass implements Insertable<Thread> {
       lastMessageId: serializer.fromJson<int?>(json['lastMessageId']),
       isLocked: serializer.fromJson<bool>(json['isLocked']),
       isTyping: serializer.fromJson<bool>(json['isTyping']),
+      typingUserId: serializer.fromJson<String?>(json['typingUserId']),
       isSecret: serializer.fromJson<bool>(json['isSecret']),
       unreadCount: serializer.fromJson<int>(json['unreadCount']),
       participants: serializer.fromJson<String>(json['participants']),
@@ -1334,6 +1358,7 @@ class Thread extends DataClass implements Insertable<Thread> {
       'lastMessageId': serializer.toJson<int?>(lastMessageId),
       'isLocked': serializer.toJson<bool>(isLocked),
       'isTyping': serializer.toJson<bool>(isTyping),
+      'typingUserId': serializer.toJson<String?>(typingUserId),
       'isSecret': serializer.toJson<bool>(isSecret),
       'unreadCount': serializer.toJson<int>(unreadCount),
       'participants': serializer.toJson<String>(participants),
@@ -1346,6 +1371,7 @@ class Thread extends DataClass implements Insertable<Thread> {
           Value<int?> lastMessageId = const Value.absent(),
           bool? isLocked,
           bool? isTyping,
+          Value<String?> typingUserId = const Value.absent(),
           bool? isSecret,
           int? unreadCount,
           String? participants}) =>
@@ -1356,6 +1382,8 @@ class Thread extends DataClass implements Insertable<Thread> {
             lastMessageId.present ? lastMessageId.value : this.lastMessageId,
         isLocked: isLocked ?? this.isLocked,
         isTyping: isTyping ?? this.isTyping,
+        typingUserId:
+            typingUserId.present ? typingUserId.value : this.typingUserId,
         isSecret: isSecret ?? this.isSecret,
         unreadCount: unreadCount ?? this.unreadCount,
         participants: participants ?? this.participants,
@@ -1369,6 +1397,9 @@ class Thread extends DataClass implements Insertable<Thread> {
           : this.lastMessageId,
       isLocked: data.isLocked.present ? data.isLocked.value : this.isLocked,
       isTyping: data.isTyping.present ? data.isTyping.value : this.isTyping,
+      typingUserId: data.typingUserId.present
+          ? data.typingUserId.value
+          : this.typingUserId,
       isSecret: data.isSecret.present ? data.isSecret.value : this.isSecret,
       unreadCount:
           data.unreadCount.present ? data.unreadCount.value : this.unreadCount,
@@ -1386,6 +1417,7 @@ class Thread extends DataClass implements Insertable<Thread> {
           ..write('lastMessageId: $lastMessageId, ')
           ..write('isLocked: $isLocked, ')
           ..write('isTyping: $isTyping, ')
+          ..write('typingUserId: $typingUserId, ')
           ..write('isSecret: $isSecret, ')
           ..write('unreadCount: $unreadCount, ')
           ..write('participants: $participants')
@@ -1395,7 +1427,7 @@ class Thread extends DataClass implements Insertable<Thread> {
 
   @override
   int get hashCode => Object.hash(id, title, lastMessageId, isLocked, isTyping,
-      isSecret, unreadCount, participants);
+      typingUserId, isSecret, unreadCount, participants);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1405,6 +1437,7 @@ class Thread extends DataClass implements Insertable<Thread> {
           other.lastMessageId == this.lastMessageId &&
           other.isLocked == this.isLocked &&
           other.isTyping == this.isTyping &&
+          other.typingUserId == this.typingUserId &&
           other.isSecret == this.isSecret &&
           other.unreadCount == this.unreadCount &&
           other.participants == this.participants);
@@ -1416,6 +1449,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
   final Value<int?> lastMessageId;
   final Value<bool> isLocked;
   final Value<bool> isTyping;
+  final Value<String?> typingUserId;
   final Value<bool> isSecret;
   final Value<int> unreadCount;
   final Value<String> participants;
@@ -1426,6 +1460,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
     this.lastMessageId = const Value.absent(),
     this.isLocked = const Value.absent(),
     this.isTyping = const Value.absent(),
+    this.typingUserId = const Value.absent(),
     this.isSecret = const Value.absent(),
     this.unreadCount = const Value.absent(),
     this.participants = const Value.absent(),
@@ -1437,6 +1472,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
     this.lastMessageId = const Value.absent(),
     this.isLocked = const Value.absent(),
     this.isTyping = const Value.absent(),
+    this.typingUserId = const Value.absent(),
     this.isSecret = const Value.absent(),
     this.unreadCount = const Value.absent(),
     required String participants,
@@ -1450,6 +1486,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
     Expression<int>? lastMessageId,
     Expression<bool>? isLocked,
     Expression<bool>? isTyping,
+    Expression<String>? typingUserId,
     Expression<bool>? isSecret,
     Expression<int>? unreadCount,
     Expression<String>? participants,
@@ -1461,6 +1498,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
       if (lastMessageId != null) 'last_message_id': lastMessageId,
       if (isLocked != null) 'is_locked': isLocked,
       if (isTyping != null) 'is_typing': isTyping,
+      if (typingUserId != null) 'typing_user_id': typingUserId,
       if (isSecret != null) 'is_secret': isSecret,
       if (unreadCount != null) 'unread_count': unreadCount,
       if (participants != null) 'participants': participants,
@@ -1474,6 +1512,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
       Value<int?>? lastMessageId,
       Value<bool>? isLocked,
       Value<bool>? isTyping,
+      Value<String?>? typingUserId,
       Value<bool>? isSecret,
       Value<int>? unreadCount,
       Value<String>? participants,
@@ -1484,6 +1523,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
       lastMessageId: lastMessageId ?? this.lastMessageId,
       isLocked: isLocked ?? this.isLocked,
       isTyping: isTyping ?? this.isTyping,
+      typingUserId: typingUserId ?? this.typingUserId,
       isSecret: isSecret ?? this.isSecret,
       unreadCount: unreadCount ?? this.unreadCount,
       participants: participants ?? this.participants,
@@ -1509,6 +1549,9 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
     if (isTyping.present) {
       map['is_typing'] = Variable<bool>(isTyping.value);
     }
+    if (typingUserId.present) {
+      map['typing_user_id'] = Variable<String>(typingUserId.value);
+    }
     if (isSecret.present) {
       map['is_secret'] = Variable<bool>(isSecret.value);
     }
@@ -1532,6 +1575,7 @@ class ThreadsCompanion extends UpdateCompanion<Thread> {
           ..write('lastMessageId: $lastMessageId, ')
           ..write('isLocked: $isLocked, ')
           ..write('isTyping: $isTyping, ')
+          ..write('typingUserId: $typingUserId, ')
           ..write('isSecret: $isSecret, ')
           ..write('unreadCount: $unreadCount, ')
           ..write('participants: $participants, ')
@@ -6209,6 +6253,7 @@ typedef $$ThreadsTableCreateCompanionBuilder = ThreadsCompanion Function({
   Value<int?> lastMessageId,
   Value<bool> isLocked,
   Value<bool> isTyping,
+  Value<String?> typingUserId,
   Value<bool> isSecret,
   Value<int> unreadCount,
   required String participants,
@@ -6220,6 +6265,7 @@ typedef $$ThreadsTableUpdateCompanionBuilder = ThreadsCompanion Function({
   Value<int?> lastMessageId,
   Value<bool> isLocked,
   Value<bool> isTyping,
+  Value<String?> typingUserId,
   Value<bool> isSecret,
   Value<int> unreadCount,
   Value<String> participants,
@@ -6283,6 +6329,9 @@ class $$ThreadsTableFilterComposer
 
   ColumnFilters<bool> get isTyping => $composableBuilder(
       column: $table.isTyping, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get typingUserId => $composableBuilder(
+      column: $table.typingUserId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isSecret => $composableBuilder(
       column: $table.isSecret, builder: (column) => ColumnFilters(column));
@@ -6361,6 +6410,10 @@ class $$ThreadsTableOrderingComposer
   ColumnOrderings<bool> get isTyping => $composableBuilder(
       column: $table.isTyping, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get typingUserId => $composableBuilder(
+      column: $table.typingUserId,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isSecret => $composableBuilder(
       column: $table.isSecret, builder: (column) => ColumnOrderings(column));
 
@@ -6395,6 +6448,9 @@ class $$ThreadsTableAnnotationComposer
 
   GeneratedColumn<bool> get isTyping =>
       $composableBuilder(column: $table.isTyping, builder: (column) => column);
+
+  GeneratedColumn<String> get typingUserId => $composableBuilder(
+      column: $table.typingUserId, builder: (column) => column);
 
   GeneratedColumn<bool> get isSecret =>
       $composableBuilder(column: $table.isSecret, builder: (column) => column);
@@ -6476,6 +6532,7 @@ class $$ThreadsTableTableManager extends RootTableManager<
             Value<int?> lastMessageId = const Value.absent(),
             Value<bool> isLocked = const Value.absent(),
             Value<bool> isTyping = const Value.absent(),
+            Value<String?> typingUserId = const Value.absent(),
             Value<bool> isSecret = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
             Value<String> participants = const Value.absent(),
@@ -6487,6 +6544,7 @@ class $$ThreadsTableTableManager extends RootTableManager<
             lastMessageId: lastMessageId,
             isLocked: isLocked,
             isTyping: isTyping,
+            typingUserId: typingUserId,
             isSecret: isSecret,
             unreadCount: unreadCount,
             participants: participants,
@@ -6498,6 +6556,7 @@ class $$ThreadsTableTableManager extends RootTableManager<
             Value<int?> lastMessageId = const Value.absent(),
             Value<bool> isLocked = const Value.absent(),
             Value<bool> isTyping = const Value.absent(),
+            Value<String?> typingUserId = const Value.absent(),
             Value<bool> isSecret = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
             required String participants,
@@ -6509,6 +6568,7 @@ class $$ThreadsTableTableManager extends RootTableManager<
             lastMessageId: lastMessageId,
             isLocked: isLocked,
             isTyping: isTyping,
+            typingUserId: typingUserId,
             isSecret: isSecret,
             unreadCount: unreadCount,
             participants: participants,

@@ -303,6 +303,8 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
           return const SizedBox(height: 20);
         }
 
+        final typingUserId = threadSnap.data?.typingUserId;
+
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
@@ -310,17 +312,17 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
             String? senderName;
 
-            if (membersSnap.hasData) {
+            if (membersSnap.hasData && typingUserId != null) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
-                if (char != null && char.id != 'player') {
+                if (char != null && char.id == typingUserId) {
                   senderName = char.name;
                   break;
                 }
               }
             }
 
-            return GunTypingIndicator(senderName: senderName, isSecret: true);
+            return GunTypingIndicator(senderName: senderName ?? 'Someone', isSecret: true);
           },
         );
       },

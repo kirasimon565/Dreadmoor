@@ -705,15 +705,16 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = _resolveThreadId(node, meta);
     final duration = (meta['duration'] as int?) ?? 2000;
+    final senderId = node.senderId ?? 'unknown';
 
     await _ensureThread(threadId, meta);
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
-        .write(const ThreadsCompanion(isTyping: Value(true)));
+        .write(ThreadsCompanion(isTyping: const Value(true), typingUserId: Value(senderId)));
 
     _timer = Timer(Duration(milliseconds: duration), () async {
       try {
         await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
-            .write(const ThreadsCompanion(isTyping: Value(false)));
+            .write(const ThreadsCompanion(isTyping: Value(false), typingUserId: Value(null)));
 
         // Option B: only process the node (which calls _handleChatMessage)
         // if the thread is currently active. If not, pause and wait.
@@ -731,7 +732,7 @@ class GlobalScheduler {
         print("DreadmoorOS ✗ Typing timer failed on '${node.id}': $e\n$st");
         try {
           await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
-              .write(const ThreadsCompanion(isTyping: Value(false)));
+              .write(const ThreadsCompanion(isTyping: Value(false), typingUserId: Value(null)));
         } catch (_) {}
         _advance(node.nextNodeId);
       }

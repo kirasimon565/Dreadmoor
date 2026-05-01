@@ -292,6 +292,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           return const SizedBox(height: 20);
         }
 
+        final typingUserId = threadSnap.data?.typingUserId;
+
         return StreamBuilder<List<TypedResult>>(
           stream: _membersWithNamesStream,
           builder: (context, membersSnap) {
@@ -299,10 +301,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
             String? senderName;
 
-            if (membersSnap.hasData) {
+            if (membersSnap.hasData && typingUserId != null) {
               for (final row in membersSnap.data!) {
                 final char = row.readTableOrNull(db.characters);
-                if (char != null && char.id != 'player') {
+                if (char != null && char.id == typingUserId) {
                   senderName = char.name;
                   break;
                 }
@@ -310,7 +312,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             }
 
             return FeatherTypingIndicator(
-              senderName: senderName,
+              senderName: senderName ?? 'Someone',
               isSecret: false,
             );
           },
