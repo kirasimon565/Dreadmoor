@@ -49,7 +49,7 @@
       "type": "Pause",
       "chat": "unknown",
       "duration": 1300,
-      "time_passed": 0,
+      "time_passed": 5,
       "next": "S2_Player_Intro"
     },
     {
@@ -65,7 +65,8 @@
           "text": "I don't know what you're talking about.",
           "next": "S2_Unknown_Rebuttal"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_Unknown_Rebuttal",
@@ -102,7 +103,7 @@
       "type": "Pause",
       "chat": "unknown",
       "duration": 1000,
-      "time_passed": 1,
+      "time_passed": 0,
       "next": "S2_Unknown_Hook"
     },
     {
@@ -171,7 +172,8 @@
           "text": "I'm listening. Keep talking.",
           "next": "S2_Branch_C"
         }
-      ]
+      ],
+      "time_passed": 4
     },
     {
       "id": "S2_Branch_A",
@@ -297,7 +299,7 @@
       "sender": "Unknown",
       "action": "Typing",
       "duration": 1300,
-      "time_passed": 1,
+      "time_passed": 0,
       "text": "the article told you where",
       "next": "S2_The_Factory_Lead_2"
     },
@@ -371,7 +373,8 @@
           "text": "Who chose it then?",
           "next": "S2_The_Sister_Reveal"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_The_Sister_Reveal",
@@ -435,7 +438,8 @@
           "text": "Stop speaking in riddles.",
           "next": "S2_Amelia_Accusation"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_Amelia_Accusation",
@@ -453,7 +457,7 @@
       "type": "Pause",
       "chat": "unknown",
       "duration": 1300,
-      "time_passed": 1,
+      "time_passed": 0,
       "next": "S2_Amelia_Accusation_3"
     },
     {
@@ -499,7 +503,8 @@
           "text": "You're sure Amelia was in control?",
           "next": "S2_Amelia_Reasoning"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_Amelia_Reasoning",
@@ -612,7 +617,8 @@
           "text": "What went wrong?",
           "next": "S2_The_Phone_Call"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_The_Phone_Call",
@@ -621,7 +627,7 @@
       "sender": "Unknown",
       "action": "Typing",
       "duration": 1000,
-      "time_passed": 1,
+      "time_passed": 0,
       "text": "rebecca called me",
       "next": "S2_The_Phone_Call_2"
     },
@@ -657,7 +663,8 @@
           "text": "What did she say?",
           "next": "S2_Timeline_Details"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_Timeline_Details",
@@ -860,7 +867,7 @@
       "type": "Pause",
       "chat": "unknown",
       "duration": 1500,
-      "time_passed": 0,
+      "time_passed": 3,
       "next": "S2_The_Hangup_7"
     },
     {
@@ -887,7 +894,8 @@
           "text": "What do you think she heard?",
           "next": "S2_The_Last_Words"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_The_Last_Words",
@@ -951,7 +959,8 @@
           "text": "What happened after she hung up?",
           "next": "S2_The_Mismatch"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_The_Mismatch",
@@ -960,7 +969,7 @@
       "sender": "Unknown",
       "action": "Typing",
       "duration": 1200,
-      "time_passed": 1,
+      "time_passed": 0,
       "text": "their timeline",
       "next": "S2_The_Mismatch_2"
     },
@@ -1007,7 +1016,7 @@
       "type": "Pause",
       "chat": "unknown",
       "duration": 1000,
-      "time_passed": 1,
+      "time_passed": 0,
       "next": "S2_The_Coordination_2"
     },
     {
@@ -1034,7 +1043,8 @@
           "text": "You're watching them.",
           "next": "S2_The_Intercept"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_The_Intercept",
@@ -1102,7 +1112,8 @@
           "text": "Show me what they're saying.",
           "next": "S2_Group_Intel_C"
         }
-      ]
+      ],
+      "time_passed": 4
     },
     {
       "id": "S2_Group_Intel_A",
@@ -1362,7 +1373,7 @@
       "type": "Pause",
       "chat": "unknown",
       "duration": 1200,
-      "time_passed": 0,
+      "time_passed": 5,
       "next": "S2_Choice_FinalReady"
     },
     {
@@ -1378,7 +1389,8 @@
           "text": "Wait. I'm not ready.",
           "next": "S2_Add_Forced"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S2_Add_Success",

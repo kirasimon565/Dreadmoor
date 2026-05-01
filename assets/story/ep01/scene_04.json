@@ -35,7 +35,9 @@
       "type": "Video_Node",
       "chat": "unknown",
       "thread_title": "Unknown",
-      "thread_members": ["unknown"],
+      "thread_members": [
+        "unknown"
+      ],
       "sender": "Unknown",
       "file_asset": "assets/media/videos/party_clip.mp4",
       "next": "S4_Player_Reaction"
@@ -53,7 +55,8 @@
           "text": "That's her. That's Rebecca.",
           "next": "S4_Unknown_Source"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S4_Unknown_Source",
@@ -117,7 +120,8 @@
           "text": "This was after 11:30. Way after.",
           "next": "S4_Unknown_Confirm"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S4_Unknown_Confirm",
@@ -175,7 +179,7 @@
       "sender": "Unknown",
       "action": "Typing",
       "duration": 1200,
-      "time_passed": 1,
+      "time_passed": 0,
       "text": "go back to them",
       "next": "S4_The_Mission_2"
     },
@@ -387,7 +391,8 @@
           "text": "You're all hiding something.",
           "next": "S4_Group_React_A"
         }
-      ]
+      ],
+      "time_passed": 3
     },
     {
       "id": "S4_Group_React_B",
@@ -585,7 +590,7 @@
       "type": "Pause",
       "chat": "group_dreadmoor_news",
       "duration": 1800,
-      "time_passed": 0,
+      "time_passed": 3,
       "next": "S4_Michael_Catch_3"
     },
     {
@@ -738,7 +743,7 @@
       "type": "Pause",
       "chat": "group_dreadmoor_news",
       "duration": 900,
-      "time_passed": 1,
+      "time_passed": 0,
       "next": "S4_Michael_Closing_5"
     },
     {
