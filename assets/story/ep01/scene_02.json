@@ -1467,6 +1467,13 @@
       ],
       "thread_secret": false,
       "text": "You were added to Dreadmoor News.",
+      "next": "s2_switch_context"
+    },
+    {
+      "id": "s2_switch_context",
+      "type": "System_Event",
+      "action": "Switch_Context",
+      "target": "group_dreadmoor_news",
       "next": "s3_group_chat"
     }
   ]
