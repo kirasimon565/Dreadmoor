@@ -146,6 +146,7 @@ class Threads extends Table {
   IntColumn get lastMessageId => integer().nullable()();
   BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
   BoolColumn get isTyping => boolean().withDefault(const Constant(false))();
+  TextColumn get typingUserId => text().nullable()();
   BoolColumn get isSecret => boolean().withDefault(const Constant(false))();
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
   TextColumn get participants => text()();
