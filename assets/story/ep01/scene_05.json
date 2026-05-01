@@ -6,7 +6,10 @@
       "chat": "intercept_amelia_michael",
       "thread_id": "intercept_amelia_michael",
       "thread_title": "Amelia & Michael",
-      "thread_members": ["amelia", "michael"],
+      "thread_members": [
+        "amelia",
+        "michael"
+      ],
       "thread_secret": true,
       "sender": "amelia",
       "text": "[VPN: ACTIVE | ENCRYPTION: HIGH | IDENTITY: HIDDEN]",
@@ -164,7 +167,7 @@
       "type": "Pause",
       "chat": "intercept_amelia_michael",
       "duration": 1800,
-      "time_passed": 0,
+      "time_passed": 3,
       "next": "S5_Amelia_Relief_5"
     },
     {
@@ -330,7 +333,7 @@
       "type": "Pause",
       "chat": "intercept_amelia_michael",
       "duration": 800,
-      "time_passed": 1,
+      "time_passed": 0,
       "next": "S5_Michael_Dismissive_5"
     },
     {
@@ -417,7 +420,7 @@
       "type": "Pause",
       "chat": "intercept_amelia_michael",
       "duration": 2000,
-      "time_passed": 0,
+      "time_passed": 3,
       "next": "S5_Amelia_Guilt_9"
     },
     {
@@ -553,7 +556,7 @@
       "type": "Pause",
       "chat": "intercept_amelia_michael",
       "duration": 1500,
-      "time_passed": 0,
+      "time_passed": 3,
       "next": "S5_Michael_Final_Warning_9"
     },
     {

@@ -5,7 +5,12 @@
       "type": "Chat_Event",
       "chat": "group_dreadmoor_news",
       "thread_title": "Dreadmoor News",
-      "thread_members": ["amelia", "chris", "abigail", "michael"],
+      "thread_members": [
+        "amelia",
+        "chris",
+        "abigail",
+        "michael"
+      ],
       "sender": "System",
       "duration": 0,
       "time_passed": 0,
@@ -186,10 +191,20 @@
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
-        { "text": "I think I was added by mistake.", "next": "S3_Branch_Mistake" },
-        { "text": "I'm here because of Rebecca.", "next": "S3_Branch_Rebecca" },
-        { "text": "Depends on who's asking.", "next": "S3_Branch_Aggressive" }
-      ]
+        {
+          "text": "I think I was added by mistake.",
+          "next": "S3_Branch_Mistake"
+        },
+        {
+          "text": "I'm here because of Rebecca.",
+          "next": "S3_Branch_Rebecca"
+        },
+        {
+          "text": "Depends on who's asking.",
+          "next": "S3_Branch_Aggressive"
+        }
+      ],
+      "time_passed": 4
     },
     {
       "id": "S3_Branch_Mistake",
@@ -433,9 +448,16 @@
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
-        { "text": "I'm trying to find her.", "next": "S3_Search_Reaction" },
-        { "text": "Something about this doesn't feel right.", "next": "S3_Sus_Reaction" }
-      ]
+        {
+          "text": "I'm trying to find her.",
+          "next": "S3_Search_Reaction"
+        },
+        {
+          "text": "Something about this doesn't feel right.",
+          "next": "S3_Sus_Reaction"
+        }
+      ],
+      "time_passed": 3
     },
     {
       "id": "S3_Search_Reaction",
@@ -543,9 +565,16 @@
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
-        { "text": "I knew her.", "next": "S3_KnewHer_Branch" },
-        { "text": "That doesn't matter.", "next": "S3_NoID_Branch" }
-      ]
+        {
+          "text": "I knew her.",
+          "next": "S3_KnewHer_Branch"
+        },
+        {
+          "text": "That doesn't matter.",
+          "next": "S3_NoID_Branch"
+        }
+      ],
+      "time_passed": 3
     },
     {
       "id": "S3_KnewHer_Branch",
@@ -661,9 +690,16 @@
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
-        { "text": "No one is taking this seriously.", "next": "S3_Motivation_A" },
-        { "text": "Your story doesn't match.", "next": "S3_Motivation_B" }
-      ]
+        {
+          "text": "No one is taking this seriously.",
+          "next": "S3_Motivation_A"
+        },
+        {
+          "text": "Your story doesn't match.",
+          "next": "S3_Motivation_B"
+        }
+      ],
+      "time_passed": 3
     },
     {
       "id": "S3_Motivation_A",
@@ -779,9 +815,16 @@
       "type": "Player_Choice",
       "chat": "group_dreadmoor_news",
       "options": [
-        { "text": "Someone here is lying.", "next": "S3_Liar_Branch" },
-        { "text": "She didn't leave when you said.", "next": "S3_Timeline_Branch" }
-      ]
+        {
+          "text": "Someone here is lying.",
+          "next": "S3_Liar_Branch"
+        },
+        {
+          "text": "She didn't leave when you said.",
+          "next": "S3_Timeline_Branch"
+        }
+      ],
+      "time_passed": 3
     },
     {
       "id": "S3_Liar_Branch",
@@ -979,7 +1022,7 @@
       "type": "Pause",
       "chat": "group_dreadmoor_news",
       "duration": 1400,
-      "time_passed": 1,
+      "time_passed": 0,
       "next": "S3_Michael_Doubt_5"
     },
     {
