@@ -651,20 +651,38 @@ class GlobalScheduler {
   }
 
   // ── Choice Required ──────────────────────────────────────────────────────
+  //
+  // Thread resolution for choices uses context-first logic:
+  //   - If "chat" is explicitly set in JSON → honour it (intentional override)
+  //   - Otherwise → inherit the active thread established by Switch_Context
+  //
+  // This prevents a stale "chat" value on a choice node from snapping the UI
+  // back to the wrong thread after a Switch_Context has already moved context
+  // to the group chat (or any other thread). The choice appears wherever the
+  // story currently is, not wherever it was authored.
+  //
+  // We intentionally do NOT call _resolveThreadId here — choices should never
+  // fall back to metadata.thread_id or node.senderId as a thread target.
   void _handleChoiceRequired(StoryNode node, Map<String, dynamic> meta) {
     _isSubmittingChoice = false;
-    final threadId = _resolveThreadId(node, meta);
+
+    final explicitChat = (meta['chat'] as String?)?.isNotEmpty == true
+        ? meta['chat'] as String
+        : null;
+    final threadId =
+        explicitChat ?? ref.read(activeThreadIdProvider) ?? 'unknown';
 
     if (threadId.isNotEmpty) {
       ref.read(activeThreadIdProvider.notifier).setId(threadId);
 
-      // FIX: navigate to the thread the choice belongs to.
-      // Without this, ChoiceOverlay renders over whatever screen the player
-      // is currently on. If they're in group chat and the choice is for the
-      // 'unknown' private thread, the choice appears in the wrong chat.
-      final currentThread = ref.read(activeThreadIdProvider);
-      if (currentThread != threadId) {
-        ref.read(appRouterProvider).go(Routes.chat(threadId));
+      // Navigate only when the explicit "chat" override targets a different
+      // thread than the one currently open. Without an explicit override, we
+      // are already in the correct thread — no navigation needed.
+      if (explicitChat != null) {
+        final currentThread = ref.read(activeThreadIdProvider);
+        if (currentThread != threadId) {
+          ref.read(appRouterProvider).go(Routes.chat(threadId));
+        }
       }
     }
 
@@ -689,11 +707,6 @@ class GlobalScheduler {
   Future<void> _handlePause(StoryNode node, Map<String, dynamic> meta) async {
     await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
 
-    final timePassed = (meta['time_passed'] as int?) ?? 0;
-    if (timePassed > 0) {
-      ref.read(gameClockProvider.notifier).advanceTime(timePassed);
-    }
-
     final delay = (meta['duration'] as int?) ?? 2000;
 
     _timer = Timer(Duration(milliseconds: delay), () {
@@ -705,16 +718,15 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = _resolveThreadId(node, meta);
     final duration = (meta['duration'] as int?) ?? 2000;
-    final senderId = node.senderId ?? 'unknown';
 
     await _ensureThread(threadId, meta);
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
-        .write(ThreadsCompanion(isTyping: const Value(true), typingUserId: Value(senderId)));
+        .write(const ThreadsCompanion(isTyping: Value(true)));
 
     _timer = Timer(Duration(milliseconds: duration), () async {
       try {
         await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
-            .write(const ThreadsCompanion(isTyping: Value(false), typingUserId: Value(null)));
+            .write(const ThreadsCompanion(isTyping: Value(false)));
 
         // Option B: only process the node (which calls _handleChatMessage)
         // if the thread is currently active. If not, pause and wait.
@@ -732,20 +744,29 @@ class GlobalScheduler {
         print("DreadmoorOS ✗ Typing timer failed on '${node.id}': $e\n$st");
         try {
           await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
-              .write(const ThreadsCompanion(isTyping: Value(false), typingUserId: Value(null)));
+              .write(const ThreadsCompanion(isTyping: Value(false)));
         } catch (_) {}
         _advance(node.nextNodeId);
       }
     });
   }
 
-  // ── Thread Resolution — 100% data-driven ─────────────────────────────────
+  // ── Thread Resolution — context-driven, JSON overrides only when explicit ──
+  //
+  // Design principle: context flows forward between nodes.
+  // Switch_Context establishes the active thread; subsequent nodes inherit it
+  // automatically. A node should only set "chat" in JSON when it explicitly
+  // needs to override the established context (e.g. a cross-thread message).
+  // Nodes that omit "chat" safely inherit whatever Switch_Context last set.
   //
   // Priority order:
-  //   1. metadata.chat       — explicit thread ID in the JSON node (preferred)
+  //   1. metadata.chat       — explicit override in the JSON node
   //   2. metadata.thread_id  — alternative key used by system nodes
-  //   3. activeThreadId      — whatever thread is currently open
-  //   4. node.senderId       — last resort fallback
+  //   3. activeThreadId      — inherited context (the normal path)
+  //   4. node.senderId       — absolute last resort
+  //
+  // Note: Player_Choice uses its own resolution logic (see _handleChoiceRequired)
+  // that stops at step 3 — choices never fall back to senderId.
   //
   // NO node ID pattern matching. NO hardcoded thread IDs.
   String _resolveThreadId(StoryNode node, Map<String, dynamic> meta) {
