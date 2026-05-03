@@ -40,18 +40,8 @@ final scriptLoaderProvider = Provider<ScriptLoader>((ref) {
 });
 
 // ---------------------------
-// NARRATIVE STATE (Node-Based)
+// NARRATIVE STATE
 // ---------------------------
-
-class ActiveNodeIdNotifier extends Notifier<String?> {
-  @override
-  String? build() => null;
-  void setId(String? id) => state = id;
-}
-
-final activeNodeIdProvider =
-    NotifierProvider<ActiveNodeIdNotifier, String?>(
-        ActiveNodeIdNotifier.new);
 
 class CurrentEpisodeIdNotifier extends Notifier<String?> {
   @override
@@ -77,16 +67,6 @@ final isChoiceOverlayExpandedProvider =
     NotifierProvider<IsChoiceOverlayExpandedNotifier, bool>(
         IsChoiceOverlayExpandedNotifier.new);
 
-class ActiveThreadIdNotifier extends Notifier<String?> {
-  @override
-  String? build() => null;
-  void setId(String? id) => state = id;
-}
-
-final activeThreadIdProvider =
-    NotifierProvider<ActiveThreadIdNotifier, String?>(
-        ActiveThreadIdNotifier.new);
-
 // ---------------------------
 // STORY FLAGS
 // ---------------------------
@@ -100,36 +80,10 @@ final gameFlagsProvider = StreamProvider<Map<String, bool>>((ref) {
 // ---------------------------
 // SCHEDULER & NAVIGATION STATE
 // ---------------------------
-class IsSchedulerPausedNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void setPaused(bool paused) => state = paused;
-}
-
-final isSchedulerPausedProvider =
-    NotifierProvider<IsSchedulerPausedNotifier, bool>(
-        IsSchedulerPausedNotifier.new);
-
-class WaitingForChoiceNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void setWaiting(bool waiting) => state = waiting;
-}
-
-final waitingForChoiceProvider =
-    NotifierProvider<WaitingForChoiceNotifier, bool>(
-        WaitingForChoiceNotifier.new);
-
-class WaitingForPuzzleNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void setWaiting(bool waiting) => state = waiting;
-}
-
-final waitingForPuzzleProvider =
-    NotifierProvider<WaitingForPuzzleNotifier, bool>(
-        WaitingForPuzzleNotifier.new);
-
+// NOTE: activeNodeIdProvider, activeThreadIdProvider, isSchedulerPausedProvider,
+// waitingForChoiceProvider, and waitingForPuzzleProvider are now defined in
+// scheduler_state.dart as derived selectors from the consolidated SchedulerState.
+// They maintain the same interface — existing widget code works unchanged.
 
 // ---------------------------
 // NAVIGATION
