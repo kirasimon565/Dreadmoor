@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import '../scripting/script_loader.dart';
 import '../scheduler/global_scheduler.dart';
+import 'scheduler_state.dart';
 
 // ---------------------------
 // DATABASE
