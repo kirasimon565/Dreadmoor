@@ -19,6 +19,7 @@ import 'package:dreadmoor/ui/widgets/glitch_overlay.dart';
 import 'package:dreadmoor/features/diary/diary_scheduler_link.dart';
 import 'package:dreadmoor/features/diary/diary_controller.dart';
 import '../state/game_state.dart';
+import '../state/scheduler_state.dart';
 import '../persistence/seed_characters.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,20 +40,20 @@ import '../persistence/seed_characters.dart';
 //   GENERIC (work in any episode):
 //     Chat_Event          — NPC message in the thread defined by metadata.chat
 //     Typing              — Shows typing indicator; metadata.duration (ms)
-//     Pause               — Delays execution only; metadata.duration (ms)
-//                           Does NOT insert any message. Use instead of
-//                           { "type": "Chat_Event", "action": "Pause" }.
+//     Pause               — Delays execution; metadata.duration (ms)
+//                           Also supports metadata.time_passed for clock advance
 //     Player_Choice       — Shows choice buttons; options in metadata.options
+//                           Inherits thread context (no "chat" needed)
 //     System_Event        — System actions: Push_Notification, Switch_Context,
-//                           Add_To_Group, Trigger_Credits
+//                           Add_To_Group, Trigger_Credits, Open_Diary_Lock
 //     System_Notification — Inline system label message in current thread
 //     News_Module         — Shows article; metadata contains headline/body/etc
-//     IncomingCall        — Phone call; metadata.caller_id, next_on_decline
+//     IncomingCall        — Phone call; metadata.caller_id, next_on_decline,
+//                           disable_decline (set true to force answer)
 //     Video_Message       — Video bubble in chat; metadata.file_asset
 //
 //   SPECIAL STATES (force-navigates to a specific screen):
 //     Secret_Hacked       — Forces SecretChatScreen; metadata.thread_id required
-//     Force_Ringing       — Disables decline button on IncomingCall
 //
 //   CINEMATIC EFFECTS:
 //     Glitch_Effect       — Screen glitch then navigates to metadata.next_screen
@@ -63,24 +64,27 @@ import '../persistence/seed_characters.dart';
 //   Thread is determined exclusively from metadata.chat in the JSON node.
 //   No node ID pattern matching. No hardcoded thread IDs in this file.
 //
-//   In your JSON, every message node must have:
+//   In your JSON, message nodes that start a new thread need:
 //     "chat": "thread_id_here"
+//
+//   Nodes that continue in the current thread should OMIT "chat" —
+//   they inherit context from Switch_Context or the previous node.
 //
 //   The thread is auto-created if it doesn't exist, using:
 //     "thread_title":    "Display name"           (optional, defaults to thread_id)
 //     "thread_members":  ["char1", "char2"]       (optional)
 //     "thread_secret":   true                     (optional, defaults false)
 //
-//   Example:
+// ── FORCE CALLS (any episode) ────────────────────────────────────────────────
+//
+//   Use IncomingCall type with "disable_decline": true in metadata.
+//   No special node type needed:
 //     {
-//       "id": "ep02_msg_01",
-//       "type": "Chat_Event",
-//       "chat": "amelia_private",
-//       "thread_title": "Amelia Stone",
-//       "thread_members": ["amelia"],
-//       "sender": "amelia",
-//       "text": "We need to talk.",
-//       "next": "ep02_msg_02"
+//       "id": "ep05_forced_call",
+//       "type": "IncomingCall",
+//       "caller_name": "Unknown",
+//       "disable_decline": true,
+//       "next": "ep05_after_call"
 //     }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -88,9 +92,13 @@ class GlobalScheduler {
   final Ref ref;
   Timer? _timer;
   final _rng = Random();
-  bool _isSubmittingChoice = false;
 
   GlobalScheduler(this.ref);
+
+  // ── Convenience accessors for the consolidated state ────────────────────
+  SchedulerState get _state => ref.read(schedulerStateProvider);
+  SchedulerStateNotifier get _stateNotifier =>
+      ref.read(schedulerStateProvider.notifier);
 
   // --------------------------------------------------
   // CORE LIFECYCLE
@@ -99,8 +107,7 @@ class GlobalScheduler {
   Future<void> processNode(String nodeId) async {
     _timer?.cancel();
     await seedCharacters(ref.read(databaseProvider));
-    ref.read(isSchedulerPausedProvider.notifier).setPaused(false);
-    ref.read(waitingForChoiceProvider.notifier).setWaiting(false);
+    _stateNotifier.update((s) => const SchedulerState());
     await _executeNode(nodeId);
   }
 
@@ -148,9 +155,6 @@ class GlobalScheduler {
 
   // --------------------------------------------------
   // NODE TYPE DISPATCHER
-  //
-  // Each case maps to a BEHAVIOUR, not an episode.
-  // New episodes reuse these same types — no new cases needed.
   // --------------------------------------------------
 
   Future<void> _processNodeType(
@@ -160,26 +164,21 @@ class GlobalScheduler {
     switch (node.type) {
       // ── Chat message — any thread, any episode ─────────────────────────
       case 'Chat_Event':
-      case 'Private_Unknown': // ep01 alias — kept for back-compat
       case 'Video_Message':
         await _handleChatMessage(node, meta);
         break;
 
-      // ── Delay-only — no message, no side effects ───────────────────────
-      // Use this instead of { "type": "Chat_Event", "action": "Pause" }.
-      // Contract: a node that produces no message must not be a Chat_Event.
+      // ── Delay-only — no message, supports time_passed for clock ────────
       case 'Pause':
         await _handlePause(node, meta);
         break;
 
-      // ── Player makes a choice ──────────────────────────────────────────
+      // ── Player makes a choice — inherits thread context ────────────────
       case 'Player_Choice':
         _handleChoiceRequired(node, meta);
         break;
 
       // ── System actions — data-driven via metadata.action ──────────────
-      // Supported actions: Push_Notification, Switch_Context,
-      //                    Add_To_Group, Trigger_Credits
       case 'System_Event':
       case 'System_Notification':
         await _handleSystemEvent(node, meta);
@@ -191,43 +190,50 @@ class GlobalScheduler {
         break;
 
       // ── Phone calls ───────────────────────────────────────────────────
+      // disable_decline in metadata forces answer (no special type needed)
       case 'IncomingCall':
       case 'Phone_Call_Event':
-      case 'Force_Ringing': // disables decline button
         _handlePhoneCall(node, meta);
         break;
 
       // ── Force SecretChatScreen ────────────────────────────────────────
-      // Requires metadata: { "thread_id": "some_thread_id" }
       case 'Secret_Hacked':
         await _handleSecretHacked(node, meta);
         break;
 
-      // ── Full-screen video playback ────────────────────────────────────
-      // Requires metadata: { "file_asset": "path/to/video.mp4" }
-      case 'Video_Node':
-      case 'S4_VIDEO_NODE': // ep01 alias — kept for back-compat
-        // Treat as a chat message with video attached
-        await _handleChatMessage(node, meta);
-        break;
-
       // ── Screen glitch effect then navigate ───────────────────────────
-      // Optional metadata: { "next_screen": "messenger" | "phone" }
       case 'Glitch_Effect':
-      case 'S5_CONNECTION_GLITCH': // ep01 alias — kept for back-compat
         _handleGlitchEffect(node, meta);
         break;
 
       // ── Accept call — full screen UI ─────────────────────────────────
-      // Optional metadata: { "audio_asset": "path/to/audio.mp3" }
       case 'Accept_Call':
-      case 'S6_Accept_Call': // ep01 alias — kept for back-compat
         _handleAcceptCall(node, meta);
         break;
 
+      // ── BACKWARD COMPATIBILITY ALIASES ────────────────────────────────
+      // These exist only to support old episode JSON.
+      // New episodes must use the standard types above.
+      case 'Private_Unknown': // ep01 — use Chat_Event instead
+      case 'S4_VIDEO_NODE': // ep01 — use Video_Message instead
+      case 'Video_Node': // old name — use Video_Message instead
+        await _handleChatMessage(node, meta);
+        break;
+
+      case 'S5_CONNECTION_GLITCH': // ep01 — use Glitch_Effect instead
+        _handleGlitchEffect(node, meta);
+        break;
+
+      case 'S6_Accept_Call': // ep01 — use Accept_Call instead
+        _handleAcceptCall(node, meta);
+        break;
+
+      case 'Force_Ringing': // old — use IncomingCall + disable_decline
+      case 'S6_Ringing_Final': // ep01 — use IncomingCall + disable_decline
+        _handlePhoneCall(node, {...meta, 'disable_decline': true});
+        break;
+
       default:
-        // In debug: crash loudly so you know immediately.
-        // In release: skip and advance so the story never permanently freezes.
         assert(
             false,
             "DreadmoorOS: Unhandled node type '${node.type}' "
@@ -238,7 +244,7 @@ class GlobalScheduler {
   }
 
   // --------------------------------------------------
-  // HANDLERS — all data-driven, no episode assumptions
+  // HANDLERS
   // --------------------------------------------------
 
   bool hasProcessed(String nodeId) {
@@ -252,7 +258,6 @@ class GlobalScheduler {
     final db = ref.read(databaseProvider);
     final threadId = _resolveThreadId(node, meta);
 
-    // Creates thread + members from JSON metadata if not already in DB.
     await _ensureThread(threadId, meta);
 
     final isVideo = node.type == 'Video_Message' ||
@@ -265,12 +270,7 @@ class GlobalScheduler {
         isVideo ? 'video' : (node.type == 'Image_Message' ? 'image' : 'text');
     final senderId = node.senderId ?? 'unknown';
 
-    // TEMP: diagnostic log — remove once duplication is confirmed fixed.
-    // If this prints twice for the same node ID, the scheduler is replaying.
-    // Expected: exactly ONE line per node per session.
-    print("🔥 INSERT ATTEMPT → ${node.id}");
-
-    // FIX: skip if this node's message was already inserted (e.g. app restart).
+    // Duplicate prevention for app restarts
     if (node.id.isNotEmpty) {
       final exists = await (db.select(db.messages)
             ..where((m) => m.nodeId.equals(node.id)))
@@ -319,7 +319,7 @@ class GlobalScheduler {
     await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
         .write(ThreadsCompanion(lastMessageId: Value(id)));
 
-    final activeThread = ref.read(activeThreadIdProvider);
+    final activeThread = _state.activeThreadId;
 
     if (activeThread != threadId) {
       final thread = await (db.select(db.threads)
@@ -344,28 +344,16 @@ class GlobalScheduler {
 
     _playSound('sfx/message_receive.mp3');
 
-    // Option B: insert immediately but pause until the player is viewing
-    // this thread. If the thread is already active, advance normally.
-    // If not, store the next node and wait — _resumeIfThreadActive() is
-    // called by the scheduler whenever activeThreadId changes.
     if (activeThread == threadId) {
       _advance(node.nextNodeId);
     } else {
-      // Pause and remember where to resume when the thread opens.
       print(
           "DreadmoorOS ⏸ '$threadId' not active — holding at '${node.nextNodeId}'");
-      ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
-      ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+      _stateNotifier.pauseAt(node.nextNodeId ?? '');
     }
   }
 
   // ── System Event — all actions data-driven ───────────────────────────────
-  //
-  // action: Push_Notification  → sets a story flag by name
-  // action: Switch_Context     → changes active thread
-  // action: Add_To_Group       → creates group thread + members from metadata
-  // action: Trigger_Credits    → end of episode
-  // (no action)                → inline system label message in current thread
   Future<void> _handleSystemEvent(
       StoryNode node, Map<String, dynamic> meta) async {
     final db = ref.read(databaseProvider);
@@ -390,11 +378,7 @@ class GlobalScheduler {
         final shouldPause = await handleDiary(ref, word, pageId);
 
         if (shouldPause) {
-          ref.read(waitingForPuzzleProvider.notifier).setWaiting(true);
-          // CRITICAL: store the next node BEFORE pausing.
-          // resume() calls _executeNode(activeNodeId) — if this isn't set
-          // first, resume() has no continuation point and the story dies.
-          ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+          _stateNotifier.startPuzzle(node.nextNodeId ?? '');
           pause();
           return;
         }
@@ -407,10 +391,6 @@ class GlobalScheduler {
         final message = meta['message'] as String?;
 
         if (title != null && message != null) {
-          // Normalise payload so the banner can always read `threadId`.
-          // JSON nodes use `thread_id`; the banner reads `payload['threadId']`.
-          // Spread meta first, then remap the key — consistent regardless of
-          // how the JSON was authored.
           final notifPayload = <String, dynamic>{
             ...meta,
             if (meta['thread_id'] != null) 'threadId': meta['thread_id'],
@@ -429,31 +409,22 @@ class GlobalScheduler {
         }
 
         _advance(node.nextNodeId);
-        return; // CRITICAL: prevent any fallthrough
+        return;
 
       case 'Switch_Context':
-        // target: the thread ID to switch to
         final target = meta['target'] as String?;
         if (target != null) {
-          ref.read(activeThreadIdProvider.notifier).setId(target);
+          _stateNotifier.switchThread(target);
         }
         _advance(node.nextNodeId);
         return;
 
       case 'Launch_Minigame':
-        // Arcade-style minigames have been replaced with story-driven
-        // puzzle mechanics (e.g., Diary Lock System).
-        // This case is deprecated and left here for backward compatibility
-        // or silent skipping.
         print("DreadmoorOS ⚠ Launch_Minigame is deprecated — skipping.");
         _advance(node.nextNodeId);
         return;
 
       case 'Add_To_Group':
-        // Creates the group thread and members only.
-        // Does NOT insert a system message — the group chat's first
-        // Chat_Event node already inserts "[PlayerName] was added to
-        // the group.", preventing duplication.
         final groupId = meta['thread_id'] as String?;
         if (groupId != null) {
           await _ensureThread(groupId, meta);
@@ -462,14 +433,12 @@ class GlobalScheduler {
         return;
 
       case 'Trigger_Credits':
-        // End of episode — handle as needed by your credits screen
         print("DreadmoorOS ✓ Episode complete — ${node.content}");
-        ref.read(activeNodeIdProvider.notifier).setId(null);
+        _stateNotifier.update((s) => s.copyWith(clearActiveNodeId: true));
         return;
 
       default:
-        // No recognised action = inline system label in current thread
-        final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
+        final threadId = _state.activeThreadId ?? 'unknown';
         await _ensureThread(threadId, {});
         await db.into(db.messages).insert(MessagesCompanion.insert(
               threadId: threadId,
@@ -507,7 +476,6 @@ class GlobalScheduler {
           mode: InsertMode.insertOrReplace,
         );
 
-    // flag_name lets each episode use its own unlock flag
     final flag = (meta['flag_name'] as String?) ?? 'article_read';
     db.updateStoryFlag(flag, bVal: true);
 
@@ -517,14 +485,13 @@ class GlobalScheduler {
     _advance(node.nextNodeId);
   }
 
-  // ── Phone Call ───────────────────────────────────────────────────────────
+  // ── Phone Call — data-driven, no hardcoded types ─────────────────────────
   void _handlePhoneCall(StoryNode node, Map<String, dynamic> meta) {
     final declineMeta = meta['next_on_decline'] as Map<String, dynamic>?;
-    // Force_Ringing type OR explicit disable_decline flag disables the button
-    final canDecline = node.type != 'Force_Ringing' &&
-        node.type != 'S6_Ringing_Final' &&
-        (meta['disable_decline'] != true) &&
-        declineMeta != null;
+    final disableDecline = meta['disable_decline'] == true;
+
+    // Can decline only if: not disabled AND decline metadata exists
+    final canDecline = !disableDecline && declineMeta != null;
 
     final callerName =
         (meta['caller_name'] as String?) ?? node.content ?? 'Unknown';
@@ -550,29 +517,23 @@ class GlobalScheduler {
     pause();
   }
 
-  // ── Secret Hacked — switch context to secret thread ─────────────────────
-  // Requires metadata: { "thread_id": "...", "thread_title": "...",
-  //                      "thread_members": [...], "thread_secret": true }
-  // Behaves like Switch_Context: ensures thread exists, sets activeThreadId,
-  // then immediately advances. No navigation, no delays.
+  // ── Secret Hacked ────────────────────────────────────────────────────────
   Future<void> _handleSecretHacked(
       StoryNode node, Map<String, dynamic> meta) async {
     final threadId =
         (meta['thread_id'] as String?) ?? _resolveThreadId(node, meta);
 
-    // Force thread_secret = true regardless of what meta says
     final enrichedMeta = {
       ...meta,
       'thread_secret': true,
     };
 
     await _ensureThread(threadId, enrichedMeta);
-    ref.read(activeThreadIdProvider.notifier).setId(threadId);
+    _stateNotifier.switchThread(threadId);
     _advance(node.nextNodeId);
   }
 
   // ── Video Node — full-screen media viewer ────────────────────────────────
-  // Requires metadata: { "file_asset": "assets/video/clip.mp4" }
   void _handleVideoNode(StoryNode node, Map<String, dynamic> meta) {
     final assetPath = meta['file_asset'] as String?;
     if (assetPath == null) {
@@ -588,15 +549,13 @@ class GlobalScheduler {
       return;
     }
 
-    ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
-    // Requires media_viewer.dart: void open → Future<void> open
+    _stateNotifier.update((s) => s.copyWith(activeNodeId: node.nextNodeId));
     MediaViewer.open(ctx,
             items: [GalleryMediaItem(path: assetPath, isVideo: true)])
         .then((_) => _advance(node.nextNodeId));
   }
 
   // ── Glitch Effect ────────────────────────────────────────────────────────
-  // Optional metadata: { "next_screen": "messenger" | "phone" }
   void _handleGlitchEffect(StoryNode node, Map<String, dynamic> meta) {
     final ctx =
         ref.read(appRouterProvider).routerDelegate.navigatorKey.currentContext;
@@ -630,8 +589,7 @@ class GlobalScheduler {
   void _handleAcceptCall(StoryNode node, Map<String, dynamic> meta) {
     final callerName = (meta['caller_name'] as String?) ?? 'Unknown';
     final callerId = (meta['caller_id'] as String?) ?? 'Unknown Number';
-
-    final audioPath = meta['audio_asset'] as String?; // ✅ NEW
+    final audioPath = meta['audio_asset'] as String?;
 
     ref.read(phoneProvider.notifier).startCall(
           callerName,
@@ -639,55 +597,33 @@ class GlobalScheduler {
           ref.read(gameClockProvider),
         );
 
-    // FIX: use public notifier method instead of directly setting .state
-    // In Riverpod 3, Notifier.state is protected — external assignment silently
-    // fails, so callAudioPath was never stored and ActiveCallScreen got null.
     if (audioPath != null) {
       ref.read(phoneProvider.notifier).setCallAudioPath(audioPath);
     }
 
-    ref.read(activeNodeIdProvider.notifier).setId(node.nextNodeId);
+    _stateNotifier.update((s) => s.copyWith(activeNodeId: node.nextNodeId));
     pause();
   }
 
-  // ── Choice Required ──────────────────────────────────────────────────────
-  //
-  // Thread resolution for choices uses context-first logic:
-  //   - If "chat" is explicitly set in JSON → honour it (intentional override)
-  //   - Otherwise → inherit the active thread established by Switch_Context
-  //
-  // This prevents a stale "chat" value on a choice node from snapping the UI
-  // back to the wrong thread after a Switch_Context has already moved context
-  // to the group chat (or any other thread). The choice appears wherever the
-  // story currently is, not wherever it was authored.
-  //
-  // We intentionally do NOT call _resolveThreadId here — choices should never
-  // fall back to metadata.thread_id or node.senderId as a thread target.
+  // ── Choice Required — context-first thread resolution ────────────────────
   void _handleChoiceRequired(StoryNode node, Map<String, dynamic> meta) {
-    _isSubmittingChoice = false;
+    _stateNotifier.setSubmitting(false);
 
+    // Only use explicit "chat" if set. Otherwise inherit active thread.
     final explicitChat = (meta['chat'] as String?)?.isNotEmpty == true
         ? meta['chat'] as String
         : null;
-    final threadId =
-        explicitChat ?? ref.read(activeThreadIdProvider) ?? 'unknown';
+    final threadId = explicitChat ?? _state.activeThreadId ?? 'unknown';
 
-    if (threadId.isNotEmpty) {
-      ref.read(activeThreadIdProvider.notifier).setId(threadId);
+    // Always ensure the active thread matches where the choice appears
+    _stateNotifier.switchThread(threadId);
 
-      // Navigate only when the explicit "chat" override targets a different
-      // thread than the one currently open. Without an explicit override, we
-      // are already in the correct thread — no navigation needed.
-      if (explicitChat != null) {
-        final currentThread = ref.read(activeThreadIdProvider);
-        if (currentThread != threadId) {
-          ref.read(appRouterProvider).go(Routes.chat(threadId));
-        }
-      }
+    // Navigate to the thread if we're not already looking at it
+    if (_state.activeThreadId != threadId || explicitChat != null) {
+      ref.read(appRouterProvider).go(Routes.chat(threadId));
     }
 
-    ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
-    ref.read(activeNodeIdProvider.notifier).setId(node.id);
+    _stateNotifier.startChoice(node.id, threadId);
     ref
         .read(databaseProvider)
         .updateStoryFlag('active_choice_id', sVal: node.id);
@@ -697,15 +633,15 @@ class GlobalScheduler {
   // HELPERS
   // --------------------------------------------------
 
-  // ── Pause — delay only, no message ──────────────────────────────────────
-  //
-  // Use in JSON as: { "type": "Pause", "duration": 1100, "next": "..." }
-  //
-  // This is the correct node type whenever execution must stall without
-  // inserting a chat message. Using Chat_Event with action=Pause violated
-  // the engine contract (a message node that produces no message).
+  // ── Pause — delay only, supports time_passed for game clock ──────────────
   Future<void> _handlePause(StoryNode node, Map<String, dynamic> meta) async {
     await ref.read(databaseProvider).updateStoryFlag(node.id, bVal: true);
+
+    // Advance game time if the pause represents a narrative time jump
+    final timePassed = (meta['time_passed'] as int?) ?? 0;
+    if (timePassed > 0) {
+      ref.read(gameClockProvider.notifier).advanceTime(timePassed);
+    }
 
     final delay = (meta['duration'] as int?) ?? 2000;
 
@@ -728,17 +664,13 @@ class GlobalScheduler {
         await (db.update(db.threads)..where((t) => t.id.equals(threadId)))
             .write(const ThreadsCompanion(isTyping: Value(false)));
 
-        // Option B: only process the node (which calls _handleChatMessage)
-        // if the thread is currently active. If not, pause and wait.
-        final activeThread = ref.read(activeThreadIdProvider);
+        final activeThread = _state.activeThreadId;
         if (activeThread == threadId) {
           await _processNodeType(node, {...meta, 'action': 'None'});
         } else {
           print(
               "DreadmoorOS ⏸ Typing done — '$threadId' not active, holding at '${node.id}'");
-          ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
-          // Store this node so resume() re-executes it (typing + message)
-          ref.read(activeNodeIdProvider.notifier).setId(node.id);
+          _stateNotifier.pauseAt(node.id);
         }
       } catch (e, st) {
         print("DreadmoorOS ✗ Typing timer failed on '${node.id}': $e\n$st");
@@ -751,24 +683,7 @@ class GlobalScheduler {
     });
   }
 
-  // ── Thread Resolution — context-driven, JSON overrides only when explicit ──
-  //
-  // Design principle: context flows forward between nodes.
-  // Switch_Context establishes the active thread; subsequent nodes inherit it
-  // automatically. A node should only set "chat" in JSON when it explicitly
-  // needs to override the established context (e.g. a cross-thread message).
-  // Nodes that omit "chat" safely inherit whatever Switch_Context last set.
-  //
-  // Priority order:
-  //   1. metadata.chat       — explicit override in the JSON node
-  //   2. metadata.thread_id  — alternative key used by system nodes
-  //   3. activeThreadId      — inherited context (the normal path)
-  //   4. node.senderId       — absolute last resort
-  //
-  // Note: Player_Choice uses its own resolution logic (see _handleChoiceRequired)
-  // that stops at step 3 — choices never fall back to senderId.
-  //
-  // NO node ID pattern matching. NO hardcoded thread IDs.
+  // ── Thread Resolution ────────────────────────────────────────────────────
   String _resolveThreadId(StoryNode node, Map<String, dynamic> meta) {
     final chat = meta['chat'] as String?;
     final threadId = meta['thread_id'] as String?;
@@ -776,23 +691,15 @@ class GlobalScheduler {
     if (chat != null && chat.isNotEmpty) return chat;
     if (threadId != null && threadId.isNotEmpty) return threadId;
 
-    // Fall back to currently active thread if the JSON didn't specify
-    final active = ref.read(activeThreadIdProvider);
+    final active = _state.activeThreadId;
     if (active != null && active.isNotEmpty) return active;
 
     return node.senderId ?? 'unknown';
   }
 
-  // ── Thread Creation — fully data-driven ──────────────────────────────────
-  //
-  // All thread metadata comes from the JSON node:
-  //   thread_title:   display name in messenger list
-  //   thread_members: list of character IDs
-  //   thread_secret:  true/false
-  //
-  // If not provided, thread is created with the threadId as title
-  // and no members (safe — chat still works, header shows fallback avatar).
-  Future<void> _ensureThread(String threadId, Map<String, dynamic> meta) async {
+  // ── Thread Creation ──────────────────────────────────────────────────────
+  Future<void> _ensureThread(
+      String threadId, Map<String, dynamic> meta) async {
     final db = ref.read(databaseProvider);
 
     final exists = await (db.select(db.threads)
@@ -837,13 +744,14 @@ class GlobalScheduler {
   }
 
   void submitChoice(String targetNodeId, String choiceText) {
-    if (_isSubmittingChoice) return;
-    _isSubmittingChoice = true;
+    final state = _state;
+    if (state.isSubmittingChoice) return;
+    _stateNotifier.setSubmitting(true);
 
     final db = ref.read(databaseProvider);
-    final threadId = ref.read(activeThreadIdProvider) ?? 'unknown';
+    final threadId = state.activeThreadId ?? 'unknown';
 
-    // Player choices carry no time_passed — replies are instant (0 minutes).
+    // Player choices are instant (0 minutes)
     ref.read(gameClockProvider.notifier).advanceTime(0);
     final minutes = ref.read(gameClockProvider);
     final dt = getGameDateTime(minutes);
@@ -865,50 +773,29 @@ class GlobalScheduler {
       await (db.delete(db.storyState)
             ..where((t) => t.key.equals('active_choice_id')))
           .go();
-      ref.read(waitingForChoiceProvider.notifier).setWaiting(false);
+      _stateNotifier.completeChoice(targetNodeId);
       _executeNode(targetNodeId);
     }).catchError((e) {
       print("DreadmoorOS ✗ submitChoice failed: $e");
-      _isSubmittingChoice = false;
+      _stateNotifier.setSubmitting(false);
     });
   }
 
   void completePuzzle() {
-    // FIX: clear waitingForPuzzle before resuming.
-    // Without this the scheduler stays paused because
-    // waitingForPuzzleProvider is never set back to false.
-    ref.read(waitingForPuzzleProvider.notifier).setWaiting(false);
+    _stateNotifier.completePuzzle();
     resume();
   }
 
-  /// Called when the minigame ends in failure.
-  /// Keeps the scheduler paused so the player must retry
-  /// before the story can continue.
   void onPuzzleFailed() => pause();
 
-  /// Called by ChatScreen and SecretChatScreen in initState when the
-  /// player opens a thread. If the scheduler is paused waiting for this
-  /// exact thread, it resumes from the stored activeNodeId.
-  ///
-  /// REPLAY SAFETY: when _handleChatMessage pauses (thread not active), it
-  /// stores node.nextNodeId — the NEXT node — not the current one.
-  /// So resumeIfThreadActive always advances forward, never re-runs the
-  /// message that triggered the pause. The 🔥 INSERT ATTEMPT log should
-  /// appear exactly once per node even when the player taps a notification
-  /// to open the thread.
-  ///
-  /// The notification banner onTap itself does NOT call processNode, resume,
-  /// or _advance — it only sets state and navigates. Scheduler continuation
-  /// happens here, one level up, driven by ChatScreen.initState.
   void resumeIfThreadActive(String threadId) {
-    final isPaused = ref.read(isSchedulerPausedProvider);
-    if (!isPaused) return;
+    final state = _state;
+    if (!state.isPaused) return;
 
-    final nextNodeId = ref.read(activeNodeIdProvider);
+    final nextNodeId = state.activeNodeId;
     if (nextNodeId == null || nextNodeId.isEmpty) return;
 
-    final active = ref.read(activeThreadIdProvider);
-    if (active == threadId) {
+    if (state.activeThreadId == threadId) {
       print(
           "DreadmoorOS ▶ Thread '$threadId' opened — resuming at '$nextNodeId'");
       resume();
@@ -917,18 +804,18 @@ class GlobalScheduler {
 
   void pause() {
     _timer?.cancel();
-    ref.read(isSchedulerPausedProvider.notifier).setPaused(true);
+    _stateNotifier.update((s) => s.copyWith(isPaused: true));
   }
 
   void resume() {
-    ref.read(isSchedulerPausedProvider.notifier).setPaused(false);
-    final nextId = ref.read(activeNodeIdProvider);
+    _stateNotifier.update((s) => s.copyWith(isPaused: false));
+    final nextId = _state.activeNodeId;
     if (nextId != null) _executeNode(nextId);
   }
 
   void _advance(String? nextId) {
     if (nextId != null && nextId.isNotEmpty) {
-      ref.read(activeNodeIdProvider.notifier).setId(nextId);
+      _stateNotifier.update((s) => s.copyWith(activeNodeId: nextId));
       _executeNode(nextId);
     }
   }
