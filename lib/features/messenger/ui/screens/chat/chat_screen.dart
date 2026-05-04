@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' hide Column;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/screens/profiles/character_profile_screen.dart';
 
@@ -72,7 +73,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
-      ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
+      ref.read(schedulerStateProvider.notifier).switchThread(widget.threadId);
       ref.read(globalSchedulerProvider).resumeIfThreadActive(widget.threadId);
 
       final activeChoiceRow = await (db.select(
@@ -80,17 +81,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       )..where((t) => t.key.equals('active_choice_id'))).getSingleOrNull();
 
       if (activeChoiceRow?.stringValue != null) {
-        ref
-            .read(activeNodeIdProvider.notifier)
-            .setId(activeChoiceRow!.stringValue!);
-        ref.read(waitingForChoiceProvider.notifier).setWaiting(true);
+  ref.read(schedulerStateProvider.notifier).startChoice(
+    activeChoiceRow!.stringValue!,
+    widget.threadId,
+  );
       }
-    });
-  }
 
   @override
   void dispose() {
-    ref.read(activeThreadIdProvider.notifier).setId(null);
+    ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(clearActiveThreadId: true));
     ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
     _scrollController.dispose();
     super.dispose();
@@ -193,7 +192,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       return ChatHeaderNeonGroup(
                         title: snap.data?.title ?? 'Unknown',
                         onBackPressed: () {
-                          ref.read(activeThreadIdProvider.notifier).setId(null);
+                          ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(clearActiveThreadId: true));
                           ref
                               .read(activeAppProvider.notifier)
                               .setApp(PhoneApp.messenger);
