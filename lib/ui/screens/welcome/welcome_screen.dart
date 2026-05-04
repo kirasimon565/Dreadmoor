@@ -189,7 +189,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     final currentNodeId = currentNodeIdRow?.stringValue;
 
     if (currentNodeId != null && currentNodeId.isNotEmpty) {
-      ref.read(activeNodeIdProvider.notifier).setId(currentNodeId);
+      ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(activeNodeId: currentNodeId));
     }
 
     _stopMusicAndNavigate(() {
