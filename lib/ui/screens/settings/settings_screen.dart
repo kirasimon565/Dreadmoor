@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
@@ -121,7 +122,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         if (latestMessage != null) {
           final threadId = latestMessage.threadId;
-          ref.read(activeThreadIdProvider.notifier).state = threadId;
+          ref.read(schedulerStateProvider.notifier).switchThread(threadId);
           context.pop();
           context.go(Routes.chat(threadId));
         } else {
@@ -190,7 +191,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
       // Clear in-memory state so router redirects back to setup
       ref.read(playerStateProvider.notifier).state = null;
-      ref.read(activeThreadIdProvider.notifier).state = null;
+      ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(clearActiveThreadId: true));
 
       if (mounted) context.go(Routes.setup);
     } catch (e) {
