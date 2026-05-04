@@ -8,6 +8,7 @@ import 'package:drift/drift.dart' hide Column;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/ui/os/os_state.dart';
 import 'package:dreadmoor/ui/widgets/chat_bubble.dart';
 import 'package:dreadmoor/ui/widgets/gun_typing_indicator.dart';
@@ -85,7 +86,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(activeThreadIdProvider.notifier).setId(widget.threadId);
+        ref.read(schedulerStateProvider.notifier).switchThread(widget.threadId);
         ref.read(globalSchedulerProvider).resumeIfThreadActive(widget.threadId);
       }
     });
@@ -166,7 +167,7 @@ class _SecretChatScreenState extends ConsumerState<SecretChatScreen> {
                     return _SecretChatHeader(
                       title: title,
                       onBackPressed: () {
-                        ref.read(activeThreadIdProvider.notifier).setId(null);
+                        ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(clearActiveThreadId: true));
                         ref
                             .read(activeAppProvider.notifier)
                             .setApp(PhoneApp.messenger);
