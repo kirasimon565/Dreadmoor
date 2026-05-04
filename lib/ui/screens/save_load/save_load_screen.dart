@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/custom_screen_header.dart';
 import 'package:dreadmoor/ui/widgets/shared_screen_painters.dart';
@@ -95,8 +96,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
       // Using invalidate rather than manual .setId(null) so each notifier
       // re-runs its build() and restores from the freshly loaded database.
       ref.invalidate(globalSchedulerProvider);
-      ref.invalidate(activeNodeIdProvider);
-      ref.invalidate(activeThreadIdProvider);
+      ref.invalidate(schedulerStateProvider);
       ref.invalidate(playerStateProvider);
       ref.invalidate(gameFlagsProvider);
 
