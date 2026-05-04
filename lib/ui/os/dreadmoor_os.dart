@@ -13,6 +13,8 @@ import 'package:dreadmoor/features/phone/ui/screens/call/active_call_screen.dart
 
 import 'package:dreadmoor/core/time/game_clock.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
+
 
 import 'package:dreadmoor/ui/widgets/notification_overlay.dart';
 
@@ -27,7 +29,7 @@ class DreadmoorOS extends ConsumerWidget {
     final activeApp = ref.watch(activeAppProvider);
 
     // ✅ REINTRODUCED — used ONLY to detect chat state
-    final activeThreadId = ref.watch(activeThreadIdProvider);
+    final activeThreadId = ref.watch(schedulerStateProvider.select((s) => s.activeThreadId));
 
     // ✅ FINAL CORRECT LOGIC
     final showNavBar =
