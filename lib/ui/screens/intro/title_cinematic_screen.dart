@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dreadmoor/core/scheduler/global_scheduler.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/ui/navigation/routes.dart';
 
 class TitleCinematicScreen extends ConsumerStatefulWidget {
@@ -54,19 +55,37 @@ class _TitleCinematicScreenState extends ConsumerState<TitleCinematicScreen> {
     final scheduler = ref.read(globalSchedulerProvider);
     final db = ref.read(databaseProvider);
 
+    // 1. Check if there's a saved node to resume from
     final currentNodeIdRow = await (db.select(db.storyState)
           ..where((t) => t.key.equals('current_node_id')))
         .getSingleOrNull();
     final currentNodeId = currentNodeIdRow?.stringValue;
 
     if (currentNodeId != null && currentNodeId.isNotEmpty) {
-      ref.read(activeNodeIdProvider.notifier).setId(currentNodeId);
+      ref.read(schedulerStateProvider.notifier).update(
+            (s) => s.copyWith(activeNodeId: currentNodeId),
+          );
       scheduler.resume();
-    } else {
-      // Initial launch point after the cinematic completes
-      scheduler.processNode('SCENE_1_NEWS_ARTICLE');
+      context.go(Routes.messenger);
+      return;
     }
 
+    // 2. No saved state — look up the starting node from the database
+    final startNodeRow = await (db.select(db.storyState)
+          ..where((t) => t.key.equals('start_node_id')))
+        .getSingleOrNull();
+    final startNodeId = startNodeRow?.stringValue;
+
+    if (startNodeId != null && startNodeId.isNotEmpty) {
+      scheduler.processNode(startNodeId);
+      context.go(Routes.messenger);
+      return;
+    }
+
+    // 3. Nothing configured — log clearly so you know what to fix
+    print(
+        "DreadmoorOS ✗ No 'current_node_id' or 'start_node_id' in story_state. "
+        "Set 'start_node_id' to the first node of the active episode.");
     context.go(Routes.messenger);
   }
 
