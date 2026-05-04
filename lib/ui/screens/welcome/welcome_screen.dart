@@ -75,9 +75,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await _musicPlayer.setReleaseMode(ReleaseMode.loop);
       await _musicPlayer.setVolume(0.55);
 
-      // ✅ AudioFocus.none = don't steal focus from the video player.
-      // Without this, audioplayers requests GAIN focus and the OS
-      // pauses the video. Android-only app so no iOS context needed.
       await _musicPlayer.setAudioContext(
         AudioContext(
           android: AudioContextAndroid(
@@ -93,7 +90,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       await _musicPlayer.play(AssetSource('music/welcome_theme.mp3'));
       if (mounted) setState(() => _musicReady = true);
     } catch (e) {
-      debugPrint('ðŸŽµ Welcome music unavailable: $e');
+      debugPrint('🎵 Welcome music unavailable: $e');
     }
   }
 
@@ -128,6 +125,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     }
   }
 
+  /// Looks up the starting node from the database.
+  /// Falls back to null if not configured — caller should handle that.
+  Future<String?> _getStartNodeId() async {
+    final db = ref.read(databaseProvider);
+    final row = await (db.select(db.storyState)
+          ..where((t) => t.key.equals('start_node_id')))
+        .getSingleOrNull();
+    return row?.stringValue;
+  }
+
   Future<void> _onMainAction(bool hasActiveGame) async {
     HapticFeedback.selectionClick();
     if (hasActiveGame) {
@@ -149,14 +156,25 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         final currentNodeId = currentNodeIdRow?.stringValue;
 
         if (currentNodeId != null && currentNodeId.isNotEmpty) {
-          ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(activeNodeId: currentNodeId));
+          ref.read(schedulerStateProvider.notifier).update(
+                (s) => s.copyWith(activeNodeId: currentNodeId),
+              );
         }
 
         _stopMusicAndNavigate(() {
           if (currentNodeId != null && currentNodeId.isNotEmpty) {
             ref.read(globalSchedulerProvider).resume();
           } else {
-            ref.read(globalSchedulerProvider).processNode('SCENE_1_NEWS_ARTICLE');
+            // No saved node — start from the configured starting node
+            _getStartNodeId().then((startNodeId) {
+              if (startNodeId != null && startNodeId.isNotEmpty) {
+                ref.read(globalSchedulerProvider).processNode(startNodeId);
+              } else {
+                print(
+                    "DreadmoorOS ✗ No 'start_node_id' in story_state. "
+                    "Set it to the first node of the active episode.");
+              }
+            });
           }
           context.go(Routes.messenger);
         });
@@ -170,8 +188,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           mode: InsertMode.insertOrReplace,
         );
         _stopMusicAndNavigate(() {
-          // It will redirect to OS after intro cinematic and then we process SCENE_1_NEWS_ARTICLE there.
-          // DO NOT start the scheduler here, let the TitleCinematicScreen handle it when it's done.
           context.go(Routes.introTrailer);
         });
       }
@@ -189,7 +205,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     final currentNodeId = currentNodeIdRow?.stringValue;
 
     if (currentNodeId != null && currentNodeId.isNotEmpty) {
-      ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(activeNodeId: currentNodeId));
+      ref.read(schedulerStateProvider.notifier).update(
+            (s) => s.copyWith(activeNodeId: currentNodeId),
+          );
     }
 
     _stopMusicAndNavigate(() {
@@ -199,8 +217,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         context.go(Routes.messenger);
       }
 
-      // Let the scheduler pick up where it left off based on activeNodeIdProvider or game flag states
-      // by simply resuming. We don't want to reset to s1_start here.
       ref.read(globalSchedulerProvider).resume();
     });
   }
@@ -282,7 +298,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: _HeroButton(
-                    // ✅ Label based on threads, not player existence
                     label: hasActiveGame ? "CONTINUE" : "START GAME",
                     onTap: () => _onMainAction(hasActiveGame),
                     reduceMotion: reduceMotion,
@@ -319,7 +334,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         ),
                       ),
 
-                      // Music indicator â€” subtle, shows music is playing
+                      // Music indicator
                       _MusicIndicator(playing: _musicReady),
                     ],
                   ),
