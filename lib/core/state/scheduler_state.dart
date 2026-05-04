@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Single state object instead of five separate providers
+/// Single source of truth for all scheduler state.
+/// Replaces five separate providers that had to stay in sync manually.
 class SchedulerState {
   final bool isPaused;
   final bool waitingForChoice;
@@ -33,8 +34,10 @@ class SchedulerState {
       waitingForChoice: waitingForChoice ?? this.waitingForChoice,
       waitingForPuzzle: waitingForPuzzle ?? this.waitingForPuzzle,
       isSubmittingChoice: isSubmittingChoice ?? this.isSubmittingChoice,
-      activeNodeId: clearActiveNodeId ? null : (activeNodeId ?? this.activeNodeId),
-      activeThreadId: clearActiveThreadId ? null : (activeThreadId ?? this.activeThreadId),
+      activeNodeId:
+          clearActiveNodeId ? null : (activeNodeId ?? this.activeNodeId),
+      activeThreadId:
+          clearActiveThreadId ? null : (activeThreadId ?? this.activeThreadId),
     );
   }
 }
@@ -43,12 +46,13 @@ class SchedulerStateNotifier extends Notifier<SchedulerState> {
   @override
   SchedulerState build() => const SchedulerState();
 
-  // Atomic: all fields update in ONE frame. No widget rebuilds between calls.
+  /// Atomic update — all fields change in one frame.
+  /// No widget can rebuild with half-updated state.
   void update(SchedulerState Function(SchedulerState) transform) {
     state = transform(state);
   }
 
-  // ── Convenience methods ──────────────────────────────────────────────
+  // ── Convenience methods for common transitions ────────────────────────
 
   void pauseAt(String nodeId) => update((s) => s.copyWith(
         isPaused: true,
@@ -89,33 +93,18 @@ class SchedulerStateNotifier extends Notifier<SchedulerState> {
         activeThreadId: threadId,
       ));
 
+  void clearThread() => update((s) => s.copyWith(
+        clearActiveThreadId: true,
+      ));
+
   void setSubmitting(bool submitting) => update((s) => s.copyWith(
         isSubmittingChoice: submitting,
       ));
 }
 
+/// The one provider for all scheduler state.
+/// Use .select() for individual fields in widgets.
 final schedulerStateProvider =
     NotifierProvider<SchedulerStateNotifier, SchedulerState>(
   SchedulerStateNotifier.new,
 );
-
-// Convenience selectors for widgets that only need one field
-final activeThreadIdProvider = Provider<String?>((ref) {
-  return ref.watch(schedulerStateProvider.select((s) => s.activeThreadId));
-});
-
-final isSchedulerPausedProvider = Provider<bool>((ref) {
-  return ref.watch(schedulerStateProvider.select((s) => s.isPaused));
-});
-
-final waitingForChoiceProvider = Provider<bool>((ref) {
-  return ref.watch(schedulerStateProvider.select((s) => s.waitingForChoice));
-});
-
-final waitingForPuzzleProvider = Provider<bool>((ref) {
-  return ref.watch(schedulerStateProvider.select((s) => s.waitingForPuzzle));
-});
-
-final activeNodeIdProvider = Provider<String?>((ref) {
-  return ref.watch(schedulerStateProvider.select((s) => s.activeNodeId));
-});
