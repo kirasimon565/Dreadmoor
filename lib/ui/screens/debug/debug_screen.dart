@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 
 // Guard: this screen must never appear in release builds
 class DebugScreen extends StatelessWidget {
@@ -158,7 +159,7 @@ class _DebugScreenBodyState extends ConsumerState<_DebugScreenBody>
                   onTap: () =>
                       _run('replay', 'REPLAY CURRENT THREAD', () async {
                         final ep = ref.read(currentEpisodeIdProvider);
-                        final thread = ref.read(activeThreadIdProvider);
+                        final thread = ref.read(schedulerStateProvider).activeThreadId;
                         if (ep == null || thread == null) {
                           throw Exception('No active episode or thread');
                         }
