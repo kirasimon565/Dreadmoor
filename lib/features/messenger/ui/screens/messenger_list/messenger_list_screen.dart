@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/features/messenger/ui/messenger_navigator.dart';
 
 // ── PALETTE (from mockup) ─────────────────────────────────────────────────────
@@ -232,7 +233,7 @@ class _ThreadTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        ref.read(activeThreadIdProvider.notifier).state = thread.id;
+        ref.read(schedulerStateProvider.notifier).switchThread(thread.id);
         Navigator.of(context).pushNamed(
           thread.isSecret
               ? MessengerRoutes.secret
