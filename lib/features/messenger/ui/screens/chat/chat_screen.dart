@@ -81,11 +81,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       )..where((t) => t.key.equals('active_choice_id'))).getSingleOrNull();
 
       if (activeChoiceRow?.stringValue != null) {
-  ref.read(schedulerStateProvider.notifier).startChoice(
-    activeChoiceRow!.stringValue!,
-    widget.threadId,
-  );
+        ref.read(schedulerStateProvider.notifier).startChoice(
+              activeChoiceRow!.stringValue!,
+              widget.threadId,
+            );
       }
+    });
+  }
 
   @override
   void dispose() {
@@ -170,7 +172,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 600),
                   child: Image.asset(
-                    'assets/media/images/forest_moon_bg.png', // Dynamic loading if added to thread table in future, fallback for now
+                    'assets/media/images/forest_moon_bg.png',
                     key: const ValueKey('forest_moon_bg'),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Image.asset(
@@ -264,8 +266,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               isSecret: msg.isSecret,
                               mediaType: msg.type,
                               mediaPath: msg.mediaPath,
-                              isGroup:
-                                  isGroup, // pass isGroup to handle names above bubbles properly
+                              isGroup: isGroup,
                             );
                           },
                         );
