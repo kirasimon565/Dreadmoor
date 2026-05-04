@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/core/models/script_models.dart';
 
 class ChoiceOverlay extends ConsumerStatefulWidget {
@@ -69,7 +70,7 @@ class _ChoiceOverlayState extends ConsumerState<ChoiceOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final waiting = ref.watch(waitingForChoiceProvider);
+    final waiting = ref.watch(schedulerStateProvider.select((s) => s.waitingForChoice));
     final player = ref.watch(playerStateProvider);
     final bp = MediaQuery.of(context).padding.bottom;
 
@@ -258,7 +259,7 @@ class _ChoiceSheetNotchState extends ConsumerState<_ChoiceSheetNotch> {
   @override
   Widget build(BuildContext context) {
     final scheduler = ref.read(globalSchedulerProvider);
-    final activeId = ref.watch(activeNodeIdProvider);
+    final activeId = ref.watch(schedulerStateProvider.select((s) => s.activeNodeId));
     final bp = MediaQuery.of(context).padding.bottom;
 
     const double avatarDiameter = 62;
