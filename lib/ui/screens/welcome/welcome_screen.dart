@@ -9,6 +9,7 @@ import 'package:drift/drift.dart' hide Column;
 
 import 'package:dreadmoor/core/persistence/drift_database.dart';
 import 'package:dreadmoor/core/state/game_state.dart';
+import 'package:dreadmoor/core/state/scheduler_state.dart';
 import 'package:dreadmoor/ui/navigation/routes.dart';
 import 'package:dreadmoor/ui/theme/colors.dart';
 import 'package:dreadmoor/ui/widgets/fog_video_background.dart';
@@ -148,7 +149,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         final currentNodeId = currentNodeIdRow?.stringValue;
 
         if (currentNodeId != null && currentNodeId.isNotEmpty) {
-          ref.read(activeNodeIdProvider.notifier).setId(currentNodeId);
+          ref.read(schedulerStateProvider.notifier).update((s) => s.copyWith(activeNodeId: currentNodeId));
         }
 
         _stopMusicAndNavigate(() {
@@ -179,7 +180,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
   Future<void> _continueGame() async {
     final db = ref.read(databaseProvider);
-    final threadId = ref.read(activeThreadIdProvider);
+    final threadId = ref.read(schedulerStateProvider).activeThreadId;
 
     // Load current node from StoryState
     final currentNodeIdRow = await (db.select(db.storyState)
