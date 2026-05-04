@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:dreadmoor/core/state/game_state.dart';
 import 'package:dreadmoor/ui/navigation/app_router.dart';
 import 'package:dreadmoor/ui/navigation/routes.dart';
+import '../../../core/state/scheduler_state.dart';
 
 class NotificationBanner extends ConsumerStatefulWidget {
   const NotificationBanner({super.key});
@@ -60,7 +61,7 @@ class _NotificationBannerState extends ConsumerState<NotificationBanner> {
     }
 
     final activeApp = ref.watch(activeAppProvider);
-    final activeThreadId = ref.watch(activeThreadIdProvider);
+    final activeThreadId = ref.watch(schedulerStateProvider.select((s) => s.activeThreadId));
 
     Map<String, dynamic>? payloadMap;
     try {
@@ -148,7 +149,7 @@ class _NotificationBannerState extends ConsumerState<NotificationBanner> {
 
                 // SAFE NAVIGATION
                 ref.read(activeAppProvider.notifier).setApp(PhoneApp.messenger);
-                ref.read(activeThreadIdProvider.notifier).setId(threadId);
+                ref.read(schedulerStateProvider.notifier).switchThread(threadId);
                 ref.read(appRouterProvider).go(Routes.chat(threadId));
 
                 _markAsRead(notification.id);
