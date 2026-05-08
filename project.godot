@@ -12,8 +12,8 @@ config_version=5
 
 config/name="Dreadmoor"
 config/description="Noir mobile messenger horror game."
-run/main_scene="res://scenes/welcome_screen.tscn"
-config/features=PackedStringArray("4.3", "C#", "Mobile")
+run/main_scene="res://scenes/studio_intro.tscn"
+config/features=PackedStringArray("4.6.2", "C#", "Mobile")
 config/icon="res://assets/icon/icon.png"
 
 [autoload]
