@@ -1,0 +1,52 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Dreadmoor"
+config/description="Noir mobile messenger horror game."
+run/main_scene="res://scenes/welcome_screen.tscn"
+config/features=PackedStringArray("4.3", "C#", "Mobile")
+config/icon="res://assets/icon/icon.png"
+
+[autoload]
+
+GlobalState="*res://autoload/GlobalState.cs"
+GameClock="*res://autoload/GameClock.cs"
+GlobalScheduler="*res://autoload/GlobalScheduler.cs"
+SceneManager="*res://autoload/scene_manager.gd"
+StatusBar="*res://ui/layers/status_bar.tscn"
+NavigationBar="*res://ui/layers/navigation_bar.tscn"
+JSONRuntime="*res://autoload/JSONRuntime.cs"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/size/mode=0
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[dotnet]
+
+project/assembly_name="Dreadmoor"
+
+[gui]
+
+theme/custom="res://ui/theme/dreadmoor_theme.tres"
+theme/custom_font="res://ui/fonts/noir_display.ttf"
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.0470588, 0.054902, 0.0627451, 1)
