@@ -23,6 +23,11 @@ namespace Dreadmoor
             if (Instance == null)
             {
                 Instance = this;
+
+                // Initialize default variables needed for UI prototype
+                SetVariable("Ep01Progress", "15");
+                SetVariable("PlayerName", "Detective");
+                SetVariable("ActiveThread", "Rebecca Stone");
             }
         }
 
@@ -51,14 +56,15 @@ namespace Dreadmoor
             return defaultValue;
         }
 
-        // Simple mock save/load for Phase 1
         public void Save()
         {
+            // Real implementation will use Godot's FileAccess and JSON/ConfigFile to user://
             GD.Print("GlobalState: Saving data...");
         }
 
         public void Load()
         {
+            // Real implementation will load from user://
             GD.Print("GlobalState: Loading data...");
         }
     }

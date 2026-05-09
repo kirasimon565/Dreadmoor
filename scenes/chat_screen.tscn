@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://chatscreenid"]
+[gd_scene load_steps=4 format=3 uid="uid://chatscreenid"]
 
 [ext_resource type="Script" path="res://scenes/chat_screen.gd" id="1_chat"]
 [ext_resource type="PackedScene" uid="uid://navbarid" path="res://ui/navigation_bar.tscn" id="2_navbar"]
+[ext_resource type="Texture2D" uid="uid://cx6r0r2" path="res://assets/media/images/default_chat_bg.png" id="3_bg"]
 
 [node name="ChatScreen" type="Control"]
 layout_mode = 3
@@ -12,14 +13,26 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_chat")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.12, 0.12, 0.14, 1)
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Tint" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -33,7 +46,7 @@ grow_vertical = 2
 [node name="Header" type="ColorRect" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
-color = Color(0.08, 0.08, 0.1, 1)
+color = Color(0.08, 0.08, 0.1, 0.9)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Header"]
 layout_mode = 1
@@ -52,6 +65,14 @@ theme_override_font_sizes/font_size = 40
 text = "<"
 flat = true
 
+[node name="AvatarRect" type="TextureRect" parent="VBoxContainer/Header/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
 [node name="ThreadName" type="Label" parent="VBoxContainer/Header/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -65,14 +86,19 @@ layout_mode = 2
 size_flags_vertical = 3
 follow_focus = true
 
-[node name="MessageList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
+[node name="ContentVBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MessageList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/ContentVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 20
 
-[node name="TypingIndicator" type="Label" parent="VBoxContainer"]
+[node name="TypingIndicator" type="Label" parent="VBoxContainer/ScrollContainer/ContentVBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -80,7 +106,7 @@ theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 text = "Rebecca is typing..."
 
-[node name="ChoiceOverlay" type="VBoxContainer" parent="VBoxContainer"]
+[node name="ChoiceOverlay" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/ContentVBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
