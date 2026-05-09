@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://welcomescreenid"]
+[gd_scene load_steps=3 format=3 uid="uid://welcomescreenid"]
 
 [ext_resource type="Script" path="res://scenes/welcome_screen.gd" id="1_welcome"]
+[ext_resource type="Texture2D" uid="uid://cx6r0r4" path="res://assets/backgrounds/welcome_bg_still.png" id="2_bg"]
 
 [node name="WelcomeScreen" type="Control"]
 layout_mode = 3
@@ -11,14 +12,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_welcome")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.06, 1)
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -32,11 +35,12 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 40
 
-[node name="Label" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="LogoTexture" type="TextureRect" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(600, 200)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "WELCOME TO DREAD OS"
-horizontal_alignment = 1
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ContinueBtn" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true

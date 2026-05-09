@@ -65,8 +65,7 @@ layout_mode = 2
 theme_override_colors/default_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/normal_font_size = 32
 bbcode_enabled = true
-text = "June 12th.
-The woods were quiet today. Too quiet. I found the marker they told me about, but the box was empty."
+text = ""
 fit_content = true
 
 [node name="NavigationBar" parent="." instance=ExtResource("2_navbar")]

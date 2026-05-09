@@ -1,10 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://mainsceneid"]
+[gd_scene load_steps=5 format=3 uid="uid://mainsceneid"]
 
 [ext_resource type="PackedScene" uid="uid://notificationoverlayid" path="res://scenes/notification_overlay.tscn" id="1_noti"]
 [ext_resource type="PackedScene" uid="uid://statusbarid" path="res://ui/status_bar.tscn" id="2_status"]
 [ext_resource type="PackedScene" uid="uid://debugpanelid" path="res://scenes/debug_panel.tscn" id="3_debug"]
+[ext_resource type="Texture2D" uid="uid://cx6r0r6" path="res://assets/ui/glitch_overlay.png" id="4_glitch"]
+[ext_resource type="Script" path="res://scenes/main.gd" id="5_main"]
 
 [node name="Main" type="Node"]
+script = ExtResource("5_main")
 
 [node name="SceneContainer" type="Control" parent="."]
 layout_mode = 3
@@ -29,5 +32,18 @@ layer = 110
 
 [node name="GlitchLayer" type="CanvasLayer" parent="."]
 layer = 120
+
+[node name="GlitchRect" type="TextureRect" parent="GlitchLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_glitch")
+expand_mode = 1
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.2)
+mouse_filter = 2
 
 [node name="DebugPanel" parent="." instance=ExtResource("3_debug")]
