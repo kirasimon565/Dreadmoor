@@ -11,7 +11,7 @@ func _ready():
     _typing_audio_player.bus = "SFX"
     add_child(_typing_audio_player)
 
-    if GlobalState and GlobalState.has_method("GetVariable"):
+    if GlobalState:
         _current_thread = GlobalState.GetVariable("ActiveThread", "Rebecca Stone")
         %ThreadName.text = _current_thread
 
@@ -29,14 +29,14 @@ func _ready():
 
     _load_chat_history()
 
-    var scheduler = get_node_or_null("/root/GlobalScheduler")
+    var scheduler = GlobalScheduler
     if scheduler:
-        if scheduler.has_signal("NodeExecuted"):
+        if true:
             scheduler.connect("NodeExecuted", _on_node_executed)
-        if scheduler.has_signal("TypingStatusChanged"):
+        if true:
             scheduler.connect("TypingStatusChanged", _on_typing_changed)
 
-        if not scheduler.get("_isPlaying") and GlobalState.GetVariable("ActiveEpisodeId") == "ep01":
+        if not scheduler._isPlaying and GlobalState.GetVariable("ActiveEpisodeId") == "ep01":
             var next_node = GlobalState.GetVariable("CurrentNodeId", "SCENE_1_START")
             if next_node:
                 scheduler.StartPlayback(next_node)
@@ -46,7 +46,7 @@ func _load_chat_history():
         child.queue_free()
 
 func _on_back_pressed():
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/messenger_list.tscn")
 
 func _on_node_executed(node_id: String, type: String, payload: Dictionary):
@@ -114,7 +114,7 @@ func _on_choice_selected(next_id: String, choice_text: String):
     if AudioManager:
         AudioManager.play_sfx("res://assets/media/sfx/typing.mp3")
 
-    var scheduler = get_node_or_null("/root/GlobalScheduler")
+    var scheduler = GlobalScheduler
     if scheduler and not next_id.is_empty():
         await get_tree().create_timer(0.5).timeout
         scheduler.StartPlayback(next_id)
@@ -154,7 +154,7 @@ func _add_message_bubble(text: String, is_player: bool, is_secret: bool = false)
     vbox.add_child(panel)
 
     var time_lbl = Label.new()
-    var clock = get_node_or_null("/root/GameClock")
+    var clock = GameClock
     time_lbl.text = clock.GetFormattedTime() if clock else "12:00"
 
     if is_secret:

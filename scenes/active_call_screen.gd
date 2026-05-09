@@ -8,7 +8,7 @@ func _ready():
 
     # In a real impl, start playing the voice over audio node here
     if AudioManager:
-        AudioManager.play_sfx("res://assets/music/call_connect.ogg")
+        AudioManager.play_sfx("res://assets/media/audio/threatening_call_01.mp3")
 
 func _on_tick():
     time_elapsed += 1
@@ -18,8 +18,8 @@ func _on_tick():
 
 func _on_end():
     # End event playback if scheduler is managing a call script
-    if GlobalScheduler and GlobalScheduler.has_method("StopPlayback"):
+    if GlobalScheduler:
         GlobalScheduler.StopPlayback()
 
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/messenger_list.tscn", false)

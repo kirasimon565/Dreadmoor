@@ -28,7 +28,7 @@ func _on_answer():
     if GlobalState:
         GlobalState.SetFlag("CallAnswered", true)
 
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/active_call_screen.tscn", false)
 
 func _on_decline():
@@ -38,11 +38,11 @@ func _on_decline():
     if GlobalState:
         GlobalState.SetFlag("CallAnswered", false)
 
-    var scheduler = get_node_or_null("/root/GlobalScheduler")
+    var scheduler = GlobalScheduler
     if scheduler and GlobalState:
         var next_node = GlobalState.GetVariable("CallDeclineNodeId", "")
         if not next_node.is_empty():
             scheduler.StartPlayback(next_node)
 
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/messenger_list.tscn", false)

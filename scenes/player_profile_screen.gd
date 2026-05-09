@@ -6,15 +6,15 @@ func _ready():
     %SaveBtn.pressed.connect(_on_save)
 
     # Load from GlobalState if possible
-    if GlobalState and GlobalState.has_method("GetVariable"):
+    if GlobalState:
         %NameEdit.text = GlobalState.GetVariable("PlayerName", "Player")
 
 func _on_save():
-    if GlobalState and GlobalState.has_method("SetVariable"):
+    if GlobalState:
         GlobalState.SetVariable("PlayerName", %NameEdit.text)
         if NotificationManager:
             NotificationManager.show_notification("System", "Profile updated.")
 
 func _on_back():
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/apps_screen.tscn")

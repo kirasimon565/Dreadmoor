@@ -13,15 +13,16 @@ config_version=5
 config/name="Dreadmoor"
 config/description="Dreadmoor: Rebecca Stone Mystery"
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.6", "C#", "Mobile")
+config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://assets/icon/app_icon.png"
 
 [autoload]
 
 SceneManager="*res://autoload/SceneManager.gd"
-GlobalScheduler="*res://autoload/GlobalScheduler.cs"
-GlobalState="*res://autoload/GlobalState.cs"
-GameClock="*res://autoload/GameClock.cs"
+JsonRuntimeParser="*res://autoload/JsonRuntimeParser.gd"
+GlobalScheduler="*res://autoload/GlobalScheduler.gd"
+GlobalState="*res://autoload/GlobalState.gd"
+GameClock="*res://autoload/GameClock.gd"
 AudioManager="*res://autoload/AudioManager.gd"
 NotificationManager="*res://autoload/NotificationManager.gd"
 
@@ -32,10 +33,6 @@ window/size/viewport_height=1920
 window/size/mode=0
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-
-[dotnet]
-
-project/assembly_name="Dreadmoor"
 
 [gui]
 

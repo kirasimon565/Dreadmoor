@@ -10,18 +10,18 @@ func _on_toggle():
     %Panel.visible = !%Panel.visible
 
 func _on_force_call():
-    var sm = get_node_or_null("/root/SceneManager")
+    var sm = SceneManager
     if sm:
         sm.change_scene("res://scenes/incoming_call_screen.tscn")
         %Panel.visible = false
 
 func _on_force_noti():
-    var nm = get_node_or_null("/root/NotificationManager")
+    var nm = NotificationManager
     if nm:
         nm.show_notification("DEBUG", "This is a forced notification payload.")
 
 func _on_secret_chat():
-    var sm = get_node_or_null("/root/SceneManager")
+    var sm = SceneManager
     if sm:
         sm.change_scene("res://scenes/secret_chat_screen.tscn")
         %Panel.visible = false

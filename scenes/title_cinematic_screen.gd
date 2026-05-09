@@ -34,5 +34,5 @@ func _ready():
 func _on_start_pressed():
     if AudioManager:
         AudioManager.stop_bgm(1.0)
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/intro_trailer_screen.tscn")

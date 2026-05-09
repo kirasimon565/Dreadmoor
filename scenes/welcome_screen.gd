@@ -16,5 +16,5 @@ func _ready():
 func _on_continue():
     if %BackgroundVideo.is_playing():
         %BackgroundVideo.stop()
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/messenger_list.tscn")
