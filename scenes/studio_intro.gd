@@ -24,5 +24,5 @@ func _play_intro():
 
     await tween.finished
 
-    if SceneManager:
+    if true:
         SceneManager.change_scene("res://scenes/title_cinematic_screen.tscn", false)

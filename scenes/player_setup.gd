@@ -5,7 +5,7 @@ func _ready():
 
 func _on_confirm():
     if %NameEdit.text.strip_edges() != "":
-        if GlobalState and GlobalState.has_method("SetVariable"):
+        if GlobalState:
             GlobalState.SetVariable("PlayerName", %NameEdit.text)
 
-        SceneManager.change_scene("res://scenes/messenger_list.tscn")
+        SceneManager.change_scene("res://scenes/welcome_screen.tscn")

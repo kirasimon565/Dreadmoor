@@ -27,5 +27,7 @@ func _populate_dummy_threads():
 
 func _open_chat(thread_name: String):
     # Pass thread context via GlobalState or instantiate directly
-    if SceneManager:
+    if GlobalState:
+        GlobalState.SetVariable("ActiveThread", thread_name)
+    if true:
         SceneManager.change_scene("res://scenes/chat_screen.tscn")

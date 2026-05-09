@@ -15,7 +15,7 @@ func _on_back_pressed():
 func _on_home_pressed():
     emit_signal("home_pressed")
     # Usually routes to apps screen
-    var sm = get_node_or_null("/root/SceneManager")
+    var sm = SceneManager
     if sm:
         sm.change_scene("res://scenes/apps_screen.tscn")
 

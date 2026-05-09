@@ -9,13 +9,13 @@ func _on_back():
     SceneManager.change_scene("res://scenes/apps_screen.tscn")
 
 func _on_save():
-    if GlobalState and GlobalState.has_method("Save"):
+    if GlobalState:
         GlobalState.Save()
         if NotificationManager:
             NotificationManager.show_notification("System", "Data backup complete.")
 
 func _on_load():
-    if GlobalState and GlobalState.has_method("Load"):
+    if GlobalState:
         GlobalState.Load()
         if NotificationManager:
             NotificationManager.show_notification("System", "Data restored.")
