@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3 uid="uid://mainsceneid"]
+
+[ext_resource type="PackedScene" uid="uid://notificationoverlayid" path="res://scenes/notification_overlay.tscn" id="1_noti"]
+[ext_resource type="PackedScene" uid="uid://statusbarid" path="res://ui/status_bar.tscn" id="2_status"]
+[ext_resource type="PackedScene" uid="uid://debugpanelid" path="res://scenes/debug_panel.tscn" id="3_debug"]
+
+[node name="Main" type="Node"]
+
+[node name="SceneContainer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatusLayer" type="CanvasLayer" parent="."]
+layer = 90
+
+[node name="StatusBar" parent="StatusLayer" instance=ExtResource("2_status")]
+
+[node name="OverlayLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="NotificationLayer" type="CanvasLayer" parent="."]
+layer = 110
+
+[node name="NotificationOverlay" parent="NotificationLayer" instance=ExtResource("1_noti")]
+
+[node name="GlitchLayer" type="CanvasLayer" parent="."]
+layer = 120
+
+[node name="DebugPanel" parent="." instance=ExtResource("3_debug")]

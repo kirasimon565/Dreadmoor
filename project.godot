@@ -1,0 +1,42 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Dreadmoor"
+config/description="Dreadmoor: Rebecca Stone Mystery"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.6", "C#", "Mobile")
+config/icon="res://assets/icon/app_icon.png"
+
+[autoload]
+
+SceneManager="*res://autoload/SceneManager.gd"
+GlobalScheduler="*res://autoload/GlobalScheduler.cs"
+GlobalState="*res://autoload/GlobalState.cs"
+GameClock="*res://autoload/GameClock.cs"
+AudioManager="*res://autoload/AudioManager.gd"
+NotificationManager="*res://autoload/NotificationManager.gd"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/size/mode=0
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[dotnet]
+
+project/assembly_name="Dreadmoor"
+
+[gui]
+
+theme/custom="res://ui/dreadmoor_theme.tres"
