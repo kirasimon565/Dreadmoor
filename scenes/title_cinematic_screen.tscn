@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://titlecinematicid"]
+[gd_scene load_steps=2 format=3 uid="uid://titlecinematicid"]
 
 [ext_resource type="Script" path="res://scenes/title_cinematic_screen.gd" id="1_title"]
-[ext_resource type="Texture2D" uid="uid://cx6r0r1" path="res://assets/backgrounds/studio_intro_bg.png" id="2_bg"]
 
 [node name="TitleCinematicScreen" type="Control"]
 layout_mode = 3
@@ -12,16 +11,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_bg")
-expand_mode = 1
-stretch_mode = 6
+color = Color(0.02, 0.02, 0.04, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -35,12 +32,12 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 100
 
-[node name="LogoTexture" type="TextureRect" parent="CenterContainer/VBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(800, 300)
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(0.7, 0, 0, 1)
+theme_override_font_sizes/font_size = 96
+text = "DREADMOOR"
+horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true

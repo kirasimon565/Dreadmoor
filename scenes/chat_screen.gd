@@ -1,11 +1,16 @@
 extends Control
 
 var _current_thread: String = "rebecca"
+var _typing_audio_player: AudioStreamPlayer
 
 func _ready():
     %BackBtn.pressed.connect(_on_back_pressed)
 
-    # Setup styling based on thread context
+    _typing_audio_player = AudioStreamPlayer.new()
+    _typing_audio_player.stream = load("res://assets/media/sfx/typing.mp3")
+    _typing_audio_player.bus = "SFX"
+    add_child(_typing_audio_player)
+
     if GlobalState and GlobalState.has_method("GetVariable"):
         _current_thread = GlobalState.GetVariable("ActiveThread", "Rebecca Stone")
         %ThreadName.text = _current_thread
@@ -17,7 +22,6 @@ func _ready():
         var bg = load("res://assets/media/images/default_chat_bg.png")
         if bg: %Background.texture = bg
 
-        # Load avatar
         var avatar_path = "res://assets/characters/" + _current_thread.split(" ")[0].to_lower() + ".png"
         var tex = load(avatar_path)
         if not tex: tex = load("res://assets/characters/unknown.png")
@@ -25,7 +29,6 @@ func _ready():
 
     _load_chat_history()
 
-    # Connect to GlobalScheduler
     var scheduler = get_node_or_null("/root/GlobalScheduler")
     if scheduler:
         if scheduler.has_signal("NodeExecuted"):
@@ -33,7 +36,6 @@ func _ready():
         if scheduler.has_signal("TypingStatusChanged"):
             scheduler.connect("TypingStatusChanged", _on_typing_changed)
 
-        # If no active playback, and we want to trigger a scene
         if not scheduler.get("_isPlaying") and GlobalState.GetVariable("ActiveEpisodeId") == "ep01":
             var next_node = GlobalState.GetVariable("CurrentNodeId", "SCENE_1_START")
             if next_node:
@@ -56,7 +58,7 @@ func _on_node_executed(node_id: String, type: String, payload: Dictionary):
         var is_secret = _current_thread.to_lower().contains("unknown")
 
         if not is_player and AudioManager:
-            AudioManager.play_sfx("res://assets/music/message_receive.ogg")
+            AudioManager.play_sfx("res://assets/media/sfx/message_receive.mp3")
 
         _add_message_bubble(content, is_player, is_secret)
 
@@ -78,6 +80,11 @@ func _on_typing_changed(thread_id: String, character_id: String, is_typing: bool
         if char_name.to_lower() == "player": char_name = "You"
         %TypingIndicator.text = char_name + " is typing..."
         _scroll_to_bottom()
+
+        if not _typing_audio_player.playing:
+            _typing_audio_player.play()
+    else:
+        _typing_audio_player.stop()
 
 func _show_choices(payload: Dictionary):
     var options = payload.get("options", [])
@@ -103,6 +110,9 @@ func _show_choices(payload: Dictionary):
 func _on_choice_selected(next_id: String, choice_text: String):
     %ChoiceOverlay.visible = false
     _add_message_bubble(choice_text, true, _current_thread.to_lower().contains("unknown"))
+
+    if AudioManager:
+        AudioManager.play_sfx("res://assets/media/sfx/typing.mp3")
 
     var scheduler = get_node_or_null("/root/GlobalScheduler")
     if scheduler and not next_id.is_empty():
@@ -176,8 +186,22 @@ func _add_message_bubble(text: String, is_player: bool, is_secret: bool = false)
 
 func _add_media_bubble(path: String, is_video: bool, is_player: bool):
     var btn = Button.new()
-    btn.custom_minimum_size = Vector2(300, 200)
-    btn.text = "[ VIDEO ]" if is_video else "[ IMAGE ]"
+    btn.custom_minimum_size = Vector2(300, 300)
+
+    if not is_video:
+        var tex = load("res://" + path.replace("assets/", "assets/"))
+        if tex:
+            var trect = TextureRect.new()
+            trect.texture = tex
+            trect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+            trect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+            trect.set_anchors_preset(Control.PRESET_FULL_RECT)
+            trect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+            btn.add_child(trect)
+    else:
+        btn.text = "[ VIDEO ]\nTap to play"
+        btn.theme_override_font_sizes.font_size = 32
+
     btn.pressed.connect(func(): _open_media_viewer(path, is_video))
     %MessageList.add_child(btn)
     _scroll_to_bottom()
