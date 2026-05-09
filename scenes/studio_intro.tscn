@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://studiointroid"]
+[gd_scene load_steps=2 format=3 uid="uid://studiointroid"]
 
 [ext_resource type="Script" path="res://scenes/studio_intro.gd" id="1_intro"]
-[ext_resource type="Texture2D" uid="uid://cx6r0r3" path="res://assets/backgrounds/studio_intro_bg.png" id="2_bg"]
 
 [node name="StudioIntro" type="Control"]
 layout_mode = 3
@@ -12,16 +11,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_intro")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_bg")
-expand_mode = 1
-stretch_mode = 6
+color = Color(0, 0, 0, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
