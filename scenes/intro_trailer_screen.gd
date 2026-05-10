@@ -1,18 +1,26 @@
 extends Control
 
-func _ready():
-    %SkipBtn.pressed.connect(_on_skip)
+var transitioning: bool = false
 
+func _ready():
+    # Load and play intro video
     var stream = load("res://assets/media/videos/intro_teaser.mp4")
     if stream:
         %VideoPlayer.stream = stream
+        %VideoPlayer.autoplay = true
         %VideoPlayer.play()
-        %VideoPlayer.finished.connect(_on_skip)
     else:
-        var timer = get_tree().create_timer(4.0)
-        timer.timeout.connect(_on_skip)
+        push_error("Missing intro teaser video")
+        call_deferred("_navigate_next")
+        return
 
-func _on_skip():
-    if %VideoPlayer.is_playing():
-        %VideoPlayer.stop()
-    SceneManager.change_scene("res://scenes/player_setup.tscn")
+    %VideoPlayer.finished.connect(_on_video_finished)
+
+func _on_video_finished():
+    _navigate_next()
+
+func _navigate_next():
+    if transitioning:
+        return
+    transitioning = true
+    SceneManager.change_scene("res://scenes/title_cinematic_screen.tscn", false)
