@@ -1,6 +1,78 @@
-[gd_scene load_steps=3 format=3 uid="uid://welcomescreenid"]
+[gd_scene load_steps=12 format=3 uid="uid://welcomescreenid"]
 
 [ext_resource type="Script" path="res://scenes/welcome_screen.gd" id="1_welcome"]
+[ext_resource type="VideoStream" path="res://assets/backgrounds/welcome_fog_loop.mp4" id="2_vid"]
+[ext_resource type="Texture2D" uid="uid://cbxy4a7x4" path="res://assets/ui/glitch_overlay.png" id="3_glitch"]
+[ext_resource type="Texture2D" uid="uid://cnb5bpx3e" path="res://assets/branding/dreadmoor_logo.png" id="4_logo"]
+[ext_resource type="Shader" path="res://shaders/glass_blur.gdshader" id="5_blur"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
+shader = ExtResource("5_blur")
+shader_parameter/blur_amount = 2.0
+
+[sub_resource type="Animation" id="Animation_breath"]
+resource_name = "breathing_logo"
+length = 3.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SafeArea/VBox/LogoCenter/LogoContainer:scale")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.6, 3.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.02, 1.02), Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_bars"]
+resource_name = "music_bars"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SafeArea/BottomBar/MusicIndicatorGroup/Bar1:custom_minimum_size")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(2, 6), Vector2(2, 14), Vector2(2, 6)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("SafeArea/BottomBar/MusicIndicatorGroup/Bar2:custom_minimum_size")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(2, 10), Vector2(2, 14), Vector2(2, 8)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("SafeArea/BottomBar/MusicIndicatorGroup/Bar3:custom_minimum_size")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(2, 14), Vector2(2, 6), Vector2(2, 14)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_anim"]
+_data = {
+"breathing_logo": SubResource("Animation_breath"),
+"music_bars": SubResource("Animation_bars")
+}
 
 [node name="WelcomeScreen" type="Control"]
 layout_mode = 3
@@ -19,10 +91,91 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+stream = ExtResource("2_vid")
+autoplay = true
 expand = true
+loop = true
 mouse_filter = 2
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="DarkenOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+mouse_filter = 2
+
+[node name="GlitchOverlay" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_glitch")
+expand_mode = 1
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.04)
+mouse_filter = 2
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+
+[node name="TopSpacer" type="Control" parent="SafeArea/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="LogoCenter" type="CenterContainer" parent="SafeArea/VBox"]
+layout_mode = 2
+
+[node name="LogoContainer" type="Control" parent="SafeArea/VBox/LogoCenter"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+
+[node name="LogoRect" type="TextureRect" parent="SafeArea/VBox/LogoCenter/LogoContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MidSpacer" type="Control" parent="SafeArea/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="ActionBtnMargin" type="MarginContainer" parent="SafeArea/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_right = 40
+
+[node name="ActionBtnGroup" type="Control" parent="SafeArea/VBox/ActionBtnMargin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+pivot_offset = Vector2(160, 32)
+
+[node name="Blur" type="ColorRect" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup"]
+material = SubResource("ShaderMaterial_blur")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,19 +183,121 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 40
-
-[node name="LogoTexture" type="TextureRect" parent="CenterContainer/VBoxContainer"]
+[node name="ActionBtnBg" type="ColorRect" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(600, 200)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.12, 0.25)
 
-[node name="ContinueBtn" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="ActionBtnBorder" type="ReferenceRect" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+border_color = Color(0.24, 0.85, 0.95, 0.4)
+border_width = 1.0
+editor_only = false
+
+[node name="HBox" type="HBoxContainer" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PlayIcon" type="Label" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.85, 0.95, 0.9)
+theme_override_font_sizes/font_size = 22
+text = "▶"
+
+[node name="ActionBtnLabel" type="Label" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 40
-text = "Initialize System"
+theme_override_colors/font_color = Color(0.24, 0.85, 0.95, 0.9)
+theme_override_font_sizes/font_size = 16
+text = "START GAME"
+
+[node name="ActionBtn" type="Button" parent="SafeArea/VBox/ActionBtnMargin/ActionBtnGroup"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="BottomSpacer" type="Control" parent="SafeArea/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="BottomBar" type="HBoxContainer" parent="SafeArea"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="Margin" type="MarginContainer" parent="SafeArea/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 28
+
+[node name="BlackmoonLabel" type="Label" parent="SafeArea/BottomBar/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.3)
+theme_override_font_sizes/font_size = 10
+text = "BLACKMOON"
+
+[node name="SettingsBtn" type="Button" parent="SafeArea/BottomBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+text = "⚙"
+flat = true
+
+[node name="Margin2" type="MarginContainer" parent="SafeArea/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 28
+
+[node name="MusicIndicatorGroup" type="HBoxContainer" parent="SafeArea/BottomBar/Margin2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/separation = 2
+alignment = 2
+
+[node name="Bar1" type="ColorRect" parent="SafeArea/BottomBar/Margin2/MusicIndicatorGroup"]
+custom_minimum_size = Vector2(2, 6)
+layout_mode = 2
+size_flags_vertical = 8
+color = Color(1, 1, 1, 0.28)
+
+[node name="Bar2" type="ColorRect" parent="SafeArea/BottomBar/Margin2/MusicIndicatorGroup"]
+custom_minimum_size = Vector2(2, 10)
+layout_mode = 2
+size_flags_vertical = 8
+color = Color(1, 1, 1, 0.28)
+
+[node name="Bar3" type="ColorRect" parent="SafeArea/BottomBar/Margin2/MusicIndicatorGroup"]
+custom_minimum_size = Vector2(2, 14)
+layout_mode = 2
+size_flags_vertical = 8
+color = Color(1, 1, 1, 0.28)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+unique_name_in_owner = true
+libraries = {
+"": SubResource("AnimationLibrary_anim")
+}

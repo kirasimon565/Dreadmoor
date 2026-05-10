@@ -1,6 +1,35 @@
-[gd_scene load_steps=2 format=3 uid="uid://playersetupid"]
+[gd_scene load_steps=12 format=3 uid="uid://playersetupid"]
 
 [ext_resource type="Script" path="res://scenes/player_setup.gd" id="1_setup"]
+[ext_resource type="Texture2D" uid="uid://cbxy4a7x4" path="res://assets/ui/glitch_overlay.png" id="2_glitch"]
+[ext_resource type="Texture2D" uid="uid://cx6i4m7y4" path="res://assets/characters/rebecca_silhouette.png" id="3_rebecca"]
+[ext_resource type="Shader" path="res://shaders/glass_blur.gdshader" id="4_blur"]
+[ext_resource type="Shader" path="res://shaders/linear_gradient.gdshader" id="5_grad"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
+shader = ExtResource("4_blur")
+shader_parameter/blur_amount = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_grad"]
+shader = ExtResource("5_grad")
+shader_parameter/start_color = Color(0.24, 0.85, 0.95, 0.15)
+shader_parameter/end_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_input"]
+content_margin_left = 16.0
+content_margin_right = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chip"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [node name="PlayerSetup" type="Control"]
 layout_mode = 3
@@ -11,16 +40,97 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_setup")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="BackgroundColor" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.06, 1)
+color = Color(0.04, 0.04, 0.05, 1)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="Silhouette" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -420.0
+offset_right = 40.0
+grow_horizontal = 0
+grow_vertical = 0
+texture = ExtResource("3_rebecca")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.03)
+
+[node name="GlitchOverlay" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_glitch")
+expand_mode = 1
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.04)
+mouse_filter = 2
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 64
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 32
+
+[node name="VBox" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="HeaderGroup" type="VBoxContainer" parent="SafeArea/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Subtitle" type="Label" parent="SafeArea/VBox/HeaderGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+text = "WHO ARE YOU"
+
+[node name="Title" type="Label" parent="SafeArea/VBox/HeaderGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "TO REBECCA?"
+
+[node name="Spacer" type="Control" parent="SafeArea/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="NameGroup" type="VBoxContainer" parent="SafeArea/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="SafeArea/VBox/NameGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_font_sizes/font_size = 14
+text = "YOUR NAME"
+
+[node name="InputContainer" type="Control" parent="SafeArea/VBox/NameGroup"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+
+[node name="Blur" type="ColorRect" parent="SafeArea/VBox/NameGroup/InputContainer"]
+material = SubResource("ShaderMaterial_blur")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,28 +138,229 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 60
+[node name="InputBg" type="ColorRect" parent="SafeArea/VBox/NameGroup/InputContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.12, 0.5)
 
-[node name="Label" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="Border" type="ReferenceRect" parent="SafeArea/VBox/NameGroup/InputContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+border_color = Color(0.24, 0.85, 0.95, 0.2)
+border_width = 1.0
+editor_only = false
+
+[node name="NameEdit" type="LineEdit" parent="SafeArea/VBox/NameGroup/InputContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_placeholder_color = Color(1, 1, 1, 0.4)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_input")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_input")
+placeholder_text = "Enter your name"
+
+[node name="PhoneGroup" type="VBoxContainer" parent="SafeArea/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "INITIALIZE PROFILE"
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="SafeArea/VBox/PhoneGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_font_sizes/font_size = 14
+text = "PHONE NUMBER"
+
+[node name="InputContainer" type="Control" parent="SafeArea/VBox/PhoneGroup"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+
+[node name="Blur" type="ColorRect" parent="SafeArea/VBox/PhoneGroup/InputContainer"]
+material = SubResource("ShaderMaterial_blur")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InputBg" type="ColorRect" parent="SafeArea/VBox/PhoneGroup/InputContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.12, 0.5)
+
+[node name="Border" type="ReferenceRect" parent="SafeArea/VBox/PhoneGroup/InputContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+border_color = Color(0.24, 0.85, 0.95, 0.2)
+border_width = 1.0
+editor_only = false
+
+[node name="PhoneEdit" type="LineEdit" parent="SafeArea/VBox/PhoneGroup/InputContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_placeholder_color = Color(1, 1, 1, 0.4)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_input")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_input")
+placeholder_text = "Enter phone number"
+
+[node name="IdentityGroup" type="VBoxContainer" parent="SafeArea/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="SafeArea/VBox/IdentityGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_font_sizes/font_size = 14
+text = "IDENTITY"
+
+[node name="Chips" type="HBoxContainer" parent="SafeArea/VBox/IdentityGroup"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MaleBtn" type="Button" parent="SafeArea/VBox/IdentityGroup/Chips"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+flat = true
+
+[node name="MaleBtnRect" type="Panel" parent="SafeArea/VBox/IdentityGroup/Chips/MaleBtn"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="MaleBtnLabel" type="Label" parent="SafeArea/VBox/IdentityGroup/Chips/MaleBtn"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "MALE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FemaleBtn" type="Button" parent="SafeArea/VBox/IdentityGroup/Chips"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+flat = true
+
+[node name="FemaleBtnRect" type="Panel" parent="SafeArea/VBox/IdentityGroup/Chips/FemaleBtn"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="FemaleBtnLabel" type="Label" parent="SafeArea/VBox/IdentityGroup/Chips/FemaleBtn"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "FEMALE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpacerBottom" type="Control" parent="SafeArea/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WarningLabel" type="Label" parent="SafeArea/VBox"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "Please enter your name."
 horizontal_alignment = 1
 
-[node name="NameEdit" type="LineEdit" parent="CenterContainer/VBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(600, 100)
+[node name="CannotChangeLabel" type="Label" parent="SafeArea/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 40
-placeholder_text = "Enter your name"
-alignment = 1
+theme_override_colors/font_color = Color(0.85, 0.15, 0.25, 0.7)
+theme_override_font_sizes/font_size = 14
+text = "THIS CANNOT BE CHANGED LATER."
+horizontal_alignment = 1
 
-[node name="ConfirmBtn" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="ConfirmBtn" type="Button" parent="SafeArea/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(400, 100)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 40
-text = "CONFIRM"
+flat = true
+
+[node name="ConfirmBg" type="ColorRect" parent="SafeArea/VBox/ConfirmBtn"]
+material = SubResource("ShaderMaterial_grad")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ConfirmBorder" type="ReferenceRect" parent="SafeArea/VBox/ConfirmBtn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+border_color = Color(0.24, 0.85, 0.95, 0.6)
+border_width = 1.0
+editor_only = false
+
+[node name="ConfirmLabel" type="Label" parent="SafeArea/VBox/ConfirmBtn"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.24, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+text = "CONFIRM IDENTITY"
+horizontal_alignment = 1
+vertical_alignment = 1
