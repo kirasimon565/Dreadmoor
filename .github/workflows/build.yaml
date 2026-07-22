@@ -1,10 +1,11 @@
-Name: Unity Android CI
+name: Unity Android CI
 
 on:
   push:
     branches:
       - Production_Dreadmoor
       - arena/019f89fc-dreadmoor
+      - Dreadmoor_Production
   pull_request:
     branches:
       - Production_Dreadmoor
