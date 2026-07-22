@@ -309,7 +309,11 @@ namespace Dreadmoor.UI
             _openCharacter = characterId;
             BuildOsShell(AppView.CharacterProfile, false, out var content);
             var character = _store.Character(characterId);
-            AddHeader(content, "CASE FILE", () => !string.IsNullOrWhiteSpace(_openThread) ? ShowChat(_openThread) : ShowProfile());
+            AddHeader(content, "CASE FILE", () =>
+            {
+                if (!string.IsNullOrWhiteSpace(_openThread)) ShowChat(_openThread);
+                else ShowProfile();
+            });
             var body = UIFactory.Rect(content, "Dossier", Vector2.zero, new Vector2(1, 0.9f), Vector2.zero, Vector2.zero);
             var list = UIFactory.ScrollList(body, UIFactory.PaperBackground, 18, 34);
             if (!string.IsNullOrWhiteSpace(character.avatarPath)) UIFactory.ContentImage(list, character.avatarPath, 560);
@@ -520,7 +524,7 @@ namespace Dreadmoor.UI
 
         private static string FormatTime(int gameMinutes)
         {
-            var date = new DateTime(2016, 6, 12, 23, 42).AddMinutes(gameMinutes - GameStore.InitialGameMinutes);
+            var date = new DateTime(2016, 6, 12, 23, 42, 0).AddMinutes(gameMinutes - GameStore.InitialGameMinutes);
             return date.ToString("HH:mm");
         }
 
