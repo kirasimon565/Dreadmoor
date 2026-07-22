@@ -92,7 +92,7 @@ namespace Dreadmoor.UI
             raycastTarget = false;
         }
 
-        private void OnValidate()
+        protected override void OnValidate()
         {
             BuildSeed();
             SetVerticesDirty();

@@ -147,7 +147,8 @@ namespace Dreadmoor.UI
             input.textComponent = value;
             input.placeholder = hint;
             input.lineType = InputField.LineType.SingleLine;
-            input.contentType = numeric ? InputField.ContentType.PhoneNumber : InputField.ContentType.Standard;
+            input.contentType = numeric ? InputField.ContentType.Custom : InputField.ContentType.Standard;
+            input.keyboardType = numeric ? TouchScreenKeyboardType.PhonePad : TouchScreenKeyboardType.Default;
             return input;
         }
 

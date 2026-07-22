@@ -229,13 +229,13 @@ namespace Dreadmoor.Core
 
         public string FormatGameTime()
         {
-            var date = new DateTime(2016, 6, 12, 23, 42).AddMinutes(Data.gameClockMinutes - InitialGameMinutes);
+            var date = new DateTime(2016, 6, 12, 23, 42, 0).AddMinutes(Data.gameClockMinutes - InitialGameMinutes);
             return date.ToString("HH:mm");
         }
 
         public string FormatGameDate()
         {
-            var date = new DateTime(2016, 6, 12, 23, 42).AddMinutes(Data.gameClockMinutes - InitialGameMinutes);
+            var date = new DateTime(2016, 6, 12, 23, 42, 0).AddMinutes(Data.gameClockMinutes - InitialGameMinutes);
             return date.ToString("ddd, d MMM yyyy").ToUpperInvariant();
         }
 
