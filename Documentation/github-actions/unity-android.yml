@@ -1,0 +1,117 @@
+name: Unity Android CI
+
+on:
+  push:
+    branches:
+      - Production_Dreadmoor
+      - arena/019f89fc-dreadmoor
+  pull_request:
+    branches:
+      - Production_Dreadmoor
+  workflow_dispatch:
+
+concurrency:
+  group: unity-android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  validate-and-test:
+    name: Validate story and run EditMode tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-6000.0.38f1-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ runner.os }}-6000.0.38f1-
+
+      - name: Run Unity tests
+        uses: game-ci/unity-test-runner@v4
+        with:
+          unityVersion: 6000.0.38f1
+          testMode: EditMode
+          artifactsPath: test-results
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Dreadmoor Unity tests
+          customParameters: -nographics
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dreadmoor-Test-Results
+          path: test-results
+          if-no-files-found: warn
+
+  build-android:
+    name: Build ${{ matrix.name }}
+    needs: validate-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: APK
+            exportType: androidPackage
+            buildPath: build/Android-APK
+          - name: AAB
+            exportType: androidAppBundle
+            buildPath: build/Android-AAB
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-6000.0.38f1-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ runner.os }}-6000.0.38f1-Android-
+            Library-${{ runner.os }}-6000.0.38f1-
+
+      - name: Build signed Android ${{ matrix.name }}
+        uses: game-ci/unity-builder@v4
+        with:
+          unityVersion: 6000.0.38f1
+          targetPlatform: Android
+          buildsPath: ${{ matrix.buildPath }}
+          buildName: Dreadmoor
+          androidExportType: ${{ matrix.exportType }}
+          androidKeystoreName: dreadmoor-release.keystore
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEY_ALIAS }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          customParameters: -nographics
+
+      - name: Upload ${{ matrix.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dreadmoor-${{ matrix.name }}
+          path: ${{ matrix.buildPath }}
+          if-no-files-found: error
+          retention-days: 14

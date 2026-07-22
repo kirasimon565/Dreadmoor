@@ -1,0 +1,15 @@
+{
+  "name": "Dreadmoor.Tests",
+  "rootNamespace": "Dreadmoor.Tests",
+  "references": ["Dreadmoor.Runtime"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
