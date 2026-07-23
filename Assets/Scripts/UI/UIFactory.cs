@@ -24,10 +24,14 @@ namespace Dreadmoor.UI
 
         private static Font _displayFont;
         private static Font _bodyFont;
+        private static Font _brandFont;
+        private static Font _spaceFont;
         private static Sprite _roundedSprite;
 
         public static Font DisplayFont => _displayFont ?? (_displayFont = Resources.Load<Font>("assets/fonts/noir_display"));
         public static Font BodyFont => _bodyFont ?? (_bodyFont = Resources.Load<Font>("assets/fonts/mono_glitch"));
+        public static Font BrandFont => _brandFont ?? (_brandFont = Resources.Load<Font>("assets/fonts/cinzel") ?? DisplayFont ?? BodyFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+        public static Font SpaceFont => _spaceFont ?? (_spaceFont = Resources.Load<Font>("assets/fonts/space_grotesk") ?? BodyFont ?? DisplayFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
 
         public static Canvas CreateCanvas()
         {
