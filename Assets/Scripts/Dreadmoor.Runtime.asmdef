@@ -1,7 +1,10 @@
 {
   "name": "Dreadmoor.Runtime",
   "rootNamespace": "Dreadmoor",
-  "references": ["Unity.ugui"],
+  "references": [
+    "Unity.ugui",
+    "Unity.TextMeshPro"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
