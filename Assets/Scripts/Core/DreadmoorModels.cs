@@ -28,7 +28,7 @@ namespace Dreadmoor.Core
                                                     ?? Array.Empty<StoryChoice>();
         public NarrativeCommand IncomingCall => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.IncomingCall);
         public NarrativeCommand ActiveCall => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.ActiveCall);
-        public NarrativeCommand DiaryGate => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.Diary);
+        public NarrativeCommand DiaryGate => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.DiaryGate);
 
         public IEnumerable<string> MediaAssetPaths => Commands.SelectMany(command => new[]
         {
@@ -49,6 +49,7 @@ namespace Dreadmoor.Core
         Video,
         News,
         Diary,
+        DiaryGate,
         Intercept,
         Glitch,
         IncomingCall,
@@ -119,13 +120,19 @@ namespace Dreadmoor.Core
 
     public sealed class StoryDiaryGate
     {
-        public string PageId { get; }
+        public string EpisodeId { get; }
+        public string PageNumber { get; }
         public string Word { get; }
+        public string OnSuccessNode { get; }
+        public string OnFailNode { get; }
 
-        public StoryDiaryGate(string pageId, string word)
+        public StoryDiaryGate(string episodeId, string pageNumber, string word, string onSuccessNode, string onFailNode)
         {
-            PageId = pageId ?? "";
+            EpisodeId = episodeId ?? "";
+            PageNumber = pageNumber ?? "";
             Word = word ?? "";
+            OnSuccessNode = onSuccessNode ?? "";
+            OnFailNode = onFailNode ?? "";
         }
     }
 
@@ -182,16 +189,6 @@ namespace Dreadmoor.Core
                 return store.EnsureThread(id, definition.Title, definition.Members, secret || definition.Secret);
             return store.EnsureThread(id, null, null, secret);
         }
-    }
-
-    [Serializable]
-    public sealed class DiaryPageFile
-    {
-        public string id = "";
-        public string episode = "";
-        public int page;
-        public string word = "";
-        public string[] content = Array.Empty<string>();
     }
 
     [Serializable]

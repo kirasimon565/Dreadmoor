@@ -170,16 +170,20 @@ namespace Dreadmoor.Core
         {
             var node = Graph?.Get(_store.Data.currentNodeId);
             var gate = node?.DiaryGate?.Diary;
-            if (gate == null || !string.Equals(gate.PageId, pageId, StringComparison.OrdinalIgnoreCase)) return false;
+            if (gate == null) return false;
+            var expectedPageId = $"{gate.EpisodeId}_page_{int.Parse(gate.PageNumber):D2}";
+            if (!string.Equals(expectedPageId, pageId, StringComparison.OrdinalIgnoreCase)) return false;
             var normalized = (enteredWord ?? "").Trim().ToUpperInvariant();
             if (!string.Equals(normalized, gate.Word.Trim().ToUpperInvariant(), StringComparison.Ordinal)) return false;
 
-            var diary = _store.GetDiary(gate.PageId, gate.Word);
+            var diary = _store.GetDiary(pageId, gate.Word);
             diary.enteredWord = normalized;
             diary.isUnlocked = true;
             diary.isCompleted = true;
             _store.SetFlag("diaryUnlocked");
-            CompleteInteractionNode(node, node.NextId);
+            
+            var nextNode = !string.IsNullOrWhiteSpace(gate.OnSuccessNode) ? gate.OnSuccessNode : node.NextId;
+            CompleteInteractionNode(node, nextNode);
             return true;
         }
 
@@ -318,11 +322,13 @@ namespace Dreadmoor.Core
                         case NarrativeCommandKind.News:
                             PublishNews(node, command.News);
                             break;
-                        case NarrativeCommandKind.Diary:
-                            _store.GetDiary(command.Diary.PageId, command.Diary.Word);
-                            _store.Save();
+                        case NarrativeCommandKind.DiaryGate:
                             IsWaitingForInteraction = true;
-                            DiaryRequested?.Invoke(command.Diary.Word, command.Diary.PageId);
+                            // In this new model, we will use episodeId and pageNumber to identify the page.
+                            // But wait, the delegate expects word and pageId.
+                            // Let's format pageId as episodeId + "_page_0" + pageNumber.
+                            var formattedPageId = $"{command.Diary.EpisodeId}_page_{int.Parse(command.Diary.PageNumber):D2}";
+                            DiaryRequested?.Invoke(command.Diary.Word, formattedPageId);
                             _runner = null;
                             yield break;
                         case NarrativeCommandKind.Intercept:

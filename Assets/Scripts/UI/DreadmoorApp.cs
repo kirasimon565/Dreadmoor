@@ -47,6 +47,9 @@ namespace Dreadmoor.UI
             Screen.orientation = ScreenOrientation.Portrait;
             Screen.fullScreen = true;
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
+            
+            DiaryCatalog.Initialize();
+
             _store = GameStore.Instance;
             _canvas = UIFactory.CreateCanvas();
             DontDestroyOnLoad(_canvas.gameObject);

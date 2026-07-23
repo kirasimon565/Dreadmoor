@@ -101,8 +101,25 @@ namespace Dreadmoor.Core
                         break;
                     case "diary":
                     {
-                        var values = SplitFirstToken(argument, sourceName, lineNumber, "@diary requires a page ID and answer word.");
-                        commands.Add(new NarrativeCommand(NarrativeCommandKind.Diary, diary: new StoryDiaryGate(values.left, values.right)));
+                        // @diary [episode_id] [page_number] [puzzle_unlock_word]
+                        var parts = SplitWhitespace(argument);
+                        if (parts.Length < 3) throw Error(sourceName, lineNumber, "@diary requires episode_id, page_number, and unlock_word.");
+                        
+                        var contentText = "";
+                        if (index + 1 < lines.Length && lines[index + 1].Trim().StartsWith("content:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            index++;
+                            contentText = ReadFreeText(lines, ref index);
+                        }
+
+                        commands.Add(new NarrativeCommand(NarrativeCommandKind.Diary, text: contentText, diary: new StoryDiaryGate(parts[0], parts[1], parts[2], "", "")));
+                        break;
+                    }
+                    case "diary_gate":
+                    {
+                        var parts = SplitWhitespace(argument);
+                        if (parts.Length < 5) throw Error(sourceName, lineNumber, "@diary_gate requires episode_id, page_number, unlock_word, on_success_node, and on_fail_node.");
+                        commands.Add(new NarrativeCommand(NarrativeCommandKind.DiaryGate, diary: new StoryDiaryGate(parts[0], parts[1], parts[2], parts[3], parts[4])));
                         break;
                     }
                     case "intercept":
@@ -315,6 +332,11 @@ namespace Dreadmoor.Core
             var right = input.Substring(position + 2).Trim();
             if (left.Length == 0 || right.Length == 0) throw Error(sourceName, lineNumber, message);
             return (left, right);
+        }
+
+        private static string[] SplitWhitespace(string input)
+        {
+            return input.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private static float ParseSeconds(string value, string sourceName, int lineNumber)
