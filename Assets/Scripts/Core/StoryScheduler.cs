@@ -6,9 +6,9 @@ using UnityEngine;
 namespace Dreadmoor.Core
 {
     /// <summary>
-    /// Executes the data-driven episode graph. Only one coroutine owns the
-    /// cursor, and every transition is persisted before the next node runs.
-    /// This prevents duplicate messages and broken continuation loops.
+    /// Executes the plain-text narrative graph. A single coroutine owns the
+    /// persisted cursor so a process interruption cannot duplicate a message or
+    /// lose an interaction.
     /// </summary>
     public sealed class StoryScheduler : MonoBehaviour
     {
@@ -41,9 +41,8 @@ namespace Dreadmoor.Core
             {
                 Graph = StoryGraph.LoadEpisodeOne();
                 var validation = Graph.Validate();
-                if (!validation.IsValid)
-                    throw new InvalidOperationException("Story link validation failed:\n" + validation);
-                Debug.Log($"Dreadmoor story ready: {Graph.OrderedNodes.Count} linked nodes.");
+                if (!validation.IsValid) throw new InvalidOperationException("Narrative validation failed:\n" + validation);
+                Debug.Log($"Dreadmoor narrative ready: {Graph.OrderedNodes.Count} script sections.");
             }
             catch (Exception exception)
             {
@@ -85,9 +84,7 @@ namespace Dreadmoor.Core
             var thread = _store.GetThread(threadId);
             if (thread != null) thread.unreadCount = 0;
             _store.Save();
-
-            if (_runner == null && !_store.Data.episodeComplete)
-                Resume();
+            if (_runner == null && !_store.Data.episodeComplete) Resume();
         }
 
         public void LeaveThread()
@@ -101,26 +98,27 @@ namespace Dreadmoor.Core
             var choiceId = _store.Data.activeChoiceNodeId;
             var choiceNode = Graph?.Get(choiceId);
             if (choiceNode == null || string.IsNullOrWhiteSpace(targetNodeId)) return;
-            var validChoice = choiceNode.options != null && choiceNode.options.Any(option => option != null && option.Target == targetNodeId && option.text == choiceText);
+            var validChoice = choiceNode.Choices.Any(choice => choice != null &&
+                choice.Destination == targetNodeId && choice.Text == choiceText);
             if (!validChoice)
             {
-                Debug.LogError($"Rejected invalid choice target '{targetNodeId}' for '{choiceId}'.");
+                Debug.LogError($"Rejected invalid choice destination '{targetNodeId}' for '{choiceId}'.");
                 return;
             }
 
-            var threadId = ResolveThread(choiceNode);
-            _store.EnsureThread(threadId);
+            var contextId = ResolveContext();
+            var thread = StoryContexts.Ensure(_store, contextId);
             _store.AddMessage(new MessageData
             {
-                nodeId = "choice_" + choiceNode.id,
-                threadId = threadId,
+                nodeId = "choice_" + choiceNode.Id,
+                threadId = contextId,
                 senderId = "player",
                 content = _store.Sanitize(choiceText),
                 gameMinutes = _store.Data.gameClockMinutes,
                 isPlayerMessage = true,
-                isSecret = _store.GetThread(threadId)?.isSecret == true
+                isSecret = thread.isSecret
             });
-            _store.MarkProcessed(choiceNode.id);
+            _store.MarkProcessed(choiceNode.Id);
             _store.Data.activeChoiceNodeId = "";
             _store.Data.currentNodeId = targetNodeId;
             _store.Save();
@@ -131,60 +129,57 @@ namespace Dreadmoor.Core
         public void AcceptIncomingCall()
         {
             var node = Graph?.Get(_store.Data.currentNodeId);
-            if (node == null || !IsIncomingType(node.type)) return;
+            if (node?.IncomingCall?.Call == null) return;
+            var call = node.IncomingCall.Call;
             _store.Data.callHistory.Insert(0, new CallEntryData
             {
                 name = CallerName(node), number = CallerNumber(node), gameMinutes = _store.Data.gameClockMinutes,
                 direction = "incoming"
             });
-            CompleteInteractionNode(node, node.next);
+            CompleteInteractionNode(node, node.NextId);
         }
 
         public void DeclineIncomingCall()
         {
             var node = Graph?.Get(_store.Data.currentNodeId);
-            if (node == null || !IsIncomingType(node.type)) return;
-            var forced = node.disable_decline || string.Equals(node.type, "Force_Ringing", StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(node.type, "S6_Ringing_Final", StringComparison.OrdinalIgnoreCase);
-            if (forced || node.next_on_decline == null) return;
+            var call = node?.IncomingCall?.Call;
+            if (call == null || call.IsForced || string.IsNullOrWhiteSpace(call.DeclineDestination)) return;
 
             _store.Data.callHistory.Insert(0, new CallEntryData
             {
                 name = CallerName(node), number = CallerNumber(node), gameMinutes = _store.Data.gameClockMinutes,
                 direction = "missed"
             });
-            _store.MarkProcessed(node.id);
-            _store.Data.currentNodeId = node.next_on_decline.target;
+            _store.MarkProcessed(node.Id);
+            _store.Data.currentNodeId = call.DeclineDestination;
             _store.Save();
             StateChanged?.Invoke();
-            StartOwnedCoroutine(ContinueAfter(Mathf.Max(0, node.next_on_decline.delay_seconds), node.next_on_decline.target));
+            StartOwnedCoroutine(ContinueAfter(Mathf.Max(0f, call.DeclineDelaySeconds), call.DeclineDestination));
         }
 
         public void EndActiveCall(int durationSeconds)
         {
             var node = Graph?.Get(_store.Data.currentNodeId);
-            if (node == null || !IsAcceptType(node.type)) return;
+            if (node?.ActiveCall?.Call == null) return;
             if (_store.Data.callHistory.Count > 0)
                 _store.Data.callHistory[0].durationSeconds = Mathf.Max(0, durationSeconds);
-            CompleteInteractionNode(node, node.next);
+            CompleteInteractionNode(node, node.NextId);
         }
 
         public bool CompleteDiary(string pageId, string enteredWord)
         {
             var node = Graph?.Get(_store.Data.currentNodeId);
-            if (node == null || node.action != "Open_Diary_Lock") return false;
-            var word = node.meta?.word ?? "";
-            var expectedPage = node.meta?.pageId ?? "";
-            if (!string.Equals(expectedPage, pageId, StringComparison.OrdinalIgnoreCase)) return false;
+            var gate = node?.DiaryGate?.Diary;
+            if (gate == null || !string.Equals(gate.PageId, pageId, StringComparison.OrdinalIgnoreCase)) return false;
             var normalized = (enteredWord ?? "").Trim().ToUpperInvariant();
-            if (normalized != word.Trim().ToUpperInvariant()) return false;
+            if (!string.Equals(normalized, gate.Word.Trim().ToUpperInvariant(), StringComparison.Ordinal)) return false;
 
-            var diary = _store.GetDiary(pageId, word);
+            var diary = _store.GetDiary(gate.PageId, gate.Word);
             diary.enteredWord = normalized;
             diary.isUnlocked = true;
             diary.isCompleted = true;
             _store.SetFlag("diaryUnlocked");
-            CompleteInteractionNode(node, node.next);
+            CompleteInteractionNode(node, node.NextId);
             return true;
         }
 
@@ -223,10 +218,8 @@ namespace Dreadmoor.Core
 
         public bool CanDecline(StoryNode node)
         {
-            if (node == null) return false;
-            return !node.disable_decline && node.next_on_decline != null &&
-                   !string.Equals(node.type, "Force_Ringing", StringComparison.OrdinalIgnoreCase) &&
-                   !string.Equals(node.type, "S6_Ringing_Final", StringComparison.OrdinalIgnoreCase);
+            var call = node?.IncomingCall?.Call;
+            return call != null && !call.IsForced && !string.IsNullOrWhiteSpace(call.DeclineDestination);
         }
 
         private void ContinueAt(string nodeId)
@@ -243,8 +236,8 @@ namespace Dreadmoor.Core
 
         private IEnumerator Run(string startNodeId, int generation)
         {
-            // Ensure StartCoroutine has returned and _runner has been assigned
-            // before any branch can complete synchronously.
+            // Ensure StartCoroutine has returned before a synchronous directive
+            // can attempt to continue the narrative.
             yield return null;
             IsWaitingForInteraction = false;
             var nodeId = startNodeId;
@@ -255,220 +248,115 @@ namespace Dreadmoor.Core
                 var node = Graph.Get(nodeId);
                 if (node == null)
                 {
-                    StopWithError($"Story node '{nodeId}' was not found.");
+                    StopWithError($"Narrative section '{nodeId}' was not found.");
                     yield break;
                 }
 
-                if (_store.IsProcessed(node.id))
+                if (_store.IsProcessed(node.Id))
                 {
-                    // A completed node left in the cursor after process termination.
-                    // The cursor normally already points at its continuation.
-                    if (string.IsNullOrWhiteSpace(node.next))
+                    if (string.IsNullOrWhiteSpace(node.NextId))
                     {
                         _runner = null;
                         yield break;
                     }
-                    nodeId = node.next;
+                    nodeId = node.NextId;
                     SetCursor(nodeId, false);
                     continue;
                 }
 
-                SetCursor(node.id, false);
+                SetCursor(node.Id, false);
                 if (!_store.Data.settings.reducedMotion) yield return new WaitForSecondsRealtime(0.12f);
+                Debug.Log($"Dreadmoor -> {node.Id}");
 
-                if (node.IsTyping)
+                foreach (var command in node.Commands)
                 {
-                    var typingThread = ResolveThread(node);
-                    _store.EnsureThread(typingThread, node.thread_title, node.thread_members, node.thread_secret);
-                    TypingThreadId = typingThread;
-                    StateChanged?.Invoke();
-                    yield return WaitMilliseconds(node.duration > 0 ? node.duration : 1200);
-                    TypingThreadId = "";
-                    StateChanged?.Invoke();
-                }
-
-                Debug.Log($"Dreadmoor -> {node.id} [{node.type}] action={node.action}");
-
-                if (IsChatType(node.type))
-                {
-                    var threadId = ResolveThread(node);
-                    var thread = _store.EnsureThread(threadId, node.thread_title, node.thread_members, node.thread_secret);
-                    var isVideo = node.type == "Video_Message" || node.type == "Video_Node" || node.type == "S4_VIDEO_NODE";
-                    var isImage = node.type == "Image_Message";
-                    if (!_store.HasMessageForNode(node.id))
+                    switch (command.Kind)
                     {
-                        if (node.time_passed > 0) _store.Data.gameClockMinutes += node.time_passed;
-                        _store.Data.messages.Add(new MessageData
+                        case NarrativeCommandKind.Typing:
                         {
-                            id = Guid.NewGuid().ToString("N"), nodeId = node.id, threadId = threadId,
-                            senderId = node.SenderId, content = _store.Sanitize(!string.IsNullOrWhiteSpace(node.text) ? node.text : node.file_asset),
-                            mediaType = isVideo ? "video" : isImage ? "image" : "text", mediaPath = node.file_asset,
-                            gameMinutes = _store.Data.gameClockMinutes, isSecret = thread.isSecret
-                        });
-                        if ((isVideo || isImage) && !string.IsNullOrWhiteSpace(node.file_asset))
-                            _store.AddMedia(threadId, node.SenderId, isVideo ? "video" : "image", node.file_asset);
-                    }
-                    if (_store.Data.activeThreadId != threadId)
-                    {
-                        thread.unreadCount++;
-                        RaiseNotification(new NotificationData
-                        {
-                            id = "msg_" + node.id, type = "chat", title = thread.title,
-                            message = _store.Sanitize(node.text), gameMinutes = _store.Data.gameClockMinutes, threadId = threadId
-                        });
-                    }
-                    SoundRequested?.Invoke("assets/media/sfx/message_receive.mp3");
-                    MarkAndSetNext(node, node.next);
-                    StateChanged?.Invoke();
-
-                    if (_store.Data.activeThreadId != threadId)
-                    {
-                        IsWaitingForInteraction = true;
-                        _runner = null;
-                        yield break;
-                    }
-                    nodeId = node.next;
-                }
-                else if (node.type == "Pause")
-                {
-                    if (node.time_passed > 0) _store.Data.gameClockMinutes += node.time_passed;
-                    yield return WaitMilliseconds(node.duration > 0 ? node.duration : 2000);
-                    MarkAndSetNext(node, node.next);
-                    nodeId = node.next;
-                }
-                else if (node.type == "Player_Choice")
-                {
-                    var threadId = ResolveThread(node);
-                    _store.EnsureThread(threadId, node.thread_title, node.thread_members, node.thread_secret);
-                    _store.Data.activeThreadId = threadId;
-                    _store.Data.activeChoiceNodeId = node.id;
-                    _store.Save();
-                    IsWaitingForInteraction = true;
-                    ChoiceRequested?.Invoke(node);
-                    ThreadFocusRequested?.Invoke(threadId);
-                    StateChanged?.Invoke();
-                    _runner = null;
-                    yield break;
-                }
-                else if (node.type == "News_Module")
-                {
-                    var article = new ArticleData
-                    {
-                        nodeId = node.id, headline = node.headline, subheadline = node.subheadline,
-                        photo = node.image_asset, caption = node.caption, body = node.body ?? Array.Empty<string>()
-                    };
-                    _store.Data.article = article;
-                    _store.SetFlag(string.IsNullOrWhiteSpace(node.flag_name) ? "article_read" : node.flag_name);
-                    RaiseNotification(new NotificationData
-                    {
-                        id = "news_" + node.id, type = "article", title = "NEWS ALERT",
-                        message = node.headline, gameMinutes = _store.Data.gameClockMinutes
-                    });
-                    MarkAndSetNext(node, node.next);
-                    ArticleRequested?.Invoke(article);
-                    nodeId = node.next;
-                }
-                else if (IsIncomingType(node.type))
-                {
-                    IsWaitingForInteraction = true;
-                    IncomingCallRequested?.Invoke(node);
-                    _runner = null;
-                    yield break;
-                }
-                else if (IsAcceptType(node.type))
-                {
-                    IsWaitingForInteraction = true;
-                    ActiveCallRequested?.Invoke(node);
-                    _runner = null;
-                    yield break;
-                }
-                else if (node.type == "Secret_Hacked")
-                {
-                    var threadId = ResolveThread(node);
-                    _store.EnsureThread(threadId, node.thread_title, node.thread_members, true);
-                    _store.Data.activeThreadId = threadId;
-                    MarkAndSetNext(node, node.next);
-                    ThreadFocusRequested?.Invoke(threadId);
-                    nodeId = node.next;
-                }
-                else if (node.type == "Glitch_Effect" || node.type == "S5_CONNECTION_GLITCH")
-                {
-                    var seconds = Mathf.Max(0.2f, (node.duration > 0 ? node.duration : 1000) / 1000f);
-                    GlitchRequested?.Invoke(node.text, seconds);
-                    yield return new WaitForSecondsRealtime(seconds);
-                    MarkAndSetNext(node, node.next);
-                    nodeId = node.next;
-                }
-                else if (node.type == "System_Event" || node.type == "System_Notification")
-                {
-                    if (node.action == "Push_Notification")
-                    {
-                        RaiseNotification(new NotificationData
-                        {
-                            id = node.id, type = "system",
-                            title = string.IsNullOrWhiteSpace(node.sender) ? "SYSTEM" : node.sender,
-                            message = _store.Sanitize(node.text), gameMinutes = _store.Data.gameClockMinutes,
-                            threadId = !string.IsNullOrWhiteSpace(node.chat) ? node.chat :
-                                (node.SenderId != "system" ? node.SenderId : "")
-                        });
-                    }
-                    else if (node.action == "Switch_Context")
-                    {
-                        var threadId = !string.IsNullOrWhiteSpace(node.target) ? node.target : node.thread_id;
-                        if (!string.IsNullOrWhiteSpace(threadId))
-                        {
-                            _store.Data.activeThreadId = threadId;
-                            ThreadFocusRequested?.Invoke(threadId);
+                            var contextId = ResolveContext(command.Sender);
+                            StoryContexts.Ensure(_store, contextId);
+                            TypingThreadId = contextId;
+                            StateChanged?.Invoke();
+                            yield return WaitSeconds(command.Seconds);
+                            TypingThreadId = "";
+                            StateChanged?.Invoke();
+                            break;
                         }
-                    }
-                    else if (node.action == "Add_To_Group")
-                    {
-                        var threadId = !string.IsNullOrWhiteSpace(node.thread_id) ? node.thread_id : ResolveThread(node);
-                        _store.EnsureThread(threadId, node.thread_title, node.thread_members, node.thread_secret);
-                    }
-                    else if (node.action == "Open_Diary_Lock")
-                    {
-                        var word = node.meta?.word ?? "";
-                        var pageId = node.meta?.pageId ?? "";
-                        _store.GetDiary(pageId, word);
-                        _store.Save();
-                        IsWaitingForInteraction = true;
-                        DiaryRequested?.Invoke(word, pageId);
-                        _runner = null;
-                        yield break;
-                    }
-                    else if (node.action == "Trigger_Credits")
-                    {
-                        _store.MarkProcessed(node.id);
-                        if (!string.IsNullOrWhiteSpace(node.flag_name)) _store.SetFlag(node.flag_name);
-                        _store.Data.episodeComplete = true;
-                        _store.Data.currentNodeId = "";
-                        _store.Save();
-                        CreditsRequested?.Invoke(node.text);
-                        StateChanged?.Invoke();
-                        _runner = null;
-                        yield break;
-                    }
-                    else if (string.IsNullOrWhiteSpace(node.action) && !string.IsNullOrWhiteSpace(node.text))
-                    {
-                        var threadId = ResolveThread(node);
-                        _store.EnsureThread(threadId);
-                        _store.Data.messages.Add(new MessageData
+                        case NarrativeCommandKind.Message:
+                            if (!DeliverMessage(node, command, false))
+                            {
+                                MarkAndSetNext(node, node.NextId);
+                                StateChanged?.Invoke();
+                                IsWaitingForInteraction = true;
+                                _runner = null;
+                                yield break;
+                            }
+                            break;
+                        case NarrativeCommandKind.Video:
+                            if (!DeliverMessage(node, command, true))
+                            {
+                                MarkAndSetNext(node, node.NextId);
+                                StateChanged?.Invoke();
+                                IsWaitingForInteraction = true;
+                                _runner = null;
+                                yield break;
+                            }
+                            break;
+                        case NarrativeCommandKind.Delay:
+                            yield return WaitSeconds(command.Seconds);
+                            break;
+                        case NarrativeCommandKind.Choice:
+                            ShowChoice(node);
+                            yield break;
+                        case NarrativeCommandKind.ContextSwitch:
+                            SwitchContext(command.ContextId, false);
+                            break;
+                        case NarrativeCommandKind.Notification:
+                            PublishNotification(node, command.Text);
+                            break;
+                        case NarrativeCommandKind.News:
+                            PublishNews(node, command.News);
+                            break;
+                        case NarrativeCommandKind.Diary:
+                            _store.GetDiary(command.Diary.PageId, command.Diary.Word);
+                            _store.Save();
+                            IsWaitingForInteraction = true;
+                            DiaryRequested?.Invoke(command.Diary.Word, command.Diary.PageId);
+                            _runner = null;
+                            yield break;
+                        case NarrativeCommandKind.Intercept:
+                            SwitchContext(command.ContextId, true);
+                            break;
+                        case NarrativeCommandKind.Glitch:
                         {
-                            id = Guid.NewGuid().ToString("N"), nodeId = node.id, threadId = threadId,
-                            senderId = "system", content = _store.Sanitize(node.text), mediaType = "system_label",
-                            gameMinutes = _store.Data.gameClockMinutes
-                        });
+                            var seconds = Mathf.Max(0.2f, command.Seconds);
+                            GlitchRequested?.Invoke(command.Text, seconds);
+                            yield return new WaitForSecondsRealtime(seconds);
+                            break;
+                        }
+                        case NarrativeCommandKind.IncomingCall:
+                            IsWaitingForInteraction = true;
+                            IncomingCallRequested?.Invoke(node);
+                            _runner = null;
+                            yield break;
+                        case NarrativeCommandKind.ActiveCall:
+                            IsWaitingForInteraction = true;
+                            ActiveCallRequested?.Invoke(node);
+                            _runner = null;
+                            yield break;
+                        case NarrativeCommandKind.Credits:
+                            CompleteCredits(node, command.Text);
+                            yield break;
+                        default:
+                            StopWithError($"Unhandled narrative directive '{command.Kind}' in '{node.Id}'.");
+                            yield break;
                     }
-                    MarkAndSetNext(node, node.next);
-                    StateChanged?.Invoke();
-                    nodeId = node.next;
                 }
-                else
-                {
-                    StopWithError($"Unhandled story node type '{node.type}' on '{node.id}'.");
-                    yield break;
-                }
+
+                MarkAndSetNext(node, node.NextId);
+                StateChanged?.Invoke();
+                nodeId = node.NextId;
 
                 immediateSteps++;
                 if (immediateSteps >= 100)
@@ -482,32 +370,159 @@ namespace Dreadmoor.Core
             IsWaitingForInteraction = false;
         }
 
+        private bool DeliverMessage(StoryNode node, NarrativeCommand command, bool isVideo)
+        {
+            var contextId = ResolveContext(command.Sender);
+            var thread = StoryContexts.Ensure(_store, contextId);
+            if (!_store.HasMessageForNode(node.Id))
+            {
+                var content = !string.IsNullOrWhiteSpace(command.Text) ? command.Text : command.AssetPath;
+                _store.Data.messages.Add(new MessageData
+                {
+                    id = Guid.NewGuid().ToString("N"),
+                    nodeId = node.Id,
+                    threadId = contextId,
+                    senderId = SenderId(command.Sender),
+                    content = _store.Sanitize(content),
+                    mediaType = isVideo ? "video" : "text",
+                    mediaPath = isVideo ? command.AssetPath : "",
+                    gameMinutes = _store.Data.gameClockMinutes,
+                    isSecret = thread.isSecret
+                });
+                if (isVideo && !string.IsNullOrWhiteSpace(command.AssetPath))
+                    _store.AddMedia(contextId, SenderId(command.Sender), "video", command.AssetPath);
+            }
+
+            var isActive = string.Equals(_store.Data.activeThreadId, contextId, StringComparison.OrdinalIgnoreCase);
+            if (!isActive)
+            {
+                thread.unreadCount++;
+                RaiseNotification(new NotificationData
+                {
+                    id = "msg_" + node.Id,
+                    type = "chat",
+                    title = thread.title,
+                    message = _store.Sanitize(command.Text),
+                    gameMinutes = _store.Data.gameClockMinutes,
+                    threadId = contextId
+                });
+            }
+            SoundRequested?.Invoke("assets/media/sfx/message_receive.mp3");
+            return isActive;
+        }
+
+        private void ShowChoice(StoryNode node)
+        {
+            var contextId = ResolveContext();
+            StoryContexts.Ensure(_store, contextId);
+            _store.Data.activeThreadId = contextId;
+            _store.Data.activeChoiceNodeId = node.Id;
+            _store.Save();
+            IsWaitingForInteraction = true;
+            ChoiceRequested?.Invoke(node);
+            ThreadFocusRequested?.Invoke(contextId);
+            StateChanged?.Invoke();
+            _runner = null;
+        }
+
+        private void SwitchContext(string contextId, bool secret)
+        {
+            var id = string.IsNullOrWhiteSpace(contextId) ? "unknown" : contextId.Trim();
+            StoryContexts.Ensure(_store, id, secret);
+            _store.Data.activeThreadId = id;
+            ThreadFocusRequested?.Invoke(id);
+        }
+
+        private void PublishNotification(StoryNode node, string text)
+        {
+            var contextId = _store.Data.activeThreadId;
+            if (!string.IsNullOrWhiteSpace(contextId) && !_store.HasMessageForNode(node.Id))
+            {
+                var thread = StoryContexts.Ensure(_store, contextId);
+                _store.Data.messages.Add(new MessageData
+                {
+                    id = Guid.NewGuid().ToString("N"),
+                    nodeId = node.Id,
+                    threadId = contextId,
+                    senderId = "system",
+                    content = _store.Sanitize(text),
+                    mediaType = "system_label",
+                    gameMinutes = _store.Data.gameClockMinutes,
+                    isSecret = thread.isSecret
+                });
+            }
+            RaiseNotification(new NotificationData
+            {
+                id = "notice_" + node.Id,
+                type = "system",
+                title = "SYSTEM",
+                message = _store.Sanitize(text),
+                gameMinutes = _store.Data.gameClockMinutes,
+                threadId = contextId ?? ""
+            });
+        }
+
+        private void PublishNews(StoryNode node, StoryNews news)
+        {
+            var article = new ArticleData
+            {
+                nodeId = node.Id,
+                headline = news.Headline,
+                subheadline = news.Subheadline,
+                photo = news.ImagePath,
+                caption = news.Caption,
+                body = news.Body
+            };
+            _store.Data.article = article;
+            _store.SetFlag("article_read");
+            RaiseNotification(new NotificationData
+            {
+                id = "news_" + node.Id,
+                type = "article",
+                title = "NEWS ALERT",
+                message = news.Headline,
+                gameMinutes = _store.Data.gameClockMinutes
+            });
+            ArticleRequested?.Invoke(article);
+        }
+
+        private void CompleteCredits(StoryNode node, string text)
+        {
+            _store.MarkProcessed(node.Id);
+            _store.Data.episodeComplete = true;
+            _store.Data.currentNodeId = "";
+            _store.Save();
+            CreditsRequested?.Invoke(text);
+            StateChanged?.Invoke();
+            _runner = null;
+        }
+
         private IEnumerator ContinueAfter(float seconds, string target)
         {
             yield return null;
-            if (seconds > 0) yield return new WaitForSecondsRealtime(seconds);
+            if (seconds > 0f) yield return new WaitForSecondsRealtime(seconds);
             _runner = null;
             ContinueAt(target);
         }
 
-        private object WaitMilliseconds(int milliseconds)
+        private object WaitSeconds(float seconds)
         {
             var speed = Mathf.Clamp(_store.Data.settings.textSpeed, 0.5f, 2f);
-            return new WaitForSecondsRealtime(Mathf.Max(0.01f, milliseconds / 1000f / speed));
+            return new WaitForSecondsRealtime(Mathf.Max(0.01f, seconds / speed));
         }
 
-        private void CompleteInteractionNode(StoryNode node, string next)
+        private void CompleteInteractionNode(StoryNode node, string destination)
         {
-            MarkAndSetNext(node, next);
+            MarkAndSetNext(node, destination);
             IsWaitingForInteraction = false;
             StateChanged?.Invoke();
-            ContinueAt(next);
+            ContinueAt(destination);
         }
 
-        private void MarkAndSetNext(StoryNode node, string next)
+        private void MarkAndSetNext(StoryNode node, string destination)
         {
-            _store.MarkProcessed(node.id);
-            _store.Data.currentNodeId = next ?? "";
+            _store.MarkProcessed(node.Id);
+            _store.Data.currentNodeId = destination ?? "";
             _store.Save();
         }
 
@@ -517,12 +532,10 @@ namespace Dreadmoor.Core
             _store.Save(notify);
         }
 
-        private string ResolveThread(StoryNode node)
+        private string ResolveContext(string sender = "")
         {
-            if (!string.IsNullOrWhiteSpace(node.chat)) return node.chat;
-            if (!string.IsNullOrWhiteSpace(node.thread_id)) return node.thread_id;
             if (!string.IsNullOrWhiteSpace(_store.Data.activeThreadId)) return _store.Data.activeThreadId;
-            return node.SenderId;
+            return SenderId(sender);
         }
 
         private void RaiseNotification(NotificationData notification)
@@ -539,23 +552,26 @@ namespace Dreadmoor.Core
             FatalError?.Invoke(message);
         }
 
-        private static bool IsChatType(string type)
+        private static string SenderId(string sender)
         {
-            return type == "Chat_Event" || type == "Video_Message" || type == "Image_Message" ||
-                   type == "Private_Unknown" || type == "Video_Node" || type == "S4_VIDEO_NODE";
+            return string.IsNullOrWhiteSpace(sender) ? "unknown" : sender.Trim().ToLowerInvariant();
         }
 
-        private static bool IsIncomingType(string type)
+        public static string CallerName(StoryNode node)
         {
-            return type == "IncomingCall" || type == "Phone_Call_Event" || type == "Force_Ringing" || type == "S6_Ringing_Final";
+            var name = node?.IncomingCall?.Call?.CallerName ?? node?.ActiveCall?.Call?.CallerName;
+            return string.IsNullOrWhiteSpace(name) ? "Unknown" : name;
         }
 
-        private static bool IsAcceptType(string type)
+        public static string CallerNumber(StoryNode node)
         {
-            return type == "Accept_Call" || type == "S6_Accept_Call";
+            var number = node?.IncomingCall?.Call?.CallerNumber ?? node?.ActiveCall?.Call?.CallerNumber;
+            return string.IsNullOrWhiteSpace(number) ? "Unknown Number" : number;
         }
 
-        public static string CallerName(StoryNode node) => string.IsNullOrWhiteSpace(node.caller_name) ? "Unknown" : node.caller_name;
-        public static string CallerNumber(StoryNode node) => string.IsNullOrWhiteSpace(node.caller_id) ? "Unknown Number" : node.caller_id;
+        public static string CallAudioPath(StoryNode node)
+        {
+            return node?.IncomingCall?.Call?.AudioPath ?? node?.ActiveCall?.Call?.AudioPath ?? "";
+        }
     }
 }

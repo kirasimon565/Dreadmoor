@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Dreadmoor.Core
 {
+    /// <summary>Loads, links, and validates the native plain-text episode scripts.</summary>
     public sealed class StoryGraph
     {
         public static readonly string[] EpisodeOneResources =
@@ -17,62 +18,56 @@ namespace Dreadmoor.Core
             "assets/story/ep01/scene_06"
         };
 
-        public static readonly HashSet<string> SupportedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Chat_Event", "Video_Message", "Image_Message", "Pause", "Player_Choice",
-            "System_Event", "System_Notification", "News_Module", "IncomingCall",
-            "Phone_Call_Event", "Secret_Hacked", "Glitch_Effect", "Accept_Call",
-            // Episode-one compatibility aliases:
-            "Private_Unknown", "Video_Node", "S4_VIDEO_NODE", "Force_Ringing",
-            "S6_Ringing_Final", "S6_Accept_Call", "S5_CONNECTION_GLITCH"
-        };
-
-        public static readonly HashSet<string> SupportedSystemActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "", "Push_Notification", "Switch_Context", "Add_To_Group", "Trigger_Credits",
-            "Open_Diary_Lock", "Launch_Minigame"
-        };
-
-        private readonly Dictionary<string, StoryNode> _nodes;
-        public IReadOnlyDictionary<string, StoryNode> Nodes => _nodes;
+        public IReadOnlyDictionary<string, StoryNode> Nodes { get; }
         public IReadOnlyList<StoryNode> OrderedNodes { get; }
 
-        private StoryGraph(List<StoryNode> nodes)
+        private StoryGraph(IEnumerable<StoryNode> nodes)
         {
-            OrderedNodes = nodes;
-            _nodes = nodes.ToDictionary(node => node.id, node => node, StringComparer.OrdinalIgnoreCase);
+            var ordered = nodes?.ToList() ?? new List<StoryNode>();
+            OrderedNodes = ordered;
+            Nodes = ordered
+                .Where(node => node != null && !string.IsNullOrWhiteSpace(node.Id))
+                .GroupBy(node => node.Id, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+            for (var index = 0; index < ordered.Count; index++)
+            {
+                var node = ordered[index];
+                if (node == null || node.HasChoice || node.IsTerminal) continue;
+                node.NextId = !string.IsNullOrWhiteSpace(node.ExplicitDestination)
+                    ? node.ExplicitDestination
+                    : index + 1 < ordered.Count ? ordered[index + 1]?.Id ?? "" : "";
+            }
         }
 
-        public StoryNode Get(string nodeId)
+        public StoryNode Get(string id)
         {
-            if (string.IsNullOrWhiteSpace(nodeId)) return null;
-            _nodes.TryGetValue(nodeId, out var node);
-            return node;
+            if (string.IsNullOrWhiteSpace(id)) return null;
+            return Nodes.TryGetValue(id, out var node) ? node : null;
         }
 
         public static StoryGraph LoadEpisodeOne()
         {
-            var jsonFiles = new List<string>();
+            var scripts = new List<string>();
             foreach (var resourcePath in EpisodeOneResources)
             {
                 var asset = Resources.Load<TextAsset>(resourcePath);
                 if (asset == null)
-                    throw new InvalidOperationException($"Required story resource is missing: {resourcePath}.json");
-                jsonFiles.Add(asset.text);
+                    throw new InvalidOperationException($"Required narrative script is missing: {resourcePath}.txt");
+                scripts.Add(asset.text);
             }
-            return Parse(jsonFiles);
+            return ParseScripts(scripts);
         }
 
-        public static StoryGraph Parse(IEnumerable<string> jsonFiles)
+        public static StoryGraph ParseScripts(IEnumerable<string> scripts)
         {
             var nodes = new List<StoryNode>();
-            foreach (var json in jsonFiles)
+            var scriptIndex = 0;
+            foreach (var script in scripts ?? Enumerable.Empty<string>())
             {
-                if (string.IsNullOrWhiteSpace(json)) continue;
-                var file = JsonUtility.FromJson<StoryFile>(json);
-                if (file?.scenes == null)
-                    throw new InvalidOperationException("Story JSON did not contain a 'scenes' array.");
-                nodes.AddRange(file.scenes);
+                scriptIndex++;
+                if (string.IsNullOrWhiteSpace(script)) continue;
+                nodes.AddRange(NarrativeScriptParser.Parse(script, $"script_{scriptIndex:00}"));
             }
             return new StoryGraph(nodes);
         }
@@ -86,80 +81,63 @@ namespace Dreadmoor.Core
             {
                 if (node == null)
                 {
-                    result.Errors.Add("A story file contains a null node.");
+                    result.Errors.Add("A narrative script contains an empty section.");
                     continue;
                 }
-                if (string.IsNullOrWhiteSpace(node.id))
+                if (string.IsNullOrWhiteSpace(node.Id))
                 {
-                    result.Errors.Add("A story node has no id.");
+                    result.Errors.Add("A narrative section has no ID.");
                     continue;
                 }
-                if (!ids.Add(node.id)) result.Errors.Add($"Duplicate story node id: {node.id}");
-                if (!SupportedTypes.Contains(node.type)) result.Errors.Add($"{node.id}: unsupported type '{node.type}'.");
-                if ((node.type == "System_Event" || node.type == "System_Notification") && !SupportedSystemActions.Contains(node.action))
-                    result.Errors.Add($"{node.id}: unsupported system action '{node.action}'.");
-                if (node.type == "Player_Choice")
+                if (!ids.Add(node.Id)) result.Errors.Add($"Duplicate narrative section ID: {node.Id}");
+                if (node.Commands.Count == 0) result.Errors.Add($"{node.Id}: section contains no directive.");
+
+                if (node.HasChoice)
                 {
-                    if (node.options == null || node.options.Length == 0)
-                        result.Errors.Add($"{node.id}: a Player_Choice requires at least one option.");
-                    else
+                    if (node.Choices.Count == 0) result.Errors.Add($"{node.Id}: @choice requires an option.");
+                    for (var index = 0; index < node.Choices.Count; index++)
                     {
-                        for (var i = 0; i < node.options.Length; i++)
-                        {
-                            if (string.IsNullOrWhiteSpace(node.options[i]?.text))
-                                result.Errors.Add($"{node.id}: option {i} has no text.");
-                            if (string.IsNullOrWhiteSpace(node.options[i]?.Target))
-                                result.Errors.Add($"{node.id}: option {i} has no next target.");
-                        }
+                        var choice = node.Choices[index];
+                        if (string.IsNullOrWhiteSpace(choice?.Text)) result.Errors.Add($"{node.Id}: choice {index} has no text.");
+                        if (string.IsNullOrWhiteSpace(choice?.Destination)) result.Errors.Add($"{node.Id}: choice {index} has no destination.");
                     }
                 }
-                if (node.type == "IncomingCall" && node.next_on_decline != null && string.IsNullOrWhiteSpace(node.next_on_decline.target))
-                    result.Warnings.Add($"{node.id}: next_on_decline target is empty.");
-                if (node.type == "System_Event" && node.action == "Open_Diary_Lock")
-                {
-                    if (node.meta == null || string.IsNullOrWhiteSpace(node.meta.word) || string.IsNullOrWhiteSpace(node.meta.pageId))
-                        result.Errors.Add($"{node.id}: Open_Diary_Lock requires meta.word and meta.pageId.");
-                }
+
+                var incoming = node.IncomingCall;
+                if (incoming != null && !incoming.Call.IsForced && string.IsNullOrWhiteSpace(incoming.Call.DeclineDestination))
+                    result.Errors.Add($"{node.Id}: a non-forced @incoming_call requires @on_decline.");
+                if (node.DiaryGate?.Diary == null) result.Errors.Add($"{node.Id}: @diary requires a page ID and answer word.");
             }
 
-            foreach (var node in OrderedNodes.Where(node => node != null && !string.IsNullOrWhiteSpace(node.id)))
+            foreach (var node in OrderedNodes.Where(node => node != null && !string.IsNullOrWhiteSpace(node.Id)))
             {
-                ValidateTarget(result, node.id, "next", node.next, ids, false);
-                if (node.options != null)
-                {
-                    for (var i = 0; i < node.options.Length; i++)
-                        ValidateTarget(result, node.id, $"options[{i}]", node.options[i]?.Target, ids, true);
-                }
-                if (node.next_on_decline != null)
-                {
-                    if (string.IsNullOrWhiteSpace(node.next_on_decline.target))
-                        result.Warnings.Add($"{node.id}: next_on_decline target is empty.");
-                    else
-                        ValidateTarget(result, node.id, "next_on_decline", node.next_on_decline.target, ids, false);
-                }
+                ValidateDestination(result, node.Id, "flow", node.NextId, ids, !node.HasChoice && !node.IsTerminal);
+                for (var index = 0; index < node.Choices.Count; index++)
+                    ValidateDestination(result, node.Id, $"choice {index}", node.Choices[index]?.Destination, ids, true);
+                var decline = node.IncomingCall?.Call?.DeclineDestination;
+                if (!string.IsNullOrWhiteSpace(decline)) ValidateDestination(result, node.Id, "decline", decline, ids, true);
             }
 
             if (!ids.Contains(entryNodeId))
             {
-                result.Errors.Add($"Entry node '{entryNodeId}' does not exist.");
+                result.Errors.Add($"Entry section '{entryNodeId}' does not exist.");
                 return result;
             }
 
             var reachable = ReachableFrom(entryNodeId);
             foreach (var id in ids.Where(id => !reachable.Contains(id)).OrderBy(id => id))
-                result.Errors.Add($"Unreachable story node: {id}");
+                result.Errors.Add($"Unreachable narrative section: {id}");
 
-            var terminals = OrderedNodes.Where(node => node != null &&
-                string.Equals(node.action, "Trigger_Credits", StringComparison.OrdinalIgnoreCase)).Select(node => node.id).ToArray();
+            var terminals = OrderedNodes.Where(node => node?.IsTerminal == true).Select(node => node.Id).ToArray();
             if (terminals.Length == 0)
             {
-                result.Errors.Add("The story has no Trigger_Credits terminal node.");
+                result.Errors.Add("The story has no @credits terminal section.");
             }
             else
             {
                 var canFinish = NodesThatCanReach(terminals);
                 foreach (var id in reachable.Where(id => !canFinish.Contains(id)).OrderBy(id => id))
-                    result.Errors.Add($"Story node cannot reach an ending: {id}");
+                    result.Errors.Add($"Narrative section cannot reach an ending: {id}");
             }
 
             DetectImmediateCycles(entryNodeId, result);
@@ -177,8 +155,8 @@ namespace Dreadmoor.Core
                 if (!found.Add(id)) continue;
                 var node = Get(id);
                 if (node == null) continue;
-                foreach (var target in Targets(node))
-                    if (!string.IsNullOrWhiteSpace(target)) pending.Push(target);
+                foreach (var destination in Destinations(node))
+                    if (!string.IsNullOrWhiteSpace(destination)) pending.Push(destination);
             }
             return found;
         }
@@ -187,14 +165,14 @@ namespace Dreadmoor.Core
         {
             var reverse = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             foreach (var node in OrderedNodes)
-            foreach (var target in Targets(node))
+            foreach (var destination in Destinations(node))
             {
-                if (!reverse.TryGetValue(target, out var sources))
+                if (!reverse.TryGetValue(destination, out var sources))
                 {
                     sources = new List<string>();
-                    reverse[target] = sources;
+                    reverse[destination] = sources;
                 }
-                sources.Add(node.id);
+                sources.Add(node.Id);
             }
 
             var found = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -209,31 +187,29 @@ namespace Dreadmoor.Core
             return found;
         }
 
-        public static IEnumerable<string> Targets(StoryNode node)
+        public static IEnumerable<string> Destinations(StoryNode node)
         {
-            if (!string.IsNullOrWhiteSpace(node.next)) yield return node.next;
-            if (node.options != null)
-                foreach (var option in node.options)
-                    if (!string.IsNullOrWhiteSpace(option?.Target)) yield return option.Target;
-            if (!string.IsNullOrWhiteSpace(node.next_on_decline?.target)) yield return node.next_on_decline.target;
+            if (node == null) yield break;
+            if (!string.IsNullOrWhiteSpace(node.NextId)) yield return node.NextId;
+            foreach (var choice in node.Choices)
+                if (!string.IsNullOrWhiteSpace(choice?.Destination)) yield return choice.Destination;
+            var decline = node.IncomingCall?.Call?.DeclineDestination;
+            if (!string.IsNullOrWhiteSpace(decline)) yield return decline;
         }
 
-        private static void ValidateTarget(GraphValidationResult result, string nodeId, string field, string target,
-            HashSet<string> ids, bool requiredWhenPresent)
+        private static void ValidateDestination(GraphValidationResult result, string nodeId, string label, string destination,
+            HashSet<string> ids, bool required)
         {
-            if (string.IsNullOrWhiteSpace(target))
+            if (string.IsNullOrWhiteSpace(destination))
             {
-                if (requiredWhenPresent) result.Errors.Add($"{nodeId}: {field} target is empty.");
+                if (required) result.Errors.Add($"{nodeId}: {label} destination is empty.");
                 return;
             }
-            if (!ids.Contains(target)) result.Errors.Add($"{nodeId}: {field} links to missing node '{target}'.");
+            if (!ids.Contains(destination)) result.Errors.Add($"{nodeId}: {label} links to missing section '{destination}'.");
         }
 
         private void DetectImmediateCycles(string entryNodeId, GraphValidationResult result)
         {
-            // Cycles are legal for future episodes if they contain a player interaction,
-            // pause, call, or typing delay. A cycle made exclusively from immediate system
-            // nodes would spin forever in one frame and is therefore an error.
             var visiting = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var path = new List<string>();
@@ -246,8 +222,8 @@ namespace Dreadmoor.Core
                 {
                     var start = path.FindIndex(item => string.Equals(item, id, StringComparison.OrdinalIgnoreCase));
                     var cycle = start >= 0 ? path.Skip(start).Concat(new[] { id }).ToList() : new List<string> { id };
-                    var hasYield = cycle.Select(Get).Where(node => node != null).Any(NodeYields);
-                    if (!hasYield) result.Errors.Add("Non-yielding story cycle: " + string.Join(" -> ", cycle));
+                    if (!cycle.Select(Get).Where(node => node != null).Any(NodeYields))
+                        result.Errors.Add("Non-yielding narrative cycle: " + string.Join(" -> ", cycle));
                     return;
                 }
 
@@ -255,7 +231,7 @@ namespace Dreadmoor.Core
                 path.Add(id);
                 var node = Get(id);
                 if (node != null)
-                    foreach (var target in Targets(node)) visit(target);
+                    foreach (var destination in Destinations(node)) visit(destination);
                 path.RemoveAt(path.Count - 1);
                 visiting.Remove(id);
                 visited.Add(id);
@@ -265,8 +241,13 @@ namespace Dreadmoor.Core
 
         private static bool NodeYields(StoryNode node)
         {
-            return node.type == "Pause" || node.type == "Player_Choice" || node.type == "IncomingCall" ||
-                   node.type == "Phone_Call_Event" || node.type == "Accept_Call" || node.IsTyping || node.duration > 0;
+            return node.Commands.Any(command => command.Kind == NarrativeCommandKind.Delay ||
+                                                command.Kind == NarrativeCommandKind.Choice ||
+                                                command.Kind == NarrativeCommandKind.IncomingCall ||
+                                                command.Kind == NarrativeCommandKind.ActiveCall ||
+                                                command.Kind == NarrativeCommandKind.Diary ||
+                                                command.Kind == NarrativeCommandKind.Typing ||
+                                                command.Kind == NarrativeCommandKind.Glitch);
         }
     }
 
@@ -278,8 +259,7 @@ namespace Dreadmoor.Core
 
         public override string ToString()
         {
-            if (IsValid) return "Story graph is valid.";
-            return string.Join("\n", Errors);
+            return IsValid ? "Story graph is valid." : string.Join("\n", Errors);
         }
     }
 }

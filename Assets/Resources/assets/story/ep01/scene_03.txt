@@ -1,0 +1,463 @@
+:: s3_group_chat
+@message System
+[PlayerName] was added to the group.
+
+:: S3_Initial_Shock
+@typing amelia 0.6
+@message amelia
+what
+
+:: S3_Initial_Shock_2
+@delay 1.2
+
+:: S3_Initial_Shock_3
+@typing amelia 1.3
+@message amelia
+no. who the hell added [PlayerName]?
+
+:: S3_Chris_Denial
+@typing chris 0.8
+@message chris
+wasn't me man
+
+:: S3_Chris_Denial_2
+@delay 0.6
+
+:: S3_Chris_Denial_3
+@typing chris 0.7
+@message chris
+i swear
+
+:: S3_Abigail_Skeptic
+@typing abigail 1.1
+@message abigail
+someone's playing games
+
+:: S3_Abigail_Skeptic_2
+@delay 0.8
+
+:: S3_Abigail_Skeptic_3
+@typing abigail 0.9
+@message abigail
+of all times
+
+:: S3_Michael_Mediator
+@typing michael 0.8
+@message michael
+everyone.
+
+:: S3_Michael_Mediator_2
+@delay 0.7
+
+:: S3_Michael_Mediator_3
+@typing michael 1.3
+@message michael
+breathe. panic helps no one.
+
+:: S3_Amelia_Direct
+@typing amelia 1.3
+@message amelia
+easy for you to say
+
+:: S3_Amelia_Direct_2
+@delay 0.9
+
+:: S3_Amelia_Direct_3
+@typing amelia 1.4
+@message amelia
+my sister is missing and now a stranger is in our chat
+
+:: S3_Amelia_Direct_4
+@delay 1.0
+
+:: S3_Amelia_Direct_5
+@typing amelia 0.9
+@message amelia
+so i'll ask once. who are you?
+
+:: S3_Choice_Intro
+@choice
+  I think I was added by mistake. -> S3_Branch_Mistake
+  I'm here because of Rebecca. -> S3_Branch_Rebecca
+  Depends on who's asking. -> S3_Branch_Aggressive
+
+:: S3_Branch_Mistake
+@typing chris 0.8
+@message chris
+mistake.
+
+:: S3_Branch_Mistake_2
+@delay 0.6
+
+:: S3_Branch_Mistake_3
+@typing chris 1.4
+@message chris
+right. cause people just magically appear in private groups.
+@goto S3_Abigail_Push
+
+:: S3_Branch_Rebecca
+@typing amelia 1.1
+@message amelia
+what about her?
+
+:: S3_Branch_Rebecca_2
+@delay 0.8
+
+:: S3_Branch_Rebecca_3
+@typing amelia 1.2
+@message amelia
+everyone knows. why are YOU here?
+@goto S3_Abigail_Push
+
+:: S3_Branch_Aggressive
+@typing abigail 0.9
+@message abigail
+excuse me?
+
+:: S3_Branch_Aggressive_2
+@delay 0.7
+
+:: S3_Branch_Aggressive_3
+@typing amelia 1.0
+@message amelia
+i heard it
+
+:: S3_Branch_Aggressive_4
+@delay 0.9
+
+:: S3_Branch_Aggressive_5
+@typing amelia 1.4
+@message amelia
+you don't get to have an attitude. you're the intruder.
+
+:: S3_Abigail_Push
+@typing abigail 0.7
+@message abigail
+amelia
+
+:: S3_Abigail_Push_2
+@delay 0.6
+
+:: S3_Abigail_Push_3
+@typing abigail 1.2
+@message abigail
+just remove them. we don't need this.
+
+:: S3_Chris_Agree
+@typing chris 0.8
+@message chris
+she's right
+
+:: S3_Chris_Agree_2
+@delay 0.5
+
+:: S3_Chris_Agree_3
+@typing chris 0.9
+@message chris
+i'll do it—
+
+:: S3_Chris_Interrupt
+@typing michael 0.6
+@message michael
+wait.
+
+:: S3_Michael_Intervene_2
+@delay 1.0
+
+:: S3_Michael_Intervene_3
+@typing michael 1.3
+@message michael
+think about it. if they just wanted to watch...
+
+:: S3_Michael_Intervene_4
+@delay 0.8
+
+:: S3_Michael_Intervene_5
+@typing michael 1.2
+@message michael
+they wouldn't have said anything.
+
+:: S3_Michael_Intervene_6
+@delay 1.2
+
+:: S3_Michael_Intervene_7
+@typing michael 1.0
+@message michael
+so. say it.
+
+:: S3_Choice_WhyHere
+@choice
+  I'm trying to find her. -> S3_Search_Reaction
+  Something about this doesn't feel right. -> S3_Sus_Reaction
+
+:: S3_Search_Reaction
+@typing amelia 0.7
+@message amelia
+you?
+
+:: S3_Search_Reaction_2
+@delay 0.9
+
+:: S3_Search_Reaction_3
+@typing amelia 1.3
+@message amelia
+you're looking for my sister?
+
+:: S3_Search_Reaction_4
+@typing abigail 1.2
+@message abigail
+and who even asked you to do that?
+@goto S3_Michael_ID_Check
+
+:: S3_Sus_Reaction
+@typing chris 1.1
+@message chris
+what does that mean?
+
+:: S3_Sus_Reaction_2
+@delay 0.7
+
+:: S3_Sus_Reaction_3
+@typing abigail 1.2
+@message abigail
+doesn't feel right? you don't even know us.
+
+:: S3_Michael_ID_Check
+@typing michael 1.3
+@message michael
+you still haven't answered the question.
+
+:: S3_Michael_ID_Check_2
+@delay 1.0
+
+:: S3_Michael_ID_Check_3
+@typing michael 1.0
+@message michael
+so who are you? really.
+
+:: S3_Choice_Identity
+@choice
+  I knew her. -> S3_KnewHer_Branch
+  That doesn't matter. -> S3_NoID_Branch
+
+:: S3_KnewHer_Branch
+@typing abigail 0.8
+@message abigail
+funny
+
+:: S3_KnewHer_Branch_2
+@delay 0.8
+
+:: S3_KnewHer_Branch_3
+@typing abigail 1.2
+@message abigail
+she never mentioned you. not once.
+@goto S3_Michael_Logic
+
+:: S3_NoID_Branch
+@typing chris 1.0
+@message chris
+it matters
+
+:: S3_NoID_Branch_2
+@delay 0.6
+
+:: S3_NoID_Branch_3
+@typing chris 1.1
+@message chris
+it definitely matters
+
+:: S3_Michael_Logic
+@typing michael 1.5
+@message michael
+you appeared in a private conversation
+
+:: S3_Michael_Logic_2
+@delay 0.8
+
+:: S3_Michael_Logic_3
+@typing michael 1.4
+@message michael
+about a missing woman. you're making accusations.
+
+:: S3_Michael_Logic_4
+@delay 1.0
+
+:: S3_Michael_Logic_5
+@typing michael 1.1
+@message michael
+so give us something.
+
+:: S3_Choice_Motivation
+@choice
+  No one is taking this seriously. -> S3_Motivation_A
+  Your story doesn't match. -> S3_Motivation_B
+
+:: S3_Motivation_A
+@typing amelia 0.8
+@message amelia
+excuse m—
+
+:: S3_Motivation_A_2
+@delay 0.4
+
+:: S3_Motivation_A_3
+@typing amelia 1.4
+@message amelia
+you don't get to say that.
+
+:: S3_Motivation_A_4
+@delay 0.9
+
+:: S3_Motivation_A_5
+@typing amelia 1.5
+@message amelia
+you have zero idea what i'm going through right now
+@goto S3_Michael_Warning
+
+:: S3_Motivation_B
+@typing michael 1.1
+@message michael
+doesn't match.
+
+:: S3_Motivation_B_2
+@delay 0.8
+
+:: S3_Motivation_B_3
+@typing michael 1.3
+@message michael
+that's interesting. what story have you heard?
+
+:: S3_Michael_Warning
+@typing michael 1.0
+@message michael
+go on then.
+
+:: S3_Michael_Warning_2
+@delay 1.0
+
+:: S3_Michael_Warning_3
+@typing michael 1.2
+@message michael
+what's your theory?
+
+:: S3_Choice_The_Theory
+@choice
+  Someone here is lying. -> S3_Liar_Branch
+  She didn't leave when you said. -> S3_Timeline_Branch
+
+:: S3_Liar_Branch
+@typing chris 0.7
+@message chris
+whoa.
+
+:: S3_Liar_Branch_2
+@delay 0.6
+
+:: S3_Liar_Branch_3
+@typing chris 1.1
+@message chris
+you can't just—
+
+:: S3_Liar_Branch_4
+@typing abigail 1.3
+@message abigail
+you don't know anything about us.
+@goto S3_Michael_Timeline_Interject
+
+:: S3_Timeline_Branch
+@typing abigail 1.4
+@message abigail
+we told the police everything.
+
+:: S3_Timeline_Branch_2
+@delay 0.7
+
+:: S3_Timeline_Branch_3
+@typing abigail 1.0
+@message abigail
+everything.
+
+:: S3_Michael_Timeline_Interject
+@typing michael 1.1
+@message michael
+interesting.
+
+:: S3_Michael_Timeline_Interject_2
+@delay 1.2
+
+:: S3_Michael_Timeline_Interject_3
+@typing michael 1.3
+@message michael
+so it's the timeline.
+
+:: S3_Chris_Defensive
+@typing chris 0.9
+@message chris
+midnight.
+
+:: S3_Chris_Defensive_2
+@delay 0.5
+
+:: S3_Chris_Defensive_3
+@typing chris 1.3
+@message chris
+she left around midnight. that's the truth.
+
+:: S3_Abigail_Backup
+@typing abigail 1.1
+@message abigail
+that's what we said.
+
+:: S3_Abigail_Backup_2
+@delay 0.6
+
+:: S3_Abigail_Backup_3
+@typing abigail 0.9
+@message abigail
+all of us.
+
+:: S3_Michael_Doubt
+@typing michael 1.2
+@message michael
+'around midnight.'
+
+:: S3_Michael_Doubt_2
+@delay 1.0
+
+:: S3_Michael_Doubt_3
+@typing michael 1.4
+@message michael
+that's not a time. that's an estimate.
+
+:: S3_Michael_Doubt_4
+@delay 1.4
+
+:: S3_Michael_Doubt_5
+@typing michael 1.5
+@message michael
+which means no one actually saw her leave.
+
+:: S3_Amelia_Final
+@typing amelia 0.8
+@message amelia
+enough.
+
+:: S3_Amelia_Final_2
+@delay 0.8
+
+:: S3_Amelia_Final_3
+@typing amelia 1.3
+@message amelia
+i said enough. she left.
+
+:: S3_Amelia_Final_4
+@delay 1.0
+
+:: S3_Amelia_Final_5
+@typing amelia 1.4
+@message amelia
+that's the story. and i'm done talking about it.
+
+:: S3_Diary_Trigger
+@diary page_01 ECHO

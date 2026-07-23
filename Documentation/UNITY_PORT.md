@@ -31,7 +31,7 @@
 - Active calls remain active until audio completes or the player ends the call.
 - Thread changes and app process termination preserve the exact continuation.
 
-The graph loader keeps compatibility with Episode 1 aliases (`Private_Unknown`, `Video_Node`, `Force_Ringing`) while new content can use the generic node names documented in the existing scene format.
+The narrative loader reads the author-facing plain-text format directly. Sequential sections fall through in file order, and only choices, call declines, and explicit `@goto` directives create destination links.
 
 ## Persistence
 
@@ -48,10 +48,10 @@ Writes use a temporary file followed by a move to avoid leaving half-written JSO
 
 ## Extending episodes
 
-1. Put scene JSON and referenced content under `Assets/Resources/assets/story/<episode>/`.
-2. Register scene resource paths in `StoryGraph` (or add an episode manifest when multiple playable episodes are available).
-3. Use supported generic node types and provide explicit thread metadata when starting a context.
+1. Put `.txt` narrative scripts and referenced content under `Assets/Resources/assets/story/<episode>/`.
+2. Register script resource paths in `StoryGraph` (or add an episode manifest when multiple playable episodes are available).
+3. Use native directives and begin a chat/group transition with `@switch_context CONTEXT_ID`; display details for known contexts are owned by `StoryContexts`, not copied into scripts.
 4. Run **Dreadmoor → Validate Complete Game** and all EditMode tests.
-5. Add tests for the new entry point, terminal nodes and episode-specific gates.
+5. Add tests for the new entry point, terminal sections, destinations, and episode-specific gates.
 
 Never bypass graph validation in a release build: the pre-build validator exists specifically to prevent dead choices, missing media and continuation errors.

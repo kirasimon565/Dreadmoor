@@ -1,0 +1,251 @@
+:: s4_intercept
+@intercept intercept_amelia_michael
+@notification [VPN: ACTIVE | ENCRYPTION: HIGH | IDENTITY: HIDDEN]
+
+:: S5_Amelia_Panic
+@typing amelia 0.9
+@message amelia
+michael
+
+:: S5_Amelia_Panic_2
+@delay 0.8
+
+:: S5_Amelia_Panic_3
+@typing amelia 1.2
+@message amelia
+michael please
+
+:: S5_Amelia_Panic_4
+@delay 0.6
+
+:: S5_Amelia_Panic_5
+@typing amelia 1.4
+@message amelia
+did you tell them? anything at all?
+
+:: S5_Amelia_Panic_6
+@delay 0.7
+
+:: S5_Amelia_Panic_7
+@typing amelia 1.1
+@message amelia
+be honest with me.
+
+:: S5_Michael_Cold
+@typing michael 0.6
+@message michael
+no.
+
+:: S5_Michael_Cold_2
+@delay 0.7
+
+:: S5_Michael_Cold_3
+@typing michael 0.9
+@message michael
+i didn't.
+
+:: S5_Michael_Cold_4
+@delay 0.6
+
+:: S5_Michael_Cold_5
+@typing michael 1.0
+@message michael
+and i won't.
+
+:: S5_Amelia_Relief
+@typing amelia 0.8
+@message amelia
+okay
+
+:: S5_Amelia_Relief_2
+@delay 0.5
+
+:: S5_Amelia_Relief_3
+@typing amelia 1.0
+@message amelia
+okay good
+
+:: S5_Amelia_Relief_4
+@delay 1.8
+
+:: S5_Amelia_Relief_5
+@typing amelia 1.6
+@message amelia
+cause if anyone finds out why we were actually there...
+
+:: S5_Amelia_Relief_6
+@delay 0.9
+
+:: S5_Amelia_Relief_7
+@typing amelia 1.2
+@message amelia
+it's over. for both of us.
+
+:: S5_Michael_ShutDown
+@typing michael 1.1
+@message michael
+then breathe.
+
+:: S5_Michael_ShutDown_2
+@delay 0.6
+
+:: S5_Michael_ShutDown_3
+@typing michael 1.4
+@message michael
+right now. you're typing like you're drowning.
+
+:: S5_Michael_ShutDown_4
+@delay 0.8
+
+:: S5_Michael_ShutDown_5
+@typing michael 1.3
+@message michael
+that's how mistakes happen. and mistakes get us caught.
+
+:: S5_Amelia_Doubt
+@typing amelia 0.9
+@message amelia
+that person
+
+:: S5_Amelia_Doubt_2
+@delay 0.7
+
+:: S5_Amelia_Doubt_3
+@typing amelia 1.3
+@message amelia
+the one who appeared. they knew about the timeline.
+
+:: S5_Amelia_Doubt_4
+@delay 1.0
+
+:: S5_Amelia_Doubt_5
+@typing amelia 0.8
+@message amelia
+how?
+
+:: S5_Michael_Dismissive
+@typing michael 1.2
+@message michael
+they didn't know. they were fishing.
+
+:: S5_Michael_Dismissive_2
+@delay 0.6
+
+:: S5_Michael_Dismissive_3
+@typing michael 1.0
+@message michael
+and you bit.
+
+:: S5_Michael_Dismissive_4
+@delay 0.8
+
+:: S5_Michael_Dismissive_5
+@typing michael 0.6
+@message michael
+hard.
+
+:: S5_Amelia_Guilt
+@typing amelia 1.1
+@message amelia
+i didn't mean to
+
+:: S5_Amelia_Guilt_2
+@delay 0.7
+
+:: S5_Amelia_Guilt_3
+@typing amelia 1.3
+@message amelia
+she kept pushing me. that night.
+
+:: S5_Amelia_Guilt_4
+@delay 0.9
+
+:: S5_Amelia_Guilt_5
+@typing amelia 1.4
+@message amelia
+i only wanted to scare her. that's all.
+
+:: S5_Amelia_Guilt_6
+@delay 1.2
+
+:: S5_Amelia_Guilt_7
+@typing amelia 1.0
+@message amelia
+i swear.
+
+:: S5_Amelia_Guilt_8
+@delay 2.0
+
+:: S5_Amelia_Guilt_9
+@typing amelia 1.4
+@message amelia
+i didn't think she would—
+
+:: S5_Michael_Cut
+@typing michael 0.7
+@message michael
+amelia.
+
+:: S5_Michael_Cut_2
+@delay 0.6
+
+:: S5_Michael_Cut_3
+@typing michael 1.3
+@message michael
+stop. do not finish that.
+
+:: S5_Michael_Cut_4
+@delay 1.0
+
+:: S5_Michael_Cut_5
+@typing michael 1.1
+@message michael
+not here. not ever.
+
+:: S5_Michael_Final_Warning
+@typing michael 1.2
+@message michael
+listen to me. carefully.
+
+:: S5_Michael_Final_Warning_2
+@delay 0.8
+
+:: S5_Michael_Final_Warning_3
+@typing michael 1.3
+@message michael
+she left at midnight. no one saw anything.
+
+:: S5_Michael_Final_Warning_4
+@delay 0.5
+
+:: S5_Michael_Final_Warning_5
+@typing michael 1.3
+@message michael
+nothing else happened. that's the story.
+
+:: S5_Michael_Final_Warning_6
+@delay 0.7
+
+:: S5_Michael_Final_Warning_7
+@typing michael 1.1
+@message michael
+that's all there is.
+
+:: S5_Michael_Final_Warning_8
+@delay 1.5
+
+:: S5_Michael_Final_Warning_9
+@typing michael 1.4
+@message michael
+because if that changes... even slightly.
+
+:: S5_Michael_Final_Warning_10
+@delay 1.0
+
+:: S5_Michael_Final_Warning_11
+@typing michael 1.2
+@message michael
+there's no coming back from it. for either of us.
+
+:: s5_glitch
+@glitch 1.2 [SIGNAL LOST... ENCRYPTION BREACHED...]

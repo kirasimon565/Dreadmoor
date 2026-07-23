@@ -12,8 +12,8 @@ Open the repository root in Unity Hub. The startup scene is `Assets/Scenes/Main.
 
 ## Game architecture
 
-- `Assets/Scripts/Core/StoryGraph.cs` imports and validates all six Episode 1 scene files.
-- `Assets/Scripts/Core/StoryScheduler.cs` executes the 391-node graph with one persisted cursor. Choices, calls, diary gates, context switches, pauses, typing, media, glitches and credits are data-driven.
+- `Assets/Scripts/Core/NarrativeScriptParser.cs` and `Assets/Scripts/Core/StoryGraph.cs` load and validate all six plain-text Episode 1 scripts.
+- `Assets/Scripts/Core/StoryScheduler.cs` executes the 391-section narrative with one persisted cursor. Choices, calls, diary gates, context switches, pauses, typing, media, glitches and credits are data-driven.
 - `Assets/Scripts/Core/GameStore.cs` provides atomic local JSON persistence under Unity's `Application.persistentDataPath`.
 - `Assets/Scripts/UI/` builds the portrait phone interface with Unity uGUI and the original image, video, font, music and sound assets.
 - `Assets/Tests/EditMode/StoryGraphTests.cs` checks every narrative edge, branch, terminal, call target, diary link and media reference.
@@ -71,12 +71,26 @@ After activation, the workflow runs on pushes to `Production_Dreadmoor` and this
 
 ## Story authoring
 
-Episode 1 remains JSON-driven in `Assets/Resources/assets/story/ep01/`. A scene node may link through:
+Episode 1 is authored as six native plain-text scripts in `Assets/Resources/assets/story/ep01/scene_01.txt` through `scene_06.txt`. Every section starts with `:: SECTION_ID`. Standard sections fall through to the next header automatically; use `@goto SECTION_ID` only for a non-consecutive continuation.
 
-- `next`
-- every `options[].next` or legacy `options[].target`
-- `next_on_decline.target`
+```text
+:: S4_VIDEO_NODE
+@video Unknown assets/media/videos/party_clip.mp4
 
-The validator requires every target to exist and every node to be reachable from `SCENE_1_NEWS_ARTICLE`. Future loops are accepted only when they contain a yielding interaction or delay; a zero-delay system loop is rejected because it would lock the game.
+:: S4_PLAYER_REACTION
+@choice
+  Where did you get this? -> S4_UNKNOWN_SOURCE
+  That's her. That's Rebecca. -> S4_UNKNOWN_SOURCE
+```
+
+Supported author-facing directives are:
+
+- `@typing SENDER SECONDS`, `@message SENDER` followed by the message text, and `@delay SECONDS`;
+- `@choice` followed by `text -> SECTION_ID` options;
+- `@switch_context CONTEXT_ID`, `@notification TEXT`, and `@intercept CONTEXT_ID`;
+- `@video SENDER ASSET_PATH` and `@news` blocks with `headline:`, `subheadline:`, `image:`, optional `caption:`, and `body:` paragraphs;
+- `@diary PAGE_ID ANSWER`, `@glitch SECONDS TEXT`, `@incoming_call`, `@on_decline SECONDS -> SECTION_ID`, `@active_call`, and `@credits TEXT` for Episode 1's interactive set pieces.
+
+`@goto`, choice destinations, and call-decline destinations are the only explicit flow links. The validator requires every destination to exist and every section to be reachable from `SCENE_1_NEWS_ARTICLE`. Future loops are accepted only when they contain an interaction or delay; a zero-delay system loop is rejected because it would lock the game.
 
 See [`Documentation/UNITY_PORT.md`](Documentation/UNITY_PORT.md) for architecture details and [`Documentation/PARITY_MATRIX.md`](Documentation/PARITY_MATRIX.md) for the original-file-to-Unity feature audit.

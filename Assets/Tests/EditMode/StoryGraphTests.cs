@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dreadmoor.Core;
 using Dreadmoor.UI;
@@ -18,14 +19,14 @@ namespace Dreadmoor.Tests
         }
 
         [Test]
-        public void EpisodeOne_HasAll391UniqueNodes()
+        public void EpisodeOne_HasAll391UniqueScriptSections()
         {
             Assert.That(_graph.OrderedNodes.Count, Is.EqualTo(391));
             Assert.That(_graph.Nodes.Count, Is.EqualTo(391));
         }
 
         [Test]
-        public void EveryNodeAndBranch_IsLinkedAndReachable()
+        public void EverySectionAndBranch_IsLinkedAndReachable()
         {
             var validation = _graph.Validate();
             Assert.That(validation.IsValid, Is.True, validation.ToString());
@@ -33,29 +34,29 @@ namespace Dreadmoor.Tests
         }
 
         [Test]
-        public void Choices_AlwaysHaveTextAndExistingTargets()
+        public void Choices_AlwaysHaveTextAndExistingDestinations()
         {
-            var choices = _graph.OrderedNodes.Where(node => node.type == "Player_Choice").ToArray();
+            var choices = _graph.OrderedNodes.Where(node => node.HasChoice).ToArray();
             Assert.That(choices.Length, Is.EqualTo(20));
             foreach (var node in choices)
-            foreach (var option in node.options)
+            foreach (var option in node.Choices)
             {
-                Assert.That(option.text, Is.Not.Empty, node.id);
-                Assert.That(option.Target, Is.Not.Empty, node.id);
-                Assert.That(_graph.Get(option.Target), Is.Not.Null, $"{node.id} -> {option.Target}");
+                Assert.That(option.Text, Is.Not.Empty, node.Id);
+                Assert.That(option.Destination, Is.Not.Empty, node.Id);
+                Assert.That(_graph.Get(option.Destination), Is.Not.Null, $"{node.Id} -> {option.Destination}");
             }
         }
 
         [Test]
         public void EveryBranch_HasAPathToEpisodeEnding()
         {
-            var terminal = "EPISODE_1_END";
+            const string terminal = "EPISODE_1_END";
             var reverse = _graph.OrderedNodes
-                .SelectMany(node => StoryGraph.Targets(node).Select(target => new { target, source = node.id }))
-                .GroupBy(edge => edge.target)
+                .SelectMany(node => StoryGraph.Destinations(node).Select(destination => new { destination, source = node.Id }))
+                .GroupBy(edge => edge.destination)
                 .ToDictionary(group => group.Key, group => group.Select(edge => edge.source).ToArray());
-            var canFinish = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var pending = new System.Collections.Generic.Stack<string>();
+            var canFinish = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var pending = new Stack<string>();
             pending.Push(terminal);
             while (pending.Count > 0)
             {
@@ -68,13 +69,13 @@ namespace Dreadmoor.Tests
         }
 
         [Test]
-        public void Calls_AnswerAndDeclineTargetsExist()
+        public void Calls_AnswerAndDeclineDestinationsExist()
         {
-            foreach (var node in _graph.OrderedNodes.Where(node =>
-                         node.type == "IncomingCall" || node.type == "Force_Ringing" || node.type == "Accept_Call"))
+            foreach (var node in _graph.OrderedNodes.Where(node => node.IncomingCall != null || node.ActiveCall != null))
             {
-                if (!string.IsNullOrWhiteSpace(node.next)) Assert.That(_graph.Get(node.next), Is.Not.Null, node.id);
-                if (node.next_on_decline != null) Assert.That(_graph.Get(node.next_on_decline.target), Is.Not.Null, node.id);
+                if (!string.IsNullOrWhiteSpace(node.NextId)) Assert.That(_graph.Get(node.NextId), Is.Not.Null, node.Id);
+                var decline = node.IncomingCall?.Call?.DeclineDestination;
+                if (!string.IsNullOrWhiteSpace(decline)) Assert.That(_graph.Get(decline), Is.Not.Null, node.Id);
             }
         }
 
@@ -82,33 +83,68 @@ namespace Dreadmoor.Tests
         public void EveryNarrativeMediaReference_LoadsFromResources()
         {
             foreach (var node in _graph.OrderedNodes)
-            {
-                AssertResource(node.id, node.image_asset);
-                AssertResource(node.id, node.file_asset);
-                AssertResource(node.id, node.audio_loop);
-                AssertResource(node.id, node.audio_asset);
-            }
+            foreach (var assetPath in node.MediaAssetPaths)
+                AssertResource(node.Id, assetPath);
         }
 
         [Test]
-        public void DiaryLock_ContainsPuzzleMetadataAndPage()
+        public void DiaryGate_ContainsPuzzlePageAndAnswer()
         {
             var node = _graph.Get("S3_Diary_Trigger");
             Assert.That(node, Is.Not.Null);
-            Assert.That(node.meta, Is.Not.Null);
-            Assert.That(node.meta.word, Is.EqualTo("ECHO"));
-            Assert.That(node.meta.pageId, Is.EqualTo("page_01"));
+            Assert.That(node.DiaryGate, Is.Not.Null);
+            Assert.That(node.DiaryGate.Diary.Word, Is.EqualTo("ECHO"));
+            Assert.That(node.DiaryGate.Diary.PageId, Is.EqualTo("page_01"));
             Assert.That(Resources.Load<TextAsset>("assets/story/ep01/diary/page_01"), Is.Not.Null);
         }
 
         [Test]
-        public void Episode_HasOneIntentionalTerminalCreditNode()
+        public void Episode_HasOneIntentionalTerminalCreditsSection()
         {
-            var terminals = _graph.OrderedNodes.Where(node =>
-                string.IsNullOrWhiteSpace(node.next) && (node.options == null || node.options.Length == 0)).ToArray();
+            var terminals = _graph.OrderedNodes.Where(node => node.IsTerminal).ToArray();
             Assert.That(terminals.Length, Is.EqualTo(1));
-            Assert.That(terminals[0].id, Is.EqualTo("EPISODE_1_END"));
-            Assert.That(terminals[0].action, Is.EqualTo("Trigger_Credits"));
+            Assert.That(terminals[0].Id, Is.EqualTo("EPISODE_1_END"));
+        }
+
+        [Test]
+        public void NarrativeResources_ArePlainTextAndContainNoRetiredSchema()
+        {
+            foreach (var resource in StoryGraph.EpisodeOneResources)
+            {
+                var script = Resources.Load<TextAsset>(resource);
+                Assert.That(script, Is.Not.Null, resource);
+                Assert.That(script.text.TrimStart(), Does.StartWith("::"), resource);
+                Assert.That(script.text, Does.Not.Contain("\"type\""), resource);
+                Assert.That(script.text, Does.Not.Contain("next_on_decline"), resource);
+                Assert.That(script.text, Does.Not.Contain("thread_members"), resource);
+            }
+        }
+
+        [Test]
+        public void Parser_InfersFallthroughAndHonorsExplicitDestinations()
+        {
+            const string script = @":: START
+@message Unknown
+hello
+@goto BRANCH
+
+:: SKIPPED
+@message Unknown
+unused
+
+:: BRANCH
+@choice
+  left -> END
+  right -> END
+
+:: END
+@credits done";
+            var graph = StoryGraph.ParseScripts(new[] { script });
+            Assert.That(graph.Get("START").NextId, Is.EqualTo("BRANCH"));
+            Assert.That(graph.Get("SKIPPED").NextId, Is.EqualTo("BRANCH"));
+            Assert.That(graph.Get("BRANCH").NextId, Is.Empty);
+            Assert.That(graph.Get("BRANCH").Choices[0].Destination, Is.EqualTo("END"));
+            Assert.That(graph.Validate("START").IsValid, Is.False, "SKIPPED is intentionally unreachable in this parser fixture.");
         }
 
         [Test]
