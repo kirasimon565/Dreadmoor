@@ -132,7 +132,7 @@ namespace Dreadmoor.UI
 
         /// <summary>
         /// Creates the styled Hero "CONTINUE/START GAME" button matching reference:
-        /// Dark semi-transparent bg (rgba 10,18,24,0.7), rounded, thin cyan outline (#00E5FF),
+        /// Dark semi-transparent bg (rgba 10,18,24,0.75), rounded, thin cyan outline (#00E5FF),
         /// Horizontal content: Cyan Play Icon ▶ + label in bright cyan with wide spacing.
         /// </summary>
         public static Button CreateHeroActionButton(Transform parent, string label, Action onClick)
@@ -174,15 +174,21 @@ namespace Dreadmoor.UI
             hGroup.spacing = 18f;
             hGroup.padding = new RectOffset(36, 42, 0, 0);
 
-            // Play Icon (▶)
-            var iconText = Text(container.transform, "▶", 42, InvestigatorCyan, TextAnchor.MiddleCenter, false, "PlayIcon");
-            iconText.fontStyle = FontStyle.Bold;
-            var iconLE = iconText.gameObject.AddComponent<LayoutElement>();
+            // Play Icon (▶) using TextMeshProUGUI for consistency
+            var iconGo = new GameObject("PlayIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            iconGo.transform.SetParent(container.transform, false);
+            var iconText = iconGo.GetComponent<TextMeshProUGUI>();
+            iconText.text = "▶";
+            iconText.fontSize = 42;
+            iconText.color = InvestigatorCyan;
+            iconText.alignment = TextAlignmentOptions.Center;
+            iconText.fontStyle = FontStyles.Bold;
+            var iconLE = iconGo.AddComponent<LayoutElement>();
             iconLE.minWidth = 42f;
             iconLE.preferredWidth = 48f;
             iconLE.flexibleWidth = 0f;
 
-            // Label text - bright cyan, wide letter-spacing approximated via TMPro natively
+            // Label text - bright cyan, character spacing exactly as specified (20f)
             var go = new GameObject("ActionLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
             go.transform.SetParent(container.transform, false);
             var labelText = go.GetComponent<TextMeshProUGUI>();
@@ -191,9 +197,16 @@ namespace Dreadmoor.UI
             labelText.color = InvestigatorCyan;
             labelText.alignment = TextAlignmentOptions.Center;
             labelText.fontStyle = FontStyles.Bold;
-            labelText.characterSpacing = 25f;
+            labelText.characterSpacing = 20f;
             labelText.enableWordWrapping = false;
             labelText.overflowMode = TextOverflowModes.Overflow;
+
+            // Ensure explicit RectTransform anchors/size for visibility
+            var labelRect = labelText.rectTransform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
 
             var labelLE = labelText.gameObject.AddComponent<LayoutElement>();
             labelLE.minWidth = 220f;
