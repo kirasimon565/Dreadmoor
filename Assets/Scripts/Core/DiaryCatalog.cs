@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Dreadmoor.Core
@@ -38,7 +39,7 @@ namespace Dreadmoor.Core
                     var nodes = NarrativeScriptParser.Parse(asset.text, asset.name);
                     foreach (var node in nodes)
                     {
-                        var diaryCommand = node.Commands.Find(c => c.Kind == NarrativeCommandKind.Diary);
+                        var diaryCommand = node.Commands.FirstOrDefault(c => c.Kind == NarrativeCommandKind.Diary);
                         if (diaryCommand != null)
                         {
                             var epId = diaryCommand.Diary.EpisodeId;
