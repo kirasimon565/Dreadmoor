@@ -114,7 +114,7 @@ namespace Dreadmoor.Core
                     }
                 }
                 if (node.type == "IncomingCall" && node.next_on_decline != null && string.IsNullOrWhiteSpace(node.next_on_decline.target))
-                    result.Errors.Add($"{node.id}: next_on_decline has no target.");
+                    result.Warnings.Add($"{node.id}: next_on_decline target is empty.");
                 if (node.type == "System_Event" && node.action == "Open_Diary_Lock")
                 {
                     if (node.meta == null || string.IsNullOrWhiteSpace(node.meta.word) || string.IsNullOrWhiteSpace(node.meta.pageId))
@@ -131,7 +131,12 @@ namespace Dreadmoor.Core
                         ValidateTarget(result, node.id, $"options[{i}]", node.options[i]?.Target, ids, true);
                 }
                 if (node.next_on_decline != null)
-                    ValidateTarget(result, node.id, "next_on_decline", node.next_on_decline.target, ids, true);
+                {
+                    if (string.IsNullOrWhiteSpace(node.next_on_decline.target))
+                        result.Warnings.Add($"{node.id}: next_on_decline target is empty.");
+                    else
+                        ValidateTarget(result, node.id, "next_on_decline", node.next_on_decline.target, ids, false);
+                }
             }
 
             if (!ids.Contains(entryNodeId))
