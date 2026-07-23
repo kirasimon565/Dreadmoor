@@ -222,17 +222,59 @@ namespace Dreadmoor.UI
         private void ShowWelcome()
         {
             var root = NewScreen(AppView.Welcome, Color.black);
+
+            // Flutter-style Stack: the fog video/still fills the screen behind every UI layer.
             if (!AddLoopingVideoBackground(root, "assets/backgrounds/welcome_fog_loop.mp4"))
                 UIFactory.Background(root, "assets/backgrounds/welcome_bg_still.png", Color.white);
-            UIFactory.Background(root, "assets/ui/glitch_overlay.png", new Color(1, 1, 1, 0.05f));
-            var shade = UIFactory.Panel(root, new Color(0, 0, 0, 0.55f), "Shade");
-            UIFactory.Stretch(shade.rectTransform);
 
-            var logo = UIFactory.ContentImage(root, "assets/branding/dreadmoor_logo.png");
-            logo.rectTransform.anchorMin = new Vector2(0.2f, 0.58f);
-            logo.rectTransform.anchorMax = new Vector2(0.8f, 0.82f);
-            logo.rectTransform.offsetMin = Vector2.zero;
-            logo.rectTransform.offsetMax = Vector2.zero;
+            var glitch = UIFactory.Background(root, "assets/ui/glitch_overlay.png", new Color(1, 1, 1, 0.055f));
+            if (_store == null || !_store.Data.settings.reducedMotion)
+                glitch.gameObject.AddComponent<GlitchOverlayAnimator>().intensity = 0.12f;
+
+            var shade = UIFactory.Panel(root, new Color(0, 0, 0, 0.58f), "DarkGlassShade");
+            UIFactory.Stretch(shade.rectTransform);
+            shade.raycastTarget = false;
+
+            var vignetteObject = new GameObject("WelcomeVignette", typeof(RectTransform), typeof(CanvasRenderer), typeof(VignetteGraphic));
+            vignetteObject.transform.SetParent(root, false);
+            var vignetteRect = vignetteObject.GetComponent<RectTransform>();
+            UIFactory.Stretch(vignetteRect);
+            var vignette = vignetteObject.GetComponent<VignetteGraphic>();
+            vignette.color = Color.black;
+            vignette.intensity = 0.38f;
+            vignette.borderFraction = 0.24f;
+            vignette.raycastTarget = false;
+
+            // Flutter Column equivalent: top/bottom padding, child control size enabled, spacer-driven layout.
+            var column = UIFactory.Rect(root, "WelcomeContentColumn", Vector2.zero, Vector2.one,
+                Vector2.zero, Vector2.zero);
+            var columnLayout = column.gameObject.AddComponent<VerticalLayoutGroup>();
+            columnLayout.padding = new RectOffset(72, 72, 110, 54);
+            columnLayout.spacing = 24f;
+            columnLayout.childAlignment = TextAnchor.UpperCenter;
+            columnLayout.childControlWidth = true;
+            columnLayout.childControlHeight = true;
+            columnLayout.childForceExpandWidth = true;
+            columnLayout.childForceExpandHeight = false;
+
+            var logoSlot = UIFactory.Rect(column, "LogoSlot", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var logoSlotLayout = logoSlot.gameObject.AddComponent<LayoutElement>();
+            logoSlotLayout.minHeight = 280f;
+            logoSlotLayout.preferredHeight = 380f;
+            logoSlotLayout.flexibleHeight = 0f;
+
+            var logo = UIFactory.ContentImage(logoSlot, "assets/branding/dreadmoor_logo.png", 340f);
+            logo.gameObject.name = "DreadmoorLogo";
+            var logoRect = logo.rectTransform;
+            var logoAspect = logo.texture != null && logo.texture.height > 0
+                ? (float)logo.texture.width / logo.texture.height
+                : 1f;
+            var logoHeight = 340f;
+            logoRect.anchorMin = new Vector2(0.5f, 0.52f);
+            logoRect.anchorMax = new Vector2(0.5f, 0.52f);
+            logoRect.pivot = new Vector2(0.5f, 0.5f);
+            logoRect.sizeDelta = new Vector2(Mathf.Min(820f, logoHeight * logoAspect), logoHeight);
+            logo.gameObject.AddComponent<CanvasFadeAnimator>().duration = 0.9f;
             if (Debug.isDebugBuild || Application.isEditor)
             {
                 logo.raycastTarget = true;
@@ -240,30 +282,106 @@ namespace Dreadmoor.UI
                 hold.Triggered = ShowDebug;
             }
 
-            var action = UIFactory.Button(root, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome,
-                new Color(0.02f, 0.06f, 0.08f, 0.88f), Color.white, 100, 32);
+            WelcomeSpacer(column, "HeroUpperSpacer", 80f, 0.45f);
+
+            var heroSlot = UIFactory.Rect(column, "HeroActionSlot", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var heroSlotLayout = heroSlot.gameObject.AddComponent<LayoutElement>();
+            heroSlotLayout.minHeight = 122f;
+            heroSlotLayout.preferredHeight = 142f;
+            heroSlotLayout.flexibleHeight = 0f;
+
+            var action = UIFactory.Button(heroSlot, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome,
+                new Color(0.01f, 0.08f, 0.1f, 0.66f), UIFactory.Cyan, 112, 34);
+            StyleWelcomeButton(action, true);
             var actionRect = action.GetComponent<RectTransform>();
-            actionRect.anchorMin = new Vector2(0.14f, 0.25f);
-            actionRect.anchorMax = new Vector2(0.86f, 0.32f);
+            actionRect.anchorMin = new Vector2(0.08f, 0.08f);
+            actionRect.anchorMax = new Vector2(0.92f, 0.92f);
             actionRect.offsetMin = Vector2.zero;
             actionRect.offsetMax = Vector2.zero;
 
-            var settings = UIFactory.Button(root, "SETTINGS", ShowSettings, new Color(0, 0, 0, 0.45f),
-                new Color(1, 1, 1, 0.65f), 70, 22);
-            var settingsRect = settings.GetComponent<RectTransform>();
-            settingsRect.anchorMin = new Vector2(0.34f, 0.09f);
-            settingsRect.anchorMax = new Vector2(0.66f, 0.14f);
-            settingsRect.offsetMin = Vector2.zero;
-            settingsRect.offsetMax = Vector2.zero;
+            WelcomeSpacer(column, "HeroLowerSpacer", 80f, 1f);
 
-            var bottom = UIFactory.Text(root, "BLACKMOON                                      v1.0.0", 16,
-                new Color(1, 1, 1, 0.3f), TextAnchor.MiddleCenter);
-            bottom.rectTransform.anchorMin = new Vector2(0.05f, 0.015f);
-            bottom.rectTransform.anchorMax = new Vector2(0.95f, 0.07f);
-            bottom.rectTransform.offsetMin = Vector2.zero;
-            bottom.rectTransform.offsetMax = Vector2.zero;
+            var bottomBar = UIFactory.Rect(column, "BottomBar", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var bottomLayoutElement = bottomBar.gameObject.AddComponent<LayoutElement>();
+            bottomLayoutElement.minHeight = 84f;
+            bottomLayoutElement.preferredHeight = 96f;
+            bottomLayoutElement.flexibleHeight = 0f;
+            var bottomLayout = bottomBar.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bottomLayout.padding = new RectOffset(18, 18, 8, 8);
+            bottomLayout.spacing = 18f;
+            bottomLayout.childAlignment = TextAnchor.MiddleCenter;
+            bottomLayout.childControlWidth = true;
+            bottomLayout.childControlHeight = true;
+            bottomLayout.childForceExpandWidth = false;
+            bottomLayout.childForceExpandHeight = false;
+
+            var blackmoon = UIFactory.Text(bottomBar, "BLACKMOON", 20, new Color(1, 1, 1, 0.48f), TextAnchor.MiddleLeft, false, "BlackmoonLabel");
+            blackmoon.font = UIFactory.SpaceFont;
+            blackmoon.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var blackmoonLayout = blackmoon.gameObject.AddComponent<LayoutElement>();
+            blackmoonLayout.minWidth = 210f;
+            blackmoonLayout.preferredWidth = 270f;
+            blackmoonLayout.flexibleWidth = 1f;
+            blackmoonLayout.minHeight = 68f;
+            blackmoonLayout.preferredHeight = 68f;
+
+            var settings = UIFactory.Button(bottomBar, "SETTINGS", ShowSettings, new Color(0.02f, 0.06f, 0.08f, 0.46f),
+                new Color(1, 1, 1, 0.7f), 64, 20);
+            StyleWelcomeButton(settings, false);
+            var settingsLayout = settings.GetComponent<LayoutElement>();
+            settingsLayout.minWidth = 220f;
+            settingsLayout.preferredWidth = 240f;
+            settingsLayout.minHeight = 64f;
+            settingsLayout.preferredHeight = 64f;
+            settingsLayout.flexibleWidth = 0f;
+
+            var version = UIFactory.Text(bottomBar, WelcomeVersionAndMusic(), 18, new Color(1, 1, 1, 0.42f), TextAnchor.MiddleRight, false,
+                "VersionMusicIndicator");
+            version.font = UIFactory.SpaceFont;
+            version.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var versionLayout = version.gameObject.AddComponent<LayoutElement>();
+            versionLayout.minWidth = 240f;
+            versionLayout.preferredWidth = 310f;
+            versionLayout.flexibleWidth = 1f;
+            versionLayout.minHeight = 68f;
+            versionLayout.preferredHeight = 68f;
 
             PlayMusic("assets/music/welcome_theme.mp3");
+        }
+
+        private static RectTransform WelcomeSpacer(Transform parent, string name, float minHeight, float flexibleHeight)
+        {
+            var spacer = UIFactory.Rect(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var layout = spacer.gameObject.AddComponent<LayoutElement>();
+            layout.minHeight = minHeight;
+            layout.preferredHeight = minHeight;
+            layout.flexibleHeight = flexibleHeight;
+            return spacer;
+        }
+
+        private void StyleWelcomeButton(Button button, bool primary)
+        {
+            var image = button.GetComponent<Image>();
+            image.raycastTarget = true;
+            var outline = image.gameObject.AddComponent<Outline>();
+            outline.effectColor = primary ? new Color(0f, 0.85f, 1f, 0.78f) : new Color(1f, 1f, 1f, 0.24f);
+            outline.effectDistance = primary ? new Vector2(2.5f, -2.5f) : new Vector2(1.2f, -1.2f);
+            var shadow = image.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = primary ? new Color(0f, 0.82f, 1f, 0.18f) : new Color(0f, 0f, 0f, 0.25f);
+            shadow.effectDistance = primary ? new Vector2(0f, -10f) : new Vector2(0f, -4f);
+
+            var label = button.GetComponentInChildren<Text>();
+            if (label == null) return;
+            label.font = UIFactory.SpaceFont;
+            label.fontStyle = primary ? FontStyle.Bold : FontStyle.Normal;
+            label.color = primary ? UIFactory.Cyan : new Color(1f, 1f, 1f, 0.7f);
+        }
+
+        private string WelcomeVersionAndMusic()
+        {
+            var version = string.IsNullOrWhiteSpace(Application.version) ? "1.0.0" : Application.version;
+            var music = _store != null && _store.Data.settings.music ? "MUSIC ON" : "MUSIC OFF";
+            return $"v{version}  •  {music}";
         }
 
         private void BeginFromWelcome()
@@ -301,6 +419,7 @@ namespace Dreadmoor.UI
             _videoTexture.Create();
             var image = new GameObject("FogVideo", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage)).GetComponent<RawImage>();
             image.transform.SetParent(root, false);
+            image.transform.SetAsFirstSibling();
             UIFactory.Stretch(image.rectTransform);
             image.texture = _videoTexture;
             image.color = Color.white;
