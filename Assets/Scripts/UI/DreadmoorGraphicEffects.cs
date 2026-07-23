@@ -94,6 +94,7 @@ namespace Dreadmoor.UI
 
         protected override void OnValidate()
         {
+            base.OnValidate();
             BuildSeed();
             SetVerticesDirty();
         }
