@@ -4,6 +4,7 @@ using Dreadmoor.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Dreadmoor.UI
 {
@@ -181,12 +182,19 @@ namespace Dreadmoor.UI
             iconLE.preferredWidth = 48f;
             iconLE.flexibleWidth = 0f;
 
-            // Label text - bright cyan, wide letter-spacing approximated via font and padding
-            var labelText = Text(container.transform, label.ToUpperInvariant(), 32, InvestigatorCyan, TextAnchor.MiddleCenter, false, "ActionLabel");
-            labelText.font = SpaceFont;
-            labelText.fontStyle = FontStyle.Bold;
-            // Wide letter-spacing simulated by character width; use rich text spacing if supported
-            labelText.text = $"<mspace=0.65em>{label.ToUpperInvariant()}</mspace>"; // approx wide spacing (legacy Text ignores some, but helps)
+            // Label text - bright cyan, wide letter-spacing approximated via TMPro natively
+            var go = new GameObject("ActionLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            go.transform.SetParent(container.transform, false);
+            var labelText = go.GetComponent<TextMeshProUGUI>();
+            labelText.text = label.ToUpperInvariant();
+            labelText.fontSize = 32;
+            labelText.color = InvestigatorCyan;
+            labelText.alignment = TextAlignmentOptions.Center;
+            labelText.fontStyle = FontStyles.Bold;
+            labelText.characterSpacing = 25f;
+            labelText.enableWordWrapping = false;
+            labelText.overflowMode = TextOverflowModes.Overflow;
+
             var labelLE = labelText.gameObject.AddComponent<LayoutElement>();
             labelLE.minWidth = 220f;
             labelLE.preferredWidth = 320f;
