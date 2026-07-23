@@ -1,8 +1,5 @@
 using Dreadmoor.Core;
 using UnityEngine;
-#if UNITY_ANDROID
-using UnityEngine.AndroidJNIModule;
-#endif
 
 namespace Dreadmoor.UI
 {
@@ -26,20 +23,21 @@ namespace Dreadmoor.UI
         private static void Vibrate(long milliseconds, int amplitude)
         {
             if (!GameStore.Instance.Data.settings.haptics) return;
+
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
             {
-                using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-                using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
-                using (var contextClass = new AndroidJavaClass("android.content.Context"))
-                using (var vibrator = activity.Call<AndroidJavaObject>("getSystemService",
+                using (var unityPlayer = new UnityEngine.AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                using (var activity = unityPlayer.GetStatic<UnityEngine.AndroidJavaObject>("currentActivity"))
+                using (var contextClass = new UnityEngine.AndroidJavaClass("android.content.Context"))
+                using (var vibrator = activity.Call<UnityEngine.AndroidJavaObject>("getSystemService",
                            contextClass.GetStatic<string>("VIBRATOR_SERVICE")))
-                using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+                using (var version = new UnityEngine.AndroidJavaClass("android.os.Build$VERSION"))
                 {
                     if (version.GetStatic<int>("SDK_INT") >= 26)
                     {
-                        using (var effectClass = new AndroidJavaClass("android.os.VibrationEffect"))
-                        using (var effect = effectClass.CallStatic<AndroidJavaObject>("createOneShot", milliseconds, amplitude))
+                        using (var effectClass = new UnityEngine.AndroidJavaClass("android.os.VibrationEffect"))
+                        using (var effect = effectClass.CallStatic<UnityEngine.AndroidJavaObject>("createOneShot", milliseconds, amplitude))
                             vibrator.Call("vibrate", effect);
                     }
                     else
