@@ -1,5 +1,8 @@
 using Dreadmoor.Core;
 using UnityEngine;
+#if UNITY_ANDROID
+using UnityEngine.AndroidJNIModule;
+#endif
 
 namespace Dreadmoor.UI
 {
