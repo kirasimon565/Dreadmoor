@@ -290,9 +290,8 @@ namespace Dreadmoor.UI
             heroSlotLayout.preferredHeight = 142f;
             heroSlotLayout.flexibleHeight = 0f;
 
-            var action = UIFactory.Button(heroSlot, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome,
-                new Color(0.01f, 0.08f, 0.1f, 0.66f), UIFactory.Cyan, 112, 34);
-            StyleWelcomeButton(action, true);
+            // Use the new styled Hero Action Button (dark bg rgba(10,18,24,0.7), cyan outline, ▶ icon + label)
+            var action = UIFactory.CreateHeroActionButton(heroSlot, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome);
             var actionRect = action.GetComponent<RectTransform>();
             actionRect.anchorMin = new Vector2(0.08f, 0.08f);
             actionRect.anchorMax = new Vector2(0.92f, 0.92f);
@@ -307,46 +306,93 @@ namespace Dreadmoor.UI
             bottomLayoutElement.preferredHeight = 96f;
             bottomLayoutElement.flexibleHeight = 0f;
             var bottomLayout = bottomBar.gameObject.AddComponent<HorizontalLayoutGroup>();
-            bottomLayout.padding = new RectOffset(18, 18, 8, 8);
-            bottomLayout.spacing = 18f;
+            bottomLayout.padding = new RectOffset(28, 28, 12, 12);
+            bottomLayout.spacing = 0f; // spaceBetween handled via flexible spacers
             bottomLayout.childAlignment = TextAnchor.MiddleCenter;
             bottomLayout.childControlWidth = true;
             bottomLayout.childControlHeight = true;
             bottomLayout.childForceExpandWidth = false;
             bottomLayout.childForceExpandHeight = false;
 
-            var blackmoon = UIFactory.Text(bottomBar, "BLACKMOON", 20, new Color(1, 1, 1, 0.48f), TextAnchor.MiddleLeft, false, "BlackmoonLabel");
+            // Far Left: BLACKMOON in faint grey
+            var blackmoon = UIFactory.Text(bottomBar, "BLACKMOON", 18, new Color(0.65f, 0.68f, 0.72f, 0.75f), TextAnchor.MiddleLeft, false, "BlackmoonLabel");
             blackmoon.font = UIFactory.SpaceFont;
             blackmoon.horizontalOverflow = HorizontalWrapMode.Overflow;
             var blackmoonLayout = blackmoon.gameObject.AddComponent<LayoutElement>();
-            blackmoonLayout.minWidth = 210f;
-            blackmoonLayout.preferredWidth = 270f;
-            blackmoonLayout.flexibleWidth = 1f;
-            blackmoonLayout.minHeight = 68f;
-            blackmoonLayout.preferredHeight = 68f;
+            blackmoonLayout.minWidth = 160f;
+            blackmoonLayout.preferredWidth = 180f;
+            blackmoonLayout.flexibleWidth = 0f;
+            blackmoonLayout.minHeight = 52f;
+            blackmoonLayout.preferredHeight = 52f;
 
-            var settings = UIFactory.Button(bottomBar, "SETTINGS", ShowSettings, new Color(0.02f, 0.06f, 0.08f, 0.46f),
-                new Color(1, 1, 1, 0.7f), 64, 20);
+            // Spacer to push center and right to spaceBetween
+            var leftSpacer = bottomBar.gameObject.AddComponent<LayoutElement>();
+            leftSpacer.flexibleWidth = 1f;
+
+            // Center: Settings gear icon button
+            var settingsContainer = UIFactory.Rect(bottomBar, "SettingsContainer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var settingsLayoutEl = settingsContainer.gameObject.AddComponent<LayoutElement>();
+            settingsLayoutEl.minWidth = 72f;
+            settingsLayoutEl.preferredWidth = 72f;
+            settingsLayoutEl.flexibleWidth = 0f;
+            settingsLayoutEl.minHeight = 64f;
+            settingsLayoutEl.preferredHeight = 64f;
+
+            var settings = UIFactory.Button(settingsContainer, "⚙", ShowSettings, new Color(0.02f, 0.06f, 0.08f, 0.46f),
+                new Color(1, 1, 1, 0.75f), 64, 36);
             StyleWelcomeButton(settings, false);
-            var settingsLayout = settings.GetComponent<LayoutElement>();
-            settingsLayout.minWidth = 220f;
-            settingsLayout.preferredWidth = 240f;
-            settingsLayout.minHeight = 64f;
-            settingsLayout.preferredHeight = 64f;
-            settingsLayout.flexibleWidth = 0f;
+            // Make gear icon larger/bolder
+            var gearLabel = settings.GetComponentInChildren<Text>();
+            if (gearLabel != null)
+            {
+                gearLabel.fontSize = 38;
+                gearLabel.fontStyle = FontStyle.Bold;
+            }
 
-            var version = UIFactory.Text(bottomBar, WelcomeVersionAndMusic(), 18, new Color(1, 1, 1, 0.42f), TextAnchor.MiddleRight, false,
-                "VersionMusicIndicator");
-            version.font = UIFactory.SpaceFont;
-            version.horizontalOverflow = HorizontalWrapMode.Overflow;
-            var versionLayout = version.gameObject.AddComponent<LayoutElement>();
-            versionLayout.minWidth = 240f;
-            versionLayout.preferredWidth = 310f;
-            versionLayout.flexibleWidth = 1f;
-            versionLayout.minHeight = 68f;
-            versionLayout.preferredHeight = 68f;
+            // Spacer to separate center from right
+            var rightSpacer = bottomBar.gameObject.AddComponent<LayoutElement>();
+            rightSpacer.flexibleWidth = 1f;
+
+            // Far Right: 3-bar vertical music equalizer indicator (static visual)
+            var equalizerContainer = UIFactory.Rect(bottomBar, "EqualizerContainer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var eqLayout = equalizerContainer.gameObject.AddComponent<LayoutElement>();
+            eqLayout.minWidth = 68f;
+            eqLayout.preferredWidth = 78f;
+            eqLayout.flexibleWidth = 0f;
+            eqLayout.minHeight = 52f;
+            eqLayout.preferredHeight = 52f;
+
+            var equalizer = UIFactory.Rect(equalizerContainer, "MusicEqualizer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var eqHGroup = equalizer.gameObject.AddComponent<HorizontalLayoutGroup>();
+            eqHGroup.childAlignment = TextAnchor.MiddleCenter;
+            eqHGroup.spacing = 5f;
+            eqHGroup.childControlWidth = true;
+            eqHGroup.childControlHeight = true;
+            eqHGroup.childForceExpandWidth = false;
+            eqHGroup.childForceExpandHeight = false;
+
+            // Create 3 vertical bars for equalizer
+            for (int i = 0; i < 3; i++)
+            {
+                var bar = UIFactory.Panel(equalizer, new Color(0.55f, 0.58f, 0.62f, 0.65f), $"EqBar{i}", false);
+                var barRect = bar.rectTransform;
+                barRect.sizeDelta = new Vector2(7f, (i == 1) ? 38f : (i == 0 ? 26f : 32f));
+                var barLE = bar.gameObject.AddComponent<LayoutElement>();
+                barLE.minWidth = 7f;
+                barLE.preferredWidth = 7f;
+                barLE.minHeight = barRect.sizeDelta.y;
+                barLE.preferredHeight = barRect.sizeDelta.y;
+            }
 
             PlayMusic("assets/music/welcome_theme.mp3");
+
+            // Explicit welcome music config (in case PlayMusic path changes):
+            // loop infinitely, 2D audio, never cut off by timers/clip length
+            if (_music != null)
+            {
+                _music.loop = true;
+                _music.spatialBlend = 0f;
+            }
         }
 
         private static RectTransform WelcomeSpacer(Transform parent, string name, float minHeight, float flexibleHeight)
@@ -386,7 +432,13 @@ namespace Dreadmoor.UI
 
         private void BeginFromWelcome()
         {
-            StopMusic();
+            // Immediately stop welcome music (or quick fade if desired) before any navigation
+            // so background music never bleeds into game/cinematic audio
+            if (_music != null)
+            {
+                _music.Stop();
+            }
+
             if (_store.HasActiveGame)
             {
                 ShowMessenger();
@@ -604,6 +656,7 @@ namespace Dreadmoor.UI
             if (clip == null) return;
             _music.clip = clip;
             _music.loop = true;
+            _music.spatialBlend = 0f; // 2D audio
             _music.volume = 0.72f;
             _music.Play();
         }
