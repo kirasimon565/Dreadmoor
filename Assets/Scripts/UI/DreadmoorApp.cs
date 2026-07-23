@@ -224,11 +224,45 @@ namespace Dreadmoor.UI
         {
             var root = NewScreen(AppView.Welcome, Color.black);
 
-            // Flutter-style Stack: the fog video/still fills the screen behind every UI layer.
+            BuildWelcomeBackdrop(root);
+            BuildWelcomeLogo(root);
+            BuildWelcomeHeroAction(root);
+            BuildWelcomeBottomBar(root);
+
+            PlayMusic("assets/music/welcome_theme.mp3");
+
+            // welcome_theme.mp3 must loop infinitely as pure 2D audio the whole time the
+            // welcome screen is up — never cut off by timers or clip length.
+            if (_music != null)
+            {
+                _music.loop = true;
+                _music.spatialBlend = 0f;
+            }
+        }
+
+        /// <summary>
+        /// Fullscreen fog backdrop. The video layer and the RawImage inside it are pinned to exact
+        /// fullscreen-stretch rect values and marked ignoreLayout so no vertical or horizontal
+        /// layout group can ever trap the fog in a narrow pillar again.
+        /// </summary>
+        private void BuildWelcomeBackdrop(RectTransform root)
+        {
             if (!AddLoopingVideoBackground(root, "assets/backgrounds/welcome_fog_loop.mp4"))
-                UIFactory.Background(root, "assets/backgrounds/welcome_bg_still.png", Color.white);
+            {
+                // Still-frame fallback: same exact fullscreen-stretch values, first sibling.
+                var still = UIFactory.Background(root, "assets/backgrounds/welcome_bg_still.png", Color.white);
+                var stillRect = still.rectTransform;
+                stillRect.anchorMin = new Vector2(0f, 0f);
+                stillRect.anchorMax = new Vector2(1f, 1f);
+                stillRect.offsetMin = new Vector2(0f, 0f);
+                stillRect.offsetMax = new Vector2(0f, 0f);
+                stillRect.pivot = new Vector2(0.5f, 0.5f);
+                still.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+                still.transform.SetAsFirstSibling();
+            }
 
             var glitch = UIFactory.Background(root, "assets/ui/glitch_overlay.png", new Color(1, 1, 1, 0.055f));
+            glitch.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             if (_store == null || !_store.Data.settings.reducedMotion)
                 glitch.gameObject.AddComponent<GlitchOverlayAnimator>().intensity = 0.12f;
 
@@ -238,43 +272,37 @@ namespace Dreadmoor.UI
 
             var vignetteObject = new GameObject("WelcomeVignette", typeof(RectTransform), typeof(CanvasRenderer), typeof(VignetteGraphic));
             vignetteObject.transform.SetParent(root, false);
-            var vignetteRect = vignetteObject.GetComponent<RectTransform>();
-            UIFactory.Stretch(vignetteRect);
+            UIFactory.Stretch(vignetteObject.transform as RectTransform);
             var vignette = vignetteObject.GetComponent<VignetteGraphic>();
             vignette.color = Color.black;
             vignette.intensity = 0.38f;
             vignette.borderFraction = 0.24f;
             vignette.raycastTarget = false;
+        }
 
-            // Flutter Column equivalent: top/bottom padding, child control size enabled, spacer-driven layout.
-            var column = UIFactory.Rect(root, "WelcomeContentColumn", Vector2.zero, Vector2.one,
-                Vector2.zero, Vector2.zero);
-            var columnLayout = column.gameObject.AddComponent<VerticalLayoutGroup>();
-            columnLayout.padding = new RectOffset(72, 72, 110, 54);
-            columnLayout.spacing = 24f;
-            columnLayout.childAlignment = TextAnchor.UpperCenter;
-            columnLayout.childControlWidth = true;
-            columnLayout.childControlHeight = true;
-            columnLayout.childForceExpandWidth = true;
-            columnLayout.childForceExpandHeight = false;
+        /// <summary>
+        /// Centered upper-middle logo artwork. The dreadmoor_logo.png asset already contains both
+        /// the "DREADMOOR" title and the "Rebecca Story" artwork — absolutely no Text or
+        /// TextMeshPro title/subtitle objects are created.
+        /// </summary>
+        private void BuildWelcomeLogo(RectTransform root)
+        {
+            var logo = UIFactory.SpriteImage(root, "assets/branding/dreadmoor_logo.png", "DreadmoorLogo");
+            logo.preserveAspect = true;
 
-            var logoSlot = UIFactory.Rect(column, "LogoSlot", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var logoSlotLayout = logoSlot.gameObject.AddComponent<LayoutElement>();
-            logoSlotLayout.minHeight = 280f;
-            logoSlotLayout.preferredHeight = 380f;
-            logoSlotLayout.flexibleHeight = 0f;
-
-            var logo = UIFactory.ContentImage(logoSlot, "assets/branding/dreadmoor_logo.png", 340f);
-            logo.gameObject.name = "DreadmoorLogo";
-            var logoRect = logo.rectTransform;
-            var logoAspect = logo.texture != null && logo.texture.height > 0
-                ? (float)logo.texture.width / logo.texture.height
+            var sprite = logo.sprite;
+            var aspect = sprite != null && sprite.rect.height > 0.01f
+                ? sprite.rect.width / sprite.rect.height
                 : 1f;
-            var logoHeight = 340f;
-            logoRect.anchorMin = new Vector2(0.5f, 0.52f);
-            logoRect.anchorMax = new Vector2(0.5f, 0.52f);
+            var logoHeight = 760f;
+
+            var logoRect = logo.rectTransform;
+            logoRect.anchorMin = new Vector2(0.5f, 0.66f);
+            logoRect.anchorMax = new Vector2(0.5f, 0.66f);
             logoRect.pivot = new Vector2(0.5f, 0.5f);
-            logoRect.sizeDelta = new Vector2(Mathf.Min(820f, logoHeight * logoAspect), logoHeight);
+            logoRect.anchoredPosition = Vector2.zero;
+            logoRect.sizeDelta = new Vector2(Mathf.Min(880f, logoHeight * aspect), logoHeight);
+
             logo.gameObject.AddComponent<CanvasFadeAnimator>().duration = 0.9f;
             if (Debug.isDebugBuild || Application.isEditor)
             {
@@ -282,74 +310,56 @@ namespace Dreadmoor.UI
                 var hold = logo.gameObject.AddComponent<LongPressHandler>();
                 hold.Triggered = ShowDebug;
             }
+        }
 
-            WelcomeSpacer(column, "HeroUpperSpacer", 80f, 0.45f);
-
-            var heroSlot = UIFactory.Rect(column, "HeroActionSlot", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var heroSlotLayout = heroSlot.gameObject.AddComponent<LayoutElement>();
-            heroSlotLayout.minHeight = 122f;
-            heroSlotLayout.preferredHeight = 142f;
-            heroSlotLayout.flexibleHeight = 0f;
-
-            // Use the new styled Hero Action Button (dark bg rgba(10,18,24,0.7), cyan outline, ▶ icon + label)
-            var action = UIFactory.CreateHeroActionButton(heroSlot, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome);
+        /// <summary>Lower-middle hero action ("CONTINUE"/"START GAME") with horizontal padding.</summary>
+        private void BuildWelcomeHeroAction(RectTransform root)
+        {
+            var action = UIFactory.CreateHeroActionButton(root, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome);
             var actionRect = action.GetComponent<RectTransform>();
-            actionRect.anchorMin = new Vector2(0.08f, 0.08f);
-            actionRect.anchorMax = new Vector2(0.92f, 0.92f);
+            actionRect.anchorMin = new Vector2(0.07f, 0.155f);
+            actionRect.anchorMax = new Vector2(0.93f, 0.225f);
+            actionRect.pivot = new Vector2(0.5f, 0.5f);
             actionRect.offsetMin = Vector2.zero;
             actionRect.offsetMax = Vector2.zero;
+        }
 
-            WelcomeSpacer(column, "HeroLowerSpacer", 80f, 1f);
+        /// <summary>
+        /// Bottom safe-area bar with true space-between horizontal alignment across three distinct
+        /// anchored elements: faint BLACKMOON label (far left), TMP gear settings button (center),
+        /// and a three-bar vertical equalizer graphic (far right).
+        /// </summary>
+        private void BuildWelcomeBottomBar(RectTransform root)
+        {
+            var bottomBar = UIFactory.Rect(root, "WelcomeBottomBar", new Vector2(0f, 0f), new Vector2(1f, 0f),
+                new Vector2(0f, 14f), new Vector2(0f, 96f));
 
-            var bottomBar = UIFactory.Rect(column, "BottomBar", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var bottomLayoutElement = bottomBar.gameObject.AddComponent<LayoutElement>();
-            bottomLayoutElement.minHeight = 84f;
-            bottomLayoutElement.preferredHeight = 96f;
-            bottomLayoutElement.flexibleHeight = 0f;
-            var bottomLayout = bottomBar.gameObject.AddComponent<HorizontalLayoutGroup>();
-            bottomLayout.padding = new RectOffset(28, 28, 12, 12);
-            bottomLayout.spacing = 0f; // spaceBetween handled via flexible spacers
-            bottomLayout.childAlignment = TextAnchor.MiddleCenter;
-            bottomLayout.childControlWidth = true;
-            bottomLayout.childControlHeight = true;
-            bottomLayout.childForceExpandWidth = false;
-            bottomLayout.childForceExpandHeight = false;
+            // Far left — "BLACKMOON", faint grey TextMeshProUGUI. Slot width hugs the text so the
+            // space-between math stays exact (see equalizer slot on the right).
+            var blackmoon = UIFactory.TmpText(bottomBar, "BLACKMOON", 18, new Color(0.65f, 0.68f, 0.72f, 0.72f),
+                TextAlignmentOptions.Left, "BlackmoonLabel");
+            blackmoon.characterSpacing = 6f;
+            var blackmoonRect = blackmoon.rectTransform;
+            blackmoonRect.anchorMin = new Vector2(0f, 0.5f);
+            blackmoonRect.anchorMax = new Vector2(0f, 0.5f);
+            blackmoonRect.pivot = new Vector2(0f, 0.5f);
+            blackmoonRect.anchoredPosition = new Vector2(30f, 0f);
+            blackmoonRect.sizeDelta = new Vector2(190f, 52f);
 
-            // Far Left: BLACKMOON in faint grey
-            var blackmoon = UIFactory.Text(bottomBar, "BLACKMOON", 18, new Color(0.65f, 0.68f, 0.72f, 0.75f), TextAnchor.MiddleLeft, false, "BlackmoonLabel");
-            blackmoon.font = UIFactory.SpaceFont;
-            blackmoon.horizontalOverflow = HorizontalWrapMode.Overflow;
-            var blackmoonLayout = blackmoon.gameObject.AddComponent<LayoutElement>();
-            blackmoonLayout.minWidth = 160f;
-            blackmoonLayout.preferredWidth = 180f;
-            blackmoonLayout.flexibleWidth = 0f;
-            blackmoonLayout.minHeight = 52f;
-            blackmoonLayout.preferredHeight = 52f;
+            // Center — settings gear icon button. A TextMeshProUGUI displaying "⚙" with a Button
+            // attached; deliberately NO default UI Image. Hit area is comfortably ≥ 48x48.
+            var gear = UIFactory.TmpText(bottomBar, "⚙", 34, new Color(1f, 1f, 1f, 0.72f),
+                TextAlignmentOptions.Center, "SettingsButton", FontStyles.Bold);
+            gear.raycastTarget = true;
+            var gearRect = gear.rectTransform;
+            gearRect.anchorMin = new Vector2(0.5f, 0.5f);
+            gearRect.anchorMax = new Vector2(0.5f, 0.5f);
+            gearRect.pivot = new Vector2(0.5f, 0.5f);
+            gearRect.anchoredPosition = Vector2.zero;
+            gearRect.sizeDelta = new Vector2(56f, 56f);
 
-            // Spacer to push center and right to spaceBetween
-            var leftSpacer = bottomBar.gameObject.AddComponent<LayoutElement>();
-            leftSpacer.flexibleWidth = 1f;
-
-            // Center: Settings gear icon button
-            var settingsContainer = UIFactory.Rect(bottomBar, "SettingsContainer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var settingsLayoutEl = settingsContainer.gameObject.AddComponent<LayoutElement>();
-            settingsLayoutEl.minWidth = 72f;
-            settingsLayoutEl.preferredWidth = 72f;
-            settingsLayoutEl.flexibleWidth = 0f;
-            settingsLayoutEl.minHeight = 64f;
-            settingsLayoutEl.preferredHeight = 64f;
-
-            var settingsGo = new GameObject("SettingsButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-            settingsGo.transform.SetParent(settingsContainer, false);
-            var settingsText = settingsGo.GetComponent<TextMeshProUGUI>();
-            settingsText.text = "⚙";
-            settingsText.fontSize = 38;
-            settingsText.color = new Color(1, 1, 1, 0.75f);
-            settingsText.alignment = TextAlignmentOptions.Center;
-            settingsText.fontStyle = FontStyles.Bold;
-            UIFactory.Stretch(settingsText.rectTransform);
-
-            var settings = settingsGo.AddComponent<Button>();
+            var settings = gear.gameObject.AddComponent<Button>();
+            settings.targetGraphic = gear;
             var settingsColors = settings.colors;
             settingsColors.normalColor = Color.white;
             settingsColors.highlightedColor = new Color(0.88f, 0.94f, 1f, 1f);
@@ -362,91 +372,34 @@ namespace Dreadmoor.UI
                 ShowSettings();
             });
 
-            // Spacer to separate center from right
-            var rightSpacer = bottomBar.gameObject.AddComponent<LayoutElement>();
-            rightSpacer.flexibleWidth = 1f;
+            // Far right — three-bar vertical equalizer graphic. The slot mirrors the BLACKMOON
+            // slot width so the gear ends up dead-center with perfectly even space-between gaps;
+            // the bars themselves are anchored flush against the slot's right edge.
+            var equalizer = UIFactory.Rect(bottomBar, "MusicEqualizer", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                Vector2.zero, Vector2.zero);
+            equalizer.pivot = new Vector2(1f, 0.5f);
+            equalizer.anchoredPosition = new Vector2(-30f, 0f);
+            equalizer.sizeDelta = new Vector2(190f, 52f);
 
-            // Far Right: 3-bar vertical music equalizer indicator (static visual)
-            var equalizerContainer = UIFactory.Rect(bottomBar, "EqualizerContainer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var eqLayout = equalizerContainer.gameObject.AddComponent<LayoutElement>();
-            eqLayout.minWidth = 68f;
-            eqLayout.preferredWidth = 78f;
-            eqLayout.flexibleWidth = 0f;
-            eqLayout.minHeight = 52f;
-            eqLayout.preferredHeight = 52f;
-
-            var equalizer = UIFactory.Rect(equalizerContainer, "MusicEqualizer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var eqHGroup = equalizer.gameObject.AddComponent<HorizontalLayoutGroup>();
-            eqHGroup.childAlignment = TextAnchor.MiddleCenter;
-            eqHGroup.spacing = 5f;
-            eqHGroup.childControlWidth = true;
-            eqHGroup.childControlHeight = true;
-            eqHGroup.childForceExpandWidth = false;
-            eqHGroup.childForceExpandHeight = false;
-
-            // Create 3 vertical bars for equalizer
-            for (int i = 0; i < 3; i++)
+            var barHeights = new[] { 26f, 38f, 32f };
+            var barOffsets = new[] { -42f, -23f, -4f };
+            for (var i = 0; i < 3; i++)
             {
-                var bar = UIFactory.Panel(equalizer, new Color(0.55f, 0.58f, 0.62f, 0.65f), $"EqBar{i}", false);
-                var barRect = bar.rectTransform;
-                barRect.sizeDelta = new Vector2(7f, (i == 1) ? 38f : (i == 0 ? 26f : 32f));
-                var barLE = bar.gameObject.AddComponent<LayoutElement>();
-                barLE.minWidth = 7f;
-                barLE.preferredWidth = 7f;
-                barLE.minHeight = barRect.sizeDelta.y;
-                barLE.preferredHeight = barRect.sizeDelta.y;
+                var eqBar = UIFactory.Panel(equalizer, new Color(0.55f, 0.58f, 0.62f, 0.65f), "EqBar" + i);
+                eqBar.raycastTarget = false;
+                var eqRect = eqBar.rectTransform;
+                eqRect.anchorMin = new Vector2(1f, 0f);
+                eqRect.anchorMax = new Vector2(1f, 0f);
+                eqRect.pivot = new Vector2(0.5f, 0f);
+                eqRect.anchoredPosition = new Vector2(barOffsets[i], 6f);
+                eqRect.sizeDelta = new Vector2(7f, barHeights[i]);
             }
-
-            PlayMusic("assets/music/welcome_theme.mp3");
-
-            // Explicit welcome music config (in case PlayMusic path changes):
-            // loop infinitely, 2D audio, never cut off by timers/clip length
-            if (_music != null)
-            {
-                _music.loop = true;
-                _music.spatialBlend = 0f;
-            }
-        }
-
-        private static RectTransform WelcomeSpacer(Transform parent, string name, float minHeight, float flexibleHeight)
-        {
-            var spacer = UIFactory.Rect(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var layout = spacer.gameObject.AddComponent<LayoutElement>();
-            layout.minHeight = minHeight;
-            layout.preferredHeight = minHeight;
-            layout.flexibleHeight = flexibleHeight;
-            return spacer;
-        }
-
-        private void StyleWelcomeButton(Button button, bool primary)
-        {
-            var image = button.GetComponent<Image>();
-            image.raycastTarget = true;
-            var outline = image.gameObject.AddComponent<Outline>();
-            outline.effectColor = primary ? new Color(0f, 0.85f, 1f, 0.78f) : new Color(1f, 1f, 1f, 0.24f);
-            outline.effectDistance = primary ? new Vector2(2.5f, -2.5f) : new Vector2(1.2f, -1.2f);
-            var shadow = image.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = primary ? new Color(0f, 0.82f, 1f, 0.18f) : new Color(0f, 0f, 0f, 0.25f);
-            shadow.effectDistance = primary ? new Vector2(0f, -10f) : new Vector2(0f, -4f);
-
-            var label = button.GetComponentInChildren<Text>();
-            if (label == null) return;
-            label.font = UIFactory.SpaceFont;
-            label.fontStyle = primary ? FontStyle.Bold : FontStyle.Normal;
-            label.color = primary ? UIFactory.Cyan : new Color(1f, 1f, 1f, 0.7f);
-        }
-
-        private string WelcomeVersionAndMusic()
-        {
-            var version = string.IsNullOrWhiteSpace(Application.version) ? "1.0.0" : Application.version;
-            var music = _store != null && _store.Data.settings.music ? "MUSIC ON" : "MUSIC OFF";
-            return $"v{version}  •  {music}";
         }
 
         private void BeginFromWelcome()
         {
-            // Immediately stop welcome music (or quick fade if desired) before any navigation
-            // so background music never bleeds into game/cinematic audio
+            // Hero Button contract: stop the welcome theme IMMEDIATELY, before any scene or
+            // cinematic transition, so the looping music never bleeds into game audio.
             if (_music != null)
             {
                 _music.Stop();
@@ -480,23 +433,39 @@ namespace Dreadmoor.UI
         {
             var clip = UIFactory.LoadVideo(path);
             if (clip == null) return false;
+
+            // Root-level fullscreen-stretch container. ignoreLayout shields it from any vertical
+            // or horizontal layout group an ancestor might add, so the video can never be
+            // constrained into a narrow pillar again.
+            var layer = UIFactory.Rect(root, "FogVideoLayer", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            layer.anchorMin = new Vector2(0f, 0f);
+            layer.anchorMax = new Vector2(1f, 1f);
+            layer.offsetMin = new Vector2(0f, 0f);
+            layer.offsetMax = new Vector2(0f, 0f);
+            layer.pivot = new Vector2(0.5f, 0.5f);
+            layer.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            layer.SetAsFirstSibling();
+
             _videoTexture = new RenderTexture(1080, 1920, 0, RenderTextureFormat.ARGB32);
             _videoTexture.Create();
-            var image = new GameObject("FogVideo", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage)).GetComponent<RawImage>();
-            image.transform.SetParent(root, false);
-            image.transform.SetAsFirstSibling();
 
+            var imageObject = new GameObject("FogVideo", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+            imageObject.transform.SetParent(layer, false);
+            var image = imageObject.GetComponent<RawImage>();
+
+            // Exact fullscreen-stretch RectTransform values on the RawImage itself.
             var rect = image.rectTransform;
-            rect.anchorMin = new Vector2(0, 0);
-            rect.anchorMax = new Vector2(1, 1);
-            rect.offsetMin = new Vector2(0, 0);
-            rect.offsetMax = new Vector2(0, 0);
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.offsetMin = new Vector2(0f, 0f);
+            rect.offsetMax = new Vector2(0f, 0f);
             rect.pivot = new Vector2(0.5f, 0.5f);
+            imageObject.AddComponent<LayoutElement>().ignoreLayout = true;
 
             image.texture = _videoTexture;
             image.color = Color.white;
             image.raycastTarget = false;
-            var player = image.gameObject.AddComponent<VideoPlayer>();
+            var player = imageObject.AddComponent<VideoPlayer>();
             player.clip = clip;
             player.isLooping = true;
             player.playOnAwake = true;

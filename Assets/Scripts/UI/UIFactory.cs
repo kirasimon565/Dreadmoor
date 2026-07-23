@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Dreadmoor.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -22,7 +24,7 @@ namespace Dreadmoor.UI
         public static readonly Color EvidenceRed = Hex("#B71C1C");
         public static readonly Color Cyan = Hex("#00ACC1");
         public static readonly Color Caution = Hex("#FBC02D");
-        public static readonly Color HeroButtonBg = new Color(0.039f, 0.071f, 0.094f, 0.7f);
+        public static readonly Color HeroButtonBg = new Color(10f / 255f, 18f / 255f, 24f / 255f, 0.75f);
         public static readonly Color InvestigatorCyan = Hex("#00E5FF");
 
         private static Font _displayFont;
@@ -30,11 +32,74 @@ namespace Dreadmoor.UI
         private static Font _brandFont;
         private static Font _spaceFont;
         private static Sprite _roundedSprite;
+        private static TMP_FontAsset _tmpFont;
 
         public static Font DisplayFont => _displayFont ?? (_displayFont = Resources.Load<Font>("assets/fonts/noir_display"));
         public static Font BodyFont => _bodyFont ?? (_bodyFont = Resources.Load<Font>("assets/fonts/mono_glitch"));
         public static Font BrandFont => _brandFont ?? (_brandFont = Resources.Load<Font>("assets/fonts/cinzel") ?? DisplayFont ?? BodyFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
         public static Font SpaceFont => _spaceFont ?? (_spaceFont = Resources.Load<Font>("assets/fonts/space_grotesk") ?? BodyFont ?? DisplayFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+
+        /// <summary>
+        /// Runtime-built TextMeshPro font asset with an explicit fallback chain so EVERY welcome
+        /// glyph is visible: the body font covers ASCII, the display font covers "▶" (U+25B6),
+        /// and an OS symbol font covers "⚙" (U+2699) which neither bundled font ships.
+        /// </summary>
+        public static TMP_FontAsset TMPFont
+        {
+            get
+            {
+                if (_tmpFont != null) return _tmpFont;
+                _tmpFont = CreateRuntimeFontAsset(SpaceFont ?? DisplayFont);
+                if (_tmpFont == null) return null;
+
+                var fallbacks = new List<TMP_FontAsset>();
+                var display = CreateRuntimeFontAsset(DisplayFont);
+                if (display != null && display != _tmpFont) fallbacks.Add(display);
+                var symbols = CreateOsSymbolFontAsset();
+                if (symbols != null) fallbacks.Add(symbols);
+                _tmpFont.fallbackFontAssets = fallbacks;
+                return _tmpFont;
+            }
+        }
+
+        private static TMP_FontAsset CreateRuntimeFontAsset(Font font)
+        {
+            if (font == null) return null;
+            try
+            {
+                var asset = TMP_FontAsset.CreateFontAsset(font);
+                if (asset != null) asset.name = font.name + "_RuntimeTMP";
+                return asset;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Runtime TMP font asset could not be created: " + exception.Message);
+                return null;
+            }
+        }
+
+        private static TMP_FontAsset CreateOsSymbolFontAsset()
+        {
+            try
+            {
+                var installed = Font.GetOSInstalledFontNames();
+                if (installed == null || installed.Length == 0) return null;
+                var candidates = new[]
+                {
+                    "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", "Noto Sans Symbols",
+                    "Roboto", "DejaVu Sans", "Liberation Sans", "Arial Unicode MS", "Arial", "Helvetica"
+                };
+                var pick = candidates.FirstOrDefault(installed.Contains);
+                if (string.IsNullOrEmpty(pick)) return null;
+                var font = Font.CreateDynamicFontFromOSFont(pick, 42);
+                return font == null ? null : CreateRuntimeFontAsset(font);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("OS symbol TMP font unavailable: " + exception.Message);
+                return null;
+            }
+        }
 
         public static Canvas CreateCanvas()
         {
@@ -105,6 +170,46 @@ namespace Dreadmoor.UI
             return text;
         }
 
+        /// <summary>
+        /// TextMeshProUGUI with an explicitly assigned runtime TMP font (fallback chain included),
+        /// single-line overflow rendering and no rich text parsing by default.
+        /// </summary>
+        public static TextMeshProUGUI TmpText(Transform parent, string value, float size, Color color,
+            TextAlignmentOptions alignment = TextAlignmentOptions.Center, string name = "TmpText",
+            FontStyles style = FontStyles.Normal)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            go.transform.SetParent(parent, false);
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.text = value ?? "";
+            var font = TMPFont;
+            if (font != null) text.font = font;
+            text.fontSize = size;
+            text.color = color;
+            text.alignment = alignment;
+            text.fontStyle = style;
+            text.enableWordWrapping = false;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.richText = false;
+            text.raycastTarget = false;
+            return text;
+        }
+
+        /// <summary>Sprite-backed Image (supports preserveAspect, unlike RawImage) for logo artwork.</summary>
+        public static Image SpriteImage(Transform parent, string assetPath, string name = "SpriteImage")
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var image = go.GetComponent<Image>();
+            var texture = LoadTexture(assetPath);
+            if (texture != null)
+                image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            image.color = Color.white;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
+        }
+
         public static Button Button(Transform parent, string label, Action onClick, Color color, Color textColor,
             float preferredHeight = 86f, int fontSize = 28, bool rounded = true)
         {
@@ -131,27 +236,32 @@ namespace Dreadmoor.UI
         }
 
         /// <summary>
-        /// Creates the styled Hero "CONTINUE/START GAME" button matching reference:
-        /// Dark semi-transparent bg (rgba 10,18,24,0.75), rounded, thin cyan outline (#00E5FF),
-        /// Horizontal content: Cyan Play Icon ▶ + label in bright cyan with wide spacing.
+        /// Creates the Hero "CONTINUE / START GAME" action button matching the reference UI exactly:
+        /// rounded dark semi-transparent container rgba(10,18,24,0.75) with a thin #00E5FF border,
+        /// a cyan ▶ play icon on the left and a single-line bright-cyan TextMeshProUGUI label on the
+        /// right. All content children use explicit RectTransform anchors/sizes (no layout group) and
+        /// an assigned TMP font. No rich text tags (e.g. &lt;mspace&gt;) are used anywhere.
         /// </summary>
         public static Button CreateHeroActionButton(Transform parent, string label, Action onClick)
         {
-            // Container panel with dark bg
-            var container = Panel(parent, HeroButtonBg, "HeroButtonContainer", true);
-            container.gameObject.AddComponent<LayoutElement>().preferredHeight = 118f;
+            // Container: dark semi-transparent background with rounded corners.
+            var container = Panel(parent, HeroButtonBg, "HeroActionButton", true);
+            var containerLayout = container.gameObject.AddComponent<LayoutElement>();
+            containerLayout.minHeight = 96f;
+            containerLayout.preferredHeight = 128f;
 
-            // Add thin cyan outline
+            // Thin cyan border outline (#00E5FF).
             var outline = container.gameObject.AddComponent<Outline>();
             outline.effectColor = InvestigatorCyan;
             outline.effectDistance = new Vector2(1.5f, -1.5f);
 
-            // Add subtle inner shadow/glow effect via Shadow
+            // Subtle outer cyan glow.
             var shadow = container.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0.9f, 1f, 0.15f);
+            shadow.effectColor = new Color(0f, 0.898f, 1f, 0.18f);
             shadow.effectDistance = new Vector2(0f, -6f);
 
             var button = container.gameObject.AddComponent<Button>();
+            button.targetGraphic = container;
             var colors = button.colors;
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color(0.05f, 0.15f, 0.2f, 0.85f);
@@ -164,54 +274,43 @@ namespace Dreadmoor.UI
                 onClick();
             });
 
-            // Horizontal layout for icon + label
-            var hGroup = container.gameObject.AddComponent<HorizontalLayoutGroup>();
-            hGroup.childAlignment = TextAnchor.MiddleCenter;
-            hGroup.childControlWidth = true;
-            hGroup.childControlHeight = true;
-            hGroup.childForceExpandWidth = false;
-            hGroup.childForceExpandHeight = false;
-            hGroup.spacing = 18f;
-            hGroup.padding = new RectOffset(36, 42, 0, 0);
+            // Centered content row with explicit rects — NO layout group, so the anchors below
+            // stay exactly where we put them.
+            var content = new GameObject("HeroButtonContent", typeof(RectTransform));
+            var contentRect = (RectTransform)content.transform;
+            contentRect.SetParent(container.transform, false);
+            contentRect.anchorMin = new Vector2(0.5f, 0f);
+            contentRect.anchorMax = new Vector2(0.5f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 0.5f);
+            contentRect.offsetMin = new Vector2(-280f, 0f);
+            contentRect.offsetMax = new Vector2(280f, 0f);
 
-            // Play Icon (▶) using TextMeshProUGUI for consistency
-            var iconGo = new GameObject("PlayIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-            iconGo.transform.SetParent(container.transform, false);
-            var iconText = iconGo.GetComponent<TextMeshProUGUI>();
-            iconText.text = "▶";
-            iconText.fontSize = 42;
-            iconText.color = InvestigatorCyan;
-            iconText.alignment = TextAlignmentOptions.Center;
-            iconText.fontStyle = FontStyles.Bold;
-            var iconLE = iconGo.AddComponent<LayoutElement>();
-            iconLE.minWidth = 42f;
-            iconLE.preferredWidth = 48f;
-            iconLE.flexibleWidth = 0f;
+            // Left: cyan play triangle icon ▶ (bright cyan #00E5FF).
+            var icon = TmpText(contentRect, "▶", 34, InvestigatorCyan,
+                TextAlignmentOptions.Center, "PlayIcon", FontStyles.Bold);
+            var iconRect = icon.rectTransform;
+            iconRect.anchorMin = new Vector2(0f, 0f);
+            iconRect.anchorMax = new Vector2(0f, 1f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.offsetMin = Vector2.zero;
+            iconRect.offsetMax = new Vector2(84f, 0f);
 
-            // Label text - bright cyan, character spacing exactly as specified (20f)
-            var go = new GameObject("ActionLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-            go.transform.SetParent(container.transform, false);
-            var labelText = go.GetComponent<TextMeshProUGUI>();
-            labelText.text = label.ToUpperInvariant();
-            labelText.fontSize = 32;
-            labelText.color = InvestigatorCyan;
-            labelText.alignment = TextAlignmentOptions.Center;
-            labelText.fontStyle = FontStyles.Bold;
-            labelText.characterSpacing = 20f;
-            labelText.enableWordWrapping = false;
-            labelText.overflowMode = TextOverflowModes.Overflow;
-
-            // Ensure explicit RectTransform anchors/size for visibility
-            var labelRect = labelText.rectTransform;
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-
-            var labelLE = labelText.gameObject.AddComponent<LayoutElement>();
-            labelLE.minWidth = 220f;
-            labelLE.preferredWidth = 320f;
-            labelLE.flexibleWidth = 1f;
+            // Right: "CONTINUE"/"START GAME" label in bright cyan (#00E5FF) — single line,
+            // explicit RectTransform anchors/size, assigned TMP font, no <mspace> tags.
+            var text = TmpText(contentRect, (label ?? string.Empty).ToUpperInvariant(), 32, InvestigatorCyan,
+                TextAlignmentOptions.Center, "ActionLabel", FontStyles.Bold);
+            text.characterSpacing = 20f;
+            text.enableWordWrapping = false;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.richText = false;
+            var textFont = TMPFont;
+            if (textFont != null) text.font = textFont;
+            var textRect = text.rectTransform;
+            textRect.anchorMin = new Vector2(0f, 0f);
+            textRect.anchorMax = new Vector2(1f, 1f);
+            textRect.pivot = new Vector2(0.5f, 0.5f);
+            textRect.offsetMin = new Vector2(92f, 0f);
+            textRect.offsetMax = new Vector2(-20f, 0f);
 
             return button;
         }
