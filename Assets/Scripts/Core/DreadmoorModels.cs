@@ -47,6 +47,7 @@ namespace Dreadmoor.Core
         ContextSwitch,
         Notification,
         Video,
+        Image,
         News,
         Diary,
         DiaryGate,

@@ -288,7 +288,7 @@ namespace Dreadmoor.Core
                             break;
                         }
                         case NarrativeCommandKind.Message:
-                            if (!DeliverMessage(node, command, false))
+                            if (!DeliverMessage(node, command))
                             {
                                 MarkAndSetNext(node, node.NextId);
                                 StateChanged?.Invoke();
@@ -298,7 +298,17 @@ namespace Dreadmoor.Core
                             }
                             break;
                         case NarrativeCommandKind.Video:
-                            if (!DeliverMessage(node, command, true))
+                            if (!DeliverMessage(node, command, "video"))
+                            {
+                                MarkAndSetNext(node, node.NextId);
+                                StateChanged?.Invoke();
+                                IsWaitingForInteraction = true;
+                                _runner = null;
+                                yield break;
+                            }
+                            break;
+                        case NarrativeCommandKind.Image:
+                            if (!DeliverMessage(node, command, "image"))
                             {
                                 MarkAndSetNext(node, node.NextId);
                                 StateChanged?.Invoke();
@@ -376,13 +386,14 @@ namespace Dreadmoor.Core
             IsWaitingForInteraction = false;
         }
 
-        private bool DeliverMessage(StoryNode node, NarrativeCommand command, bool isVideo)
+        private bool DeliverMessage(StoryNode node, NarrativeCommand command, string mediaType = "text")
         {
             var contextId = ResolveContext(command.Sender);
             var thread = StoryContexts.Ensure(_store, contextId);
+            var isMedia = mediaType == "video" || mediaType == "image";
+            var content = !string.IsNullOrWhiteSpace(command.Text) ? command.Text : command.AssetPath;
             if (!_store.HasMessageForNode(node.Id))
             {
-                var content = !string.IsNullOrWhiteSpace(command.Text) ? command.Text : command.AssetPath;
                 _store.Data.messages.Add(new MessageData
                 {
                     id = Guid.NewGuid().ToString("N"),
@@ -390,13 +401,13 @@ namespace Dreadmoor.Core
                     threadId = contextId,
                     senderId = SenderId(command.Sender),
                     content = _store.Sanitize(content),
-                    mediaType = isVideo ? "video" : "text",
-                    mediaPath = isVideo ? command.AssetPath : "",
+                    mediaType = isMedia ? mediaType : "text",
+                    mediaPath = isMedia ? command.AssetPath : "",
                     gameMinutes = _store.Data.gameClockMinutes,
                     isSecret = thread.isSecret
                 });
-                if (isVideo && !string.IsNullOrWhiteSpace(command.AssetPath))
-                    _store.AddMedia(contextId, SenderId(command.Sender), "video", command.AssetPath);
+                if (isMedia && !string.IsNullOrWhiteSpace(command.AssetPath))
+                    _store.AddMedia(contextId, SenderId(command.Sender), mediaType, command.AssetPath);
             }
 
             var isActive = string.Equals(_store.Data.activeThreadId, contextId, StringComparison.OrdinalIgnoreCase);
@@ -408,7 +419,7 @@ namespace Dreadmoor.Core
                     id = "msg_" + node.Id,
                     type = "chat",
                     title = thread.title,
-                    message = _store.Sanitize(command.Text),
+                    message = _store.Sanitize(!string.IsNullOrWhiteSpace(command.Text) ? command.Text : content),
                     gameMinutes = _store.Data.gameClockMinutes,
                     threadId = contextId
                 });
