@@ -94,7 +94,10 @@ namespace Dreadmoor.Tests
             Assert.That(node, Is.Not.Null);
             Assert.That(node.DiaryGate, Is.Not.Null);
             Assert.That(node.DiaryGate.Diary.Word, Is.EqualTo("ECHO"));
-            Assert.That(node.DiaryGate.Diary.PageId, Is.EqualTo("page_01"));
+            Assert.That(node.DiaryGate.Diary.EpisodeId, Is.EqualTo("ep01"));
+            Assert.That(node.DiaryGate.Diary.PageNumber, Is.EqualTo("1"));
+            Assert.That(node.DiaryGate.Diary.OnSuccessNode, Is.EqualTo("s4_video"));
+            Assert.That(node.DiaryGate.Diary.OnFailNode, Is.EqualTo("S3_Diary_Trigger"));
             Assert.That(Resources.Load<TextAsset>("assets/story/ep01/diary/page_01"), Is.Not.Null);
         }
 

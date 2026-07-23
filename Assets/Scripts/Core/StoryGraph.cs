@@ -106,12 +106,20 @@ namespace Dreadmoor.Core
                 var incoming = node.IncomingCall;
                 if (incoming != null && !incoming.Call.IsForced && string.IsNullOrWhiteSpace(incoming.Call.DeclineDestination))
                     result.Errors.Add($"{node.Id}: a non-forced @incoming_call requires @on_decline.");
-                if (node.DiaryGate?.Diary == null) result.Errors.Add($"{node.Id}: @diary requires a page ID and answer word.");
+                if (node.DiaryGate?.Diary == null) 
+                    result.Errors.Add($"{node.Id}: @diary_gate requires episode_id, page_number, unlock_word, on_success_node, and on_fail_node.");
             }
 
             foreach (var node in OrderedNodes.Where(node => node != null && !string.IsNullOrWhiteSpace(node.Id)))
             {
-                ValidateDestination(result, node.Id, "flow", node.NextId, ids, !node.HasChoice && !node.IsTerminal);
+                if (node.DiaryGate != null)
+                {
+                    ValidateDestination(result, node.Id, "diary success", node.DiaryGate.Diary.OnSuccessNode, ids, true);
+                    ValidateDestination(result, node.Id, "diary fail", node.DiaryGate.Diary.OnFailNode, ids, true);
+                }
+
+                if (node.DiaryGate == null)
+                    ValidateDestination(result, node.Id, "flow", node.NextId, ids, !node.HasChoice && !node.IsTerminal);
                 for (var index = 0; index < node.Choices.Count; index++)
                     ValidateDestination(result, node.Id, $"choice {index}", node.Choices[index]?.Destination, ids, true);
                 var decline = node.IncomingCall?.Call?.DeclineDestination;
@@ -245,7 +253,7 @@ namespace Dreadmoor.Core
                                                 command.Kind == NarrativeCommandKind.Choice ||
                                                 command.Kind == NarrativeCommandKind.IncomingCall ||
                                                 command.Kind == NarrativeCommandKind.ActiveCall ||
-                                                command.Kind == NarrativeCommandKind.Diary ||
+                                                command.Kind == NarrativeCommandKind.DiaryGate ||
                                                 command.Kind == NarrativeCommandKind.Typing ||
                                                 command.Kind == NarrativeCommandKind.Glitch);
         }

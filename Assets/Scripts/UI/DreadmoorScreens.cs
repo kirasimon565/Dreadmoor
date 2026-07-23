@@ -366,7 +366,7 @@ namespace Dreadmoor.UI
 
         private void ShowDiary()
         {
-            ShowDiary("page_01", false);
+            ShowDiary("ep01_page_01", false);
         }
 
         private void ShowDiary(string pageId, bool forcedPuzzle)
@@ -374,13 +374,19 @@ namespace Dreadmoor.UI
             BuildOsShell(AppView.Diary, !forcedPuzzle, out var content);
             AddHeader(content, "REBECCA'S DIARY", forcedPuzzle ? null : ShowApps, "RECOVERED PAGES");
             var body = UIFactory.Rect(content, "DiaryBody", Vector2.zero, new Vector2(1, 0.9f), Vector2.zero, Vector2.zero);
-            var pageAsset = UIFactory.LoadText("assets/story/ep01/diary/page_01.json");
-            var page = pageAsset != null ? JsonUtility.FromJson<DiaryPageFile>(pageAsset.text) : new DiaryPageFile { word = "ECHO" };
-            var state = _store.GetDiary(pageId, page.word);
+            
+            var catalogPage = DiaryCatalog.GetPage(pageId);
+            var targetWord = catalogPage?.TargetWord ?? "ECHO";
+            var state = _store.GetDiary(pageId, targetWord);
+            
             var list = UIFactory.ScrollList(body, UIFactory.Hex("#E9DFC4"), 18, 42);
             var paper = UIFactory.ContentImage(list, "assets/ui/notebook_paper.jpg", 420);
             paper.color = new Color(1, 1, 1, 0.42f);
-            var title = UIFactory.Text(list, $"PAGE {page.page:00}  /  {page.episode.ToUpperInvariant()}", 24,
+            
+            var epName = catalogPage?.EpisodeId?.ToUpperInvariant() ?? "EP01";
+            var pageNum = catalogPage?.PageNumber ?? 1;
+            
+            var title = UIFactory.Text(list, $"PAGE {pageNum:00}  /  {epName}", 24,
                 UIFactory.EvidenceRed, TextAnchor.MiddleCenter, true);
             UIFactory.Preferred(title.gameObject, 72);
             if (!state.isUnlocked)
@@ -389,7 +395,7 @@ namespace Dreadmoor.UI
                     TextAnchor.MiddleCenter, true);
                 UIFactory.Preferred(locked.gameObject, 130);
                 var input = UIFactory.Input(list, "KEYWORD");
-                input.characterLimit = Math.Max(4, page.word.Length);
+                input.characterLimit = Math.Max(4, targetWord.Length);
                 var feedback = UIFactory.Text(list, "", 20, UIFactory.EvidenceRed, TextAnchor.MiddleCenter);
                 UIFactory.Preferred(feedback.gameObject, 52);
                 UIFactory.Button(list, "UNLOCK", () =>
@@ -400,7 +406,8 @@ namespace Dreadmoor.UI
             }
             else
             {
-                foreach (var paragraph in page.content ?? Array.Empty<string>())
+                var paragraphs = catalogPage?.Content?.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+                foreach (var paragraph in paragraphs)
                 {
                     var text = UIFactory.Text(list, paragraph, 25, UIFactory.Ink, TextAnchor.UpperLeft);
                     UIFactory.Preferred(text.gameObject, Mathf.Max(105, paragraph.Length * 1.45f));

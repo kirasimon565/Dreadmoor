@@ -460,4 +460,4 @@ i said enough. she left.
 that's the story. and i'm done talking about it.
 
 :: S3_Diary_Trigger
-@diary page_01 ECHO
+@diary_gate ep01 1 ECHO s4_video S3_Diary_Trigger
