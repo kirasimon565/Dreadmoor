@@ -26,7 +26,7 @@ namespace Dreadmoor.Editor
         public static void ValidateMenu()
         {
             ValidateOrThrow();
-            Debug.Log("Dreadmoor validation passed: all story nodes, choices, calls, media and scenes are linked.");
+            Debug.Log("Dreadmoor validation passed: all narrative sections, choices, calls, and media are linked.");
         }
 
         public static void ValidateOrThrow()
@@ -35,15 +35,11 @@ namespace Dreadmoor.Editor
             var result = graph.Validate();
             if (!result.IsValid) throw new BuildFailedException(result.ToString());
             if (graph.OrderedNodes.Count != 391)
-                throw new BuildFailedException($"Expected 391 episode-one nodes but loaded {graph.OrderedNodes.Count}.");
+                throw new BuildFailedException($"Expected 391 Episode 1 script sections but loaded {graph.OrderedNodes.Count}.");
 
             foreach (var node in graph.OrderedNodes)
-            {
-                ValidateResource(node.id, node.image_asset);
-                ValidateResource(node.id, node.file_asset);
-                ValidateResource(node.id, node.audio_loop);
-                ValidateResource(node.id, node.audio_asset);
-            }
+            foreach (var assetPath in node.MediaAssetPaths)
+                ValidateResource(node.Id, assetPath);
 
             var required = new[]
             {

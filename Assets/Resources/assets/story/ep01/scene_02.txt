@@ -1,0 +1,604 @@
+:: s2_private_msg
+@switch_context unknown
+
+:: s2_private_msg_2
+@typing Unknown 1.0
+@message Unknown
+you read it
+
+:: s2_private_msg_3
+@delay 1.1
+
+:: s2_private_msg_4
+@typing Unknown 1.2
+@message Unknown
+i saw you looking
+
+:: s2_private_msg_5
+@delay 1.3
+
+:: S2_Player_Intro
+@choice
+  Who are you? How do you have my number? -> S2_Unknown_Rebuttal
+  I don't know what you're talking about. -> S2_Unknown_Rebuttal
+
+:: S2_Unknown_Rebuttal
+@typing Unknown 1.1
+@message Unknown
+lie to yourself if you want
+
+:: S2_Unknown_Rebuttal_2
+@delay 0.9
+
+:: S2_Unknown_Rebuttal_3
+@typing Unknown 1.0
+@message Unknown
+not to me
+
+:: S2_Unknown_Rebuttal_4
+@delay 1.0
+
+:: S2_Unknown_Hook
+@typing Unknown 0.8
+@message Unknown
+rebecca stone
+
+:: S2_Unknown_Hook_2
+@delay 1.4
+
+:: S2_Unknown_Hook_3
+@typing Unknown 1.2
+@message Unknown
+she's gone
+
+:: S2_Unknown_Hook_4
+@delay 1.1
+
+:: S2_Unknown_Hook_5
+@typing Unknown 1.5
+@message Unknown
+and no one's looking in the right place
+
+:: S2_Choice_HowKnow
+@choice
+  How do you know Rebecca? -> S2_Branch_A
+  Is this some kind of threat? -> S2_Branch_B
+  I'm listening. Keep talking. -> S2_Branch_C
+
+:: S2_Branch_A
+@typing Unknown 0.9
+@message Unknown
+she trusted me
+
+:: S2_Branch_A_2
+@delay 1.2
+
+:: S2_Branch_A_3
+@typing Unknown 1.4
+@message Unknown
+more than the people standing next to her
+@goto S2_The_Factory_Lead
+
+:: S2_Branch_B
+@typing Unknown 0.6
+@message Unknown
+no
+
+:: S2_Branch_B_2
+@delay 0.8
+
+:: S2_Branch_B_3
+@typing Unknown 1.1
+@message Unknown
+a threat would be easier
+
+:: S2_Branch_B_4
+@delay 1.1
+
+:: S2_Branch_B_5
+@typing Unknown 0.8
+@message Unknown
+this is real
+@goto S2_The_Factory_Lead
+
+:: S2_Branch_C
+@typing Unknown 0.9
+@message Unknown
+no panic
+
+:: S2_Branch_C_2
+@delay 0.9
+
+:: S2_Branch_C_3
+@typing Unknown 1.2
+@message Unknown
+you're smarter than they are
+
+:: S2_Branch_C_4
+@delay 1.0
+
+:: S2_The_Factory_Lead
+@typing Unknown 1.3
+@message Unknown
+the article told you where
+
+:: S2_The_Factory_Lead_2
+@delay 0.9
+
+:: S2_The_Factory_Lead_3
+@typing Unknown 1.0
+@message Unknown
+abandoned factory
+
+:: S2_The_Factory_Lead_4
+@delay 1.2
+
+:: S2_The_Factory_Lead_5
+@typing Unknown 1.2
+@message Unknown
+she had a reason to be there
+
+:: S2_The_Factory_Lead_6
+@delay 0.8
+
+:: S2_The_Factory_Lead_7
+@typing Unknown 1.1
+@message Unknown
+a reason she didn't choose
+
+:: S2_Player_PartyQuery
+@choice
+  The news said it was just a party. -> S2_The_Sister_Reveal
+  Who chose it then? -> S2_The_Sister_Reveal
+
+:: S2_The_Sister_Reveal
+@typing Unknown 0.8
+@message Unknown
+a party
+
+:: S2_The_Sister_Reveal_2
+@delay 1.0
+
+:: S2_The_Sister_Reveal_3
+@typing Unknown 1.2
+@message Unknown
+that's the word they're using
+
+:: S2_The_Sister_Reveal_4
+@delay 0.9
+
+:: S2_The_Sister_Reveal_5
+@typing Unknown 1.4
+@message Unknown
+it hides what it really was
+
+:: S2_Player_WhatMean
+@choice
+  What was it really? -> S2_Amelia_Accusation
+  Stop speaking in riddles. -> S2_Amelia_Accusation
+
+:: S2_Amelia_Accusation
+@typing Unknown 0.9
+@message Unknown
+her sister
+
+:: S2_Amelia_Accusation_2
+@delay 1.3
+
+:: S2_Amelia_Accusation_3
+@typing Unknown 1.2
+@message Unknown
+amelia stone
+
+:: S2_Amelia_Accusation_4
+@delay 1.0
+
+:: S2_Amelia_Accusation_5
+@typing Unknown 1.4
+@message Unknown
+she built the whole night
+
+:: S2_Choice_AmeliaLogic
+@choice
+  Why would her own sister do that? -> S2_Amelia_Reasoning
+  You're sure Amelia was in control? -> S2_Amelia_Reasoning
+
+:: S2_Amelia_Reasoning
+@typing Unknown 1.1
+@message Unknown
+she chose the location
+
+:: S2_Amelia_Reasoning_2
+@delay 0.8
+
+:: S2_Amelia_Reasoning_3
+@typing Unknown 1.4
+@message Unknown
+no lights. no cameras. no help.
+
+:: S2_Amelia_Reasoning_4
+@delay 1.1
+
+:: S2_Amelia_Reasoning_5
+@typing Unknown 1.2
+@message Unknown
+she wanted rebecca afraid
+
+:: S2_Amelia_Scare
+@typing Unknown 1.3
+@message Unknown
+it was supposed to be a scare
+
+:: S2_Amelia_Scare_2
+@delay 0.9
+
+:: S2_Amelia_Scare_3
+@typing Unknown 1.1
+@message Unknown
+a performance
+
+:: S2_Amelia_Scare_4
+@delay 0.8
+
+:: S2_Amelia_Scare_5
+@typing Unknown 1.2
+@message Unknown
+but something went wrong
+
+:: S2_Player_ScareGoal
+@choice
+  You think Amelia made her disappear? -> S2_The_Phone_Call
+  What went wrong? -> S2_The_Phone_Call
+
+:: S2_The_Phone_Call
+@typing Unknown 1.0
+@message Unknown
+rebecca called me
+
+:: S2_The_Phone_Call_2
+@delay 1.2
+
+:: S2_The_Phone_Call_3
+@typing Unknown 1.2
+@message Unknown
+from outside the factory
+
+:: S2_Choice_WhenTalk
+@choice
+  When exactly? -> S2_Timeline_Details
+  What did she say? -> S2_Timeline_Details
+
+:: S2_Timeline_Details
+@typing Unknown 0.9
+@message Unknown
+11:30 PM
+
+:: S2_Timeline_Details_2
+@delay 0.9
+
+:: S2_Timeline_Details_3
+@typing Unknown 1.1
+@message Unknown
+said she needed signal
+
+:: S2_Timeline_Details_4
+@delay 1.1
+
+:: S2_Timeline_Details_5
+@typing Unknown 1.2
+@message Unknown
+that was a lie too
+
+:: S2_Something_Off
+@typing Unknown 1.0
+@message Unknown
+she wanted to talk
+
+:: S2_Something_Off_2
+@delay 1.0
+
+:: S2_Something_Off_3
+@typing Unknown 1.1
+@message Unknown
+but she was careful
+
+:: S2_Something_Off_4
+@delay 0.8
+
+:: S2_Something_Off_5
+@typing Unknown 1.3
+@message Unknown
+like someone was listening
+
+:: S2_The_Avoidance
+@typing Unknown 1.1
+@message Unknown
+i asked about amelia
+
+:: S2_The_Avoidance_2
+@delay 1.3
+
+:: S2_The_Avoidance_3
+@typing Unknown 1.2
+@message Unknown
+she changed the subject
+
+:: S2_The_Avoidance_4
+@delay 0.9
+
+:: S2_The_Avoidance_5
+@typing Unknown 0.6
+@message Unknown
+fast
+
+:: S2_The_Hangup
+@typing Unknown 1.4
+@message Unknown
+then she stopped mid-sentence
+
+:: S2_The_Hangup_2
+@delay 1.0
+
+:: S2_The_Hangup_3
+@typing Unknown 1.0
+@message Unknown
+she was listening
+
+:: S2_The_Hangup_4
+@delay 1.4
+
+:: S2_The_Hangup_5
+@typing Unknown 1.4
+@message Unknown
+said 'i'll call you later'
+
+:: S2_The_Hangup_6
+@delay 1.5
+
+:: S2_The_Hangup_7
+@typing Unknown 1.1
+@message Unknown
+she never did
+
+:: S2_Player_Question
+@choice
+  Why are you telling me this? -> S2_The_Last_Words
+  What do you think she heard? -> S2_The_Last_Words
+
+:: S2_The_Last_Words
+@typing Unknown 1.2
+@message Unknown
+i asked if she was okay
+
+:: S2_The_Last_Words_2
+@delay 0.8
+
+:: S2_The_Last_Words_3
+@typing Unknown 0.8
+@message Unknown
+she said yes
+
+:: S2_The_Last_Words_4
+@delay 1.2
+
+:: S2_The_Last_Words_5
+@typing Unknown 1.3
+@message Unknown
+but her voice wasn't a yes
+
+:: S2_Choice_WhatSaying
+@choice
+  So what are you saying? -> S2_The_Mismatch
+  What happened after she hung up? -> S2_The_Mismatch
+
+:: S2_The_Mismatch
+@typing Unknown 1.2
+@message Unknown
+their timeline
+
+:: S2_The_Mismatch_2
+@delay 0.9
+
+:: S2_The_Mismatch_3
+@typing Unknown 1.0
+@message Unknown
+doesn't match
+
+:: S2_The_Mismatch_4
+@delay 0.8
+
+:: S2_The_Mismatch_5
+@typing Unknown 1.2
+@message Unknown
+they're building a wall
+
+:: S2_The_Coordination
+@delay 1.0
+
+:: S2_The_Coordination_2
+@typing Unknown 1.0
+@message Unknown
+brick by brick
+
+:: S2_Player_HowKnow
+@choice
+  How do you know all this? -> S2_The_Intercept
+  You're watching them. -> S2_The_Intercept
+
+:: S2_The_Intercept
+@typing Unknown 0.9
+@message Unknown
+i'm inside
+
+:: S2_The_Intercept_2
+@delay 1.1
+
+:: S2_The_Intercept_3
+@typing Unknown 1.1
+@message Unknown
+their group chat
+
+:: S2_The_Intercept_4
+@delay 1.4
+
+:: S2_The_Intercept_5
+@typing Unknown 1.2
+@message Unknown
+dreadmoor news. ironic.
+
+:: S2_Choice_WhatSayingGroup
+@choice
+  What is Amelia saying? -> S2_Group_Intel_A
+  What about the others? -> S2_Group_Intel_B
+  Show me what they're saying. -> S2_Group_Intel_C
+
+:: S2_Group_Intel_A
+@typing Unknown 1.2
+@message Unknown
+amelia is nervous
+
+:: S2_Group_Intel_A_2
+@delay 0.9
+
+:: S2_Group_Intel_A_3
+@typing Unknown 1.4
+@message Unknown
+keeps changing small details
+
+:: S2_Group_Intel_A_4
+@delay 1.0
+
+:: S2_Group_Intel_A_5
+@typing Unknown 1.5
+@message Unknown
+stuff you forget if you're telling the truth
+@goto S2_The_Invitation
+
+:: S2_Group_Intel_B
+@typing Unknown 1.0
+@message Unknown
+they're scared
+
+:: S2_Group_Intel_B_2
+@delay 0.8
+
+:: S2_Group_Intel_B_3
+@typing Unknown 1.1
+@message Unknown
+not for rebecca
+
+:: S2_Group_Intel_B_4
+@delay 1.1
+
+:: S2_Group_Intel_B_5
+@typing Unknown 1.3
+@message Unknown
+everyone saw something different
+@goto S2_The_Invitation
+
+:: S2_Group_Intel_C
+@typing Unknown 0.9
+@message Unknown
+you'll see
+
+:: S2_Group_Intel_C_2
+@delay 1.0
+
+:: S2_Group_Intel_C_3
+@typing Unknown 0.8
+@message Unknown
+words lie
+
+:: S2_Group_Intel_C_4
+@delay 1.2
+
+:: S2_Group_Intel_C_5
+@typing Unknown 1.0
+@message Unknown
+patterns don't
+
+:: S2_The_Invitation
+@typing Unknown 1.2
+@message Unknown
+i'm adding you now
+
+:: S2_The_Invitation_2
+@delay 0.9
+
+:: S2_The_Invitation_3
+@typing Unknown 1.1
+@message Unknown
+you'll be invisible
+
+:: S2_The_Invitation_4
+@delay 0.9
+
+:: S2_The_Invitation_5
+@typing Unknown 1.2
+@message Unknown
+until you're not
+
+:: S2_The_Warning
+@delay 1.3
+
+:: S2_The_Warning_2
+@typing Unknown 0.8
+@message Unknown
+say nothing
+
+:: S2_The_Warning_3
+@delay 1.0
+
+:: S2_The_Warning_4
+@typing Unknown 0.8
+@message Unknown
+watch
+
+:: S2_The_Warning_5
+@delay 0.8
+
+:: S2_The_Warning_6
+@typing Unknown 1.3
+@message Unknown
+they'll notice you eventually
+
+:: S2_The_Warning_7
+@delay 1.2
+
+:: S2_Choice_FinalReady
+@choice
+  Do it. Add me. -> S2_Add_Success
+  Wait. I'm not ready. -> S2_Add_Forced
+
+:: S2_Add_Success
+@typing Unknown 0.9
+@message Unknown
+good
+
+:: S2_Add_Success_2
+@delay 0.9
+
+:: S2_Add_Success_3
+@typing Unknown 0.8
+@message Unknown
+stay quiet
+@goto s2_system_add
+
+:: S2_Add_Forced
+@typing Unknown 1.0
+@message Unknown
+ready or not
+
+:: S2_Add_Forced_2
+@delay 0.9
+
+:: S2_Add_Forced_3
+@typing Unknown 1.2
+@message Unknown
+rebecca doesn't have time
+
+:: s2_system_add
+@notification You were added to Dreadmoor News.
+
+:: s2_switch_context
+@switch_context group_dreadmoor_news

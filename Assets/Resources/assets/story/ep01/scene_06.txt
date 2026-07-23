@@ -1,0 +1,18 @@
+:: s6_ring_1
+@incoming_call Unknown | Unknown Number | assets/media/sfx/phone_ringtone_glitch.mp3
+@on_decline 2.0 -> s6_ring_2
+@goto s6_accept
+
+:: s6_ring_2
+@incoming_call Unknown | Unknown Number | assets/media/sfx/phone_ringtone_glitch.mp3
+@on_decline 3.0 -> s6_ring_final
+@goto s6_accept
+
+:: s6_ring_final
+@incoming_call Unknown | Unknown Number |  | forced
+
+:: s6_accept
+@active_call Unknown | Unknown Number | media/audio/threatening_call_01.mp3
+
+:: EPISODE_1_END
+@credits TO BE CONTINUED IN EPISODE 2

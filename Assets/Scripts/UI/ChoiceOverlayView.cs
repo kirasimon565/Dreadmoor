@@ -114,11 +114,11 @@ namespace Dreadmoor.UI
                 new Color(1, 1, 1, 0.48f), TextAnchor.MiddleLeft);
             UIFactory.Stretch(participants.rectTransform, 8);
 
-            foreach (var option in _node?.options ?? Array.Empty<StoryChoice>())
+            foreach (var option in _node?.Choices ?? Array.Empty<StoryChoice>())
             {
-                if (option == null || string.IsNullOrWhiteSpace(option.Target)) continue;
-                var capturedText = option.text;
-                var capturedTarget = option.Target;
+                if (option == null || string.IsNullOrWhiteSpace(option.Destination)) continue;
+                var capturedText = option.Text;
+                var capturedTarget = option.Destination;
                 var button = UIFactory.Button(_options, "›  " + capturedText, () => Submit(capturedText, capturedTarget),
                     new Color(0.055f, 0.14f, 0.18f, 0.98f), Color.white, 94, 19);
                 var navigation = button.navigation;
@@ -138,7 +138,7 @@ namespace Dreadmoor.UI
             _expanded = expanded;
             _options.gameObject.SetActive(expanded);
             _panel.gameObject.SetActive(true);
-            var optionCount = _node?.options?.Length ?? 0;
+            var optionCount = _node?.Choices?.Count ?? 0;
             _layout.preferredHeight = expanded ? 170 + optionCount * 106 : 104;
             _layout.minHeight = _layout.preferredHeight;
             _prompt.text = expanded ? "SELECT RESPONSE" : "CHOOSE A REPLY...";

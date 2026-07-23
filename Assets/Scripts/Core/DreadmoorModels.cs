@@ -1,76 +1,187 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Dreadmoor.Core
 {
-    [Serializable]
-    public sealed class StoryFile
-    {
-        public StoryNode[] scenes = Array.Empty<StoryNode>();
-    }
-
-    [Serializable]
+    /// <summary>
+    /// A parsed section of a plain-text narrative script. Sections fall through
+    /// to the next section in file order unless an explicit <c>@goto</c> is used.
+    /// </summary>
     public sealed class StoryNode
     {
-        public string id = "";
-        public string type = "";
-        public string sender = "";
-        public string text = "";
-        public string next = "";
-        public string action = "";
-        public string chat = "";
-        public string thread_id = "";
-        public string thread_title = "";
-        public string[] thread_members = Array.Empty<string>();
-        public bool thread_secret;
-        public int duration;
-        public int time_passed;
-        public StoryChoice[] options = Array.Empty<StoryChoice>();
-        public DeclineTarget next_on_decline;
-        public string target = "";
-        public string caller_name = "";
-        public string caller_id = "";
-        public string audio_loop = "";
-        public string audio_asset = "";
-        public bool disable_decline;
-        public string visual_effect = "";
-        public string file_asset = "";
-        public string next_screen = "";
-        public string flag_name = "";
-        public string theme = "";
-        public string headline = "";
-        public string subheadline = "";
-        public string image_asset = "";
-        public string caption = "";
-        public string[] body = Array.Empty<string>();
-        public EmbeddedMetadata meta;
+        public string Id { get; }
+        public IReadOnlyList<NarrativeCommand> Commands { get; }
+        public string NextId { get; internal set; } = "";
+        internal string ExplicitDestination { get; set; } = "";
 
-        public string SenderId => string.IsNullOrWhiteSpace(sender) ? "unknown" : sender.Trim().ToLowerInvariant();
-        public bool IsTyping => string.Equals(action, "Typing", StringComparison.OrdinalIgnoreCase);
+        public StoryNode(string id, IReadOnlyList<NarrativeCommand> commands)
+        {
+            Id = id ?? "";
+            Commands = commands ?? Array.Empty<NarrativeCommand>();
+        }
+
+        public bool HasChoice => Commands.Any(command => command.Kind == NarrativeCommandKind.Choice);
+        public bool IsTerminal => Commands.Any(command => command.Kind == NarrativeCommandKind.Credits);
+        public IReadOnlyList<StoryChoice> Choices => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.Choice)?.Choices
+                                                    ?? Array.Empty<StoryChoice>();
+        public NarrativeCommand IncomingCall => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.IncomingCall);
+        public NarrativeCommand ActiveCall => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.ActiveCall);
+        public NarrativeCommand DiaryGate => Commands.FirstOrDefault(command => command.Kind == NarrativeCommandKind.Diary);
+
+        public IEnumerable<string> MediaAssetPaths => Commands.SelectMany(command => new[]
+        {
+            command.AssetPath,
+            command.News?.ImagePath,
+            command.Call?.AudioPath
+        }).Where(path => !string.IsNullOrWhiteSpace(path) && path != "-");
     }
 
-    [Serializable]
+    public enum NarrativeCommandKind
+    {
+        Typing,
+        Message,
+        Delay,
+        Choice,
+        ContextSwitch,
+        Notification,
+        Video,
+        News,
+        Diary,
+        Intercept,
+        Glitch,
+        IncomingCall,
+        ActiveCall,
+        Credits
+    }
+
+    /// <summary>One native directive from a narrative script.</summary>
+    public sealed class NarrativeCommand
+    {
+        public NarrativeCommandKind Kind { get; }
+        public string Sender { get; }
+        public string Text { get; }
+        public float Seconds { get; }
+        public string ContextId { get; }
+        public string AssetPath { get; }
+        public IReadOnlyList<StoryChoice> Choices { get; }
+        public StoryNews News { get; }
+        public StoryDiaryGate Diary { get; }
+        public StoryCall Call { get; }
+
+        public NarrativeCommand(NarrativeCommandKind kind, string sender = "", string text = "", float seconds = 0f,
+            string contextId = "", string assetPath = "", IReadOnlyList<StoryChoice> choices = null,
+            StoryNews news = null, StoryDiaryGate diary = null, StoryCall call = null)
+        {
+            Kind = kind;
+            Sender = sender ?? "";
+            Text = text ?? "";
+            Seconds = seconds;
+            ContextId = contextId ?? "";
+            AssetPath = assetPath ?? "";
+            Choices = choices ?? Array.Empty<StoryChoice>();
+            News = news;
+            Diary = diary;
+            Call = call;
+        }
+    }
+
     public sealed class StoryChoice
     {
-        public string text = "";
-        public string next = "";
-        public string target = "";
-        public string Target => !string.IsNullOrWhiteSpace(next) ? next : target;
+        public string Text { get; }
+        public string Destination { get; }
+
+        public StoryChoice(string text, string destination)
+        {
+            Text = text ?? "";
+            Destination = destination ?? "";
+        }
     }
 
-    [Serializable]
-    public sealed class DeclineTarget
+    public sealed class StoryNews
     {
-        public int delay_seconds;
-        public string target = "";
+        public string Headline { get; }
+        public string Subheadline { get; }
+        public string ImagePath { get; }
+        public string Caption { get; }
+        public string[] Body { get; }
+
+        public StoryNews(string headline, string subheadline, string imagePath, string caption, string[] body)
+        {
+            Headline = headline ?? "";
+            Subheadline = subheadline ?? "";
+            ImagePath = imagePath ?? "";
+            Caption = caption ?? "";
+            Body = body ?? Array.Empty<string>();
+        }
     }
 
-    [Serializable]
-    public sealed class EmbeddedMetadata
+    public sealed class StoryDiaryGate
     {
-        public string word = "";
-        public string pageId = "";
+        public string PageId { get; }
+        public string Word { get; }
+
+        public StoryDiaryGate(string pageId, string word)
+        {
+            PageId = pageId ?? "";
+            Word = word ?? "";
+        }
+    }
+
+    public sealed class StoryCall
+    {
+        public string CallerName { get; }
+        public string CallerNumber { get; }
+        public string AudioPath { get; }
+        public bool IsForced { get; }
+        public float DeclineDelaySeconds { get; set; }
+        public string DeclineDestination { get; set; } = "";
+
+        public StoryCall(string callerName, string callerNumber, string audioPath, bool isForced)
+        {
+            CallerName = callerName ?? "";
+            CallerNumber = callerNumber ?? "";
+            AudioPath = audioPath ?? "";
+            IsForced = isForced;
+        }
+    }
+
+    /// <summary>
+    /// Context presentation belongs to the game, not the authoring format. Scripts
+    /// refer only to stable context IDs through <c>@switch_context</c> and
+    /// <c>@intercept</c>.
+    /// </summary>
+    public static class StoryContexts
+    {
+        private sealed class Definition
+        {
+            public readonly string Title;
+            public readonly string[] Members;
+            public readonly bool Secret;
+
+            public Definition(string title, string[] members, bool secret = false)
+            {
+                Title = title;
+                Members = members;
+                Secret = secret;
+            }
+        }
+
+        private static readonly Dictionary<string, Definition> Definitions = new Dictionary<string, Definition>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "unknown", new Definition("Unknown", new[] { "unknown" }) },
+            { "group_dreadmoor_news", new Definition("Dreadmoor News", new[] { "amelia", "chris", "abigail", "michael" }) },
+            { "intercept_amelia_michael", new Definition("Amelia & Michael", new[] { "amelia", "michael" }, true) }
+        };
+
+        public static ThreadData Ensure(GameStore store, string contextId, bool secret = false)
+        {
+            var id = string.IsNullOrWhiteSpace(contextId) ? "unknown" : contextId.Trim();
+            if (Definitions.TryGetValue(id, out var definition))
+                return store.EnsureThread(id, definition.Title, definition.Members, secret || definition.Secret);
+            return store.EnsureThread(id, null, null, secret);
+        }
     }
 
     [Serializable]

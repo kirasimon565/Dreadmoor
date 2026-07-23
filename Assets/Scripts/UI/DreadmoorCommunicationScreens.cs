@@ -126,8 +126,8 @@ namespace Dreadmoor.UI
             }
 
             var choice = _scheduler.ActiveChoice();
-            if (choice != null && _store.Data.activeChoiceNodeId == choice.id &&
-                (choice.chat == threadId || string.IsNullOrWhiteSpace(choice.chat)))
+            if (choice != null && _store.Data.activeChoiceNodeId == choice.Id &&
+                string.Equals(_store.Data.activeThreadId, threadId, StringComparison.OrdinalIgnoreCase))
             {
                 var choiceHost = UIFactory.Rect(list, "ChoiceOverlay", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
                 var overlay = choiceHost.gameObject.AddComponent<ChoiceOverlayView>();
@@ -321,7 +321,7 @@ namespace Dreadmoor.UI
             }, UIFactory.Hex("#198754"), Color.white, 110, 22);
             SetAnchors(answer.GetComponent<RectTransform>(), _scheduler.CanDecline(node) ? 0.57f : 0.28f,
                 _scheduler.CanDecline(node) ? 0.92f : 0.72f, 0.12f, 0.2f);
-            StartRingtone(node.audio_loop);
+            StartRingtone(StoryScheduler.CallAudioPath(node));
         }
 
         private void ShowActiveCall(StoryNode node)
@@ -365,7 +365,7 @@ namespace Dreadmoor.UI
             var end = UIFactory.Button(root, "END CALL", () => FinishStoryCall(token, started), UIFactory.EvidenceRed, Color.white, 110, 22);
             SetAnchors(end.GetComponent<RectTransform>(), 0.32f, 0.68f, 0.1f, 0.18f);
             StartCoroutine(UpdateCallTimer(token, started, timer));
-            var audio = UIFactory.LoadAudio(node.audio_asset);
+            var audio = UIFactory.LoadAudio(StoryScheduler.CallAudioPath(node));
             if (audio != null)
             {
                 _effects.loop = false;
