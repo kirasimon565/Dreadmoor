@@ -106,7 +106,7 @@ namespace Dreadmoor.Core
                 var incoming = node.IncomingCall;
                 if (incoming != null && !incoming.Call.IsForced && string.IsNullOrWhiteSpace(incoming.Call.DeclineDestination))
                     result.Errors.Add($"{node.Id}: a non-forced @incoming_call requires @on_decline.");
-                if (node.DiaryGate?.Diary == null) 
+                if (node.DiaryGate != null && node.DiaryGate.Diary == null)
                     result.Errors.Add($"{node.Id}: @diary_gate requires episode_id, page_number, unlock_word, on_success_node, and on_fail_node.");
             }
 
@@ -203,6 +203,12 @@ namespace Dreadmoor.Core
                 if (!string.IsNullOrWhiteSpace(choice?.Destination)) yield return choice.Destination;
             var decline = node.IncomingCall?.Call?.DeclineDestination;
             if (!string.IsNullOrWhiteSpace(decline)) yield return decline;
+            var diaryGate = node.DiaryGate?.Diary;
+            if (diaryGate != null)
+            {
+                if (!string.IsNullOrWhiteSpace(diaryGate.OnSuccessNode) && diaryGate.OnSuccessNode != "NONE") yield return diaryGate.OnSuccessNode;
+                if (!string.IsNullOrWhiteSpace(diaryGate.OnFailNode) && diaryGate.OnFailNode != "NONE") yield return diaryGate.OnFailNode;
+            }
         }
 
         private static void ValidateDestination(GraphValidationResult result, string nodeId, string label, string destination,

@@ -96,6 +96,12 @@ namespace Dreadmoor.Core
                         commands.Add(new NarrativeCommand(NarrativeCommandKind.Video, sender: values.left, assetPath: values.right));
                         break;
                     }
+                    case "image":
+                    {
+                        var values = SplitFirstToken(argument, sourceName, lineNumber, "@image requires a sender and asset path.");
+                        commands.Add(new NarrativeCommand(NarrativeCommandKind.Image, sender: values.left, assetPath: values.right));
+                        break;
+                    }
                     case "news":
                         commands.Add(new NarrativeCommand(NarrativeCommandKind.News, news: ReadNews(lines, ref index, sourceName, lineNumber)));
                         break;
@@ -112,13 +118,13 @@ namespace Dreadmoor.Core
                             contentText = ReadFreeText(lines, ref index);
                         }
 
-                        commands.Add(new NarrativeCommand(NarrativeCommandKind.Diary, text: contentText, diary: new StoryDiaryGate(parts[0], parts[1], parts[2], "", "")));
+                        commands.Add(new NarrativeCommand(NarrativeCommandKind.Diary, text: contentText, diary: new StoryDiaryGate(parts[0], parts[1], parts[2], "NONE", "NONE")));
                         break;
                     }
                     case "diary_gate":
                     {
                         var parts = SplitWhitespace(argument);
-                        if (parts.Length < 5) throw Error(sourceName, lineNumber, "@diary_gate requires episode_id, page_number, unlock_word, on_success_node, and on_fail_node.");
+                        if (parts.Length != 5) throw Error(sourceName, lineNumber, "@diary_gate requires exactly episode_id, page_number, unlock_word, on_success_node, and on_fail_node.");
                         commands.Add(new NarrativeCommand(NarrativeCommandKind.DiaryGate, diary: new StoryDiaryGate(parts[0], parts[1], parts[2], parts[3], parts[4])));
                         break;
                     }
