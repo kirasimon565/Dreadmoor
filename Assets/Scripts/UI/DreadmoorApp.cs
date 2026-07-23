@@ -4,6 +4,7 @@ using Dreadmoor.Core;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using TMPro;
 
 namespace Dreadmoor.UI
 {
@@ -338,16 +339,28 @@ namespace Dreadmoor.UI
             settingsLayoutEl.minHeight = 64f;
             settingsLayoutEl.preferredHeight = 64f;
 
-            var settings = UIFactory.Button(settingsContainer, "⚙", ShowSettings, new Color(0.02f, 0.06f, 0.08f, 0.46f),
-                new Color(1, 1, 1, 0.75f), 64, 36);
-            StyleWelcomeButton(settings, false);
-            // Make gear icon larger/bolder
-            var gearLabel = settings.GetComponentInChildren<Text>();
-            if (gearLabel != null)
+            var settingsGo = new GameObject("SettingsButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            settingsGo.transform.SetParent(settingsContainer, false);
+            var settingsText = settingsGo.GetComponent<TextMeshProUGUI>();
+            settingsText.text = "⚙";
+            settingsText.fontSize = 38;
+            settingsText.color = new Color(1, 1, 1, 0.75f);
+            settingsText.alignment = TextAlignmentOptions.Center;
+            settingsText.fontStyle = FontStyles.Bold;
+            UIFactory.Stretch(settingsText.rectTransform);
+
+            var settings = settingsGo.AddComponent<Button>();
+            var settingsColors = settings.colors;
+            settingsColors.normalColor = Color.white;
+            settingsColors.highlightedColor = new Color(0.88f, 0.94f, 1f, 1f);
+            settingsColors.pressedColor = new Color(0.72f, 0.8f, 0.84f, 1f);
+            settingsColors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.45f);
+            settings.colors = settingsColors;
+            settings.onClick.AddListener(() =>
             {
-                gearLabel.fontSize = 38;
-                gearLabel.fontStyle = FontStyle.Bold;
-            }
+                DreadmoorHaptics.Selection();
+                ShowSettings();
+            });
 
             // Spacer to separate center from right
             var rightSpacer = bottomBar.gameObject.AddComponent<LayoutElement>();
@@ -472,7 +485,14 @@ namespace Dreadmoor.UI
             var image = new GameObject("FogVideo", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage)).GetComponent<RawImage>();
             image.transform.SetParent(root, false);
             image.transform.SetAsFirstSibling();
-            UIFactory.Stretch(image.rectTransform);
+
+            var rect = image.rectTransform;
+            rect.anchorMin = new Vector2(0, 0);
+            rect.anchorMax = new Vector2(1, 1);
+            rect.offsetMin = new Vector2(0, 0);
+            rect.offsetMax = new Vector2(0, 0);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+
             image.texture = _videoTexture;
             image.color = Color.white;
             image.raycastTarget = false;
