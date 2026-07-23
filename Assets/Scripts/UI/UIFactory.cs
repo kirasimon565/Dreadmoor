@@ -21,6 +21,8 @@ namespace Dreadmoor.UI
         public static readonly Color EvidenceRed = Hex("#B71C1C");
         public static readonly Color Cyan = Hex("#00ACC1");
         public static readonly Color Caution = Hex("#FBC02D");
+        public static readonly Color HeroButtonBg = new Color(0.039f, 0.071f, 0.094f, 0.7f);
+        public static readonly Color InvestigatorCyan = Hex("#00E5FF");
 
         private static Font _displayFont;
         private static Font _bodyFont;
@@ -124,6 +126,72 @@ namespace Dreadmoor.UI
 
             var text = Text(image.transform, label, fontSize, textColor, TextAnchor.MiddleCenter, false, "Label");
             Stretch(text.transform as RectTransform, 18f);
+            return button;
+        }
+
+        /// <summary>
+        /// Creates the styled Hero "CONTINUE/START GAME" button matching reference:
+        /// Dark semi-transparent bg (rgba 10,18,24,0.7), rounded, thin cyan outline (#00E5FF),
+        /// Horizontal content: Cyan Play Icon ▶ + label in bright cyan with wide spacing.
+        /// </summary>
+        public static Button CreateHeroActionButton(Transform parent, string label, Action onClick)
+        {
+            // Container panel with dark bg
+            var container = Panel(parent, HeroButtonBg, "HeroButtonContainer", true);
+            container.gameObject.AddComponent<LayoutElement>().preferredHeight = 118f;
+
+            // Add thin cyan outline
+            var outline = container.gameObject.AddComponent<Outline>();
+            outline.effectColor = InvestigatorCyan;
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
+
+            // Add subtle inner shadow/glow effect via Shadow
+            var shadow = container.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0.9f, 1f, 0.15f);
+            shadow.effectDistance = new Vector2(0f, -6f);
+
+            var button = container.gameObject.AddComponent<Button>();
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(0.05f, 0.15f, 0.2f, 0.85f);
+            colors.pressedColor = new Color(0.02f, 0.1f, 0.15f, 0.9f);
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.45f);
+            button.colors = colors;
+            if (onClick != null) button.onClick.AddListener(() =>
+            {
+                DreadmoorHaptics.Selection();
+                onClick();
+            });
+
+            // Horizontal layout for icon + label
+            var hGroup = container.gameObject.AddComponent<HorizontalLayoutGroup>();
+            hGroup.childAlignment = TextAnchor.MiddleCenter;
+            hGroup.childControlWidth = true;
+            hGroup.childControlHeight = true;
+            hGroup.childForceExpandWidth = false;
+            hGroup.childForceExpandHeight = false;
+            hGroup.spacing = 18f;
+            hGroup.padding = new RectOffset(36, 42, 0, 0);
+
+            // Play Icon (▶)
+            var iconText = Text(container.transform, "▶", 42, InvestigatorCyan, TextAnchor.MiddleCenter, false, "PlayIcon");
+            iconText.fontStyle = FontStyle.Bold;
+            var iconLE = iconText.gameObject.AddComponent<LayoutElement>();
+            iconLE.minWidth = 42f;
+            iconLE.preferredWidth = 48f;
+            iconLE.flexibleWidth = 0f;
+
+            // Label text - bright cyan, wide letter-spacing approximated via font and padding
+            var labelText = Text(container.transform, label.ToUpperInvariant(), 32, InvestigatorCyan, TextAnchor.MiddleCenter, false, "ActionLabel");
+            labelText.font = SpaceFont;
+            labelText.fontStyle = FontStyle.Bold;
+            // Wide letter-spacing simulated by character width; use rich text spacing if supported
+            labelText.text = $"<mspace=0.65em>{label.ToUpperInvariant()}</mspace>"; // approx wide spacing (legacy Text ignores some, but helps)
+            var labelLE = labelText.gameObject.AddComponent<LayoutElement>();
+            labelLE.minWidth = 220f;
+            labelLE.preferredWidth = 320f;
+            labelLE.flexibleWidth = 1f;
+
             return button;
         }
 
