@@ -92,12 +92,13 @@ namespace Dreadmoor.UI
             raycastTarget = false;
         }
 
-        protected override void OnValidate()
+        #if UNITY_EDITOR
+        private void OnValidate()
         {
-            base.OnValidate();
             BuildSeed();
             SetVerticesDirty();
         }
+        #endif
 
         private void Update()
         {
