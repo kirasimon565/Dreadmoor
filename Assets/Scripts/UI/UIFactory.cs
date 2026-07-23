@@ -57,7 +57,7 @@ namespace Dreadmoor.UI
                 if (display != null && display != _tmpFont) fallbacks.Add(display);
                 var symbols = CreateOsSymbolFontAsset();
                 if (symbols != null) fallbacks.Add(symbols);
-                _tmpFont.fallbackFontAssets = fallbacks;
+                _tmpFont.fallbackFontAssetTable = fallbacks;
                 return _tmpFont;
             }
         }
