@@ -183,11 +183,12 @@ namespace Dreadmoor.UI
         }
 
         /// <summary>
-        /// Creates the Hero "CONTINUE / START GAME" action button matching the reference UI exactly:
-        /// rounded dark semi-transparent container rgba(10,18,24,0.75) with a thin #00E5FF border,
-        /// a cyan ▶ play icon on the left and a single-line bright-cyan TextMeshProUGUI label on the
-        /// right. All content children use explicit RectTransform anchors/sizes (no layout group) and
-        /// an assigned TMP font. No rich text tags (e.g. &lt;mspace&gt;) are used anywhere.
+        /// Creates the Hero "CONTINUE / START GAME" action button matching the Dart reference
+        /// (_HeroButton) exactly: a translucent rounded container (~64pt tall, subtle 6px corner
+        /// radius) with a thin cyan border, containing a centered horizontal group of
+        /// [play icon] + 12px gap + [label] — laid out via HorizontalLayoutGroup so the pair sits
+        /// together as one centered unit, not pinned to opposite edges. The icon is a procedural
+        /// triangle sprite (not a unicode glyph) so it never depends on font glyph coverage.
         /// </summary>
         public static Button CreateHeroActionButton(Transform parent, string label, Action onClick)
         {
@@ -221,49 +222,53 @@ namespace Dreadmoor.UI
                 onClick();
             });
 
-            // Centered content row with explicit rects — NO layout group, so the anchors below
-            // stay exactly where we put them.
-            var content = new GameObject("HeroButtonContent", typeof(RectTransform));
-            var contentRect = (RectTransform)content.transform;
+            // Centered content group: HorizontalLayoutGroup so icon+label sit together as one
+            // centered unit (matches the Dart Row(mainAxisAlignment.center) + SizedBox(width:12)).
+            var contentObject = new GameObject("HeroButtonContent", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            var contentRect = (RectTransform)contentObject.transform;
             contentRect.SetParent(container.transform, false);
-            contentRect.anchorMin = new Vector2(0.5f, 0f);
-            contentRect.anchorMax = new Vector2(0.5f, 1f);
-            contentRect.pivot = new Vector2(0.5f, 0.5f);
-            contentRect.offsetMin = new Vector2(-280f, 0f);
-            contentRect.offsetMax = new Vector2(280f, 0f);
+            contentRect.anchorMin = Vector2.zero;
+            contentRect.anchorMax = Vector2.one;
+            contentRect.offsetMin = Vector2.zero;
+            contentRect.offsetMax = Vector2.zero;
 
-            // Left: cyan play triangle icon. Built as a plain Image with a procedurally generated
-            // sprite (see TriangleSprite below) instead of a unicode glyph, so it renders correctly
-            // regardless of what fonts are available on device.
+            var contentLayout = contentObject.GetComponent<HorizontalLayoutGroup>();
+            contentLayout.childAlignment = TextAnchor.MiddleCenter;
+            contentLayout.spacing = 20f;
+            contentLayout.childControlWidth = false;
+            contentLayout.childControlHeight = false;
+            contentLayout.childForceExpandWidth = false;
+            contentLayout.childForceExpandHeight = false;
+
+            // Play icon — procedural triangle sprite, not a unicode glyph, so it renders correctly
+            // regardless of font support on device.
             var iconObject = new GameObject("PlayIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             iconObject.transform.SetParent(contentRect, false);
             var icon = iconObject.GetComponent<Image>();
             icon.sprite = TriangleSprite;
             icon.color = InvestigatorCyan;
             icon.raycastTarget = false;
-            var iconRect = icon.rectTransform;
-            iconRect.anchorMin = new Vector2(0f, 0.5f);
-            iconRect.anchorMax = new Vector2(0f, 0.5f);
-            iconRect.pivot = new Vector2(0.5f, 0.5f);
-            iconRect.anchoredPosition = new Vector2(20f, 0f);
-            iconRect.sizeDelta = new Vector2(28f, 28f);
+            iconObject.GetComponent<RectTransform>().sizeDelta = new Vector2(30f, 30f);
 
-            // Right: "CONTINUE"/"START GAME" label in bright cyan (#00E5FF) — plain ASCII text,
-            // single line, default TMP font, no unicode glyphs, no rich text tags.
+            // Label — "CONTINUE" / "START GAME", plain ASCII, default TMP font, no rich text.
             var text = TmpText(contentRect, (label ?? string.Empty).ToUpperInvariant(), 32, InvestigatorCyan,
                 TextAlignmentOptions.Center, "ActionLabel", FontStyles.Bold);
             text.characterSpacing = 8f;
             text.enableWordWrapping = false;
             text.overflowMode = TextOverflowModes.Overflow;
             text.richText = false;
-            var textRect = text.rectTransform;
-            textRect.anchorMin = new Vector2(0f, 0f);
-            textRect.anchorMax = new Vector2(1f, 1f);
-            textRect.pivot = new Vector2(0.5f, 0.5f);
-            textRect.offsetMin = new Vector2(92f, 0f);
-            textRect.offsetMax = new Vector2(-20f, 0f);
+            var textElement = text.gameObject.AddComponent<LayoutElement>();
+            textElement.preferredWidth = EstimateLabelWidth(label);
+            textElement.preferredHeight = 40f;
 
             return button;
+        }
+
+        private static float EstimateLabelWidth(string label)
+        {
+            var length = string.IsNullOrEmpty(label) ? 8 : label.Length;
+            return Mathf.Max(160f, length * 26f);
+        }
         }
 
         public static InputField Input(Transform parent, string placeholder, bool numeric = false, float preferredHeight = 90f)
