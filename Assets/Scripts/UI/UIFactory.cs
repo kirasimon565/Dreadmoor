@@ -32,6 +32,8 @@ namespace Dreadmoor.UI
         private static Font _brandFont;
         private static Font _spaceFont;
         private static Sprite _roundedSprite;
+        private static Sprite _triangleSprite;
+        private static Sprite _gearSprite;
         private static TMP_FontAsset _tmpFont;
 
         public static Font DisplayFont => _displayFont ?? (_displayFont = Resources.Load<Font>("assets/fonts/noir_display"));
@@ -40,66 +42,11 @@ namespace Dreadmoor.UI
         public static Font SpaceFont => _spaceFont ?? (_spaceFont = Resources.Load<Font>("assets/fonts/space_grotesk") ?? BodyFont ?? DisplayFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
 
         /// <summary>
-        /// Runtime-built TextMeshPro font asset with an explicit fallback chain so EVERY welcome
-        /// glyph is visible: the body font covers ASCII, the display font covers "▶" (U+25B6),
-        /// and an OS symbol font covers "⚙" (U+2699) which neither bundled font ships.
+        /// No dynamic/runtime TMP font asset generation. Use TextMeshPro's built-in default font
+        /// asset (ships with every TMP install, guaranteed to exist on device) so plain ASCII text
+        /// always renders. Do not attempt to build custom glyph atlases or fallback chains here.
         /// </summary>
-        public static TMP_FontAsset TMPFont
-        {
-            get
-            {
-                if (_tmpFont != null) return _tmpFont;
-                _tmpFont = CreateRuntimeFontAsset(SpaceFont ?? DisplayFont);
-                if (_tmpFont == null) return null;
-
-                var fallbacks = new List<TMP_FontAsset>();
-                var display = CreateRuntimeFontAsset(DisplayFont);
-                if (display != null && display != _tmpFont) fallbacks.Add(display);
-                var symbols = CreateOsSymbolFontAsset();
-                if (symbols != null) fallbacks.Add(symbols);
-                _tmpFont.fallbackFontAssetTable = fallbacks;
-                return _tmpFont;
-            }
-        }
-
-        private static TMP_FontAsset CreateRuntimeFontAsset(Font font)
-        {
-            if (font == null) return null;
-            try
-            {
-                var asset = TMP_FontAsset.CreateFontAsset(font);
-                if (asset != null) asset.name = font.name + "_RuntimeTMP";
-                return asset;
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning("Runtime TMP font asset could not be created: " + exception.Message);
-                return null;
-            }
-        }
-
-        private static TMP_FontAsset CreateOsSymbolFontAsset()
-        {
-            try
-            {
-                var installed = Font.GetOSInstalledFontNames();
-                if (installed == null || installed.Length == 0) return null;
-                var candidates = new[]
-                {
-                    "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", "Noto Sans Symbols",
-                    "Roboto", "DejaVu Sans", "Liberation Sans", "Arial Unicode MS", "Arial", "Helvetica"
-                };
-                var pick = candidates.FirstOrDefault(installed.Contains);
-                if (string.IsNullOrEmpty(pick)) return null;
-                var font = Font.CreateDynamicFontFromOSFont(pick, 42);
-                return font == null ? null : CreateRuntimeFontAsset(font);
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning("OS symbol TMP font unavailable: " + exception.Message);
-                return null;
-            }
-        }
+        public static TMP_FontAsset TMPFont => _tmpFont ?? (_tmpFont = TMP_Settings.defaultFontAsset);
 
         public static Canvas CreateCanvas()
         {
@@ -285,26 +232,30 @@ namespace Dreadmoor.UI
             contentRect.offsetMin = new Vector2(-280f, 0f);
             contentRect.offsetMax = new Vector2(280f, 0f);
 
-            // Left: cyan play triangle icon ▶ (bright cyan #00E5FF).
-            var icon = TmpText(contentRect, "▶", 34, InvestigatorCyan,
-                TextAlignmentOptions.Center, "PlayIcon", FontStyles.Bold);
+            // Left: cyan play triangle icon. Built as a plain Image with a procedurally generated
+            // sprite (see TriangleSprite below) instead of a unicode glyph, so it renders correctly
+            // regardless of what fonts are available on device.
+            var iconObject = new GameObject("PlayIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.transform.SetParent(contentRect, false);
+            var icon = iconObject.GetComponent<Image>();
+            icon.sprite = TriangleSprite;
+            icon.color = InvestigatorCyan;
+            icon.raycastTarget = false;
             var iconRect = icon.rectTransform;
-            iconRect.anchorMin = new Vector2(0f, 0f);
-            iconRect.anchorMax = new Vector2(0f, 1f);
+            iconRect.anchorMin = new Vector2(0f, 0.5f);
+            iconRect.anchorMax = new Vector2(0f, 0.5f);
             iconRect.pivot = new Vector2(0.5f, 0.5f);
-            iconRect.offsetMin = Vector2.zero;
-            iconRect.offsetMax = new Vector2(84f, 0f);
+            iconRect.anchoredPosition = new Vector2(20f, 0f);
+            iconRect.sizeDelta = new Vector2(28f, 28f);
 
-            // Right: "CONTINUE"/"START GAME" label in bright cyan (#00E5FF) — single line,
-            // explicit RectTransform anchors/size, assigned TMP font, no <mspace> tags.
+            // Right: "CONTINUE"/"START GAME" label in bright cyan (#00E5FF) — plain ASCII text,
+            // single line, default TMP font, no unicode glyphs, no rich text tags.
             var text = TmpText(contentRect, (label ?? string.Empty).ToUpperInvariant(), 32, InvestigatorCyan,
                 TextAlignmentOptions.Center, "ActionLabel", FontStyles.Bold);
-            text.characterSpacing = 20f;
+            text.characterSpacing = 8f;
             text.enableWordWrapping = false;
             text.overflowMode = TextOverflowModes.Overflow;
             text.richText = false;
-            var textFont = TMPFont;
-            if (textFont != null) text.font = textFont;
             var textRect = text.rectTransform;
             textRect.anchorMin = new Vector2(0f, 0f);
             textRect.anchorMax = new Vector2(1f, 1f);
@@ -498,6 +449,72 @@ namespace Dreadmoor.UI
             layout.preferredHeight = height;
             layout.minHeight = height;
             return layout;
+        }
+
+        public static Sprite GearIcon => GearSprite;
+
+        private static Sprite GearSprite
+        {
+            get
+            {
+                if (_gearSprite != null) return _gearSprite;
+                const int size = 64;
+                const float cx = size / 2f, cy = size / 2f;
+                const float rOuter = 20f;
+                const float rHub = 7.5f;
+                const float toothTip = 25f;
+                const int toothCount = 8;
+                const float toothHalfWidthDeg = 20f;
+                var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                texture.name = "GeneratedGearIcon";
+                texture.wrapMode = TextureWrapMode.Clamp;
+                var pixels = new Color32[size * size];
+                var step = 360f / toothCount;
+                for (var y = 0; y < size; y++)
+                for (var x = 0; x < size; x++)
+                {
+                    var dx = x + 0.5f - cx;
+                    var dy = y + 0.5f - cy;
+                    var r = Mathf.Sqrt(dx * dx + dy * dy);
+                    var angle = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg;
+                    if (angle < 0f) angle += 360f;
+                    var offsetFromTooth = Mathf.Abs(Mathf.Repeat(angle + step / 2f, step) - step / 2f);
+                    var inToothArc = offsetFromTooth <= toothHalfWidthDeg / 2f;
+
+                    var filled = (r <= rOuter && r > rHub) || (r > rOuter && r <= toothTip && inToothArc);
+                    pixels[y * size + x] = filled ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
+                }
+                texture.SetPixels32(pixels);
+                texture.Apply();
+                _gearSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100);
+                return _gearSprite;
+            }
+        }
+
+        private static Sprite TriangleSprite
+        {
+            get
+            {
+                if (_triangleSprite != null) return _triangleSprite;
+                const int size = 64;
+                var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                texture.name = "GeneratedPlayTriangle";
+                texture.wrapMode = TextureWrapMode.Clamp;
+                var pixels = new Color32[size * size];
+                for (var y = 0; y < size; y++)
+                for (var x = 0; x < size; x++)
+                {
+                    // Right-pointing triangle inscribed in the square.
+                    var nx = x / (float)size;
+                    var ny = y / (float)size;
+                    var inside = nx <= 1f - Mathf.Abs(ny - 0.5f) * 2f;
+                    pixels[y * size + x] = inside ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
+                }
+                texture.SetPixels32(pixels);
+                texture.Apply();
+                _triangleSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100);
+                return _triangleSprite;
+            }
         }
 
         private static Sprite RoundedSprite
