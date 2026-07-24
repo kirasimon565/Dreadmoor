@@ -329,21 +329,22 @@ namespace Dreadmoor.UI
         }
 
         /// <summary>
-        /// Bottom safe-area bar with true space-between horizontal alignment across three distinct
-        /// anchored elements: faint BLACKMOON label (far left), gear settings icon (center), and
-        /// a music indicator (far right) — animated bars when music is actually playing, a faint
-        /// "v1.0.0" fallback otherwise. Matches the Dart _MusicIndicator behavior exactly.
+        /// Bottom safe-area bar matching the Dart reference exactly:
+        ///   • Far left:  "BLACKMOON" — Michroma, 10px, letterSpacing 2.0, white @ 30%
+        ///   • Center:     settings_outlined gear icon — size 20, white @ 40%
+        ///   • Far right:  music indicator — 3 bars (width 2px, height 6→14px, spacing 2px,
+        ///                 rounded 1px, white @ 28%) when playing; "v1.0.0" (SpaceGrotesk
+        ///                 10px, letterSpacing 1.5, white @ 25%) when music is off.
         /// </summary>
         private void BuildWelcomeBottomBar(RectTransform root)
         {
             var bottomBar = UIFactory.Rect(root, "WelcomeBottomBar", new Vector2(0f, 0f), new Vector2(1f, 0f),
                 new Vector2(0f, 14f), new Vector2(0f, 96f));
 
-            // Far left — "BLACKMOON", faint grey TextMeshProUGUI. Slot width hugs the text so the
-            // space-between math stays exact (see equalizer slot on the right).
-            var blackmoon = UIFactory.TmpText(bottomBar, "BLACKMOON", 18, new Color(1f, 1f, 1f, 0.3f),
+            // Far left — "BLACKMOON", Michroma 10px, letterSpacing 2.0, white @ 30%
+            var blackmoon = UIFactory.TmpText(bottomBar, "BLACKMOON", 10, new Color(1f, 1f, 1f, 0.3f),
                 TextAlignmentOptions.Left, "BlackmoonLabel");
-            blackmoon.characterSpacing = 6f;
+            blackmoon.characterSpacing = 20f; // Dart: letterSpacing: 2.0 (TMP ×10)
             var blackmoonRect = blackmoon.rectTransform;
             blackmoonRect.anchorMin = new Vector2(0f, 0.5f);
             blackmoonRect.anchorMax = new Vector2(0f, 0.5f);
@@ -351,10 +352,7 @@ namespace Dreadmoor.UI
             blackmoonRect.anchoredPosition = new Vector2(30f, 0f);
             blackmoonRect.sizeDelta = new Vector2(190f, 52f);
 
-            // Center — settings gear icon button. Small and faint, matching Icons.settings_outlined
-            // at opacity 0.4 in the reference. Built as a plain Image with a procedurally generated
-            // gear sprite instead of a unicode "⚙" glyph, so it renders correctly regardless of font
-            // support on device.
+            // Center — settings icon, size 20, white @ 40%
             var gearObject = new GameObject("SettingsButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             gearObject.transform.SetParent(bottomBar, false);
             var gear = gearObject.GetComponent<Image>();
@@ -366,7 +364,7 @@ namespace Dreadmoor.UI
             gearRect.anchorMax = new Vector2(0.5f, 0.5f);
             gearRect.pivot = new Vector2(0.5f, 0.5f);
             gearRect.anchoredPosition = Vector2.zero;
-            gearRect.sizeDelta = new Vector2(30f, 30f);
+            gearRect.sizeDelta = new Vector2(20f, 20f); // Dart: size: 20
 
             var settings = gear.gameObject.AddComponent<Button>();
             settings.targetGraphic = gear;
@@ -382,8 +380,7 @@ namespace Dreadmoor.UI
                 ShowSettings();
             });
 
-            // Far right — music indicator. The slot mirrors the BLACKMOON slot width so the gear
-            // ends up dead-center with perfectly even space-between gaps.
+            // Far right — music indicator slot
             var indicatorSlot = UIFactory.Rect(bottomBar, "MusicIndicator", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
                 Vector2.zero, Vector2.zero);
             indicatorSlot.pivot = new Vector2(1f, 0.5f);
@@ -393,30 +390,37 @@ namespace Dreadmoor.UI
             var musicPlaying = _music != null && _music.isPlaying;
             if (musicPlaying)
             {
-                // Three animated bars, faint, matching the Dart reference's opacity/scale.
-                var barOffsets = new[] { -42f, -23f, -4f };
+                // 3 bars: width 2px, height 6→14px, spacing 2px, white @ 28%, rounded 1px
+                // Dart: Row(spacing: 2) with 3 × Container(width: 2, height: 6 + value*8)
+                var barSpacing = 2f;
+                var barWidth = 2f;
+                var totalWidth = 3f * barWidth + 2f * barSpacing; // 10px total
+                var startX = -(totalWidth - barWidth) * 0.5f;       // center the group
                 for (var i = 0; i < 3; i++)
                 {
                     var eqBar = UIFactory.Panel(indicatorSlot, new Color(1f, 1f, 1f, 0.28f), "EqBar" + i);
                     eqBar.raycastTarget = false;
+                    // Add rounded sprite for BorderRadius.circular(1) equivalent
+                    eqBar.sprite = UIFactory.RoundedSprite;
+                    eqBar.type = Image.Type.Sliced;
                     var eqRect = eqBar.rectTransform;
                     eqRect.anchorMin = new Vector2(1f, 0f);
                     eqRect.anchorMax = new Vector2(1f, 0f);
                     eqRect.pivot = new Vector2(0.5f, 0f);
-                    eqRect.anchoredPosition = new Vector2(barOffsets[i], 6f);
-                    eqRect.sizeDelta = new Vector2(5f, 14f);
+                    eqRect.anchoredPosition = new Vector2(startX + i * (barWidth + barSpacing), 6f);
+                    eqRect.sizeDelta = new Vector2(barWidth, 14f); // initial height, animator overrides
                     var bar = eqBar.gameObject.AddComponent<EqualizerBarAnimator>();
                     bar.periodSeconds = 0.5f + i * 0.1f;
-                    bar.minHeight = 8f;
-                    bar.maxHeight = 22f;
+                    bar.minHeight = 6f;   // Dart: 6 + 0*8
+                    bar.maxHeight = 14f;  // Dart: 6 + 1*8
                 }
             }
             else
             {
-                // Fallback: faint version string, matching the Dart reference exactly.
-                var version = UIFactory.TmpText(indicatorSlot, "v1.0.0", 15, new Color(1f, 1f, 1f, 0.25f),
+                // Fallback: "v1.0.0", SpaceGrotesk 10px, letterSpacing 1.5, white @ 25%
+                var version = UIFactory.TmpText(indicatorSlot, "v1.0.0", 10, new Color(1f, 1f, 1f, 0.25f),
                     TextAlignmentOptions.Right, "VersionLabel");
-                version.characterSpacing = 2f;
+                version.characterSpacing = 15f; // Dart: letterSpacing: 1.5 (TMP ×10)
                 var versionRect = version.rectTransform;
                 versionRect.anchorMin = Vector2.zero;
                 versionRect.anchorMax = Vector2.one;
