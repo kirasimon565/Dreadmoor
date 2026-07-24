@@ -346,17 +346,21 @@ namespace Dreadmoor.UI
             blackmoonRect.anchoredPosition = new Vector2(30f, 0f);
             blackmoonRect.sizeDelta = new Vector2(190f, 52f);
 
-            // Center — settings gear icon button. A TextMeshProUGUI displaying "⚙" with a Button
-            // attached; deliberately NO default UI Image. Hit area is comfortably ≥ 48x48.
-            var gear = UIFactory.TmpText(bottomBar, "⚙", 34, new Color(1f, 1f, 1f, 0.72f),
-                TextAlignmentOptions.Center, "SettingsButton", FontStyles.Bold);
+            // Center — settings gear icon button. Built as a plain Image with a procedurally
+            // generated gear sprite (see UIFactory.GearSprite) instead of a unicode "⚙" glyph, so
+            // it renders correctly regardless of font support and matches the reference screenshot.
+            var gearObject = new GameObject("SettingsButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            gearObject.transform.SetParent(bottomBar, false);
+            var gear = gearObject.GetComponent<Image>();
+            gear.sprite = UIFactory.GearIcon;
+            gear.color = new Color(1f, 1f, 1f, 0.72f);
             gear.raycastTarget = true;
             var gearRect = gear.rectTransform;
             gearRect.anchorMin = new Vector2(0.5f, 0.5f);
             gearRect.anchorMax = new Vector2(0.5f, 0.5f);
             gearRect.pivot = new Vector2(0.5f, 0.5f);
             gearRect.anchoredPosition = Vector2.zero;
-            gearRect.sizeDelta = new Vector2(56f, 56f);
+            gearRect.sizeDelta = new Vector2(40f, 40f);
 
             var settings = gear.gameObject.AddComponent<Button>();
             settings.targetGraphic = gear;
