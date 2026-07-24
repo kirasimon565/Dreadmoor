@@ -183,96 +183,66 @@ namespace Dreadmoor.UI
         }
 
         /// <summary>
-        /// Creates the Hero "CONTINUE / START GAME" action button matching the Dart _HeroButton
-        /// specification exactly:
-        ///   • Container: fixed 64px height, 6px rounded corners, dark surface fill @ 25% opacity
-        ///   • Border: thin cyan outline (0.8px, #00E5FF @ 40% opacity; 80% on press)
-        ///   • Press state: background tints to cyan @ 12% opacity (matching Dart _pressed toggle)
-        ///   • Content row: centered [ ▶ icon (size 22) | 12px gap | SpaceGrotesk bold label
-        ///     (size 16, letter-spacing 3.0) ] all at 90% cyan
-        /// Unity note: Dart's BackdropFilter blur & AnimatedScale(0.97) have no direct
-        /// Unity UI equivalent without a custom shader — omitted intentionally.
+        /// Creates the Hero "CONTINUE / START GAME" action button using UnityEngine.UI.Text
+        /// and a dynamic OS system font so the label renders without TextMeshPro dependencies.
         /// </summary>
         public static GameObject CreateHeroActionButton(Transform parent, string labelText, UnityEngine.Events.UnityAction onClick)
         {
-            // 1. Container Button — Height: 64px, rounded 6px corners, dark surface @ 25%
-            var buttonObj = new GameObject("HeroActionButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            // 1. Container Button (Fixed 64px height)
+            var buttonObj = new GameObject("HeroActionButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
             buttonObj.transform.SetParent(parent, false);
 
-            var bgImage = buttonObj.GetComponent<Image>();
-            // Dart: DreadmoorColors.surface(brightness).withOpacity(0.25) → dark SlateSurface @ 25%
-            bgImage.color = new Color(SlateSurface.r, SlateSurface.g, SlateSurface.b, 0.25f);
-            // Rounded 6px corners — matches Dart BorderRadius.circular(6)
-            bgImage.sprite = RoundedSprite;
-            bgImage.type = Image.Type.Sliced;
+            var bgImage = buttonObj.GetComponent<UnityEngine.UI.Image>();
+            bgImage.color = new Color(0.04f, 0.07f, 0.09f, 0.25f);
             bgImage.raycastTarget = true;
 
-            // Thin cyan outline — 0.8px border, 40% opacity (Dart: border: Border.all(width: 0.8))
-            var outline = buttonObj.AddComponent<Outline>();
-            outline.effectColor = new Color(InvestigatorCyan.r, InvestigatorCyan.g, InvestigatorCyan.b, 0.4f);
-            outline.effectDistance = new Vector2(0.8f, -0.8f);
+            var outline = buttonObj.AddComponent<UnityEngine.UI.Outline>();
+            outline.effectColor = new Color(0f, 0.9f, 1f, 0.4f);
+            outline.effectDistance = new Vector2(1f, -1f);
 
-            var btn = buttonObj.GetComponent<Button>();
+            var btn = buttonObj.GetComponent<UnityEngine.UI.Button>();
             btn.targetGraphic = bgImage;
-            // Press-state colors matching Dart _pressed toggle:
-            //   normal  → surface @ 25%, border 40%
-            //   pressed → investigatorCyan @ 12% tint, border 80% (handled via Outline color swap below)
-            var colors = btn.colors;
-            colors.normalColor = Color.white;                                     // multiplicative: keeps base color
-            colors.highlightedColor = new Color(1f, 1f, 1f, 1f);
-            colors.pressedColor = new Color(0f, 0.898f, 1f, 0.48f);              // cyan tint @ 12% over dark base ≈ Dart
-            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.45f);
-            colors.fadeDuration = 0.1f;
-            btn.colors = colors;
 
             var buttonRect = buttonObj.GetComponent<RectTransform>();
-            buttonRect.sizeDelta = new Vector2(0f, 64f); // Fixed 64px height — matches Dart height: 64
+            buttonRect.sizeDelta = new Vector2(0f, 64f);
 
-            // 2. Horizontal Content Row — centered, 12px spacing (Dart: Row + SizedBox(width: 12))
-            var contentObj = new GameObject("ContentRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            // 2. Horizontal Layout Group
+            var contentObj = new GameObject("ContentRow", typeof(RectTransform), typeof(UnityEngine.UI.HorizontalLayoutGroup));
             contentObj.transform.SetParent(buttonObj.transform, false);
+
             var contentRect = contentObj.GetComponent<RectTransform>();
             contentRect.anchorMin = Vector2.zero;
             contentRect.anchorMax = Vector2.one;
             contentRect.offsetMin = Vector2.zero;
             contentRect.offsetMax = Vector2.zero;
 
-            var layout = contentObj.GetComponent<HorizontalLayoutGroup>();
-            layout.childAlignment = TextAnchor.MiddleCenter;   // Dart: MainAxisAlignment.center
-            layout.spacing = 12f;                              // Dart: SizedBox(width: 12)
+            var layout = contentObj.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.spacing = 12f;
             layout.childControlWidth = false;
             layout.childControlHeight = false;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
 
-            // 3. Play Icon — ▶ glyph, size 22, Cyan @ 90% (Dart: Icons.play_arrow_rounded, size: 22)
-            var iconObj = new GameObject("PlayIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-            iconObj.transform.SetParent(contentObj.transform, false);
-            var iconText = iconObj.GetComponent<TextMeshProUGUI>();
-            iconText.text = "▶";
-            iconText.fontSize = 22;                                                    // Dart: size: 22
-            iconText.color = new Color(InvestigatorCyan.r, InvestigatorCyan.g, InvestigatorCyan.b, 0.9f);
-            iconText.alignment = TextAlignmentOptions.Center;
-            iconText.raycastTarget = false;
-            iconObj.GetComponent<RectTransform>().sizeDelta = new Vector2(24f, 24f);
-
-            // 4. Label — SpaceGrotesk, Bold, size 16, letterSpacing 3.0, Cyan @ 90%
-            var textObj = new GameObject("ButtonLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            // 3. Built-in OS/Google System Font Text
+            var textObj = new GameObject("ButtonLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(UnityEngine.UI.Text));
             textObj.transform.SetParent(contentObj.transform, false);
-            var label = textObj.GetComponent<TextMeshProUGUI>();
-            label.text = labelText;
-            label.fontSize = 16;                                                       // Dart: fontSize: 16
-            label.characterSpacing = 30f;                                              // Dart: letterSpacing: 3.0 (TMP ×10)
-            label.fontStyle = FontStyles.Bold;                                         // Dart: fontWeight: FontWeight.bold
-            label.color = new Color(InvestigatorCyan.r, InvestigatorCyan.g, InvestigatorCyan.b, 0.9f);
-            label.alignment = TextAlignmentOptions.Left;
-            label.enableWordWrapping = false;
-            label.overflowMode = TextOverflowModes.Overflow;
+
+            var label = textObj.GetComponent<UnityEngine.UI.Text>();
+
+            // Loads system font directly from OS (Android/Google default)
+            label.font = Font.CreateDynamicFontFromOSFont("Sans-Serif", 18) ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.text = labelText; // Plain ASCII "CONTINUE" or "START GAME"
+            label.fontSize = 20;
+            label.fontStyle = FontStyle.Bold;
+            label.color = new Color(0f, 0.9f, 1f, 0.9f); // Bright Cyan #00E5FF
+            label.alignment = TextAnchor.MiddleCenter;
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
             label.raycastTarget = false;
-            textObj.GetComponent<RectTransform>().sizeDelta = new Vector2(210f, 28f);
+
+            var textRect = textObj.GetComponent<RectTransform>();
+            textRect.sizeDelta = new Vector2(240f, 32f);
 
             btn.onClick.AddListener(onClick);
-
             return buttonObj;
         }
 
