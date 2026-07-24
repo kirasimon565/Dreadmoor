@@ -224,11 +224,6 @@ namespace Dreadmoor.UI
         {
             var root = NewScreen(AppView.Welcome, Color.black);
 
-            BuildWelcomeBackdrop(root);
-            BuildWelcomeLogo(root);
-            BuildWelcomeHeroAction(root);
-            BuildWelcomeBottomBar(root);
-
             PlayMusic("assets/music/welcome_theme.mp3");
 
             // welcome_theme.mp3 must loop infinitely as pure 2D audio the whole time the
@@ -238,6 +233,11 @@ namespace Dreadmoor.UI
                 _music.loop = true;
                 _music.spatialBlend = 0f;
             }
+
+            BuildWelcomeBackdrop(root);
+            BuildWelcomeLogo(root);
+            BuildWelcomeHeroAction(root);
+            BuildWelcomeBottomBar(root);
         }
 
         /// <summary>
@@ -261,12 +261,12 @@ namespace Dreadmoor.UI
                 still.transform.SetAsFirstSibling();
             }
 
-            var glitch = UIFactory.Background(root, "assets/ui/glitch_overlay.png", new Color(1, 1, 1, 0.055f));
+            var glitch = UIFactory.Background(root, "assets/ui/glitch_overlay.png", new Color(1, 1, 1, 0.04f));
             glitch.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             if (_store == null || !_store.Data.settings.reducedMotion)
                 glitch.gameObject.AddComponent<GlitchOverlayAnimator>().intensity = 0.12f;
 
-            var shade = UIFactory.Panel(root, new Color(0, 0, 0, 0.58f), "DarkGlassShade");
+            var shade = UIFactory.Panel(root, new Color(0, 0, 0, 0.65f), "DarkGlassShade");
             UIFactory.Stretch(shade.rectTransform);
             shade.raycastTarget = false;
 
@@ -312,13 +312,17 @@ namespace Dreadmoor.UI
             }
         }
 
-        /// <summary>Lower-middle hero action ("CONTINUE"/"START GAME") with horizontal padding.</summary>
+        /// <summary>
+        /// Lower-middle hero action ("CONTINUE"/"START GAME"). Anchored to ~33%-40% up from the
+        /// bottom edge — measured directly against the reference screenshot, not guessed; the
+        /// previous 15.5%-22.5% anchor sat far too close to the bottom bar.
+        /// </summary>
         private void BuildWelcomeHeroAction(RectTransform root)
         {
             var action = UIFactory.CreateHeroActionButton(root, _store.HasActiveGame ? "CONTINUE" : "START GAME", BeginFromWelcome);
             var actionRect = action.GetComponent<RectTransform>();
-            actionRect.anchorMin = new Vector2(0.07f, 0.155f);
-            actionRect.anchorMax = new Vector2(0.93f, 0.225f);
+            actionRect.anchorMin = new Vector2(0.07f, 0.328f);
+            actionRect.anchorMax = new Vector2(0.93f, 0.403f);
             actionRect.pivot = new Vector2(0.5f, 0.5f);
             actionRect.offsetMin = Vector2.zero;
             actionRect.offsetMax = Vector2.zero;
@@ -326,8 +330,9 @@ namespace Dreadmoor.UI
 
         /// <summary>
         /// Bottom safe-area bar with true space-between horizontal alignment across three distinct
-        /// anchored elements: faint BLACKMOON label (far left), TMP gear settings button (center),
-        /// and a three-bar vertical equalizer graphic (far right).
+        /// anchored elements: faint BLACKMOON label (far left), gear settings icon (center), and
+        /// a music indicator (far right) — animated bars when music is actually playing, a faint
+        /// "v1.0.0" fallback otherwise. Matches the Dart _MusicIndicator behavior exactly.
         /// </summary>
         private void BuildWelcomeBottomBar(RectTransform root)
         {
@@ -336,7 +341,7 @@ namespace Dreadmoor.UI
 
             // Far left — "BLACKMOON", faint grey TextMeshProUGUI. Slot width hugs the text so the
             // space-between math stays exact (see equalizer slot on the right).
-            var blackmoon = UIFactory.TmpText(bottomBar, "BLACKMOON", 18, new Color(0.65f, 0.68f, 0.72f, 0.72f),
+            var blackmoon = UIFactory.TmpText(bottomBar, "BLACKMOON", 18, new Color(1f, 1f, 1f, 0.3f),
                 TextAlignmentOptions.Left, "BlackmoonLabel");
             blackmoon.characterSpacing = 6f;
             var blackmoonRect = blackmoon.rectTransform;
@@ -346,21 +351,22 @@ namespace Dreadmoor.UI
             blackmoonRect.anchoredPosition = new Vector2(30f, 0f);
             blackmoonRect.sizeDelta = new Vector2(190f, 52f);
 
-            // Center — settings gear icon button. Built as a plain Image with a procedurally
-            // generated gear sprite (see UIFactory.GearSprite) instead of a unicode "⚙" glyph, so
-            // it renders correctly regardless of font support and matches the reference screenshot.
+            // Center — settings gear icon button. Small and faint, matching Icons.settings_outlined
+            // at opacity 0.4 in the reference. Built as a plain Image with a procedurally generated
+            // gear sprite instead of a unicode "⚙" glyph, so it renders correctly regardless of font
+            // support on device.
             var gearObject = new GameObject("SettingsButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             gearObject.transform.SetParent(bottomBar, false);
             var gear = gearObject.GetComponent<Image>();
             gear.sprite = UIFactory.GearIcon;
-            gear.color = new Color(1f, 1f, 1f, 0.72f);
+            gear.color = new Color(1f, 1f, 1f, 0.4f);
             gear.raycastTarget = true;
             var gearRect = gear.rectTransform;
             gearRect.anchorMin = new Vector2(0.5f, 0.5f);
             gearRect.anchorMax = new Vector2(0.5f, 0.5f);
             gearRect.pivot = new Vector2(0.5f, 0.5f);
             gearRect.anchoredPosition = Vector2.zero;
-            gearRect.sizeDelta = new Vector2(40f, 40f);
+            gearRect.sizeDelta = new Vector2(30f, 30f);
 
             var settings = gear.gameObject.AddComponent<Button>();
             settings.targetGraphic = gear;
@@ -376,27 +382,46 @@ namespace Dreadmoor.UI
                 ShowSettings();
             });
 
-            // Far right — three-bar vertical equalizer graphic. The slot mirrors the BLACKMOON
-            // slot width so the gear ends up dead-center with perfectly even space-between gaps;
-            // the bars themselves are anchored flush against the slot's right edge.
-            var equalizer = UIFactory.Rect(bottomBar, "MusicEqualizer", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+            // Far right — music indicator. The slot mirrors the BLACKMOON slot width so the gear
+            // ends up dead-center with perfectly even space-between gaps.
+            var indicatorSlot = UIFactory.Rect(bottomBar, "MusicIndicator", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
                 Vector2.zero, Vector2.zero);
-            equalizer.pivot = new Vector2(1f, 0.5f);
-            equalizer.anchoredPosition = new Vector2(-30f, 0f);
-            equalizer.sizeDelta = new Vector2(190f, 52f);
+            indicatorSlot.pivot = new Vector2(1f, 0.5f);
+            indicatorSlot.anchoredPosition = new Vector2(-30f, 0f);
+            indicatorSlot.sizeDelta = new Vector2(190f, 52f);
 
-            var barHeights = new[] { 26f, 38f, 32f };
-            var barOffsets = new[] { -42f, -23f, -4f };
-            for (var i = 0; i < 3; i++)
+            var musicPlaying = _music != null && _music.isPlaying;
+            if (musicPlaying)
             {
-                var eqBar = UIFactory.Panel(equalizer, new Color(0.55f, 0.58f, 0.62f, 0.65f), "EqBar" + i);
-                eqBar.raycastTarget = false;
-                var eqRect = eqBar.rectTransform;
-                eqRect.anchorMin = new Vector2(1f, 0f);
-                eqRect.anchorMax = new Vector2(1f, 0f);
-                eqRect.pivot = new Vector2(0.5f, 0f);
-                eqRect.anchoredPosition = new Vector2(barOffsets[i], 6f);
-                eqRect.sizeDelta = new Vector2(7f, barHeights[i]);
+                // Three animated bars, faint, matching the Dart reference's opacity/scale.
+                var barOffsets = new[] { -42f, -23f, -4f };
+                for (var i = 0; i < 3; i++)
+                {
+                    var eqBar = UIFactory.Panel(indicatorSlot, new Color(1f, 1f, 1f, 0.28f), "EqBar" + i);
+                    eqBar.raycastTarget = false;
+                    var eqRect = eqBar.rectTransform;
+                    eqRect.anchorMin = new Vector2(1f, 0f);
+                    eqRect.anchorMax = new Vector2(1f, 0f);
+                    eqRect.pivot = new Vector2(0.5f, 0f);
+                    eqRect.anchoredPosition = new Vector2(barOffsets[i], 6f);
+                    eqRect.sizeDelta = new Vector2(5f, 14f);
+                    var bar = eqBar.gameObject.AddComponent<EqualizerBarAnimator>();
+                    bar.periodSeconds = 0.5f + i * 0.1f;
+                    bar.minHeight = 8f;
+                    bar.maxHeight = 22f;
+                }
+            }
+            else
+            {
+                // Fallback: faint version string, matching the Dart reference exactly.
+                var version = UIFactory.TmpText(indicatorSlot, "v1.0.0", 15, new Color(1f, 1f, 1f, 0.25f),
+                    TextAlignmentOptions.Right, "VersionLabel");
+                version.characterSpacing = 2f;
+                var versionRect = version.rectTransform;
+                versionRect.anchorMin = Vector2.zero;
+                versionRect.anchorMax = Vector2.one;
+                versionRect.offsetMin = Vector2.zero;
+                versionRect.offsetMax = Vector2.zero;
             }
         }
 
@@ -674,6 +699,34 @@ namespace Dreadmoor.UI
         private Color Surface => IsLight ? UIFactory.PaperCard : UIFactory.SlateSurface;
         private Color Background => IsLight ? UIFactory.PaperBackground : UIFactory.SlateBackground;
         private int UnreadCount => _store.Data.notifications.FindAll(item => !item.isRead).Count;
+    }
+
+    /// <summary>Drives a single music-indicator bar's height with an independent sine pulse,
+    /// mirroring the Dart reference's three separately-timed AnimationControllers.</summary>
+    public sealed class EqualizerBarAnimator : MonoBehaviour
+    {
+        public float periodSeconds = 0.6f;
+        public float minHeight = 8f;
+        public float maxHeight = 22f;
+
+        private RectTransform _rect;
+        private float _phase;
+
+        private void Awake()
+        {
+            _rect = transform as RectTransform;
+            _phase = UnityEngine.Random.value * Mathf.PI * 2f;
+        }
+
+        private void Update()
+        {
+            if (_rect == null || periodSeconds <= 0f) return;
+            var t = (Mathf.Sin(Time.unscaledTime * (Mathf.PI * 2f / periodSeconds) + _phase) + 1f) * 0.5f;
+            var height = Mathf.Lerp(minHeight, maxHeight, t);
+            var size = _rect.sizeDelta;
+            size.y = height;
+            _rect.sizeDelta = size;
+        }
     }
 
     public sealed class SafeAreaFitter : MonoBehaviour
