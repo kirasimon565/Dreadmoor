@@ -269,7 +269,6 @@ namespace Dreadmoor.UI
             var length = string.IsNullOrEmpty(label) ? 8 : label.Length;
             return Mathf.Max(160f, length * 26f);
         }
-        }
 
         public static InputField Input(Transform parent, string placeholder, bool numeric = false, float preferredHeight = 90f)
         {
