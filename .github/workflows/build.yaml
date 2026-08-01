@@ -95,7 +95,7 @@ jobs:
             Library-${{ runner.os }}-6000.0.38f1-
 
       - name: Build signed Android ${{ matrix.name }}
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5
         with:
           unityVersion: 6000.0.38f1
           targetPlatform: Android
